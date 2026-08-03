@@ -1,0 +1,143 @@
+FlashVEP Phase 0 environment snapshot
+Captured: 2026-08-03 13:36 KST
+Working directory: /home/esjung/MLLM-EP
+
+REPOSITORY
+archive_root=/home/esjung/MLLM-EP
+git_repository=false
+original_repository=/home/work/euisoo.jung/mllm-moe-ep (absent)
+git_commit=UNAVAILABLE
+git_worktree_status=UNAVAILABLE
+
+HOST
+hostname=cloud-0n58xq
+kernel=Linux 5.15.0-174-generic x86_64
+filesystem=/dev/vda1 size=9.7T used=6.4T available=3.4T
+
+BASE PYTHON AT AUDIT START
+executable=/home/esjung/anaconda3/bin/python3
+version=3.14.6
+active_environment=base
+gpu_runtime_packages=NOT_INSTALLED
+
+ISOLATED POC ENVIRONMENT
+prefix=/home/esjung/anaconda3/envs/flashvep-poc
+python=3.12.13
+conda=26.5.3
+uv=0.12.1
+torch=2.11.0+cu129
+torch_cuda_runtime=12.9
+torch_cuda_available=true (with CUDA_VISIBLE_DEVICES=1,2,3,4,5,6,7)
+torch_visible_device_count=7
+nccl=2.28.9
+vllm_distribution=0.20.0+cu129
+vllm_import_version=0.20.0
+transformers=5.14.1
+triton=3.6.0
+flash-attn=NOT_INSTALLED
+flashinfer-python=0.6.8.post1
+
+CUDA TOOLING
+nvidia_driver=570.211.01
+nvidia_smi_reported_cuda=12.8
+nvcc=NOT_FOUND
+nsight_systems=2024.6.2.225-246235244400v0
+
+GPU POLICY
+physical_gpu_0=FORBIDDEN_FOR_THIS_POC
+allowed_physical_gpus=1,2,3,4,5,6,7
+logical_to_physical_mapping=0->1,1->2,2->3,3->4,4->5,5->6,6->7
+
+GPU INVENTORY
+count=8
+gpu_0=NVIDIA H100 80GB HBM3, 81559 MiB; unrelated process present; excluded
+gpu_1=NVIDIA H100 80GB HBM3, 81559 MiB; 0 MiB used after smoke attempt
+gpu_2=NVIDIA H100 80GB HBM3, 81559 MiB; 0 MiB used after smoke attempt
+gpu_3=NVIDIA H100 80GB HBM3, 81559 MiB; 0 MiB used after smoke attempt
+gpu_4=NVIDIA H100 80GB HBM3, 81559 MiB; 0 MiB used after smoke attempt
+gpu_5=NVIDIA H100 80GB HBM3, 81559 MiB; 0 MiB used after smoke attempt
+gpu_6=NVIDIA H100 80GB HBM3, 81559 MiB; 0 MiB used after smoke attempt
+gpu_7=NVIDIA H100 80GB HBM3, 81559 MiB; 0 MiB used after smoke attempt
+
+TOPOLOGY
+all_gpu_pairs=NV18
+gpu_nic_pair=PIX for matching indices, PHB otherwise
+cpu_affinity=0-191 for all GPUs
+numa_node=0 for all GPUs
+
+MODEL CONFIG (weights not downloaded)
+identifier=Qwen/Qwen3-VL-30B-A3B-Instruct
+architecture=Qwen3VLMoeForConditionalGeneration
+model_type=qwen3_vl_moe
+layers=48
+hidden_size=2048
+attention_heads=32
+kv_heads=4
+experts=128
+experts_per_token=8
+expert_intermediate_size=768
+vision_start_token_id=151652
+vision_end_token_id=151653
+image_token_id=151655
+video_token_id=151656
+
+ASSETS
+models_directory=ABSENT
+data_directory=ABSENT
+historical_checkpoint=models/Qwen3-VL-30B-A3B-Instruct (absent)
+
+SMOKE ATTEMPT
+visible_physical_gpus=1,2,3,4,5,6,7
+requested_tp=7
+requested_dp=1
+requested_pp=1
+expert_parallel_enabled=true
+status=BLOCKED_CONFIG_VALIDATION
+exit_code=1
+error=Total number of attention heads (32) must be divisible by tensor parallel size (7).
+weights_loaded=false
+gpu_workers_started=false
+output_written=false
+
+PHASE 1
+warmups_completed=0
+measured_iterations=0
+latencies_measured=false
+profiling_overhead_measured=false
+oracle_headroom_computed=false
+
+TP4/EP4 ADDENDUM (2026-08-03 14:55 KST)
+authorization=physical GPUs 4,5,6,7 only
+logical_to_physical_mapping=0->4,1->5,2->6,3->7
+torch_visible_device_count=4
+tp=4
+effective_ep=4
+dp=1
+pp=1
+local_experts_per_rank=32
+checkpoint_identifier=Qwen/Qwen3-VL-30B-A3B-Instruct
+checkpoint_snapshot=/home/esjung/.cache/huggingface/hub/models--Qwen--Qwen3-VL-30B-A3B-Instruct/snapshots/9c4b90e1e4ba969fd3b5378b57d966d725f1b86c
+checkpoint_size=57.87_GiB
+checkpoint_shards=13
+attention_backend=FlashAttention_3_via_vLLM
+moe_backend_auto=FlashInfer_CUTLASS_Unquantized_BLOCKED_at_initial_dummy_forward
+moe_backend_measured=Triton_Unquantized
+prepare_finalize_backend=MoEPrepareAndFinalizeNoDPEPModular
+dispatch_collective=ABSENT_for_TP4_EP4_DP1
+combine_collective=tensor_parallel_all_reduce
+input=one_fixed_896x896_gray_image_plus_fixed_text
+prompt_tokens=799
+visual_tokens=784_indices_4_through_787
+vision_start_token=151652_at_index_3
+vision_end_token=151653_at_index_788
+text_and_special_tokens=15
+warmups_completed=5_per_pass
+measured_iterations=20_per_pass
+baseline_request_median_ms=75.8810705
+detailed_profile_request_median_ms=121.1524885
+lean_profile_request_median_ms=95.172841
+detailed_profile_overhead_percent=59.6610
+lean_profile_overhead_percent=25.4237
+oracle_speedup_median=1.0349101_estimate_only
+exposed_nonexpert_fraction_median=0.5592332
+phase2_gate=FAIL

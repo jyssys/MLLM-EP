@@ -1,0 +1,127 @@
+{
+  "setup": {
+    "batch_size": 32,
+    "max_num_seqs": 32,
+    "max_num_batched_tokens": 131072,
+    "kv_cache_memory_bytes": 8589934592,
+    "max_tokens": 1,
+    "samples": {
+      "ChartQA": 64,
+      "MMMU": 64,
+      "MMStar": 64
+    },
+    "num_batches": 6,
+    "total_prefill_tokens": 313440,
+    "wall_timing_source": "outputs/asis_tobe_b32_wall",
+    "moe_cuda_timing_source": "outputs/asis_tobe_b32_moetiming"
+  },
+  "clean_wall_latency": {
+    "asis_total_elapsed_s": 42.39551316015422,
+    "tobe_total_elapsed_s": 42.8201211001724,
+    "elapsed_reduction_pct": -1.0015398054368907,
+    "asis_prefill_tokens_per_s": 7393.235194864658,
+    "tobe_prefill_tokens_per_s": 7319.923249790577,
+    "throughput_gain_pct": -0.9916084520752655
+  },
+  "clean_request_timing_mean_s": {
+    "ttft": {
+      "asis": 3.1873152976234755,
+      "tobe": 3.3592789644996324,
+      "change_pct_down": -5.395251201046114
+    },
+    "scheduled_to_first_token_prefill_proxy": {
+      "asis": 1.1335351774080966,
+      "tobe": 1.2557790942664724,
+      "change_pct_down": -10.784307297625695
+    },
+    "decode": {
+      "asis": 0.0,
+      "tobe": 0.0
+    },
+    "e2e_request_metric": {
+      "asis": 0.0,
+      "tobe": 0.0,
+      "note": "vLLM request last_token_ts is unavailable/zero for max_tokens=1; batch wall is used as E2E proxy."
+    }
+  },
+  "clean_request_timing_p95_s": {
+    "ttft": {
+      "asis": 7.218724954128259,
+      "tobe": 7.517110896110529,
+      "change_pct_down": -4.133499251992245
+    },
+    "scheduled_to_first_token_prefill_proxy": {
+      "asis": 2.845214990898967,
+      "tobe": 3.5456107892096043,
+      "change_pct_down": -24.616621258885687
+    }
+  },
+  "straggler_batch_layer": {
+    "asis": {
+      "mean_max_over_mean": 1.2673454039302925,
+      "p90_max_over_mean": 1.4292081243801111,
+      "p95_max_over_mean": 1.5032594094549312,
+      "max_max_over_mean": 1.6308952730016708
+    },
+    "tobe": {
+      "mean_max_over_mean": 1.0195864175289482,
+      "p90_max_over_mean": 1.0281065173342734,
+      "p95_max_over_mean": 1.0352045296897308,
+      "max_max_over_mean": 1.053613126186992
+    },
+    "mean_reduction_pct": 19.549444502895106,
+    "p95_reduction_pct": 31.13600199814569,
+    "max_reduction_pct": 35.39664111921718
+  },
+  "rank_layer_total": {
+    "asis": {
+      "mean_max_over_mean": 1.1856419888973966,
+      "p95_max_over_mean": 1.291688361408882,
+      "max_max_over_mean": 1.394694359367024
+    },
+    "tobe": {
+      "mean_max_over_mean": 1.010112448421814,
+      "p95_max_over_mean": 1.0161188744257275,
+      "max_max_over_mean": 1.0278490301174068
+    },
+    "mean_reduction_pct": 14.804598868737651,
+    "p95_reduction_pct": 21.334053570211243,
+    "max_reduction_pct": 26.302919115275436
+  },
+  "moe_cuda_event_timing": {
+    "asis": {
+      "critical_path_total_ms": 4588.741600453854,
+      "critical_path_mean_layer_call_ms": 1.2918754505782246,
+      "critical_path_p95_layer_call_ms": 2.9639392018318174
+    },
+    "tobe": {
+      "critical_path_total_ms": 4159.878970295191,
+      "critical_path_mean_layer_call_ms": 1.1555219361931086,
+      "critical_path_p95_layer_call_ms": 2.861622381210327
+    },
+    "delta": {
+      "critical_path_total_reduction_pct": 9.34597472466625,
+      "critical_path_mean_reduction_pct": 10.554695061670705,
+      "critical_path_p95_reduction_pct": 3.4520553106573537,
+      "timing_imbalance_p95_reduction_pct": -0.10078462553020362,
+      "rank_total_max_over_mean_reduction_pct": 0.05440177291444748
+    },
+    "note": "MoE-only CUDA event timing was collected in a separate instrumented run; clean wall-clock numbers come from non-instrumented runs."
+  },
+  "offline_main_b32_calibration": {
+    "linear": {
+      "mean_max_over_mean": 1.2673859379576484,
+      "std_max_over_mean": 0.11493563127750639,
+      "p90_max_over_mean": 1.4292032888465236,
+      "p95_max_over_mean": 1.500605733985869,
+      "max_max_over_mean": 1.6309491726405434
+    },
+    "tail_optimized": {
+      "mean_max_over_mean": 1.0185851423592507,
+      "std_max_over_mean": 0.008108774915957734,
+      "p90_max_over_mean": 1.026439243589962,
+      "p95_max_over_mean": 1.034514280294215,
+      "max_max_over_mean": 1.0530911442893334
+    }
+  }
+}

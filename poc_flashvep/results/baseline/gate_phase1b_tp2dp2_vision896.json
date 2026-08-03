@@ -1,0 +1,116 @@
+{
+  "schema": "flashvep.phase1b.gate.v1",
+  "date": "2026-08-03",
+  "decision": "NO-GO",
+  "phase2_started": false,
+  "configuration": {
+    "physical_gpus": [4, 5, 6, 7],
+    "tensor_parallel_size": 2,
+    "data_parallel_size": 2,
+    "expert_parallel_size": 4,
+    "pipeline_parallel_size": 1,
+    "dtype": "bfloat16",
+    "moe_backend_argument": "auto",
+    "selected_moe_backend": "TritonExperts",
+    "all2all_backend": "allgather_reducescatter",
+    "prepare_finalize_class": "MoEPrepareAndFinalizeNaiveDPEPModular",
+    "sequence_parallel_moe": true,
+    "selected_layers": [0, 12, 24, 36, 47],
+    "warmups": 5,
+    "iterations": 20,
+    "image_size": [896, 896],
+    "prompt_tokens": 799,
+    "visual_tokens": 784,
+    "text_and_special_tokens": 15,
+    "output_token_ids": [1986],
+    "output_text": "This"
+  },
+  "runtime_path": {
+    "actual_dpep_dispatch": true,
+    "dispatch_operation": "all-gatherv hidden/top-k weights/top-k IDs",
+    "dispatch_kernel": "ncclDevKernel_Broadcast_RING_LL",
+    "local_experts_per_rank": 32,
+    "actual_dpep_combine": true,
+    "combine_operation": "reduce-scatterv",
+    "combine_kernel": "ncclDevKernel_Reduce_Sum_bf16_RING_LL",
+    "tp_sequence_combine": "all-gather",
+    "tp_sequence_combine_kernel": "ncclDevKernel_AllGather_RING_LL",
+    "real_request_dp_rank": 0,
+    "idle_dp_participation": "EngineCoreRequestType.START_DP_WAVE",
+    "dpep_chunk_sizes": [400, 400, 1, 1]
+  },
+  "routing": {
+    "real_request_assignments_per_layer": 6392,
+    "visual_assignments_per_layer": 6272,
+    "text_and_special_assignments_per_layer": 120,
+    "tp_padding_assignments_per_layer": 8,
+    "idle_dp_dummy_assignments_per_layer": 16,
+    "kernel_assignments_per_layer": 6416
+  },
+  "expert_timing_audit": {
+    "prior_value_ms": 0.447,
+    "conclusion": "0.447 ms is plausible but measures only pure local GEMM",
+    "phase1b_in_path_median_ms": 0.44867199659347534,
+    "phase1b_in_path_p90_ms": 0.4781919866800308,
+    "layer24_microbenchmark_rank_medians_ms": {
+      "0": 0.24726399779319763,
+      "1": 0.25385598838329315,
+      "2": 0.2603999972343445,
+      "3": 0.24984000623226166
+    }
+  },
+  "selected_layer_stage_medians_ms": {
+    "T_layer": 2.61328125,
+    "T_attention": 0.8235040009021759,
+    "T_norm_router": 0.18840000126510859,
+    "T_dispatch": 1.662768006324768,
+    "T_expert_max": 0.44867199659347534,
+    "T_combine_dpep": 0.4833119958639145,
+    "T_combine_tp_allgather": 0.27961599826812744,
+    "T_combine_drain": 0.7734375,
+    "T_full_moe": 2.385408043861389,
+    "first_tile_fill": 0.101439208984375,
+    "existing_stage_overlap": 0.0006946548819541931
+  },
+  "oracle": {
+    "semantics": "same iteration/rank/layer CUDA timestamps; retain first-tile fill and DPEP-combine-through-TP-all-gather drain",
+    "selected_layer_current_sum_median_ms": 14.32958984375,
+    "selected_layer_optimistic_sum_median_ms": 13.32177734375,
+    "speedup_median": 1.0746460700360068,
+    "speedup_p90": 1.0855834715926171,
+    "speedup_mean": 1.0765877935632508,
+    "speedup_stddev": 0.0076016324368481875,
+    "speedup_min": 1.0695473251028806,
+    "speedup_max": 1.0996300033636057
+  },
+  "profiler": {
+    "baseline_request_median_ms": 2413.836429,
+    "profile_request_median_ms": 2627.6798715,
+    "overhead_fraction": 0.08859069319315505,
+    "overhead_percent": 8.859069319315505,
+    "coverage_records": 4800,
+    "null_or_error_records": 0
+  },
+  "gate": {
+    "actual_dispatch_and_combine_collectives": true,
+    "oracle_median_at_least_1_15": false,
+    "multiple_representative_layers_at_least_1_15": false,
+    "headroom_exceeds_profiler_uncertainty": false,
+    "tile_streaming_structure_demonstrated": false,
+    "baseline_not_already_overlapped": true
+  },
+  "primary_reasons": [
+    "median optimistic oracle speedup is below the 1.10x NO-GO threshold",
+    "the 0.773 ms combine drain is longer than the 0.449 ms expert window",
+    "dispatch and combine dominate the short expert window",
+    "no selected-layer median reaches 1.15x"
+  ],
+  "artifacts": {
+    "result_directory": "poc_flashvep/results/phase1b_tp2dp2_vision896",
+    "analysis": "poc_flashvep/results/phase1b_tp2dp2_vision896/analysis_final.json",
+    "profile_report": "poc_flashvep/reports/phase1b_tp2dp2_profile.md",
+    "expert_audit": "poc_flashvep/reports/phase1b_expert_timing_audit.md",
+    "nsight_trace": "poc_flashvep/results/phase1b_tp2dp2_nsys_224/trace.nsys-rep"
+  },
+  "single_recommended_next_task": "Run a standalone DPEP collective/backend study to reduce dispatch and combine drain before reconsidering FlashVEP tiling."
+}

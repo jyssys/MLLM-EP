@@ -1,0 +1,69 @@
+당신은 Qwen3-VL MoE expert-parallel 성능 연구를 독립 검토하는 일반 agent입니다.
+대상 Git 저장소는 https://github.com/jyssys/MLLM-EP 입니다.
+
+이번 요청은 구현 요청이 아니라 Codex의 FlashVEP Phase 1b 결론을 검증하고
+토론하기 위한 읽기 전용 리뷰입니다. 파일을 수정하거나 Phase 2를 시작하지
+마세요. 대화 요약보다 저장소의 원문과 수치 artifact를 증거로 사용하세요.
+
+다음 파일을 처음부터 끝까지 읽으세요.
+
+1. README.md
+2. docs/agent_handoff/import_provenance.md
+3. docs/agent_handoff/phase1b_tp2dp2_discussion_20260803.md
+4. docs/flashvep_poc_spec.md
+5. docs/prompt/codex_cli_flashvep_phase1b_tp2dp2_prompt_ko.txt
+6. docs/flashvep_poc/tp4_phase0_reaudit_20260803.md
+7. docs/flashvep_poc/tp4_phase1_gate_20260803.md
+8. poc_flashvep/STATUS.md
+9. poc_flashvep/reports/phase1_profile_tp4.md
+10. poc_flashvep/reports/phase1b_expert_timing_audit.md
+11. poc_flashvep/reports/phase1b_tp2dp2_profile.md
+12. poc_flashvep/results/baseline/gate_tp4_ep4_vision896.json
+13. poc_flashvep/results/baseline/gate_phase1b_tp2dp2_vision896.json
+14. poc_flashvep/results/phase1b_tp2dp2_vision896/analysis_final.json
+15. poc_flashvep/flashvep/instrumentation.py
+16. poc_flashvep/flashvep/instrumentation_phase1b.py
+17. poc_flashvep/scripts/phase1b_tp2dp2.py
+18. poc_flashvep/scripts/analyze_phase1b_tp2dp2.py
+
+필요하면 아래 compact raw evidence도 표본 검사하세요.
+
+- poc_flashvep/results/phase1b_tp2dp2_vision896/stage_events_v2.jsonl
+- poc_flashvep/results/phase1b_tp2dp2_nsys_224/nvtx_kernels_nvtx_kern_sum.csv
+- poc_flashvep/results/phase1b_tp2dp2_nsys_224/nvtx_gpu_proj_nvtx_gpu_proj_sum.csv
+- 각 baseline/profile 요청 JSON
+
+아래 쟁점을 독립적으로 검토하세요.
+
+- TP2/DP2/EP4가 NoDPEP가 아니라 실제 DPEP all-gatherv dispatch,
+  reduce-scatterv combine, TP all-gather를 실행했다는 증거가 충분한가?
+- DP0의 한 실제 요청과 DP1의 native idle START_DP_WAVE가 workload와 gate를
+  왜곡하는가? 6,392 real + 8 padding + 16 idle = 6,416 assignment 회계가
+  맞는가?
+- 이전 0.447 ms와 Phase 1b의 0.448672 ms가 completed CUDA span이며, 32개
+  local expert의 fused GEMM boundary일 뿐 per-expert 또는 full-MoE 시간이
+  아니라는 결론이 타당한가?
+- same iteration/rank/layer timestamp oracle이 prelude, first-tile fill,
+  handoff/gap, combine drain, postlude를 빠짐없이 한 번씩만 보존하는가?
+  producer span을 400으로 나눈 first-tile 가정은 낙관적 upper-bound로
+  적절한가? 가능하면 저장소 수치로 oracle을 재계산하세요.
+- 인접 baseline/profile의 +8.86% overhead를 채택하고, 외부 부하가 바뀐
+  이전 3,825.62 ms baseline을 제외한 판단은 방어 가능한가?
+- auto가 untuned TritonExperts를 선택했다는 점과 one-real-request DP 구성은
+  현재 결론을 NO-GO가 아니라 HOLD로 바꿔야 하는가?
+- dispatch 1.663 ms, expert 0.449 ms, combine drain 0.773 ms, five-layer
+  oracle 1.07465x median이라는 결과에서 Phase 2 중단은 맞는가?
+
+답변 형식은 다음을 따르세요.
+
+1. 독립 결론: GO / HOLD / NO-GO 중 하나와 3문장 이내의 핵심 이유
+2. Codex 결론에 동의하는 점
+3. 반대하거나 근거가 약한 점: 반드시 파일 경로와 JSON key/코드 심볼 또는
+   raw record 근거를 붙이기
+4. 재계산한 핵심 수치와 계산식
+5. 가장 위험한 측정 편향 3개를 영향도 순서로 정리
+6. Phase 2 전에 할 단 하나의 다음 실험
+7. Codex에게 되물을 질문 1개
+
+근거가 없으면 추측으로 채우지 말고 'artifact로 확인 불가'라고 명시하세요.
+현재 scope는 Phase 1b까지입니다. 어떤 Phase 2 코드도 작성하지 마세요.

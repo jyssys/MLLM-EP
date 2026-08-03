@@ -1,0 +1,126 @@
+{
+  "setup": {
+    "batch_size": 32,
+    "max_num_seqs": 32,
+    "max_num_batched_tokens": 131072,
+    "kv_cache_memory_bytes": 8589934592,
+    "max_tokens": 1,
+    "samples": {
+      "ChartQA": 64,
+      "MMMU": 64,
+      "MMStar": 64
+    },
+    "num_batches": 6,
+    "total_prefill_tokens": 313440
+  },
+  "latency": {
+    "asis_total_elapsed_s": 42.62257020547986,
+    "tobe_total_elapsed_s": 43.14429143629968,
+    "elapsed_reduction_pct": -1.2240492028158911,
+    "asis_prefill_tokens_per_s": 7353.850283756514,
+    "tobe_prefill_tokens_per_s": 7264.924038972293,
+    "throughput_gain_pct": -1.2092474194184355
+  },
+  "request_timing_mean_s": {
+    "ttft": {
+      "asis": 3.2658439092338085,
+      "tobe": 3.3811465774973235,
+      "change_pct_down": -3.530562741762089
+    },
+    "scheduled_to_first_token_prefill_proxy": {
+      "asis": 1.3940115764077443,
+      "tobe": 1.3874475324701052,
+      "change_pct_down": 0.4708744208964277
+    },
+    "decode": {
+      "asis": 0.0,
+      "tobe": 0.0
+    },
+    "e2e_request_metric": {
+      "asis": 0.0,
+      "tobe": 0.0,
+      "note": "vLLM request last_token_ts is unavailable/zero for max_tokens=1; use batch wall for E2E proxy."
+    }
+  },
+  "request_timing_p95_s": {
+    "ttft": {
+      "asis": 6.646274244785303,
+      "tobe": 7.295293354988097,
+      "change_pct_down": -9.765156933029306
+    },
+    "scheduled_to_first_token_prefill_proxy": {
+      "asis": 4.360129464417696,
+      "tobe": 5.183235136792064,
+      "change_pct_down": -18.87800990983406
+    }
+  },
+  "straggler_batch_layer": {
+    "asis": {
+      "mean_max_over_mean": 1.267451136692062,
+      "p90_max_over_mean": 1.4306239956557836,
+      "p95_max_over_mean": 1.4984541613268934,
+      "max_max_over_mean": 1.627930792863688
+    },
+    "tobe": {
+      "mean_max_over_mean": 1.0194698318911528,
+      "p90_max_over_mean": 1.0274256748997068,
+      "p95_max_over_mean": 1.03512170252242,
+      "max_max_over_mean": 1.0535762410391851
+    },
+    "mean_reduction_pct": 19.5653542469589,
+    "p95_reduction_pct": 30.920696192280495,
+    "max_reduction_pct": 35.2812634506506
+  },
+  "rank_layer_total": {
+    "asis": {
+      "mean_max_over_mean": 1.1856947634847712,
+      "p95_max_over_mean": 1.2915435171005616,
+      "max_max_over_mean": 1.3946465033180193
+    },
+    "tobe": {
+      "mean_max_over_mean": 1.0100665199081165,
+      "p95_max_over_mean": 1.015979613323124,
+      "max_max_over_mean": 1.0276320826952527
+    },
+    "mean_reduction_pct": 14.81226441959491,
+    "p95_reduction_pct": 21.336013856974954,
+    "max_reduction_pct": 26.315945994171162
+  },
+  "moe_cuda": {
+    "asis": {
+      "critical_path_total_ms": 4588.741600453854,
+      "critical_path_mean_layer_call_ms": 1.2918754505782246,
+      "critical_path_p95_layer_call_ms": 2.9639392018318174,
+      "timing_imbalance_p95": 1.0148843963536869
+    },
+    "tobe": {
+      "critical_path_total_ms": 4159.878970295191,
+      "critical_path_mean_layer_call_ms": 1.1555219361931086,
+      "critical_path_p95_layer_call_ms": 2.861622381210327,
+      "timing_imbalance_p95": 1.0159072437921164
+    },
+    "delta": {
+      "critical_path_total_reduction_pct": 9.34597472466625,
+      "critical_path_mean_reduction_pct": 10.554695061670705,
+      "critical_path_p95_reduction_pct": 3.4520553106573537,
+      "timing_imbalance_p95_reduction_pct": -0.10078462553020362,
+      "rank_total_max_over_mean_reduction_pct": 0.05440177291444748
+    }
+  },
+  "offline_main_b32_calibration": {
+    "linear": {
+      "mean_max_over_mean": 1.2673859379576484,
+      "std_max_over_mean": 0.11493563127750639,
+      "p90_max_over_mean": 1.4292032888465236,
+      "p95_max_over_mean": 1.500605733985869,
+      "max_max_over_mean": 1.6309491726405434
+    },
+    "tail_optimized": {
+      "mean_max_over_mean": 1.0185851423592507,
+      "std_max_over_mean": 0.008108774915957734,
+      "p90_max_over_mean": 1.026439243589962,
+      "p95_max_over_mean": 1.034514280294215,
+      "max_max_over_mean": 1.0530911442893334
+    }
+  }
+}
