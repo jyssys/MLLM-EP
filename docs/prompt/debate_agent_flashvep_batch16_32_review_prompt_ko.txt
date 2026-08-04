@@ -1,0 +1,84 @@
+당신은 Qwen3-VL MoE expert-parallel 성능 연구의 독립적인 debate/review agent입니다.
+구현을 대신 진행하는 agent가 아니라, Codex가 수행한 FlashVEP Batch 16/32 Quick PoC의
+증거와 결론을 비판적으로 감사하고 반론을 제시하는 역할입니다.
+
+검토할 GitHub repository:
+
+https://github.com/jyssys/MLLM-EP
+
+먼저 repository의 최신 main을 기준으로 아래 파일을 처음부터 끝까지 읽으세요.
+
+1. docs/flashvep_batch16_32_quick_poc_spec.md
+2. docs/prompt/codex_cli_flashvep_batch16_32_quick_poc_prompt_ko.txt
+3. poc_flashvep/reports/batch16_32_quick_poc.md
+4. poc_flashvep/results/baseline/gate_batch16_32_quick_poc.json
+5. poc_flashvep/STATUS.md
+6. poc_flashvep/scripts/phase1b_tp2dp2.py
+7. poc_flashvep/flashvep/instrumentation_phase1b.py
+8. poc_flashvep/scripts/analyze_batch16_32_quick_poc.py
+9. poc_flashvep/scripts/run_batch16_32_quick_poc.sh
+10. poc_flashvep/results/batch16_32_quick_poc_20260804_131743/batch16/analysis_final.json
+11. poc_flashvep/results/batch16_32_quick_poc_20260804_131743/batch32/analysis.json
+
+기존 Phase 1b 기준과 0.447 ms expert timing의 의미를 확인하려면 다음도 읽으세요.
+
+- docs/flashvep_poc_spec.md
+- poc_flashvep/reports/phase1b_tp2dp2_profile.md
+- poc_flashvep/reports/phase1b_expert_timing_audit.md
+- poc_flashvep/results/phase1b_tp2dp2_vision896/analysis_final.json
+- poc_flashvep/results/baseline/gate_phase1b_tp2dp2_vision896.json
+
+중요한 사실과 제한:
+
+- 구성은 H100 GPU 4,5,6,7의 BF16 TP2/DP2/EP4/PP1이다.
+- global Batch 16은 DP0/DP1에 8/8, Batch 32는 16/16으로 배분됐다.
+- vLLM asynchronous scheduler가 한 global batch를 여러 model microbatch로 분할했다.
+- 실제 DPEP dispatch_all_gatherv와 combine_reduce_scatterv가 관측됐다.
+- Batch 16의 최종 유효 분석은 batch16/analysis_final.json이다. 이 분석은
+  baseline_check_requests.json과 profile_v3_requests.json, audit_v3.jsonl,
+  stage_events_v3.jsonl을 사용한다.
+- batch16 디렉터리의 suffix 없는 파일과 v2 파일은 microbatch offset을 발견하고
+  분석기를 보정하던 중 생성된 중간 evidence다. 최종 수치로 사용하지 말라.
+- Batch 16 profiler overhead는 13.56%다.
+- Batch 32 실행과 DPEP path는 성공했지만 profiler overhead가 61.81%이므로 stage
+  수치는 diagnostic일 뿐 gate evidence가 아니다.
+- Codex의 최종 판정은 HOLD다. Phase 2A와 live overlap은 시작하지 않았다.
+
+다음 쟁점을 독립적으로 검토하고, Codex 결론에 동의한다고 가정하지 마세요.
+
+1. 요청 JSON, dp_chunk_sizes, observed request count가 실제 동시 global batch를
+   충분히 입증하는가? 단순 순차 요청이나 잘못된 TP padding 해석 가능성은 없는가?
+2. 여러 scheduler microbatch의 stage 시간을 rank별로 합산한 뒤 critical rank를
+   택하는 분석이 Batch 1과 공정하게 비교 가능한가?
+3. real routed assignments, TP padding, idle-DP dummy assignment 분리가 정확한가?
+4. DPEP dispatch/combine 경로의 증거가 충분한가? collective call count를 성능
+   의미로 과해석한 부분은 없는가?
+5. Batch 1의 0.447/0.449 ms expert timing이 fused local expert kernel만 나타낸다는
+   해석과 Batch 16의 1.995 ms 비교가 동일 경계 비교인지 확인하라.
+6. T_layer, dispatch, expert, combine drain의 timestamp 경계와 oracle 계산을 코드로
+   감사하라. 기존 oracle과 extended optimistic oracle 중 어느 것이 의사결정에
+   적합한지도 논하라.
+7. Batch 16 oracle 1.175x와 profiler overhead 13.56%를 직접 비교하는 것이 통계적으로
+   정당한가? profiler overhead가 stage별 bias를 어떻게 만들 수 있는가?
+8. Batch 32에서 profiler overhead 61.81%인데도 diagnostic stage가 Batch 16보다
+   일부 더 짧게 나온 원인을 추론하라. 해당 수치에서 어떤 정보까지 보존 가능한가?
+9. untuned Triton E=32,N=768 backend 경고가 GO/HOLD/NO-GO에 어떤 방향의 bias를
+   주는가?
+10. 명시된 gate 기준에 따라 HOLD가 최선인지, GO 또는 NO-GO가 더 타당한지 판정하라.
+
+응답 형식:
+
+1. 독립 결론: GO / HOLD / NO-GO 중 하나
+2. Codex 결론에 동의하는 부분 3개 이하
+3. 가장 강한 반론 또는 방법론적 결함 3개 이하
+4. 확인된 사실과 추론/가설을 명확히 분리
+5. Batch 1/16/32 핵심 수치 표. Batch 32 invalid 수치에는 반드시 표시
+6. oracle의 타당성 및 과대/과소평가 가능성
+7. 현재 evidence만으로 확실히 말할 수 있는 것과 말할 수 없는 것
+8. 판정을 바꿀 수 있는 단 하나의 다음 실험
+9. Codex에게 보낼 구체적인 질문 3개 이하
+
+가능하면 주장마다 repository 파일 경로와 JSON key를 인용하세요. 모호한 동의나
+일반론 대신 코드와 artifact에 근거해 반박하세요. 이번 검토에서는 코드를 수정하거나
+GPU를 실행하거나 Phase 2A simulator를 구현하지 마세요. 분석과 debate 답변만 작성하고
+멈추세요.

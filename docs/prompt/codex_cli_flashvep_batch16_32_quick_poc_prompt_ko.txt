@@ -1,0 +1,243 @@
+당신은 Qwen3-VL-30B-A3B-Instruct MoE EP 연구 코드베이스에서 FlashVEP Quick PoC를 수행합니다.
+
+상세 스펙:
+
+    docs/flashvep_batch16_32_quick_poc_spec.md
+
+이 문서를 처음부터 끝까지 읽고 그대로 수행하세요.
+
+이번 작업의 목적은 복잡한 tile simulator를 구현하는 것이 아니라, 기존 Phase 1b의 TP2/DP2/EP4 경로에서 **global batch 16과 32를 사용했을 때 local expert latency와 expert fraction이 실제로 커지는지 빠르게 확인하는 것**입니다.
+
+# 중요 범위 제한
+
+이번 세션에서는 다음만 수행하세요.
+
+1. 기존 Phase 1b 코드와 artifact 확인
+2. 기존 instrumentation 재사용
+3. Batch 16 실행
+4. Batch 32 실행
+5. Batch 1/16/32 stage 비교
+6. 간단한 oracle 재계산
+7. GO/HOLD/NO-GO 판정
+8. 중단
+
+다음을 하지 마세요.
+
+- Phase 2A trace-driven tile simulator 구현
+- per-token route capture
+- isolated collective microbenchmark
+- Nsight Systems full trace
+- custom CUDA/Triton/NCCL kernel
+- live tile overlap
+- 전체 48-layer detailed profiling
+- Batch 1/2/4 sweep
+- image resolution 또는 token-length sweep
+- scheduler 구현
+- backend 교체 실험 반복
+- model/dtype/routing 변경
+
+# 고정 조건
+
+- Physical GPU는 반드시 `4,5,6,7`만 사용
+- TP=2, DP=2, EP=4, PP=1
+- 기존 Phase 1b와 동일한 Qwen3-VL-30B-A3B-Instruct local snapshot
+- BF16
+- 동일한 896×896 gray image
+- 동일 prompt
+- prefix caching off
+- `max_tokens=1`
+- Batch는 `16`, `32`만 측정
+- Batch 16을 먼저 실행
+- Batch 32가 OOM이면 한 번만 실패를 기록하고 추가 우회 없이 중단
+
+# 반드시 먼저 읽을 파일
+
+repository에서 실제 경로를 확인하여 다음을 읽으세요.
+
+- `docs/flashvep_batch16_32_quick_poc_spec.md`
+- `docs/flashvep_poc_spec.md`
+- `poc_flashvep/STATUS.md`
+- `poc_flashvep/reports/phase1b_tp2dp2_profile.md`
+- `poc_flashvep/reports/phase1b_expert_timing_audit.md`
+- `poc_flashvep/results/baseline/gate_phase1b_tp2dp2_vision896.json`
+- `poc_flashvep/results/phase1b_tp2dp2_vision896/analysis_final.json`
+- `poc_flashvep/flashvep/instrumentation_phase1b.py`
+- `poc_flashvep/scripts/phase1b_tp2dp2.py`
+- `poc_flashvep/scripts/analyze_phase1b_tp2dp2.py`
+- `poc_flashvep/scripts/run_phase1b_tp2dp2.sh`
+
+# 코드 수정 전 보고
+
+코드를 수정하거나 GPU를 사용하기 전에 다음을 짧게 출력하세요.
+
+1. repository root와 Git 상태
+2. 기존 Batch-1 Phase 1b 결과 요약
+3. Batch 16/32를 실제 global batch로 만드는 방법
+4. DP0/DP1에 실제 요청이 어떻게 분배되는지 확인 방법
+5. 재사용할 기존 파일
+6. 새로 만들 최소 파일
+7. 예상 GPU memory 및 OOM 처리
+8. 실행할 정확한 명령
+
+이 보고 후에만 수정 및 실행하세요.
+
+# 구현 지침
+
+가능하면 기존 `phase1b_tp2dp2.py`와 instrumentation을 그대로 재사용하세요.
+
+새 파일은 최소한으로 만드세요.
+
+권장:
+
+    poc_flashvep/scripts/run_batch16_32_quick_poc.sh
+    poc_flashvep/scripts/analyze_batch16_32_quick_poc.py
+
+필요하면 기존 runner에 batch input list를 받는 opt-in CLI flag만 최소 추가하세요. 기본 동작은 변경하지 마세요.
+
+상세 profiling layer는 기본적으로 다음 3개만 사용하세요.
+
+    [12, 24, 36]
+
+측정 stage:
+
+- decoder layer
+- attention block
+- norm/router
+- DPEP dispatch
+- local fused expert
+- DPEP combine
+- TP all-gather
+- full MoE
+
+# 실험 프로토콜
+
+각 batch:
+
+    warmup = 3
+    iterations = 8
+
+실행 시간이 너무 길면:
+
+    warmup = 2
+    iterations = 5
+
+까지 줄일 수 있습니다. 변경 사실을 보고하세요.
+
+Batch 내 요청은 동일한 image/prompt를 복제합니다.
+
+반드시 기록:
+
+- actual global batch
+- real requests per DP rank
+- total prompt tokens
+- total routed assignments
+- rank별 local assignments
+- max local expert batch
+- output token consistency
+- profiler overhead
+
+# 즉시 중단 조건
+
+다음이면 중단하세요.
+
+- GPU 4,5,6,7 외 GPU가 필요함
+- Batch 16 OOM
+- Batch 32 OOM: Batch 16 결과는 유지하고 Batch 32는 추가 우회하지 않음
+- DPEP path가 유지되지 않음
+- Batch 요청이 실제 동시 batch가 아니라 순차 요청으로 실행됨
+- DP rank 중 하나에만 요청이 집중됨
+- profiler overhead >20%
+- 기존 artifact를 덮어써야 함
+
+# 분석
+
+기존 Batch-1 Phase 1b와 Batch 16/32를 비교하세요.
+
+필수 metric:
+
+- `T_layer`
+- `T_attention`
+- `T_norm_router`
+- `T_dispatch`
+- `T_expert_max`
+- `T_combine_drain`
+- `T_full_moe`
+- expert fraction
+- dispatch fraction
+- combine fraction
+- communication-to-expert ratio
+- max local expert batch
+- critical expert rank
+
+다음 scaling도 계산하세요.
+
+    expert_scaling(B)
+    dispatch_scaling(B)
+    combine_scaling(B)
+    layer_scaling(B)
+
+기존 Phase 1b timestamp oracle을 Batch 16/32에 재적용하세요.
+
+추가로 다음 극단적 optimistic sensitivity만 계산하세요.
+
+    best_case_extra_hidden = min(T_combine_drain, T_expert_max)
+
+새 tile simulator는 구현하지 마세요.
+
+# 판정
+
+## GO
+
+Batch 16 또는 32에서 모두 또는 대표적으로 다음을 만족할 때:
+
+- `T_expert_max >= 1.0 ms`
+- expert fraction >=25%
+- communication-to-expert ratio가 Batch 1보다 감소
+- 기존 또는 extended optimistic oracle >=1.15x
+- 최소 2/3 selected layer에서 반복
+- profiler uncertainty보다 gain이 큼
+
+## HOLD
+
+- expert fraction 20~25%
+- oracle 1.10~1.15x
+- Batch 32에서만 개선
+- backend/profiler 불확실성이 큼
+
+## NO-GO
+
+- Batch 16/32에서도 expert <1.0 ms
+- expert fraction <20%
+- dispatch/combine이 expert보다 더 빠르게 증가
+- 모든 대표 layer oracle <1.10x
+- communication 병목이 계속 지배
+
+# 결과물
+
+기존 결과를 덮어쓰지 마세요.
+
+최소 결과물:
+
+    poc_flashvep/results/batch16_32_quick_poc_<timestamp>/
+    poc_flashvep/reports/batch16_32_quick_poc.md
+    poc_flashvep/results/baseline/gate_batch16_32_quick_poc.json
+    poc_flashvep/scripts/run_batch16_32_quick_poc.sh
+    poc_flashvep/scripts/analyze_batch16_32_quick_poc.py
+
+`poc_flashvep/STATUS.md`에는 기존 내용을 유지하고 짧은 Batch 16/32 section만 추가하세요.
+
+# 최종 응답
+
+완료 후 다음만 간결하게 보고하고 멈추세요.
+
+1. 실제 Batch 16/32 요청 분배
+2. DPEP path
+3. Batch 1/16/32 stage 표
+4. Expert latency/fraction 변화
+5. Dispatch/combine 변화
+6. 간단 oracle
+7. profiler/OOM/backend blocker
+8. GO/HOLD/NO-GO
+9. 다음으로 권장하는 단 하나의 작업
+
+Phase 2A 또는 live overlap 구현으로 자동 진행하지 마세요.

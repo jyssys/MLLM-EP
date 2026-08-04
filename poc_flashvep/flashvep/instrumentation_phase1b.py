@@ -55,6 +55,11 @@ def _selected_layers() -> set[int]:
     return {int(value.strip()) for value in raw.split(",") if value.strip()}
 
 
+def _selected_call_offsets() -> set[int]:
+    raw = os.environ.get("FLASHVEP_PHASE1B_LAYER_CALL_OFFSETS", "0")
+    return {int(value.strip()) for value in raw.split(",") if value.strip()}
+
+
 def _layer_id(prefix: str) -> int:
     match = re.search(r"(?:layers|h)\.(\d+)", prefix)
     return int(match.group(1)) if match else -1
@@ -89,7 +94,7 @@ def _should_record(layer: int, call_index: int) -> bool:
         _profile_path() is not None
         and layer in _selected_layers()
         and offset >= 0
-        and offset % stride == 0
+        and offset % stride in _selected_call_offsets()
         and offset // stride < count
     )
 
@@ -203,6 +208,7 @@ def _timed(
     skip = _int_env("FLASHVEP_PHASE1B_SKIP_LAYER_CALLS", 8)
     stride = max(1, _int_env("FLASHVEP_PHASE1B_LAYER_CALL_STRIDE", 1))
     iteration_id = (call_index - skip) // stride
+    wave_call_offset = (call_index - skip) % stride
     rank = _rank()
     global _ORIGIN_EVENT
     if _ORIGIN_EVENT is None:
@@ -231,6 +237,7 @@ def _timed(
         "kind": "stage",
         "run_id": os.environ.get("FLASHVEP_PHASE1B_RUN_ID", "unknown"),
         "iteration_id": iteration_id,
+        "wave_call_offset": wave_call_offset,
         "pid": os.getpid(),
         "rank": rank,
         "physical_gpu": _physical_gpu(rank),
@@ -474,6 +481,7 @@ def _local_workload(
         "actual_local_assignments": int(local_mask.sum()),
         "local_expert_token_counts": [int(value) for value in counts],
         "max_local_expert_batch": int(max(counts, default=0)),
+        "active_local_experts": sum(int(value) > 0 for value in counts),
     }
     if chunk_sizes is not None and sum(chunk_sizes) == ids.shape[0]:
         offset = 0
@@ -482,6 +490,43 @@ def _local_workload(
             by_chunk.append(int(local_mask[offset : offset + size].sum()))
             offset += size
         result["local_assignments_by_dp_chunk"] = by_chunk
+        global_batch_size = _int_env("FLASHVEP_PHASE1B_GLOBAL_BATCH_SIZE", 1)
+        if global_batch_size > 1:
+            real_dp_tp_chunks = _int_env("FLASHVEP_PHASE1B_REAL_DP_TP_CHUNKS", 2)
+            prompt_tokens = _int_env("FLASHVEP_PHASE1B_REAL_PROMPT_TOKENS", 799)
+            local_real_assignments = 0
+            local_padding_assignments = 0
+            local_idle_dummy_assignments = 0
+            real_requests_by_dp_rank: list[int] = []
+            token_offset = 0
+            for chunk_offset in range(0, len(chunk_sizes), real_dp_tp_chunks):
+                dp_tokens = sum(
+                    chunk_sizes[chunk_offset : chunk_offset + real_dp_tp_chunks]
+                )
+                real_requests = dp_tokens // prompt_tokens
+                real_tokens = real_requests * prompt_tokens
+                dp_mask = local_mask[token_offset : token_offset + dp_tokens]
+                local_real_assignments += int(dp_mask[:real_tokens].sum())
+                if real_requests:
+                    local_padding_assignments += int(dp_mask[real_tokens:].sum())
+                else:
+                    local_idle_dummy_assignments += int(dp_mask.sum())
+                real_requests_by_dp_rank.append(real_requests)
+                token_offset += dp_tokens
+            result.update(
+                {
+                    "global_batch_size": global_batch_size,
+                    "observed_real_requests_by_dp_rank": real_requests_by_dp_rank,
+                    "real_request_local_assignments": local_real_assignments,
+                    "tp_padding_local_assignments": local_padding_assignments,
+                    "idle_dp_dummy_local_assignments": local_idle_dummy_assignments,
+                    "local_assignments_by_dp_rank": [
+                        sum(by_chunk[offset : offset + real_dp_tp_chunks])
+                        for offset in range(0, len(by_chunk), real_dp_tp_chunks)
+                    ],
+                }
+            )
+            return result
         vision_start = _int_env("FLASHVEP_PHASE1B_VISION_START", 4)
         vision_end = _int_env("FLASHVEP_PHASE1B_VISION_END", 788)
         real_prompt_tokens = _int_env("FLASHVEP_PHASE1B_REAL_PROMPT_TOKENS", 799)
@@ -574,8 +619,9 @@ def _patch_expert_and_tp_combine() -> None:
         detailed = (
             context is not None
             and _should_record(layer, call_index)
-            and call_index
-            == _int_env("FLASHVEP_PHASE1B_SKIP_LAYER_CALLS", 8)
+            and (call_index - _int_env("FLASHVEP_PHASE1B_SKIP_LAYER_CALLS", 8))
+            // max(1, _int_env("FLASHVEP_PHASE1B_LAYER_CALL_STRIDE", 1))
+            == 0
         )
         extra: dict[str, Any] = {
             "a1q_shape": list(a1q.shape),

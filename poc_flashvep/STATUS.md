@@ -417,3 +417,34 @@ Canonical Phase 1b artifacts:
 - `poc_flashvep/reports/phase1b_expert_timing_audit.md`
 - `poc_flashvep/results/baseline/gate_phase1b_tp2dp2_vision896.json`
 - `poc_flashvep/scripts/run_phase1b_tp2dp2.sh`
+
+## Batch 16/32 Quick PoC (2026-08-04)
+
+- Reused BF16 TP=2/DP=2/EP=4 on physical GPUs 4-7 with the fixed
+  896x896/799-token prompt. Batch 16 split 8/8 and Batch 32 split 16/16 across
+  DP0/DP1; every output remained token 1986.
+- Both batches executed `MoEPrepareAndFinalizeNaiveDPEPModular` through
+  `AgRsAll2AllManager`, with real dispatch all-gatherv and combine
+  reduce-scatterv collectives on all four ranks.
+- Valid Batch 16 medians over layers 12/24/36 were `T_layer=9.617 ms`,
+  `T_dispatch=3.494 ms`, `T_expert_max=1.995 ms`, and combine drain
+  `2.791 ms`. Expert fraction was 21.55%, communication/expert fell to 3.116x,
+  and the selected-layer oracle was 1.175x (extended 1.355x).
+- Batch 16 profiler overhead was 13.56%. Batch 32 ran without OOM, but its
+  61.81% overhead crossed the immediate-stop gate; its stage values are kept
+  only as diagnostics and no alternate Batch 32 run was attempted.
+- Final Quick PoC gate: **HOLD**. Batch 16 is in the 20-25% expert-fraction
+  band and the oracle gain has little margin over profiling uncertainty;
+  Batch 32 cannot resolve the decision until measured below 20% overhead.
+- Phase 2A and live overlap were not started. The single next task is one
+  same-configuration, active-offset-only Batch 32 revalidation with overhead
+  below 20%.
+
+Canonical Quick PoC artifacts:
+
+- `poc_flashvep/results/batch16_32_quick_poc_20260804_131743/`
+- `poc_flashvep/reports/batch16_32_quick_poc.md`
+- `poc_flashvep/results/baseline/gate_batch16_32_quick_poc.json`
+- `poc_flashvep/scripts/run_batch16_32_quick_poc.sh`
+- `poc_flashvep/scripts/analyze_batch16_32_quick_poc.py`
+- `docs/prompt/debate_agent_flashvep_batch16_32_review_prompt_ko.txt`

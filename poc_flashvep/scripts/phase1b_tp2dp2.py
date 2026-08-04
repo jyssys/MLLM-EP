@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import copy
 import json
 import multiprocessing as mp
 import os
@@ -118,6 +119,10 @@ def _run_dp_rank(
         from vllm import LLM, SamplingParams
 
         prompt, token_ids = _prompt(args.model_path, args.image_size)
+        if args.global_batch_size == 1:
+            local_batch_size = 1 if dp_rank == 0 else 0
+        else:
+            local_batch_size = args.global_batch_size // dp_size
         llm = LLM(
             model=args.model_path,
             dtype="bfloat16",
@@ -131,7 +136,7 @@ def _run_dp_rank(
             kv_cache_memory_bytes=args.kv_cache_memory_bytes,
             max_model_len=args.max_model_len,
             max_num_batched_tokens=args.max_num_batched_tokens,
-            max_num_seqs=1,
+            max_num_seqs=max(1, local_batch_size),
             skip_mm_profiling=True,
             enable_prefix_caching=False,
             enable_flashinfer_autotune=False,
@@ -141,24 +146,36 @@ def _run_dp_rank(
         )
         parallel = llm.llm_engine.vllm_config.parallel_config
         sampling = SamplingParams(max_tokens=1, temperature=0.0)
-        local_prompts = [prompt] if dp_rank == 0 else []
+        local_prompts = [copy.deepcopy(prompt) for _ in range(local_batch_size)]
         execution_wave = 0
 
         warmup_tokens: list[list[int]] = []
+        warmup_token_batches: list[list[list[int]]] = []
         for _ in range(args.warmups):
             outputs = _generate_synchronized(
                 llm, local_prompts, sampling, dp_barrier, execution_wave
             )
             execution_wave += 1
-            if dp_rank == 0:
-                warmup_tokens.append(
-                    [int(value) for value in outputs[0].outputs[0].token_ids]
+            if len(outputs) != local_batch_size:
+                raise AssertionError(
+                    f"DP rank {dp_rank} expected {local_batch_size} outputs, "
+                    f"received {len(outputs)}"
                 )
-            elif outputs:
-                raise AssertionError("idle DP rank unexpectedly returned an output")
+            output_tokens = [
+                [int(value) for value in output.outputs[0].token_ids]
+                for output in outputs
+            ]
+            if output_tokens and any(
+                values != output_tokens[0] for values in output_tokens[1:]
+            ):
+                raise AssertionError("identical warm-up prompts changed output tokens")
+            warmup_token_batches.append(output_tokens)
+            if output_tokens:
+                warmup_tokens.append(output_tokens[0])
 
         rows: list[dict[str, Any]] = []
         reference_prompt_ids: list[int] | None = None
+        reference_output_tokens: list[int] | None = None
         for iteration in range(args.iterations):
             start_ns = time.perf_counter_ns()
             outputs = _generate_synchronized(
@@ -170,18 +187,46 @@ def _run_dp_rank(
                 "iteration_id": iteration,
                 "wall_ms": (end_ns - start_ns) / 1_000_000,
                 "real_request_count": len(local_prompts),
+                "actual_output_count": len(outputs),
             }
-            if dp_rank == 0:
-                request = outputs[0]
-                completion = request.outputs[0]
-                prompt_ids = [int(value) for value in (request.prompt_token_ids or [])]
+            if len(outputs) != local_batch_size:
+                raise AssertionError(
+                    f"DP rank {dp_rank} expected {local_batch_size} outputs, "
+                    f"received {len(outputs)}"
+                )
+            if outputs:
+                prompt_id_batches = [
+                    [int(value) for value in (request.prompt_token_ids or [])]
+                    for request in outputs
+                ]
+                if any(
+                    values != prompt_id_batches[0] for values in prompt_id_batches[1:]
+                ):
+                    raise AssertionError("identical prompts changed tokenization")
+                prompt_ids = prompt_id_batches[0]
                 if reference_prompt_ids is None:
                     reference_prompt_ids = prompt_ids
                 elif prompt_ids != reference_prompt_ids:
                     raise AssertionError("fixed prompt tokenization changed")
+                output_token_batches = [
+                    [int(value) for value in request.outputs[0].token_ids]
+                    for request in outputs
+                ]
+                if any(
+                    values != output_token_batches[0]
+                    for values in output_token_batches[1:]
+                ):
+                    raise AssertionError("identical prompts changed output tokens")
+                if reference_output_tokens is None:
+                    reference_output_tokens = output_token_batches[0]
+                elif output_token_batches[0] != reference_output_tokens:
+                    raise AssertionError("fixed prompt output tokens changed")
                 row.update(
                     {
                         "prompt_token_count": len(prompt_ids),
+                        "total_prompt_token_count": sum(
+                            len(values) for values in prompt_id_batches
+                        ),
                         "image_token_count": sum(
                             value == token_ids["image_token_id"] for value in prompt_ids
                         ),
@@ -198,15 +243,15 @@ def _run_dp_rank(
                             for index, value in enumerate(prompt_ids)
                             if value == token_ids["vision_end_token_id"]
                         ],
-                        "output_token_ids": [
-                            int(value) for value in completion.token_ids
+                        "output_token_ids": output_token_batches[0],
+                        "output_token_ids_per_request": output_token_batches,
+                        "output_text": outputs[0].outputs[0].text,
+                        "output_texts": [
+                            request.outputs[0].text for request in outputs
                         ],
-                        "output_text": completion.text,
                         "routed_experts_return_capture": False,
                     }
                 )
-            elif outputs:
-                raise AssertionError("idle DP rank unexpectedly returned an output")
             rows.append(row)
 
         microbenchmark_output: dict[str, Any] | None = None
@@ -242,11 +287,15 @@ def _run_dp_rank(
                 "warmups": args.warmups,
                 "iterations": args.iterations,
                 "image_size": [args.image_size, args.image_size],
-                "real_request_on_this_dp_rank": dp_rank == 0,
+                "global_batch_size": args.global_batch_size,
+                "real_requests_on_this_dp_rank": local_batch_size,
+                "real_request_on_this_dp_rank": bool(local_batch_size),
             },
             "token_ids": token_ids,
             "warmup_output_token_ids": warmup_tokens,
+            "warmup_output_token_ids_per_request": warmup_token_batches,
             "prompt_token_ids": reference_prompt_ids,
+            "reference_output_token_ids": reference_output_tokens,
             "iterations": rows,
             "request_wall_ms": _stats([float(row["wall_ms"]) for row in rows]),
             "microbenchmark_request_output": microbenchmark_output,
@@ -276,7 +325,13 @@ def main() -> None:
     parser.add_argument("--max-num-batched-tokens", type=int, default=512)
     parser.add_argument("--timeout-seconds", type=int, default=600)
     parser.add_argument("--microbenchmark", action="store_true")
+    parser.add_argument("--global-batch-size", type=int, default=1)
     args = parser.parse_args()
+
+    if args.global_batch_size < 1:
+        raise ValueError("--global-batch-size must be positive")
+    if args.global_batch_size > 1 and args.global_batch_size % 2:
+        raise ValueError("batched TP2/DP2 runs require an even global batch size")
 
     output = Path(args.output)
     rank_outputs = [_rank_output_path(output, rank) for rank in range(2)]

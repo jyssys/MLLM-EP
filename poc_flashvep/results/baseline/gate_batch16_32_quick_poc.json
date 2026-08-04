@@ -1,0 +1,132 @@
+{
+  "schema": "flashvep.batch16_32.quick_poc.gate.v1",
+  "date": "2026-08-04",
+  "decision": "HOLD",
+  "phase2a_started": false,
+  "configuration": {
+    "physical_gpus": [4, 5, 6, 7],
+    "tensor_parallel_size": 2,
+    "data_parallel_size": 2,
+    "expert_parallel_size": 4,
+    "pipeline_parallel_size": 1,
+    "dtype": "bfloat16",
+    "image_size": [896, 896],
+    "prompt_tokens_per_request": 799,
+    "output_token_ids": [1986],
+    "selected_layers": [12, 24, 36],
+    "warmups": 3,
+    "iterations": 8,
+    "prefix_caching": false,
+    "max_output_tokens": 1
+  },
+  "request_distribution": {
+    "batch16": {
+      "dp0_requests": 8,
+      "dp1_requests": 8,
+      "actual_global_batch": 16,
+      "active_model_microbatches_per_iteration_range": [2, 3],
+      "total_prompt_tokens": 12784,
+      "routed_assignments_per_layer": 102272,
+      "all_outputs_consistent": true
+    },
+    "batch32": {
+      "dp0_requests": 16,
+      "dp1_requests": 16,
+      "actual_global_batch": 32,
+      "active_model_microbatches_per_iteration_range": [2, 2],
+      "real_request_split_by_microbatch": [[1, 1], [15, 15]],
+      "total_prompt_tokens": 25568,
+      "routed_assignments_per_layer": 204544,
+      "all_outputs_consistent": true
+    }
+  },
+  "runtime_path": {
+    "prepare_finalize_class": "MoEPrepareAndFinalizeNaiveDPEPModular",
+    "all2all_manager": "AgRsAll2AllManager",
+    "dispatch_collective": "dispatch_all_gatherv",
+    "combine_collective": "combine_reduce_scatterv",
+    "tp_sequence_combine": "tensor_model_parallel_all_gather",
+    "local_expert_backend": "TritonExperts",
+    "local_experts_per_rank": 32,
+    "actual_dpep_dispatch_combine": true
+  },
+  "batch1_reference_layers_12_24_36": {
+    "T_layer_ms": 2.60107421875,
+    "T_attention_ms": 0.8184000253677368,
+    "T_norm_router_ms": 0.18435200210660696,
+    "T_dispatch_ms": 1.6621119976043701,
+    "T_expert_max_ms": 0.4490559995174408,
+    "T_combine_drain_ms": 0.771484375,
+    "T_full_moe_ms": 2.3690398931503296,
+    "expert_fraction": 0.17188870482101995,
+    "communication_to_expert_ratio": 5.451770609862162,
+    "oracle_speedup": 1.0822665650357637
+  },
+  "batch16_valid_measurement": {
+    "valid_for_gate": true,
+    "T_layer_ms": 9.6168212890625,
+    "T_attention_ms": 2.1042720079421997,
+    "T_norm_router_ms": 0.4745279895141721,
+    "T_dispatch_ms": 3.4939839839935303,
+    "T_expert_max_ms": 1.995024025440216,
+    "T_combine_drain_ms": 2.791015625,
+    "T_full_moe_ms": 7.151632070541382,
+    "expert_fraction": 0.2154870316736362,
+    "communication_to_expert_ratio": 3.1155257078134673,
+    "oracle_speedup": 1.17495383204592,
+    "extended_optimistic_oracle_speedup": 1.3551616961350927,
+    "profiler_overhead_fraction": 0.13561007634106992,
+    "profiler_overhead_percent": 13.561007634106993,
+    "scaling_vs_batch1": {
+      "layer": 3.697249859207809,
+      "dispatch": 2.102135108241483,
+      "expert": 4.442706539015368,
+      "combine": 3.617721518987342
+    },
+    "selected_layers_with_expert_at_least_1_ms": 3,
+    "selected_layers_with_oracle_at_least_1_15x": 3,
+    "selected_layers_with_expert_fraction_at_least_25_percent": 0
+  },
+  "batch32_diagnostic_measurement": {
+    "valid_for_gate": false,
+    "invalid_reason": "profiler overhead exceeded the 20 percent immediate-stop threshold",
+    "T_layer_ms": 8.8515625,
+    "T_attention_ms": 2.3332000374794006,
+    "T_norm_router_ms": 0.5083680003881454,
+    "T_dispatch_ms": 1.5483999848365784,
+    "T_expert_max_ms": 2.89136004447937,
+    "T_combine_drain_ms": 2.59375,
+    "T_full_moe_ms": 5.48689603805542,
+    "expert_fraction": 0.3298648041500203,
+    "communication_to_expert_ratio": 1.4369519273934461,
+    "oracle_speedup": 1.2424579689147517,
+    "extended_optimistic_oracle_speedup": 1.423285865140738,
+    "profiler_overhead_fraction": 0.6180572815895813,
+    "profiler_overhead_percent": 61.80572815895813
+  },
+  "gate": {
+    "actual_balanced_global_batches": true,
+    "actual_dpep_dispatch_combine": true,
+    "batch16_profiler_overhead_below_20_percent": true,
+    "batch32_profiler_overhead_below_20_percent": false,
+    "valid_expert_at_least_1_ms": true,
+    "valid_expert_fraction_at_least_25_percent": false,
+    "valid_communication_to_expert_improved_vs_batch1": true,
+    "valid_oracle_at_least_1_15x": true,
+    "trend_repeated_on_at_least_two_selected_layers": true,
+    "gain_clearly_exceeds_profiler_uncertainty": false
+  },
+  "primary_reasons": [
+    "Batch 16 expert fraction is 21.55 percent, within the specified HOLD band rather than the 25 percent GO threshold",
+    "Batch 16 existing-oracle gain is only 3.94 percentage points above measured profiling overhead",
+    "Batch 32 stage metrics are invalid for gating because profiling overhead is 61.81 percent",
+    "the Triton expert backend used an untuned default E=32,N=768 configuration"
+  ],
+  "artifacts": {
+    "result_directory": "poc_flashvep/results/batch16_32_quick_poc_20260804_131743",
+    "batch16_analysis": "poc_flashvep/results/batch16_32_quick_poc_20260804_131743/batch16/analysis_final.json",
+    "batch32_analysis_diagnostic": "poc_flashvep/results/batch16_32_quick_poc_20260804_131743/batch32/analysis.json",
+    "report": "poc_flashvep/reports/batch16_32_quick_poc.md"
+  },
+  "single_recommended_next_task": "Run one same-configuration Batch 32 revalidation that captures only the two demonstrated active scheduler offsets and requires profiling overhead below 20 percent before reconsidering Phase 2A."
+}
