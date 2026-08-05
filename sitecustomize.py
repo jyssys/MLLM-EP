@@ -28,3 +28,10 @@ if (
     from poc_flashvep.flashvep.instrumentation_phase1b import install_phase1b
 
     install_phase1b()
+
+if os.environ.get("FLASHVEP_OFFLINE_RESULT_DIR") and find_spec("torch") is not None:
+    from poc_flashvep.offline_wavefront.offline_moe_runner import (
+        install_offline_wavefront,
+    )
+
+    install_offline_wavefront()

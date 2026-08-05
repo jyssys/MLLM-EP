@@ -1,0 +1,250 @@
+당신은 `jyssys/MLLM-EP` repository에서 FlashVEP의 scheduler-free offline mechanism Quick PoC를 수행합니다.
+
+상세 스펙:
+
+    docs/flashvep_offline_expert_centered_wavefront_poc_spec.md
+
+이 문서를 처음부터 끝까지 읽고 그대로 수행하세요.
+
+# 이번 작업의 목적
+
+vLLM serving scheduler를 수정하거나 end-to-end 시스템을 구현하는 것이 아닙니다.
+
+실제 Qwen3-VL vision-heavy MoE workload를 scheduler-free offline replay하여, 길어진 expert execution을 중심으로 다음 overlap이 실제 throughput을 개선하는지만 확인합니다.
+
+```text
+Dispatch(next microbatch) || Expert(current microbatch)
+Combine(previous microbatch) || Expert(current microbatch)
+```
+
+Expert execution이 반드시 핵심 overlap window입니다.
+
+# 이번 세션의 필수 범위
+
+1. 기존 repository/artifact 확인
+2. layer 24의 기존 capture 탐색
+3. capture가 없으면 opt-in capture 1회
+4. offline compute-bound crossover 측정
+5. representative workload 2개에서 D/E/C expert-centered pipeline 측정
+6. correctness 검증
+7. GO/HOLD/NO-GO
+8. 중단
+
+# 하지 말 것
+
+- vLLM serving scheduler 수정
+- vLLM end-to-end 통합
+- 8-GPU 실행
+- Phase 2A trace simulator 재구현
+- custom CUDA/Triton/NCCL kernel
+- attention kernel 수정
+- quantization
+- token pruning/merging/dropping
+- expert placement/replication
+- 전체 모델 전체 layer 실행
+- 모든 layer profiling
+- 여러 모델 또는 이미지 해상도 sweep
+- 성능이 나쁘다고 반복 튜닝
+- GO 후 자동으로 다음 phase 진행
+
+# GPU 및 모델
+
+- Physical GPU는 `4,5,6,7`만 사용
+- EP=4
+- rank당 32 experts, 총 128 experts
+- 기존 Qwen3-VL-30B-A3B-Instruct local snapshot
+- BF16
+- layer 24
+- 기존 Phase 1b와 동일한 expert backend 우선
+- checkpoint 경로와 config는 repository artifact에서 읽음
+- 새 checkpoint 다운로드 금지
+
+# 반드시 먼저 읽을 파일
+
+실제 경로를 확인하여 다음을 읽으세요.
+
+- `docs/flashvep_offline_expert_centered_wavefront_poc_spec.md`
+- `docs/flashvep_poc_spec.md`
+- `poc_flashvep/STATUS.md`
+- `poc_flashvep/reports/phase1b_tp2dp2_profile.md`
+- `poc_flashvep/reports/batch16_32_quick_poc.md`
+- `poc_flashvep/results/baseline/gate_batch16_32_quick_poc.json`
+- `poc_flashvep/scripts/phase1b_tp2dp2.py`
+- `poc_flashvep/flashvep/instrumentation_phase1b.py`
+- 기존 expert microbenchmark/capture 관련 코드
+
+# 코드/GPU 작업 전 보고
+
+수정이나 실행 전에 다음을 짧게 출력하세요.
+
+1. repository root 및 Git 상태
+2. 사용할 checkpoint/config/backend
+3. 기존 capture 존재 여부
+4. capture가 필요하면 정확히 무엇을 한 번 저장할지
+5. offline runner에서 재사용할 vLLM component
+6. 통신 primitive
+7. 만들 최소 파일
+8. 실행 순서와 예상 GPU memory
+9. 중단 조건
+
+그 후에만 작업하세요.
+
+# Phase O1 — Compute-bound crossover
+
+Batch-equivalent workload:
+
+```text
+B_eq = 16, 32, 64, 128
+```
+
+각 workload에서 반드시 기록:
+
+- real/vision tokens
+- total routed assignments
+- rank별 assignments
+- critical-rank assignments
+- max local-expert batch
+- dispatch
+- expert max
+- combine
+- full MoE
+- expert fraction
+- communication/expert
+- tokens/s
+- assignments/s
+
+Request batch 숫자만 보고하지 말고 실제 routed workload를 함께 보고하세요.
+
+Capture를 반복하여 workload를 키우면 synthetic scaling임을 명시하세요.
+
+# Phase O2 — Expert-centered wavefront
+
+O1 결과에서 compute-bound representative workload 2개만 선택하세요.
+
+각 workload:
+
+```text
+K = 2, 4 microbatches
+```
+
+비교:
+
+1. full-batch serial
+2. microbatch serial
+3. expert-centered wavefront
+
+필수 wavefront:
+
+```text
+D0
+E0 || D1
+E1 || C0 || D2
+E2 || C1 || D3
+E3 || C2
+C3
+```
+
+Dispatch와 combine이 같은 NCCL resource에서 동시에 진행 불가능하면 통신끼리는 serialize하고 expert와만 overlap하세요.
+
+CUDA event dependency를 명시적으로 사용하세요.
+
+모든 rank의 collective order는 동일해야 합니다.
+
+# Attention/Router 확장
+
+필수 O2가 actual speedup `>=1.10x`일 때만 선택적으로 수행할 수 있습니다.
+
+```text
+Expert(i) || Attention/Router/Dispatch(i+1)
+```
+
+Attention과 expert가 모두 느려지면 즉시 중단하세요.
+
+선택적 확장은 필수 결과가 아닙니다.
+
+# 측정
+
+기본:
+
+```text
+warmup=10
+iterations=30
+```
+
+시간이 길면:
+
+```text
+warmup=5
+iterations=15
+```
+
+Nsight는 best configuration 1회만 허용합니다.
+
+# Correctness
+
+Serial output을 reference로 사용하세요.
+
+반드시 보고:
+
+- `torch.testing.assert_close` 결과
+- max absolute error
+- mean absolute error
+- cosine similarity
+- token/order restoration
+- route identity
+
+# Gate
+
+## GO
+
+- correctness 통과
+- 대표 workload 하나에서 actual speedup `>=1.15x`
+- 다른 workload에서 `>=1.10x`
+- actual D/E 또는 E/C overlap 확인
+- fragmentation penalty `<15%`
+- gain이 profiler uncertainty보다 큼
+
+## HOLD
+
+- speedup `1.05x~1.15x`
+- backend/collective assumption에 민감
+- Attention/Expert contention에 따라 결론 변동
+
+## NO-GO
+
+- compute-bound에서도 `<1.05x`
+- fragmentation/collective 반복이 이득 제거
+- 실제 overlap 없음
+- correctness 실패
+- custom kernel 없이는 진행 불가능
+
+# 최소 결과물
+
+```text
+poc_flashvep/offline_wavefront/workload_builder.py
+poc_flashvep/offline_wavefront/offline_moe_runner.py
+poc_flashvep/offline_wavefront/expert_centered_pipeline.py
+poc_flashvep/scripts/run_offline_wavefront_quick_poc.py
+poc_flashvep/scripts/analyze_offline_wavefront_quick_poc.py
+poc_flashvep/tests/test_offline_wavefront_correctness.py
+poc_flashvep/results/offline_wavefront_quick_poc_<timestamp>/
+poc_flashvep/reports/offline_wavefront_quick_poc.md
+poc_flashvep/results/baseline/gate_offline_wavefront_quick_poc.json
+```
+
+기존 artifact는 덮어쓰지 마세요.
+
+# 최종 응답
+
+1. 환경/backend
+2. capture provenance
+3. B_eq별 crossover
+4. 선택한 두 workload
+5. serial/microbatch/wavefront 결과
+6. actual overlap
+7. correctness
+8. overhead/fragmentation
+9. GO/HOLD/NO-GO
+10. 다음 단 하나의 작업
+
+완료 후 중단하세요.

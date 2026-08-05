@@ -1,0 +1,141 @@
+당신은 Qwen3-VL MoE expert-parallel 성능 연구의 독립적인 debate/review agent입니다.
+구현을 대신 진행하는 agent가 아니라, Codex가 수행한 FlashVEP offline
+expert-centered wavefront Quick PoC의 코드, 측정 경계, raw artifact, NO-GO 결론을
+비판적으로 감사하는 역할입니다.
+
+검토할 GitHub repository:
+
+https://github.com/jyssys/MLLM-EP
+
+최신 main을 기준으로 다음 파일을 처음부터 끝까지 읽으세요.
+
+1. docs/flashvep_offline_expert_centered_wavefront_poc_spec.md
+2. docs/prompt/codex_cli_flashvep_offline_expert_centered_wavefront_poc_prompt_ko.txt
+3. poc_flashvep/reports/offline_wavefront_quick_poc.md
+4. poc_flashvep/results/baseline/gate_offline_wavefront_quick_poc.json
+5. poc_flashvep/results/offline_wavefront_quick_poc_20260805_130322/analysis.json
+6. poc_flashvep/results/offline_wavefront_quick_poc_20260805_130322/rank0.json
+7. poc_flashvep/results/offline_wavefront_quick_poc_20260805_130322/rank1.json
+8. poc_flashvep/results/offline_wavefront_quick_poc_20260805_130322/rank2.json
+9. poc_flashvep/results/offline_wavefront_quick_poc_20260805_130322/rank3.json
+10. poc_flashvep/results/offline_wavefront_quick_poc_20260805_130322/capture_request.json
+11. poc_flashvep/results/offline_wavefront_quick_poc_20260805_130322/capture_manifest.json
+12. poc_flashvep/offline_wavefront/capture_schema.py
+13. poc_flashvep/offline_wavefront/workload_builder.py
+14. poc_flashvep/offline_wavefront/offline_moe_runner.py
+15. poc_flashvep/offline_wavefront/expert_centered_pipeline.py
+16. poc_flashvep/scripts/capture_offline_wavefront_input.py
+17. poc_flashvep/scripts/run_offline_wavefront_quick_poc.py
+18. poc_flashvep/scripts/analyze_offline_wavefront_quick_poc.py
+19. poc_flashvep/tests/test_offline_wavefront_correctness.py
+20. poc_flashvep/tests/test_offline_wavefront_schedule.py
+21. sitecustomize.py
+22. poc_flashvep/STATUS.md
+
+기존 Phase 1b와 Batch 16/32 결과의 맥락을 확인하려면 다음도 읽으세요.
+
+- docs/flashvep_poc_spec.md
+- poc_flashvep/reports/phase1b_tp2dp2_profile.md
+- poc_flashvep/reports/phase1b_expert_timing_audit.md
+- poc_flashvep/reports/batch16_32_quick_poc.md
+- poc_flashvep/results/baseline/gate_phase1b_tp2dp2_vision896.json
+- poc_flashvep/results/baseline/gate_batch16_32_quick_poc.json
+
+확인된 실행 사실:
+
+- Physical GPU 4,5,6,7의 H100 80GB, BF16, capture runtime TP2/DP2/EP4다.
+- 동일 Qwen3-VL-30B-A3B-Instruct checkpoint와 896x896 회색 이미지/고정 prompt를
+  사용했다.
+- vLLM request는 compact capture를 위해 정확히 한 번 실행됐고, 799 prompt token 중
+  vision token은 784개이며 출력 token은 기존과 같은 1986 (`This`)이었다.
+- 실제 capture 지점의 DPEP chunks는 [400,400,1,1], gathered a1q shape는
+  [802,2048], top-k IDs shape는 [802,8]이었다.
+- timed replay는 worker의 layer-24 expert hook 안에서 request scheduler 진행을 멈춘 채
+  실행됐다. 로드된 TritonExperts weight/backend를 사용하되, D/C는
+  torch.distributed NCCL all_gather_into_tensor/reduce_scatter_tensor로 명시했다.
+- compact layer24_capture.pt는 activation payload라 Git에 넣지 않았다. 대신
+  capture_manifest.json에 shape/dtype/metadata/file SHA256을 기록했다.
+- B_eq 16/32/64/128은 한 real capture를 반복한
+  `synthetic batch scaling from real captured request`다.
+- O2 compute-bound 후보는 B_eq 32와 64, K는 2와 4다. warmup 10, iteration 30이다.
+- Codex의 최종 결론은 NO-GO이며 Attention/Router 확장은 실행하지 않았다.
+
+핵심 결과:
+
+- O1 critical MoE / expert-max median:
+  - B16: 2.099 / 1.466 ms
+  - B32: 2.977 / 2.301 ms
+  - B64: 5.756 / 4.526 ms
+  - B128: 11.281 / 9.063 ms
+- O2 최고점 B64/K2:
+  - full-batch serial 5.755 ms
+  - microbatch serial 5.914 ms
+  - expert-centered wavefront 5.567 ms
+  - full 대비 1.0343x, microbatch serial 대비 1.0626x
+  - rank별 full 대비 speedup 1.0275~1.0340x
+  - speedup distribution p10/median/p90 = 1.0168/1.0343/1.0380x
+- B64/K2의 rank별 actual overlap fraction은 63.0~80.0%다.
+- 그러나 critical rank에서 microbatch serial 대비 wavefront D/E/C duration이
+  각각 258.5%/5.0%/31.5% 증가했다.
+- 전체 rank/config correctness는 assert_close를 통과했고 max/mean absolute error는
+  0, 최소 cosine similarity는 0.999999914였다.
+- B32/K4 fragmentation penalty는 15.9%로 gate 한계를 넘었다.
+- 최고 actual speedup 1.0343x가 compute-bound NO-GO 경계 1.05x와
+  Attention/Router 허용 경계 1.10x보다 모두 낮다.
+
+Codex의 결론에 동의한다고 가정하지 말고 다음을 독립적으로 감사하세요.
+
+1. `_fused_experts`에서 받은 post-dispatch gathered `a1q[:799]`를
+   post-attention RMSNorm output의 value-preserving reconstruction으로 보는 것이
+   타당한가? [400,400,1,1]에서 첫 799 rows가 실제 token order라는 근거가 충분한가?
+2. vLLM worker hook 안에서 scheduler가 block된 동안 operator loop를 실행한 방식을
+   진정한 scheduler-free replay로 부를 수 있는가? scheduler/forward context 또는
+   allocator 상태가 결과에 남기는 bias는 무엇인가?
+3. original captured sequence를 EP rank 4개에 균등 재분할한 뒤 all-gather한 것이
+   실제 TP2/DP2 source distribution과 비교해 D/C 성능을 유리하거나 불리하게
+   바꾸는가?
+4. direct `TritonExperts.apply`와 microbatch별 independent output buffer가 기존
+   `_fused_experts`와 같은 expert 계산 경계인지 확인하라. workspace reuse, allocation,
+   router weight 적용, expert_map 처리에 차이가 없는가?
+5. 모든 rank에서 NCCL collective launch order가 D0,D1,C0,D2,C1,...로 동일하며
+   CUDA event dependency가 D/C serialization과 D/E, E/C overlap을 정확히
+   보장하는지 코드를 감사하라.
+6. CUDA event interval 교집합만으로 actual overlap을 입증하기 충분한가? Nsight를
+   실행하지 않았으므로 NCCL kernel과 Triton kernel의 실 GPU 동시 resident 여부를
+   어디까지 주장할 수 있는가?
+7. critical wall rank의 coherent D/E/C breakdown과 rank별 독립 E-max를 구분한
+   최종 보고가 맞는가? 분석 JSON 또는 코드에 서로 다른 rank의 stage max를 합산해
+   오해할 여지가 남아 있는가?
+8. B64/K2에서 D가 0.710 ms에서 2.544 ms로, E가 4.606 ms에서 4.837 ms로,
+   C가 0.569 ms에서 0.748 ms로 늘어난 현상이 실제 NCCL/compute contention인지,
+   stream launch/event/workspace 측정 artifact인지 분리 가능한가?
+9. 한 request의 동일 route를 16~128회 반복해 expert imbalance를 그대로 증폭한 것이
+   realistic multi-request distribution보다 wavefront에 어떤 bias를 주는가?
+10. O1에서 B128이 더 compute-bound인데도 O2가 권장 후보 B32/B64로 제한된 선택이
+    mechanism gate를 너무 일찍 NO-GO로 만들었는가? 상세 spec의 "후보 2개만"과
+    빠른 중단 조건에 비추어 판단하라.
+11. profiler/no-profiler 쌍이 없고 embedded CUDA-event만 사용한 상태에서
+    p10/median/p90이 gain > uncertainty를 입증하는지 검토하라.
+12. 정확성, 실제 overlap, rank 일관성이 모두 통과했지만 full 대비 1.0343x에 그친
+    결과를 명세상 NO-GO로 판정하는 것이 맞는가, 아니면 HOLD가 더 타당한가?
+
+응답 형식:
+
+1. 독립 결론: GO / HOLD / NO-GO 중 하나
+2. Codex 결론에 동의하는 부분 3개 이하
+3. 가장 강한 반론 또는 방법론적 결함 3개 이하
+4. 확인된 사실과 추론/가설을 명확히 분리
+5. O1 B16/32/64/128과 O2 네 configuration 핵심 수치 표
+6. capture provenance와 scheduler-free 주장에 대한 판정
+7. D/E 및 E/C actual overlap 증거의 강도와 한계
+8. stage slowdown이 contention인지 instrumentation artifact인지에 대한 분석
+9. correctness와 route/order restoration 검토
+10. GO/HOLD/NO-GO gate를 항목별로 재계산
+11. 현재 evidence만으로 확실히 말할 수 있는 것과 말할 수 없는 것
+12. 판정을 바꿀 수 있는 단 하나의 다음 실험. NO-GO가 확정적이면 `없음`도 허용
+13. Codex에게 보낼 구체적인 질문 3개 이하
+
+가능하면 주장마다 repository 파일 경로, 함수명, JSON key를 인용하세요. 모호한
+동의나 일반론 대신 코드와 raw rank artifact로 반박하세요. 이번 검토에서는 코드를
+수정하거나 GPU를 실행하거나 Attention/Router 확장 또는 vLLM 통합을 시작하지 말고,
+분석과 debate 답변만 작성한 뒤 멈추세요.

@@ -448,3 +448,39 @@ Canonical Quick PoC artifacts:
 - `poc_flashvep/scripts/run_batch16_32_quick_poc.sh`
 - `poc_flashvep/scripts/analyze_batch16_32_quick_poc.py`
 - `docs/prompt/debate_agent_flashvep_batch16_32_review_prompt_ko.txt`
+
+## Offline expert-centered wavefront Quick PoC (2026-08-05)
+
+- Physical GPUs 4-7 loaded the same BF16 Qwen3-VL-30B-A3B checkpoint with
+  TP=2/DP=2/EP=4 only for one 896x896 capture request. The 799-token input
+  (784 vision tokens) still produced token 1986 (`This`).
+- Layer 24 captured a compact 3.3 MiB workload: post-attention hidden,
+  global top-k expert IDs/weights, destination rank, and local expert ID.
+  The live DPEP chunks were `[400,400,1,1]`; route identity validated.
+- The timed scheduler-free replay used the loaded `TritonExperts` weights and
+  explicit NCCL all-gather/reduce-scatter with the same AgRs semantics. No
+  scheduler, model, vLLM installation, custom kernel, or checkpoint was
+  modified.
+- O1 critical MoE/expert-max medians for B_eq 16/32/64/128 were
+  2.099/1.466, 2.977/2.301, 5.756/4.526, and 11.281/9.063 ms. These are
+  synthetic batch scalings from the one real captured request.
+- O2 selected B_eq 32 and 64. The best actual result was B64/K2:
+  full 5.755 ms, microbatch serial 5.914 ms, wavefront 5.567 ms, or only
+  **1.0343x vs full** and 1.0626x vs microbatch serial. All ranks moved in
+  the same direction (1.027-1.034x).
+- CUDA events proved D/E and E/C overlap (minimum-rank fraction 63.0%), and
+  outputs were exact under assert_close (max/mean absolute error 0; minimum
+  cosine 0.999999914). Still, overlapping B64/K2 inflated critical-rank D/E/C
+  durations by 258.5%/5.0%/31.5% versus microbatch serial, eliminating the
+  theoretical hiding benefit.
+- Final gate: **NO-GO**. Best speedup is below the compute-bound 1.05x NO-GO
+  boundary and far below 1.10x, while B32/K4 also crosses the 15%
+  fragmentation limit. Attention/Router expansion was not executed.
+- Single next task: archive this result and stop this mechanism branch.
+
+Canonical offline wavefront artifacts:
+
+- `poc_flashvep/results/offline_wavefront_quick_poc_20260805_130322/`
+- `poc_flashvep/reports/offline_wavefront_quick_poc.md`
+- `poc_flashvep/results/baseline/gate_offline_wavefront_quick_poc.json`
+- `poc_flashvep/scripts/run_offline_wavefront_quick_poc.py`
