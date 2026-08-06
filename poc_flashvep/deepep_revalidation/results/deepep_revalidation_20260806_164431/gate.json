@@ -1,0 +1,209 @@
+{
+  "final_status": "HOLD",
+  "reason": "Operator replay has a real and correct gain, but stock DeepEP is slower than AG/RS for this end-to-end workload and stock DBO-on is invalid; adaptation cannot be promoted to GO.",
+  "best_raw": {
+    "batch_equivalent": 128,
+    "communication_sms": 8,
+    "speedup_vs_full_serial": 1.3100033412755705,
+    "speedup_vs_micro_serial": 1.3067846690841118,
+    "slowdown": {
+      "D": 1.27165502089493,
+      "E": 1.0579499576425113,
+      "C": 1.1283616086305779
+    },
+    "stage_sum_oracle_speedup": 1.7054360703125755
+  },
+  "best_meeting_D_E_slowdown_limits": {
+    "batch_equivalent": 32,
+    "communication_sms": 4,
+    "full_serial_critical_median_ms": 7.866624116897583,
+    "micro_serial_k2_critical_median_ms": 8.07863998413086,
+    "overlap_k2_critical_median_ms": 6.413712024688721,
+    "speedup_vs_full_serial": 1.2265321683630435,
+    "speedup_vs_micro_serial": 1.2595888236068633,
+    "serial_stage_ms": {
+      "D": 3.32476804824546,
+      "E": 2.4717921018600464,
+      "C": 2.701071858406067
+    },
+    "overlap_stage_ms": {
+      "D": 3.740815915632993,
+      "E": 2.589136064052582,
+      "C": 2.7136802673339844
+    },
+    "slowdown": {
+      "D": 1.1251359076333427,
+      "E": 1.0474732329244976,
+      "C": 1.0046679279889124
+    },
+    "actual_overlap_fraction_min_rank_median": 1.0,
+    "oracle": {
+      "stage_ideal_lower_bound_ms": 6.025839906651527,
+      "stage_sum_ideal_speedup": 1.4101987673339278,
+      "definition": "(D+E+C) / max(E, D+C); achieved wall speedup is reported separately"
+    },
+    "all_ranks_correct": true,
+    "max_abs_error": 0.0,
+    "min_cosine_similarity": 0.9999999534187299,
+    "peak_memory_allocated_bytes_max": 19250815488
+  },
+  "checks": {
+    "deep_ep_correctness": true,
+    "actual_deepep_backend": true,
+    "nsight_actual_kernel_overlap": true,
+    "best_raw_E_slowdown_le_1_05": false,
+    "best_raw_D_slowdown_le_1_25": false,
+    "B64_or_B128_speedup_ge_1_15": true,
+    "other_of_B64_B128_speedup_ge_1_10": true,
+    "stock_dbo_end_to_end_benefit": false,
+    "adaptive_workload_signal": true
+  },
+  "stock_dbo_speedup": null,
+  "nsight": {
+    "status": "PASS",
+    "actual_kernel_overlap": true,
+    "configuration": {
+      "batch_equivalent": 128,
+      "communication_sms": 8,
+      "microbatches": 2,
+      "warmups": 1,
+      "iterations": 3
+    },
+    "kernel_classes": {
+      "communication": [
+        "deep_ep::intranode::dispatch",
+        "deep_ep::intranode::combine"
+      ],
+      "expert": [
+        "fused_moe_kernel"
+      ]
+    },
+    "workers": [
+      {
+        "pid": 746429,
+        "dispatch_expert_pairs": 4,
+        "combine_expert_pairs": 4,
+        "total_overlap_ms": 10.53343,
+        "max_single_overlap_us": 1525.731,
+        "comm_streams": [
+          22
+        ],
+        "expert_streams": [
+          75,
+          79
+        ],
+        "streams_are_distinct": true
+      },
+      {
+        "pid": 746432,
+        "dispatch_expert_pairs": 4,
+        "combine_expert_pairs": 4,
+        "total_overlap_ms": 12.115951,
+        "max_single_overlap_us": 1869.438,
+        "comm_streams": [
+          22
+        ],
+        "expert_streams": [
+          75,
+          79
+        ],
+        "streams_are_distinct": true
+      },
+      {
+        "pid": 746433,
+        "dispatch_expert_pairs": 4,
+        "combine_expert_pairs": 4,
+        "total_overlap_ms": 8.996297,
+        "max_single_overlap_us": 1270.881,
+        "comm_streams": [
+          22
+        ],
+        "expert_streams": [
+          75,
+          79
+        ],
+        "streams_are_distinct": true
+      },
+      {
+        "pid": 746434,
+        "dispatch_expert_pairs": 4,
+        "combine_expert_pairs": 4,
+        "total_overlap_ms": 11.322619,
+        "max_single_overlap_us": 1714.143,
+        "comm_streams": [
+          22
+        ],
+        "expert_streams": [
+          75,
+          79
+        ],
+        "streams_are_distinct": true
+      }
+    ],
+    "nvtx_attributed_kernel_sum_slowdown": [
+      {
+        "pid": 746429,
+        "stage": "D",
+        "serial_kernel_sum_ms": 36.104329,
+        "overlap_kernel_sum_ms": 45.284895,
+        "slowdown": 1.2542788151526096
+      },
+      {
+        "pid": 746429,
+        "stage": "E",
+        "serial_kernel_sum_ms": 23.759794,
+        "overlap_kernel_sum_ms": 25.46319,
+        "slowdown": 1.0716923724170335
+      },
+      {
+        "pid": 746432,
+        "stage": "D",
+        "serial_kernel_sum_ms": 32.906193,
+        "overlap_kernel_sum_ms": 43.514436,
+        "slowdown": 1.322378313407449
+      },
+      {
+        "pid": 746432,
+        "stage": "E",
+        "serial_kernel_sum_ms": 26.963899,
+        "overlap_kernel_sum_ms": 28.614298,
+        "slowdown": 1.0612077281553383
+      },
+      {
+        "pid": 746433,
+        "stage": "D",
+        "serial_kernel_sum_ms": 38.56308,
+        "overlap_kernel_sum_ms": 46.160337,
+        "slowdown": 1.1970085636313281
+      },
+      {
+        "pid": 746433,
+        "stage": "E",
+        "serial_kernel_sum_ms": 21.310584,
+        "overlap_kernel_sum_ms": 23.121303,
+        "slowdown": 1.084968060940986
+      },
+      {
+        "pid": 746434,
+        "stage": "D",
+        "serial_kernel_sum_ms": 33.672498,
+        "overlap_kernel_sum_ms": 43.625135,
+        "slowdown": 1.295571685830971
+      },
+      {
+        "pid": 746434,
+        "stage": "E",
+        "serial_kernel_sum_ms": 26.001397,
+        "overlap_kernel_sum_ms": 27.746197,
+        "slowdown": 1.0671040867534924
+      }
+    ],
+    "max_nsight_D_kernel_sum_slowdown": 1.322378313407449,
+    "max_nsight_E_kernel_sum_slowdown": 1.084968060940986,
+    "C_kernel_sum_slowdown": null,
+    "C_kernel_sum_note": "DeepEP combine launches were asynchronous to the host NVTX range, so C slowdown uses corrected CUDA-event stage timing in operator_matrix.json.",
+    "command": "BATCHES=128 SMS_VALUES=8 WARMUPS=1 ITERATIONS=3 nsys profile --trace=cuda,nvtx --sample=none --cpuctxsw=none --trace-fork-before-exec=true ... run_operator_replay.sh",
+    "large_trace_committed": false,
+    "interpretation_limit": "Concurrent kernel intervals prove residency overlap; HBM/L2 contention is not directly established by this trace."
+  }
+}

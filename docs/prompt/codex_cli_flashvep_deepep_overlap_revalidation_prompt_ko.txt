@@ -1,0 +1,375 @@
+당신은 `/home/esjung/MLLM-EP`에서 작업하는 Codex CLI implementation agent다.
+
+이번 작업은 기존 FlashVEP 수동 NCCL wavefront의 NO-GO를 일반화하지 않고, DeepEP 기반의 optimized MoE dispatch/combine을 사용했을 때 communication–expert overlap이 실제로 가능해지는지 재검증하는 제한된 PoC다.
+
+반드시 아래 스펙을 먼저 읽고 그대로 따른다.
+
+- `docs/spec/flashvep_deepep_overlap_revalidation_poc_spec.md`
+- 기존 관련 파일:
+  - `poc_flashvep/reports/offline_wavefront_quick_poc.md`
+  - `poc_flashvep/offline_wavefront/offline_moe_runner.py`
+  - `poc_flashvep/STATUS.md`
+  - `docs/prompt/debate_agent_flashvep_offline_wavefront_review_prompt_ko.txt`
+- DeepEP upstream:
+  - `https://github.com/deepseek-ai/DeepEP`
+- 대상 repository:
+  - `https://github.com/jyssys/MLLM-EP.git`
+
+## 가장 중요한 목표
+
+다음 질문에 실제 측정으로 답하라.
+
+1. 기존 1.034x 결과는 일반 AllGather/ReduceScatter implementation의 contention 때문이었는가?
+2. DeepEP를 쓰면 overlap 시 Dispatch slowdown을 기존 +258.5%에서 크게 줄일 수 있는가?
+3. DeepEP serial 대비 DeepEP overlap은 B64/B128에서 실제 speedup을 만드는가?
+4. stock vLLM `deepep_high_throughput` + DBO는 Qwen3-VL vision-heavy prefill에서 end-to-end 이득이 있는가?
+5. stock DeepEP/DBO 위에 향후 vision-straggler-aware FlashVEP adaptation을 추가할 여지가 남는가?
+
+## 연구 경계
+
+DeepEP는 이번 연구의 novelty가 아니다. DeepEP는 고성능 communication substrate다.
+
+이번 PoC에서는 다음 세 효과를 반드시 분리하라.
+
+- AG/RS serial → DeepEP serial: backend 자체 이득
+- DeepEP DBO off → DeepEP DBO on: stock overlap 이득
+- 향후 stock DBO → FlashVEP: 이번에는 구현하지 않을 adaptation 영역
+
+DeepEP나 DBO의 이득을 FlashVEP 성능으로 잘못 보고하지 마라.
+
+## 안전 및 실행 제약
+
+- 물리 GPU `4,5,6,7`만 사용한다.
+- 모든 CUDA 명령 전에 `CUDA_VISIBLE_DEVICES=4,5,6,7`을 명시한다.
+- GPU 0~3을 노출하거나 사용하지 마라.
+- 기존 환경을 in-place로 깨뜨리지 마라.
+- 별도 conda/venv 환경을 사용하라.
+- system driver 변경, reboot, sudo 기반 driver 설정을 하지 마라.
+- force push, hard reset, unrelated change 삭제를 하지 마라.
+- 기존 사용자 변경 사항이 있으면 보존하고 상태를 보고하라.
+- 대형 model weight, `.nsys-rep`, build artifact는 Git에 commit하지 마라.
+- silent backend fallback을 허용하지 마라.
+- 실행하지 않은 실험을 성공했다고 쓰지 마라.
+- GPU 실행이 환경상 불가능하면 BLOCKED로 정확히 보고하라.
+
+## Git 시작 절차
+
+1. 다음을 실행하고 기록하라.
+
+```bash
+cd /home/esjung/MLLM-EP
+git remote -v
+git branch --show-current
+git rev-parse HEAD
+git status --short
+```
+
+2. `origin`이 `https://github.com/jyssys/MLLM-EP.git` 또는 동등한 SSH remote인지 확인하라.
+
+3. 현재 branch가 적절한 사용자 작업 branch이고 clean하면 그대로 사용 가능하다. 그렇지 않고 `main`에 있다면 다음 branch를 생성하라.
+
+```bash
+git switch -c flashvep/deepep-overlap-revalidation
+```
+
+4. unrelated local changes가 있으면 stash/reset하지 말고 충돌하지 않는 범위에서 작업하거나 BLOCKED 사유로 보고하라.
+
+## DeepEP 버전
+
+현재 vLLM 0.20 호환 경로를 우선한다.
+
+- 우선 DeepEP commit:
+  `73b6ea4a439ba03a695563f9fd242c8e4b02b37c`
+- vLLM 0.20의 EP kernel 설치 스크립트와 pin을 inspect하라.
+- 최신 DeepEP main/V2를 현재 NCCL 2.28.9 환경에 직접 섞지 마라.
+- NCCL 또는 PyTorch를 기존 환경에서 in-place 교체하지 마라.
+- DeepEP V1 호환 pin에서 먼저 실행하라.
+
+설치 전에 현재 Python/PyTorch/vLLM/CUDA/NCCL/NVSHMEM 환경을 기록하라.
+
+## 목표 runtime topology
+
+주요 runtime:
+
+- Qwen/Qwen3-VL-30B-A3B-Instruct
+- BF16
+- TP=2
+- DP=2
+- EP=4
+- PP=1
+- single node
+- GPUs 4,5,6,7
+- prefill 중심
+- `deepep_high_throughput`
+
+TP4/DP1은 dispatch All-to-All이 없었던 기존 구조이므로 주요 검증 topology로 사용하지 마라.
+
+## 구현 순서
+
+### Phase 0 — 환경 감사
+
+다음을 생성하라.
+
+```text
+poc_flashvep/deepep_revalidation/results/<run_id>/environment.txt
+poc_flashvep/deepep_revalidation/results/<run_id>/git_state_before.txt
+```
+
+반드시 versions, GPU topology, model snapshot, Git 상태를 포함하라.
+
+### Phase 1 — DeepEP 설치와 smoke
+
+- 별도 환경 생성
+- pinned DeepEP build/install
+- 4-rank intranode initialization
+- BF16, hidden=2048, top-k=8, experts=128, EP4 dispatch/combine correctness
+- DeepEP import path와 commit 기록
+- backend kernel이 실제로 실행됐음을 확인
+
+설치 실패 시 무한히 patch하지 말고 원인, 시도, 정확한 오류를 BLOCKED 보고서에 남겨라.
+
+### Phase 2 — stock vLLM backend matrix
+
+동일 모델·동일 입력·동일 topology로 다음을 비교하라.
+
+A.
+- `allgather_reducescatter`
+- DBO off
+
+B.
+- `deepep_high_throughput`
+- DBO off
+
+C.
+- `deepep_high_throughput`
+- DBO on
+
+Controlled request:
+
+- 896×896 controlled image
+- exact prompt: `Describe this image briefly.`
+- processor가 생성한 token 수를 다시 기록
+- request count: 가능한 범위에서 1, 4, 8, 16
+- warmup ≥5
+- measured repetitions ≥20
+
+측정:
+
+- request wall
+- prefill/TTFT
+- tokens/s
+- memory peak
+- correctness output
+- actual selected backend
+- DBO activation proof
+- per-rank route load 가능 시 기록
+
+비교:
+
+- A→B는 DeepEP backend 효과
+- B→C는 stock overlap 효과
+- A→C는 전체 substrate 효과
+
+### Phase 3 — operator-level DeepEP replay
+
+기존 layer-24 capture를 우선 재사용하라.
+
+필수 workload:
+
+- B_eq=32
+- B_eq=64
+- B_eq=128
+
+비교:
+
+1. Existing AG/RS serial
+2. Existing AG/RS wavefront K=2
+3. DeepEP serial
+4. DeepEP overlap K=2
+5. K=4는 fragmentation이 허용될 때만
+6. DeepEP가 공식적으로 지원하는 communication-SM 설정 sweep
+
+각 설정에서 다음을 측정하라.
+
+- D alone
+- E alone
+- C alone
+- D||E
+- E||C
+- D||E||C wavefront
+- D/E/C serial sum
+- D/E/C overlap sum
+- stage slowdown ratios
+- wall speedup
+- overlap fraction
+- memory peak
+- all-rank correctness
+
+DeepEP V1이 static SM 설정만 허용하면 process별로 별도 실행하라. 임의 값을 강제로 kernel에 넣지 마라.
+
+### Phase 4 — Nsight
+
+best DeepEP overlap 1개와 대응 serial 1개만 Nsight Systems로 수집하라.
+
+확인:
+
+- DeepEP communication kernel과 Triton expert kernel의 실제 concurrent residency
+- stream dependency
+- CPU sync/gap
+- communication duration
+- Expert duration
+- repeated kernel launch
+
+`.nsys-rep`는 commit하지 말고 작은 exported summary와 명령어만 commit하라.
+
+## correctness 기준
+
+DeepEP serial을 reference로 사용하라.
+
+- `torch.testing.assert_close`
+- max abs
+- mean abs
+- cosine similarity
+- top-k IDs/weights preservation
+- source token order restoration
+- all ranks PASS
+
+BF16 accumulation order 차이를 고려한 tolerance를 명시하라. Bitwise equality를 근거 없이 요구하지 마라.
+
+## Gate
+
+### GO
+
+다음을 모두 만족:
+
+- DeepEP correctness PASS
+- actual DeepEP backend proof
+- Nsight actual overlap
+- E slowdown ≤1.05x
+- D slowdown ≤1.25x
+- B64 또는 B128 중 하나에서 DeepEP serial 대비 ≥1.15x
+- 다른 workload에서 ≥1.10x
+- stock DBO의 end-to-end 이득
+- workload별 차이가 있어 adaptive FlashVEP 여지가 존재
+
+### HOLD
+
+- 최고 1.05x~1.15x
+- operator 이득이 end-to-end에서 줄어듦
+- contention은 감소했으나 stock DBO가 작음
+- 원인이 명확하고 후속 debate 가치가 있음
+
+### NO-GO
+
+- optimized DeepEP에서도 최고 <1.05x
+- actual overlap 없음
+- severe contention 지속
+- integration overhead가 이득보다 큼
+- stock DBO가 모든 이득을 가져가고 adaptation 여지가 없음
+- correctness 실패
+
+### BLOCKED
+
+설치/환경 문제로 핵심 실험을 실행하지 못함. BLOCKED를 NO-GO로 쓰지 마라.
+
+## 구현 산출물
+
+최소 다음을 생성하라.
+
+```text
+poc_flashvep/deepep_revalidation/
+  README.md
+  install_deepep_env.sh
+  run_deepep_smoke.sh
+  run_vllm_backend_matrix.sh
+  run_operator_replay.sh
+  run_nsight_best.sh
+  analyze_results.py
+  configs/
+  results/<run_id>/
+
+poc_flashvep/reports/
+  deepep_overlap_revalidation_report.md
+
+docs/spec/
+  flashvep_deepep_overlap_revalidation_poc_spec.md
+
+docs/prompt/
+  codex_cli_flashvep_deepep_overlap_revalidation_prompt_ko.txt
+```
+
+필요에 따라 파일을 추가할 수 있으나 기존 unrelated 파일을 대규모로 수정하지 마라.
+
+최종 보고서는 다음을 포함하라.
+
+1. Executive summary
+2. Environment
+3. Installation
+4. Backend selection proof
+5. Stock A/B/C result
+6. Operator D/E/C result
+7. SM sweep
+8. Nsight evidence
+9. Correctness
+10. Previous AG/RS result comparison
+11. Gate
+12. FlashVEP novelty implication
+13. Git commit/push status
+
+## Git 종료 절차 — 필수
+
+실험과 보고서가 완료되면 반드시 동일 repository에 commit 및 push하라.
+
+```bash
+cd /home/esjung/MLLM-EP
+git status --short
+git add <이번 작업에서 생성·수정한 파일만>
+git commit -m "poc: revalidate FlashVEP overlap with DeepEP"
+git push -u origin "$(git branch --show-current)"
+```
+
+금지:
+
+- `git add -A`로 unrelated 파일 포함
+- force push
+- commit 없이 종료
+- push 시도 없이 종료
+
+Push가 실패하면 local commit은 유지하고, 정확한 push 명령과 오류를 최종 답변에 그대로 보고하라.
+
+## 최종 채팅 응답 형식
+
+작업 종료 시 반드시 아래 형식으로 답하라.
+
+```text
+FINAL STATUS: GO | HOLD | NO-GO | BLOCKED
+
+Repository:
+Remote:
+Branch:
+Commit:
+Pushed:
+
+Best stock backend result:
+Best DeepEP overlap result:
+D slowdown:
+E slowdown:
+C slowdown:
+Nsight actual overlap:
+Correctness:
+
+Main report:
+Gate JSON:
+Key result directory:
+
+Files changed:
+What was not attempted:
+Single recommended next action:
+```
+
+중요:
+
+- 실제 파일에 존재하는 수치만 사용하라.
+- 결과를 미화하지 마라.
+- DeepEP/DBO의 이득을 FlashVEP novelty로 부르지 마라.
+- 최종적으로 commit SHA와 push 여부가 반드시 있어야 한다.

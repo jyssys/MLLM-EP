@@ -1,0 +1,147 @@
+{
+  "status": "PASS",
+  "actual_kernel_overlap": true,
+  "configuration": {
+    "batch_equivalent": 128,
+    "communication_sms": 8,
+    "microbatches": 2,
+    "warmups": 1,
+    "iterations": 3
+  },
+  "kernel_classes": {
+    "communication": [
+      "deep_ep::intranode::dispatch",
+      "deep_ep::intranode::combine"
+    ],
+    "expert": [
+      "fused_moe_kernel"
+    ]
+  },
+  "workers": [
+    {
+      "pid": 746429,
+      "dispatch_expert_pairs": 4,
+      "combine_expert_pairs": 4,
+      "total_overlap_ms": 10.53343,
+      "max_single_overlap_us": 1525.731,
+      "comm_streams": [
+        22
+      ],
+      "expert_streams": [
+        75,
+        79
+      ],
+      "streams_are_distinct": true
+    },
+    {
+      "pid": 746432,
+      "dispatch_expert_pairs": 4,
+      "combine_expert_pairs": 4,
+      "total_overlap_ms": 12.115951,
+      "max_single_overlap_us": 1869.438,
+      "comm_streams": [
+        22
+      ],
+      "expert_streams": [
+        75,
+        79
+      ],
+      "streams_are_distinct": true
+    },
+    {
+      "pid": 746433,
+      "dispatch_expert_pairs": 4,
+      "combine_expert_pairs": 4,
+      "total_overlap_ms": 8.996297,
+      "max_single_overlap_us": 1270.881,
+      "comm_streams": [
+        22
+      ],
+      "expert_streams": [
+        75,
+        79
+      ],
+      "streams_are_distinct": true
+    },
+    {
+      "pid": 746434,
+      "dispatch_expert_pairs": 4,
+      "combine_expert_pairs": 4,
+      "total_overlap_ms": 11.322619,
+      "max_single_overlap_us": 1714.143,
+      "comm_streams": [
+        22
+      ],
+      "expert_streams": [
+        75,
+        79
+      ],
+      "streams_are_distinct": true
+    }
+  ],
+  "nvtx_attributed_kernel_sum_slowdown": [
+    {
+      "pid": 746429,
+      "stage": "D",
+      "serial_kernel_sum_ms": 36.104329,
+      "overlap_kernel_sum_ms": 45.284895,
+      "slowdown": 1.2542788151526096
+    },
+    {
+      "pid": 746429,
+      "stage": "E",
+      "serial_kernel_sum_ms": 23.759794,
+      "overlap_kernel_sum_ms": 25.46319,
+      "slowdown": 1.0716923724170335
+    },
+    {
+      "pid": 746432,
+      "stage": "D",
+      "serial_kernel_sum_ms": 32.906193,
+      "overlap_kernel_sum_ms": 43.514436,
+      "slowdown": 1.322378313407449
+    },
+    {
+      "pid": 746432,
+      "stage": "E",
+      "serial_kernel_sum_ms": 26.963899,
+      "overlap_kernel_sum_ms": 28.614298,
+      "slowdown": 1.0612077281553383
+    },
+    {
+      "pid": 746433,
+      "stage": "D",
+      "serial_kernel_sum_ms": 38.56308,
+      "overlap_kernel_sum_ms": 46.160337,
+      "slowdown": 1.1970085636313281
+    },
+    {
+      "pid": 746433,
+      "stage": "E",
+      "serial_kernel_sum_ms": 21.310584,
+      "overlap_kernel_sum_ms": 23.121303,
+      "slowdown": 1.084968060940986
+    },
+    {
+      "pid": 746434,
+      "stage": "D",
+      "serial_kernel_sum_ms": 33.672498,
+      "overlap_kernel_sum_ms": 43.625135,
+      "slowdown": 1.295571685830971
+    },
+    {
+      "pid": 746434,
+      "stage": "E",
+      "serial_kernel_sum_ms": 26.001397,
+      "overlap_kernel_sum_ms": 27.746197,
+      "slowdown": 1.0671040867534924
+    }
+  ],
+  "max_nsight_D_kernel_sum_slowdown": 1.322378313407449,
+  "max_nsight_E_kernel_sum_slowdown": 1.084968060940986,
+  "C_kernel_sum_slowdown": null,
+  "C_kernel_sum_note": "DeepEP combine launches were asynchronous to the host NVTX range, so C slowdown uses corrected CUDA-event stage timing in operator_matrix.json.",
+  "command": "BATCHES=128 SMS_VALUES=8 WARMUPS=1 ITERATIONS=3 nsys profile --trace=cuda,nvtx --sample=none --cpuctxsw=none --trace-fork-before-exec=true ... run_operator_replay.sh",
+  "large_trace_committed": false,
+  "interpretation_limit": "Concurrent kernel intervals prove residency overlap; HBM/L2 contention is not directly established by this trace."
+}
