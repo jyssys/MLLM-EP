@@ -41,28 +41,45 @@ def _stats(values: list[float]) -> dict[str, float]:
     }
 
 
-def _prompt(model_path: str, image_size: int) -> tuple[dict[str, Any], int]:
+def _prompt(
+    model_path: str,
+    image_size: int,
+    modality: str,
+    text_target_tokens: int,
+) -> tuple[dict[str, Any], int | None]:
     from PIL import Image
     from transformers import AutoProcessor
 
     processor = AutoProcessor.from_pretrained(model_path, trust_remote_code=True)
     image = Image.new("RGB", (image_size, image_size), (128, 128, 128))
-    messages = [
-        {
-            "role": "user",
-            "content": [
-                {"type": "image", "image": image},
-                {"type": "text", "text": "Describe this image briefly."},
-            ],
-        }
-    ]
+    if modality == "vision":
+        content = [
+            {"type": "image", "image": image},
+            {"type": "text", "text": "Describe this image briefly."},
+        ]
+    else:
+        words = max(1, text_target_tokens)
+        while True:
+            content = [{"type": "text", "text": " blue" * words}]
+            candidate = processor.apply_chat_template(
+                [{"role": "user", "content": content}],
+                tokenize=False,
+                add_generation_prompt=True,
+            )
+            token_count = len(processor.tokenizer.encode(candidate))
+            if token_count <= text_target_tokens or words == 1:
+                break
+            words -= max(1, token_count - text_target_tokens)
+    messages = [{"role": "user", "content": content}]
     text = processor.apply_chat_template(
         messages, tokenize=False, add_generation_prompt=True
     )
-    image_token_id = int(
-        processor.tokenizer.convert_tokens_to_ids(processor.image_token)
-    )
-    return {"prompt": text, "multi_modal_data": {"image": image}}, image_token_id
+    if modality == "vision":
+        image_token_id = int(
+            processor.tokenizer.convert_tokens_to_ids(processor.image_token)
+        )
+        return {"prompt": text, "multi_modal_data": {"image": image}}, image_token_id
+    return {"prompt": text}, None
 
 
 def _generate(
@@ -71,13 +88,15 @@ def _generate(
     sampling: Any,
     barrier: Any,
     wave: int,
-) -> list[Any]:
+) -> tuple[list[Any], list[str]]:
     from vllm.outputs import RequestOutput
     from vllm.v1.engine import EngineCoreRequestType
 
     if prompts:
         barrier.wait(timeout=600)
-        llm._add_completion_requests(prompts, sampling, use_tqdm=False)
+        submitted_request_ids = llm._add_completion_requests(
+            prompts, sampling, use_tqdm=False
+        )
         outputs = llm._run_engine(RequestOutput, use_tqdm=False)
     else:
         llm.llm_engine.engine_core._send_input(
@@ -85,8 +104,9 @@ def _generate(
         )
         barrier.wait(timeout=600)
         outputs = []
+        submitted_request_ids = []
     barrier.wait(timeout=600)
-    return outputs
+    return outputs, submitted_request_ids
 
 
 def _rank_path(output: Path, dp_rank: int) -> Path:
@@ -114,7 +134,12 @@ def _run_rank(
         )
         from vllm import LLM, SamplingParams
 
-        prompt, image_token_id = _prompt(args.model_path, args.image_size)
+        prompt, image_token_id = _prompt(
+            args.model_path,
+            args.image_size,
+            args.modality,
+            args.text_target_tokens,
+        )
         llm = LLM(
             model=args.model_path,
             dtype="bfloat16",
@@ -149,7 +174,7 @@ def _run_rank(
             )
             prompts = [copy.deepcopy(prompt) for _ in range(local_batch)]
             for _ in range(args.warmups):
-                outputs = _generate(llm, prompts, sampling, barrier, wave)
+                outputs, _ = _generate(llm, prompts, sampling, barrier, wave)
                 wave += 1
                 if len(outputs) != local_batch:
                     raise AssertionError("warmup output count mismatch")
@@ -157,9 +182,12 @@ def _run_rank(
             output_tokens: list[list[int]] = []
             prompt_count = None
             image_count = None
+            request_order = []
             for _ in range(args.iterations):
                 start = time.perf_counter_ns()
-                outputs = _generate(llm, prompts, sampling, barrier, wave)
+                outputs, submitted_request_ids = _generate(
+                    llm, prompts, sampling, barrier, wave
+                )
                 end = time.perf_counter_ns()
                 wave += 1
                 samples.append((end - start) / 1_000_000)
@@ -173,9 +201,39 @@ def _run_rank(
                     output_tokens.extend(ids)
                     prompt_ids = [int(value) for value in outputs[0].prompt_token_ids]
                     prompt_count = len(prompt_ids)
-                    image_count = sum(value == image_token_id for value in prompt_ids)
-                    if any(values != [args.expected_output_token] for values in ids):
+                    image_count = (
+                        sum(value == image_token_id for value in prompt_ids)
+                        if image_token_id is not None
+                        else 0
+                    )
+                    request_order.append(
+                        {
+                            "submitted_request_ids": submitted_request_ids,
+                            "restored_output_request_ids": [
+                                str(request.request_id) for request in outputs
+                            ],
+                            "output_tokens_by_request_id": {
+                                str(request.request_id): [
+                                    int(value)
+                                    for value in request.outputs[0].token_ids
+                                ]
+                                for request in outputs
+                            },
+                        }
+                    )
+                    if args.expected_output_token is not None and any(
+                        values != [args.expected_output_token] for values in ids
+                    ):
                         all_correct = False
+            batch_correct = (
+                all(
+                    values == [args.expected_output_token]
+                    for values in output_tokens
+                )
+                if args.expected_output_token is not None
+                else len({tuple(v) for v in output_tokens}) <= 1
+            )
+            all_correct = all_correct and batch_correct
             batch_results.append(
                 {
                     "global_request_count": global_batch,
@@ -185,10 +243,9 @@ def _run_rank(
                     "prompt_tokens_per_request": prompt_count,
                     "vision_tokens_per_request": image_count,
                     "output_token_ids": output_tokens,
-                    "correctness": all(
-                        values == [args.expected_output_token]
-                        for values in output_tokens
-                    ),
+                    "request_order": request_order,
+                    "identical_outputs": len({tuple(v) for v in output_tokens}) <= 1,
+                    "correctness": batch_correct,
                 }
             )
         result = {
@@ -208,6 +265,8 @@ def _run_rank(
                 "num_ubatches": int(parallel.num_ubatches),
                 "warmups": args.warmups,
                 "iterations": args.iterations,
+                "modality": args.modality,
+                "text_target_tokens": args.text_target_tokens,
             },
             "batches": batch_results,
         }
@@ -239,9 +298,12 @@ def main() -> None:
     parser.add_argument("--warmups", type=int, default=5)
     parser.add_argument("--iterations", type=int, default=20)
     parser.add_argument("--image-size", type=int, default=896)
-    parser.add_argument("--expected-output-token", type=int, default=1986)
+    parser.add_argument("--modality", choices=("text", "vision"), default="vision")
+    parser.add_argument("--text-target-tokens", type=int, default=790)
+    parser.add_argument("--expected-output-token", type=int)
     parser.add_argument("--kv-cache-memory-bytes", type=int, default=1073741824)
     parser.add_argument("--timeout-seconds", type=int, default=7200)
+    parser.add_argument("--allow-correctness-failure", action="store_true")
     args = parser.parse_args()
     if any(count < 1 or (count > 1 and count % 2) for count in args.request_counts):
         raise ValueError("counts above one must divide evenly over DP2")
@@ -270,13 +332,14 @@ def main() -> None:
         for rank in range(2)
         if _rank_path(args.output, rank).exists()
     ]
-    status = (
-        "ok"
-        if not timed_out
+    process_ok = (
+        not timed_out
         and [process.exitcode for process in processes] == [0, 0]
         and len(rows) == 2
-        and all(row.get("status") == "ok" for row in rows)
-        else "error"
+    )
+    correctness_ok = process_ok and all(row.get("status") == "ok" for row in rows)
+    status = "ok" if correctness_ok else (
+        "correctness_failed" if process_ok else "error"
     )
     aggregate = {
         "status": status,
@@ -289,7 +352,9 @@ def main() -> None:
     }
     args.output.write_text(json.dumps(aggregate, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({"status": status, "exit_codes": aggregate["exit_codes"]}, indent=2))
-    if status != "ok":
+    if status == "error" or (
+        status == "correctness_failed" and not args.allow_correctness_failure
+    ):
         raise SystemExit(1)
 
 

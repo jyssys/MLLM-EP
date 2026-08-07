@@ -23,3 +23,8 @@ with the input consumed by C(previous).
 
 Large `.nsys-rep` and exported SQLite files stay under `large_local_artifacts`
 and must not be committed. Only compact summaries and the report belong in Git.
+
+The bounded stock DBO correctness matrix is run with
+`run_dbo_correctness_matrix.sh`. Its diagnosis, minimal runtime workaround,
+correctness evidence, and clean post-fix latency are documented in
+`../reports/deepep_dbo_correctness_report.md`.
