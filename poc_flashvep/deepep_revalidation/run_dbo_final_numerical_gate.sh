@@ -17,7 +17,9 @@ export PYTHONPATH="${REPO_ROOT}/poc_flashvep/deepep_revalidation/hooks:${REPO_RO
 unset FLASHVEP_DBO_CORRECTNESS_FIX FLASHVEP_DBO_CORRECTNESS_TRACE_DIR || true
 mkdir -p "${RESULT_DIR}"
 
-for mode in off on; do
+for mode in ${MODES:-off on}; do
+  export FLASHVEP_DBO_LOCALIZATION_DIR="${RESULT_DIR}/tensors"
+  export FLASHVEP_DBO_LOCALIZATION_MODE="${mode}"
   dbo_args=()
   [[ "${mode}" == "on" ]] && dbo_args+=(--enable-dbo)
   "${VENV}/bin/python" \

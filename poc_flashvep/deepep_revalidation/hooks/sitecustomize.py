@@ -28,3 +28,10 @@ if os.environ.get("FLASHVEP_DBO_CORRECTNESS_TRACE_DIR"):
     )
 
     install_dbo_correctness_probe()
+
+if os.environ.get("FLASHVEP_DBO_LOCALIZATION_DIR"):
+    from poc_flashvep.deepep_revalidation.dbo_layer_localization_probe import (
+        install_dbo_layer_localization_probe,
+    )
+
+    install_dbo_layer_localization_probe()
