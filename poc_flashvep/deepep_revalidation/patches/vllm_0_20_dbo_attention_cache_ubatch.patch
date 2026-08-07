@@ -1,0 +1,24 @@
+diff --git a/vllm/v1/worker/gpu_model_runner.py b/vllm/v1/worker/gpu_model_runner.py
+--- a/vllm/v1/worker/gpu_model_runner.py
++++ b/vllm/v1/worker/gpu_model_runner.py
+@@ -2214,6 +2214,10 @@ class GPUModelRunner(LoRAModelRunnerMixin):
+         # `builder.update_block_table` if the builder supports it.
+         cached_attn_metadata: dict[
+-            tuple[KVCacheSpec, type[AttentionMetadataBuilder]], AttentionMetadata
++            tuple[
++                int | None,
++                KVCacheSpec,
++                type[AttentionMetadataBuilder],
++            ], AttentionMetadata
+         ] = {}
+ 
+         def _build_attn_group_metadata(
+@@ -2228,7 +2232,7 @@ class GPUModelRunner(LoRAModelRunnerMixin):
+             kv_cache_spec = kv_cache_groups[kv_cache_gid].kv_cache_spec
+             if isinstance(kv_cache_spec, UniformTypeKVCacheSpecs):
+                 kv_cache_spec = kv_cache_spec.kv_cache_specs[attn_group.layer_names[0]]
+-            cache_key = (kv_cache_spec, type(builder))
++            cache_key = (ubid, kv_cache_spec, type(builder))
+ 
+             cascade_attn_prefix_len = (
+                 cascade_attn_prefix_lens[kv_cache_gid][attn_gid]

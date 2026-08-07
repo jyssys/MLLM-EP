@@ -1,0 +1,157 @@
+diff --git a/vllm/v1/worker/gpu_ubatch_wrapper.py b/vllm/v1/worker/gpu_ubatch_wrapper.py
+--- a/vllm/v1/worker/gpu_ubatch_wrapper.py
++++ b/vllm/v1/worker/gpu_ubatch_wrapper.py
+@@ -2,6 +2,7 @@
+ 
+ import threading
+ from collections.abc import Callable
++from contextlib import contextmanager
+ from dataclasses import dataclass
+ from typing import Any
+ 
+@@ -342,6 +342,9 @@ class UBatchWrapper:
+                     batch_descriptor=batch_descriptor,
+                     cudagraph_runtime_mode=cudagraph_runtime_mode,
+                     slot_mapping=slot_mapping[i] if has_slot_mapping else None,
++                    additional_kwargs={
++                        "ubatch_token_slice": ubatch_slice.token_slice,
++                    },
+                 )
+             )
+ 
+@@ -408,6 +411,18 @@ class UBatchWrapper:
+             sliced_intermediate_tensors,
+         )
+ 
++    def _finalize_ubatch_inputs(self) -> None:
++        finalize = getattr(self.runnable, "_finalize_ubatch_inputs", None)
++        if finalize is not None:
++            finalize()
++
++    @contextmanager
++    def _ubatch_input_lifetime(self):
++        try:
++            yield
++        finally:
++            self._finalize_ubatch_inputs()
++
+     def __call__(self, *args, **kwargs):
+         forward_context = get_forward_context()
+         batch_descriptor = forward_context.batch_descriptor
+@@ -480,8 +499,8 @@ class UBatchWrapper:
+                 batch_descriptor=batch_descriptor,
+                 cudagraph_runtime_mode=CUDAGraphMode.NONE,
+             )
+-            with self.sm_control:
++            with self._ubatch_input_lifetime(), self.sm_control:
+                 return self._capture_ubatches(ubatch_metadata, self.runnable)
+         elif (
+             num_tokens in self.cudagraphs
+             and cudagraph_runtime_mode is CUDAGraphMode.FULL
+@@ -489,9 +508,10 @@ class UBatchWrapper:
+             cudagraph_metadata = self.cudagraphs[num_tokens]
+             # Sync offloader before replay - ensures any external dependencies
+             # from pre-capture prefetches are satisfied.
+-            get_offloader().sync_prev_onload()
+-            cudagraph_metadata.cudagraph.replay()
+-            return cudagraph_metadata.outputs
++            with self._ubatch_input_lifetime():
++                get_offloader().sync_prev_onload()
++                cudagraph_metadata.cudagraph.replay()
++                return cudagraph_metadata.outputs
+         else:
+             ubatch_metadata = self._make_ubatch_metadata(
+                 ubatch_slices=ubatch_slices,
+@@ -507,5 +527,5 @@ class UBatchWrapper:
+                 batch_descriptor=batch_descriptor,
+                 cudagraph_runtime_mode=CUDAGraphMode.NONE,
+             )
+-            with self.sm_control:
++            with self._ubatch_input_lifetime(), self.sm_control:
+                 return self._run_ubatches(ubatch_metadata, self.runnable)
+diff --git a/vllm/model_executor/models/qwen3_vl.py b/vllm/model_executor/models/qwen3_vl.py
+--- a/vllm/model_executor/models/qwen3_vl.py
++++ b/vllm/model_executor/models/qwen3_vl.py
+@@ -53,4 +53,5 @@ from vllm.config.multimodal import BaseDummyOptions, VideoDummyOptions
+ from vllm.distributed import get_pp_group, parallel_state
++from vllm.forward_context import get_forward_context
+ from vllm.inputs import MultiModalDataDict
+ from vllm.logger import init_logger
+ from vllm.model_executor.layers.activation import _ACTIVATION_REGISTRY
+@@ -1707,16 +1708,28 @@ class Qwen3VLForConditionalGeneration(nn.Module, SupportsMultiModal, SupportsMRo
+         if getattr(self, "deepstack_input_embeds_num_tokens", 0) == 0:
+             return None
+-        if num_tokens > self.deepstack_input_embeds_num_tokens:
++
++        token_slice = get_forward_context().additional_kwargs.get(
++            "ubatch_token_slice"
++        )
++        if token_slice is None:
++            token_slice = slice(0, num_tokens)
++        start = int(token_slice.start or 0)
++        stop = int(token_slice.stop)
++        if start < 0 or stop - start != num_tokens:
+             raise ValueError(
+-                "Requested more deepstack tokens than available in buffer: "
+-                f"{num_tokens=} > {self.deepstack_input_embeds_num_tokens=}"
++                "Invalid DeepStack ubatch token slice: "
++                f"{token_slice=}, {num_tokens=}"
+             )
++        if stop > self.deepstack_input_embeds[0].size(0):
++            raise ValueError(
++                "DeepStack ubatch token slice exceeds buffer capacity: "
++                f"{token_slice=}, capacity={self.deepstack_input_embeds[0].size(0)}"
++            )
+ 
+-        # get deepstack_input_embeds from buffer, and clear the buffer
+         return IntermediateTensors(
+             {
+                 f"deepstack_input_embeds_{idx}": self.deepstack_input_embeds[idx][
+-                    :num_tokens
++                    start:stop
+                 ]
+                 for idx in range(self.deepstack_num_level)
+             }
+@@ -1738,12 +1749,19 @@ class Qwen3VLForConditionalGeneration(nn.Module, SupportsMultiModal, SupportsMRo
+                     dtype=self.deepstack_input_embeds[0].dtype,
+                 )
+                 for _ in range(self.deepstack_num_level)
+             ]
++            self.deepstack_input_embeds_dirty_tokens = 0
++        dirty_tokens = int(
++            getattr(self, "deepstack_input_embeds_dirty_tokens", 0)
++        )
+         for idx in range(self.deepstack_num_level):
++            if dirty_tokens > num_tokens:
++                self.deepstack_input_embeds[idx][num_tokens:dirty_tokens].zero_()
+             self.deepstack_input_embeds[idx][:num_tokens].copy_(
+                 deepstack_input_embeds[idx]
+             )
+         self.deepstack_input_embeds_num_tokens = num_tokens
++        self.deepstack_input_embeds_dirty_tokens = max(dirty_tokens, num_tokens)
+ 
+     def _clear_deepstack_input_embeds(self, num_tokens: int) -> None:
+         if not getattr(self, "deepstack_input_embeds", None):
+@@ -1751,6 +1769,11 @@ class Qwen3VLForConditionalGeneration(nn.Module, SupportsMultiModal, SupportsMRo
+         if getattr(self, "deepstack_input_embeds_num_tokens", 0) == 0:
+             return
+ 
++        token_slice = get_forward_context().additional_kwargs.get(
++            "ubatch_token_slice"
++        )
++        if token_slice is not None:
++            return
+         # clear deepstack_input_embeds in buffer
+         if num_tokens > 0:
+             if num_tokens > self.deepstack_input_embeds_num_tokens:
+@@ -1763,6 +1785,10 @@ class Qwen3VLForConditionalGeneration(nn.Module, SupportsMultiModal, SupportsMRo
+                 self.deepstack_input_embeds[idx][:num_tokens].zero_()
+             self.deepstack_input_embeds_num_tokens = 0
+ 
++    def _finalize_ubatch_inputs(self) -> None:
++        # Views remain valid; only retire the payload after all threads join.
++        self.deepstack_input_embeds_num_tokens = 0
++
+     # -- SupportsEncoderCudaGraph protocol methods --
+ 
+     def get_encoder_cudagraph_config(self):

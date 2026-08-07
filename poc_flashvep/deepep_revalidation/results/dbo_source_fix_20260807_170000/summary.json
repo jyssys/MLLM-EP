@@ -1,0 +1,40 @@
+{
+  "final_status": "GO",
+  "source_base_commit": "10036166b42400ead27ab023f64295623d5fccff",
+  "source_fix_mode": "both",
+  "runtime_monkeypatch_enabled": false,
+  "physical_gpus": [4, 5, 6, 7],
+  "ablation": {
+    "none": {"text": "FAIL", "vision": "FAIL"},
+    "attention": {"text": "PASS", "vision": "FAIL"},
+    "deepstack": {
+      "text": "FAIL",
+      "vision": "FAIL: FA3 batch_size != batch_size_k; run stopped after downstream DeepEP timeout"
+    },
+    "both": {"text": "PASS", "vision": "PASS"}
+  },
+  "regressions": {
+    "unequal_vision_split_399_400": "PASS",
+    "mixed_request_lengths_620_790": "PASS",
+    "request_id_output_identity": "PASS",
+    "exception_lifetime": "PASS",
+    "mixed_text_vision_wave": "UNRESOLVED: DBO-off harness input queue stalled"
+  },
+  "latency_global_rank_max_median_ms": {
+    "text": {
+      "2": {"dbo_off": 2783.221745, "dbo_on": 3465.742308, "speedup": 0.803067},
+      "4": {"dbo_off": 2805.296825, "dbo_on": 4695.290955, "speedup": 0.597470},
+      "8": {"dbo_off": 2799.926951, "dbo_on": 4035.364902, "speedup": 0.693847}
+    },
+    "vision": {
+      "2": {"dbo_off": 4371.736544, "dbo_on": 4107.062359, "speedup": 1.064444},
+      "4": {"dbo_off": 4429.997223, "dbo_on": 4709.891954, "speedup": 0.940573},
+      "8": {"dbo_off": 4496.938152, "dbo_on": 4164.147683, "speedup": 1.079918}
+    }
+  },
+  "limitations": [
+    "The optional heterogeneous text+vision wave stalled before execution in the private harness even with DBO off.",
+    "A 16-token distinct-text diagnostic preserved request identity but one DBO-on continuation diverged from DBO-off after the identifying token; long-form bit-exact parity is not claimed.",
+    "The source patches are validation patches for vLLM 0.20 and are not claimed to be upstream-accepted code."
+  ]
+}

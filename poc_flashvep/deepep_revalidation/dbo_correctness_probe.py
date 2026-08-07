@@ -162,12 +162,19 @@ def install_dbo_correctness_probe() -> None:
         GPUModelRunner,
     )
     from vllm.v1.worker.ubatching import UBatchContext
+    from vllm.forward_context import get_forward_context
+    from vllm.model_executor.models.qwen3_vl import (
+        Qwen3VLForConditionalGeneration,
+    )
 
     original_execute_model = GPUModelRunner.execute_model
     original_make_slices = gpu_model_runner_module.maybe_create_ubatch_slices
     original_ubatch_enter = UBatchContext.__enter__
     original_attention_forward = FlashAttentionImpl.forward
     original_async_get_output = AsyncGPUModelRunnerOutput.get_output
+    original_deepstack_get = (
+        Qwen3VLForConditionalGeneration._get_deepstack_input_embeds
+    )
 
     def execute_model(self: Any, scheduler_output: Any, *args: Any, **kwargs: Any):
         req_ids = list(scheduler_output.num_scheduled_tokens)
@@ -313,8 +320,32 @@ def install_dbo_correctness_probe() -> None:
         )
         return output
 
+    def deepstack_get(self: Any, num_tokens: int):
+        result = original_deepstack_get(self, num_tokens)
+        if result is not None:
+            token_slice = get_forward_context().additional_kwargs.get(
+                "ubatch_token_slice"
+            )
+            _write(
+                "deepstack_source_slice",
+                {
+                    "ubatch_id": int(getattr(_STATE, "ubatch_id", -1)),
+                    "num_tokens": int(num_tokens),
+                    "token_slice": (
+                        _jsonable_slice(token_slice)
+                        if token_slice is not None
+                        else None
+                    ),
+                    "valid_tokens": int(
+                        getattr(self, "deepstack_input_embeds_num_tokens", 0)
+                    ),
+                },
+            )
+        return result
+
     GPUModelRunner.execute_model = execute_model
     gpu_model_runner_module.maybe_create_ubatch_slices = maybe_create_ubatch_slices
     UBatchContext.__enter__ = ubatch_enter
     FlashAttentionImpl.forward = attention_forward
     AsyncGPUModelRunnerOutput.get_output = async_get_output
+    Qwen3VLForConditionalGeneration._get_deepstack_input_embeds = deepstack_get

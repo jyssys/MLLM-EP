@@ -46,6 +46,7 @@ def _prompt(
     image_size: int,
     modality: str,
     text_target_tokens: int,
+    text_fill: str = "blue",
 ) -> tuple[dict[str, Any], int | None]:
     from PIL import Image
     from transformers import AutoProcessor
@@ -60,7 +61,7 @@ def _prompt(
     else:
         words = max(1, text_target_tokens)
         while True:
-            content = [{"type": "text", "text": " blue" * words}]
+            content = [{"type": "text", "text": f" {text_fill}" * words}]
             candidate = processor.apply_chat_template(
                 [{"role": "user", "content": content}],
                 tokenize=False,
@@ -140,6 +141,39 @@ def _run_rank(
             args.modality,
             args.text_target_tokens,
         )
+        prompt_templates = [prompt]
+        prompt_labels = [args.modality]
+        image_token_ids = [image_token_id]
+        if args.scenario == "mixed_length":
+            short_prompt, _ = _prompt(
+                args.model_path, args.image_size, "text", 620
+            )
+            long_prompt, _ = _prompt(
+                args.model_path, args.image_size, "text", 790
+            )
+            prompt_templates = [short_prompt, long_prompt]
+            prompt_labels = ["text_620", "text_790"]
+            image_token_ids = [None, None]
+        elif args.scenario == "mixed_modality":
+            text_prompt, _ = _prompt(
+                args.model_path, args.image_size, "text", 790
+            )
+            vision_prompt, vision_image_token_id = _prompt(
+                args.model_path, args.image_size, "vision", args.text_target_tokens
+            )
+            prompt_templates = [text_prompt, vision_prompt]
+            prompt_labels = ["text_790", "vision_896"]
+            image_token_ids = [None, vision_image_token_id]
+        elif args.scenario == "distinct_text":
+            blue_prompt, _ = _prompt(
+                args.model_path, args.image_size, "text", 790, "blue"
+            )
+            red_prompt, _ = _prompt(
+                args.model_path, args.image_size, "text", 790, "red"
+            )
+            prompt_templates = [blue_prompt, red_prompt]
+            prompt_labels = ["text_blue_790", "text_red_790"]
+            image_token_ids = [None, None]
         llm = LLM(
             model=args.model_path,
             dtype="bfloat16",
@@ -164,7 +198,7 @@ def _run_rank(
             disable_log_stats=False,
         )
         parallel = llm.llm_engine.vllm_config.parallel_config
-        sampling = SamplingParams(max_tokens=1, temperature=0.0)
+        sampling = SamplingParams(max_tokens=args.max_tokens, temperature=0.0)
         wave = 0
         batch_results = []
         all_correct = True
@@ -172,7 +206,14 @@ def _run_rank(
             local_batch = 1 if global_batch == 1 and dp_rank == 0 else (
                 0 if global_batch == 1 else global_batch // 2
             )
-            prompts = [copy.deepcopy(prompt) for _ in range(local_batch)]
+            prompts = [
+                copy.deepcopy(prompt_templates[index % len(prompt_templates)])
+                for index in range(local_batch)
+            ]
+            labels = [
+                prompt_labels[index % len(prompt_labels)]
+                for index in range(local_batch)
+            ]
             for _ in range(args.warmups):
                 outputs, _ = _generate(llm, prompts, sampling, barrier, wave)
                 wave += 1
@@ -182,6 +223,8 @@ def _run_rank(
             output_tokens: list[list[int]] = []
             prompt_count = None
             image_count = None
+            prompt_counts = None
+            image_counts = None
             request_order = []
             for _ in range(args.iterations):
                 start = time.perf_counter_ns()
@@ -199,13 +242,35 @@ def _run_rank(
                         for request in outputs
                     ]
                     output_tokens.extend(ids)
-                    prompt_ids = [int(value) for value in outputs[0].prompt_token_ids]
-                    prompt_count = len(prompt_ids)
-                    image_count = (
-                        sum(value == image_token_id for value in prompt_ids)
-                        if image_token_id is not None
+                    output_by_id = {str(request.request_id): request for request in outputs}
+                    submitted_keys = [str(value).split("-", 1)[0] for value in submitted_request_ids]
+                    prompt_counts = [
+                        len(output_by_id[key].prompt_token_ids) for key in submitted_keys
+                    ]
+                    image_counts = [
+                        sum(
+                            int(value) == image_token_ids[index % len(image_token_ids)]
+                            for value in output_by_id[key].prompt_token_ids
+                        )
+                        if image_token_ids[index % len(image_token_ids)] is not None
                         else 0
-                    )
+                        for index, key in enumerate(submitted_keys)
+                    ]
+                    prompt_count = prompt_counts[0]
+                    image_count = image_counts[0]
+                    identity_rows = [
+                        {
+                            "prompt_slot": index,
+                            "prompt_label": labels[index],
+                            "submitted_request_id": submitted_request_ids[index],
+                            "restored_output_request_id": key,
+                            "output_token_ids": [
+                                int(value)
+                                for value in output_by_id[key].outputs[0].token_ids
+                            ],
+                        }
+                        for index, key in enumerate(submitted_keys)
+                    ]
                     request_order.append(
                         {
                             "submitted_request_ids": submitted_request_ids,
@@ -219,20 +284,42 @@ def _run_rank(
                                 ]
                                 for request in outputs
                             },
+                            "request_identity": identity_rows,
                         }
                     )
-                    if args.expected_output_token is not None and any(
+                    if args.expected_output_tokens is not None:
+                        expected = [
+                            args.expected_output_tokens[index % len(args.expected_output_tokens)]
+                            for index in range(local_batch)
+                        ]
+                        if any(
+                            row["output_token_ids"] != [expected[index]]
+                            for index, row in enumerate(identity_rows)
+                        ):
+                            all_correct = False
+                    elif args.expected_output_token is not None and any(
                         values != [args.expected_output_token] for values in ids
                     ):
                         all_correct = False
-            batch_correct = (
-                all(
-                    values == [args.expected_output_token]
-                    for values in output_tokens
+            if args.expected_output_tokens is not None:
+                expected_cycle = [
+                    args.expected_output_tokens[index % len(args.expected_output_tokens)]
+                    for index in range(local_batch)
+                ]
+                batch_correct = all(
+                    row["output_token_ids"] == [expected_cycle[index]]
+                    for order in request_order
+                    for index, row in enumerate(order["request_identity"])
                 )
-                if args.expected_output_token is not None
-                else len({tuple(v) for v in output_tokens}) <= 1
-            )
+            else:
+                batch_correct = (
+                    all(
+                        values == [args.expected_output_token]
+                        for values in output_tokens
+                    )
+                    if args.expected_output_token is not None
+                    else len({tuple(v) for v in output_tokens}) <= 1
+                )
             all_correct = all_correct and batch_correct
             batch_results.append(
                 {
@@ -242,6 +329,8 @@ def _run_rank(
                     "wall_ms_stats": _stats(samples),
                     "prompt_tokens_per_request": prompt_count,
                     "vision_tokens_per_request": image_count,
+                    "prompt_tokens_by_request_slot": prompt_counts,
+                    "vision_tokens_by_request_slot": image_counts,
                     "output_token_ids": output_tokens,
                     "request_order": request_order,
                     "identical_outputs": len({tuple(v) for v in output_tokens}) <= 1,
@@ -267,6 +356,8 @@ def _run_rank(
                 "iterations": args.iterations,
                 "modality": args.modality,
                 "text_target_tokens": args.text_target_tokens,
+                "scenario": args.scenario,
+                "prompt_labels": prompt_labels,
             },
             "batches": batch_results,
         }
@@ -301,7 +392,14 @@ def main() -> None:
     parser.add_argument("--modality", choices=("text", "vision"), default="vision")
     parser.add_argument("--text-target-tokens", type=int, default=790)
     parser.add_argument("--expected-output-token", type=int)
+    parser.add_argument("--expected-output-tokens", type=int, nargs="+")
+    parser.add_argument(
+        "--scenario",
+        choices=("uniform", "mixed_length", "mixed_modality", "distinct_text"),
+        default="uniform",
+    )
     parser.add_argument("--kv-cache-memory-bytes", type=int, default=1073741824)
+    parser.add_argument("--max-tokens", type=int, default=1)
     parser.add_argument("--timeout-seconds", type=int, default=7200)
     parser.add_argument("--allow-correctness-failure", action="store_true")
     args = parser.parse_args()
