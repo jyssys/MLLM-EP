@@ -72,9 +72,52 @@ def sample_suite() -> list[dict[str, Any]]:
             "sample_id": sample_id,
             "image_paths": [str(path) for path in paths],
             "question": prompts[category],
+            "suite_origin": "previous17",
         }
         for category, sample_id, paths in rows
     ]
+
+
+def expanded_sample_suite() -> list[dict[str, Any]]:
+    """Return every usable unique local image without replicating samples."""
+    rows = sample_suite()
+    ski = Path("/home/esjung/anaconda3/lib/python3.14/site-packages/skimage/data")
+    tui = Path("/home/esjung/MLLM-EP/external/lmms-eval/docs/images")
+    additions = [
+        ("natural", "moon", ski / "moon.png"),
+        ("natural", "camera", ski / "camera.png"),
+        ("natural", "horse", ski / "horse.png"),
+        ("natural", "coins", ski / "coins.png"),
+        ("natural", "motorcycle_right", ski / "motorcycle_right.png"),
+        ("fine_grained", "brick", ski / "brick.png"),
+        ("fine_grained", "phantom", ski / "phantom.png"),
+        ("fine_grained", "microaneurysms", ski / "microaneurysms.png"),
+        ("fine_grained", "cell", ski / "cell.png"),
+        ("fine_grained", "color_wheel", ski / "color.png"),
+        ("fine_grained", "clock_motion", ski / "clock_motion.png"),
+        ("chart_document", "logo", ski / "logo.png"),
+        ("chart_document", "text_page", ski / "text.png"),
+        ("chart_document", "scanned_page", ski / "page.png"),
+        ("chart_document", "chessboard_gray", ski / "chessboard_GRAY.png"),
+        ("chart_document", "chessboard_rgb", ski / "chessboard_RGB.png"),
+        ("chart_document", "tui_model_selection", tui / "tui-model-selection.png"),
+    ]
+    prompts = {
+        "natural": "Describe the important objects and their spatial arrangement briefly.",
+        "fine_grained": "Describe the visible fine-grained texture or structure briefly.",
+        "chart_document": "Summarize the visible chart, diagram, or interface briefly.",
+    }
+    rows.extend(
+        {
+            "category": category,
+            "sample_id": sample_id,
+            "image_paths": [str(path)],
+            "question": prompts[category],
+            "suite_origin": "expanded_new",
+        }
+        for category, sample_id, path in additions
+    )
+    return rows
 
 
 def _json(path: Path, payload: Any) -> None:
@@ -285,7 +328,7 @@ def profile(args: argparse.Namespace) -> None:
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
     processor = AutoProcessor.from_pretrained(args.model_path, trust_remote_code=True)
-    suite = sample_suite()
+    suite = expanded_sample_suite() if args.suite == "expanded" else sample_suite()
     missing = [path for row in suite for path in row["image_paths"] if not Path(path).is_file()]
     if missing:
         raise FileNotFoundError(f"missing local samples: {missing}")
@@ -1000,6 +1043,7 @@ def main() -> None:
     run = sub.add_parser("profile")
     run.add_argument("--model-path", default=MODEL_DEFAULT)
     run.add_argument("--output-dir", type=Path, required=True)
+    run.add_argument("--suite", choices=("bounded17", "expanded"), default="bounded17")
     run.set_defaults(func=profile)
     analysis = sub.add_parser("analyze")
     analysis.add_argument("--output-dir", type=Path, required=True)
