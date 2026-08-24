@@ -1,0 +1,142 @@
+{
+  "fixed_policy": {
+    "target_request": "text_18_tui_main",
+    "layer": 45,
+    "rank": 0,
+    "tail_definition": "expert latency >= 1.15 * exact-static-work context median",
+    "selection_source": "prior live-prefill trace, fixed before rerun"
+  },
+  "context_all_layers": {
+    "isolated": {
+      "median_ms": 0.23545600473880768,
+      "p95_ms": 0.24260960370302198,
+      "cv_pct": 5.813050227563535,
+      "tail_frequency_pct": 1.0,
+      "max_ms": 0.36819198727607727
+    },
+    "controlled": {
+      "median_ms": 0.6197600066661835,
+      "p95_ms": 0.6716815739870071,
+      "cv_pct": 18.154125557396256,
+      "tail_frequency_pct": 2.118055555555556,
+      "max_ms": 1.7785279750823975,
+      "exact_static_tail_frequency_pct": 3.6631944444444446,
+      "exact_static_cv_median_pct": 3.1997421879084755,
+      "exact_static_cv_p95_pct": 25.52448978244134,
+      "critical_rank_stability_pct": 74.02777777777777,
+      "dispatch_median_ms": 0.9829440116882324,
+      "combine_median_ms": 0.311599999666214
+    },
+    "serving": {
+      "median_ms": 0.5521600246429443,
+      "p95_ms": 0.6037168204784393,
+      "cv_pct": 9.319396722203395,
+      "tail_frequency_pct": 2.864583333333333,
+      "max_ms": 1.3698559999465942,
+      "exact_static_tail_frequency_pct": 2.673611111111111,
+      "exact_static_cv_median_pct": 2.768071916872125,
+      "exact_static_cv_p95_pct": 21.627067094386785,
+      "critical_rank_stability_pct": 69.375,
+      "dispatch_median_ms": 0.3010080009698868,
+      "combine_median_ms": 0.20374399423599243
+    }
+  },
+  "selected_exact_work": {
+    "isolated": {
+      "median_ms": 0.23545600473880768,
+      "p95_ms": 0.24260960370302198,
+      "cv_pct": 5.813050227563535,
+      "tail_frequency_pct": 1.0,
+      "max_ms": 0.36819198727607727
+    },
+    "controlled": {
+      "median_ms": 0.4804319888353348,
+      "p95_ms": 0.4918224081397057,
+      "cv_pct": 1.9411519108550601,
+      "tail_frequency_pct": 0.0,
+      "max_ms": 0.49433600902557373,
+      "n": 2984,
+      "g": 30,
+      "q": 45,
+      "histogram_variants": 1
+    },
+    "serving": {
+      "median_ms": 0.5580800175666809,
+      "p95_ms": 0.5849135845899582,
+      "cv_pct": 2.6039928537652473,
+      "tail_frequency_pct": 0.0,
+      "max_ms": 0.6019840240478516,
+      "n": 5936,
+      "g": 30,
+      "q": 66,
+      "histogram_variants": 1
+    }
+  },
+  "critical_rank_accuracy": {
+    "N": 37.395833333333336,
+    "N+G": 39.30555555555556,
+    "N+G+Q": 39.0625,
+    "N+G+Q+runtime": 60.69444444444444,
+    "runtime_gain_pp": 21.631944444444443,
+    "by_context": {
+      "controlled": {
+        "N": 17.15277777777778,
+        "N+G": 18.40277777777778,
+        "N+G+Q": 18.40277777777778,
+        "N+G+Q+runtime": 61.458333333333336
+      },
+      "serving": {
+        "N": 57.638888888888886,
+        "N+G": 60.20833333333333,
+        "N+G+Q": 59.72222222222222,
+        "N+G+Q+runtime": 59.93055555555556
+      }
+    }
+  },
+  "tail_context_factors": {
+    "controlled": {
+      "dispatch_ms": {
+        "normal_mean_relative": 1.0210549634959876,
+        "tail_mean_relative": 0.9376120495416367,
+        "difference": -0.08344291395435088
+      },
+      "combine_ms": {
+        "normal_mean_relative": 1.0559278937406256,
+        "tail_mean_relative": 0.8457088228811951,
+        "difference": -0.21021907085943048
+      },
+      "previous_expert_ms": {
+        "normal_mean_relative": 1.0100802420536386,
+        "tail_mean_relative": 1.1583609918306237,
+        "difference": 0.14828074977698513
+      },
+      "previous_combine_ms": {
+        "normal_mean_relative": 1.0475479026344439,
+        "tail_mean_relative": 1.0859956252682565,
+        "difference": 0.038447722633812687
+      }
+    },
+    "serving": {
+      "dispatch_ms": {
+        "normal_mean_relative": 1.1218977427675896,
+        "tail_mean_relative": 1.2953928358015585,
+        "difference": 0.17349509303396893
+      },
+      "combine_ms": {
+        "normal_mean_relative": 1.0591397794237707,
+        "tail_mean_relative": 0.9116416469353633,
+        "difference": -0.14749813248840737
+      },
+      "previous_expert_ms": {
+        "normal_mean_relative": 1.0103944555679705,
+        "tail_mean_relative": 1.1375678183828772,
+        "difference": 0.12717336281490677
+      },
+      "previous_combine_ms": {
+        "normal_mean_relative": 1.055280140133217,
+        "tail_mean_relative": 1.0872698775033922,
+        "difference": 0.031989737370175186
+      }
+    }
+  }
+}
