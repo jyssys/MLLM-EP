@@ -18,7 +18,9 @@ from typing import Any
 import numpy as np
 import torch
 
-LAYERS = {4, 8, 12, 20, 24, 28, 36, 40, 44, 47}
+LAYERS = {int(value) for value in os.environ.get(
+    "FLASHVEP_FUNCTIONAL_LAYERS", "4,8,12,20,24,28,36,40,44,47").split(",")}
+SAVE_HIDDEN_STATES = os.environ.get("FLASHVEP_FUNCTIONAL_SAVE_HIDDEN", "0") == "1"
 _INSTALLED = False
 _CONTEXT = threading.local()
 _USED_CAPTURES: set[str] = set()
@@ -152,12 +154,15 @@ def install() -> None:
         if path.exists():
             raise FileExistsError(path)
         if not len(selected_indices):
-            np.savez_compressed(path, fingerprints=np.asarray([], dtype="U40"),
-                                expert_ids=np.empty((0, 8), np.int16),
-                                router_weights=np.empty((0, 8), np.float32),
-                                local_mask=np.empty((0, 8), bool),
-                                raw_outputs=np.empty((0, 8, x.shape[-1]), np.float16),
-                                stock_output=np.empty((0, x.shape[-1]), np.float16))
+            payload = dict(fingerprints=np.asarray([], dtype="U40"),
+                           expert_ids=np.empty((0, 8), np.int16),
+                           router_weights=np.empty((0, 8), np.float32),
+                           local_mask=np.empty((0, 8), bool),
+                           raw_outputs=np.empty((0, 8, x.shape[-1]), np.float16),
+                           stock_output=np.empty((0, x.shape[-1]), np.float16))
+            if SAVE_HIDDEN_STATES:
+                payload["hidden_states"] = np.empty((0, x.shape[-1]), np.float16)
+            np.savez_compressed(path, **payload)
             return forward_result
         index = torch.as_tensor(selected_indices, device=x.device, dtype=torch.long)
         sample_x = x.index_select(0, index).contiguous()
@@ -182,8 +187,7 @@ def install() -> None:
                 values["local_num_experts"], expert_map,
                 values["apply_router_weight_on_input"], None).clone())
         raw = torch.stack(raw_slots, dim=1)
-        np.savez_compressed(
-            path,
+        payload = dict(
             fingerprints=np.asarray([fingerprints[i] for i in selected_indices]),
             expert_ids=sample_ids.detach().cpu().numpy().astype(np.int16),
             router_weights=sample_weights.detach().float().cpu().numpy().astype(np.float32),
@@ -191,6 +195,9 @@ def install() -> None:
             raw_outputs=raw.detach().to(torch.float16).cpu().numpy(),
             stock_output=forward_result.index_select(0, index).detach().to(torch.float16).cpu().numpy(),
         )
+        if SAVE_HIDDEN_STATES:
+            payload["hidden_states"] = sample_x.detach().to(torch.float16).cpu().numpy()
+        np.savez_compressed(path, **payload)
         return forward_result
 
     Qwen3MoeDecoderLayer.__init__ = patched_init
