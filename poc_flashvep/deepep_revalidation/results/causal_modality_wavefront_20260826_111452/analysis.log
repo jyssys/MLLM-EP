@@ -1,0 +1,73 @@
+{
+  "CAUSAL_MODALITY_WAVEFRONT": "GO",
+  "causal_validity": "VALID",
+  "requests": 24,
+  "layers": 48,
+  "timing_scope": "measured DeepEP dispatch + TritonExperts + combine; attention excluded",
+  "timing_breakdown": {
+    "vision_median_ms": 1.1299039721488953,
+    "tail_median_ms": 0.8873759806156158,
+    "vision_share_median": 0.5537788799088832,
+    "prefix_token_fraction_median": 0.9516620657925006
+  },
+  "ideal_speedup": {
+    "median": 1.7550468251867766,
+    "p25": 1.687844465291351,
+    "p75": 1.8432154783337742,
+    "p95": 1.9049121064444832,
+    "min": 1.4737515521731361,
+    "max": 1.9087376687530941
+  },
+  "hidden_fraction": {
+    "median": 0.4302141126108968,
+    "p25": 0.40751675569411383,
+    "p75": 0.4574246489599238,
+    "p95": 0.4750364825546056,
+    "min": 0.32145957809140946,
+    "max": 0.476093537435523
+  },
+  "fraction_ge_1_15": 1.0,
+  "rank_settings": [
+    {
+      "rank": 0,
+      "physical_gpu": 1,
+      "visible_devices": "1,2,3,4",
+      "expert_backend": "TritonExperts",
+      "prepare_finalize_backend": "DeepEPHTPrepareAndFinalize",
+      "hidden_provenance": "validated real Qwen3-VL layer-24 BF16 capture",
+      "input_replication": "same exact request routes on four EP sources"
+    },
+    {
+      "rank": 1,
+      "physical_gpu": 2,
+      "visible_devices": "1,2,3,4",
+      "expert_backend": "TritonExperts",
+      "prepare_finalize_backend": "DeepEPHTPrepareAndFinalize",
+      "hidden_provenance": "validated real Qwen3-VL layer-24 BF16 capture",
+      "input_replication": "same exact request routes on four EP sources"
+    },
+    {
+      "rank": 2,
+      "physical_gpu": 3,
+      "visible_devices": "1,2,3,4",
+      "expert_backend": "TritonExperts",
+      "prepare_finalize_backend": "DeepEPHTPrepareAndFinalize",
+      "hidden_provenance": "validated real Qwen3-VL layer-24 BF16 capture",
+      "input_replication": "same exact request routes on four EP sources"
+    },
+    {
+      "rank": 3,
+      "physical_gpu": 4,
+      "visible_devices": "1,2,3,4",
+      "expert_backend": "TritonExperts",
+      "prepare_finalize_backend": "DeepEPHTPrepareAndFinalize",
+      "hidden_provenance": "validated real Qwen3-VL layer-24 BF16 capture",
+      "input_replication": "same exact request routes on four EP sources"
+    }
+  ],
+  "two_stream_diagnostic": null,
+  "strongest_positive_evidence": "all 24 requests have a valid 47-slot overlap opportunity; median ideal operator-stage speedup is 1.7550\u00d7.",
+  "strongest_counter_evidence": "the timing excludes attention and reuses layer-24 activations/weights, so the ideal result is not an end-to-end implementation result.",
+  "cuda_implementation_justified": "YES, bounded prototype only",
+  "recommended_action": "Implement one bounded live two-stream prefix/tail prototype with attention and one-layer-ahead dependency events; do not alter routing or kernels."
+}
