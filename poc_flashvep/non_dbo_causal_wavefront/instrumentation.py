@@ -387,7 +387,17 @@ def install() -> None:
             entry = _control()
             token_index = 1 if stage in ("attention", "expert") else 0
             tokens = _tokens(args, kwargs, token_index)
-            profile = bool(entry.get("stage_profile")) and _target(entry, tokens)
+            nested_modular_stage = stage in ("dispatch", "expert", "combine")
+            profile = bool(entry.get("stage_profile")) and (
+                _target(entry, tokens)
+                or (
+                    nested_modular_stage
+                    and int(getattr(_CONTEXT, "layer", -1)) >= 0
+                    and getattr(_CONTEXT, "segment", None) is not None
+                )
+            )
+            if profile:
+                _COUNTERS[f"{stage}_profiled_calls"] += 1
             start = _event("stage") if profile else None
             if start is not None:
                 start.record()
@@ -413,8 +423,13 @@ def install() -> None:
         segment = _segment(tokens, entry)
         start, end = _event("forward"), _event("forward")
         start.record()
-        result = patched_outer(self, *args, **kwargs)
-        end.record()
+        previous_segment = getattr(_CONTEXT, "segment", None)
+        _CONTEXT.segment = segment
+        try:
+            result = patched_outer(self, *args, **kwargs)
+            end.record()
+        finally:
+            _CONTEXT.segment = previous_segment
         with _LOCK:
             _FORWARDS.append(
                 {
