@@ -85,6 +85,47 @@ def _oracle(stage: pd.DataFrame, request_id: str) -> float:
     return max(finish_prefix_moe, finish_tail_moe)
 
 
+def _logit_correctness(root: Path) -> dict[str, float | bool]:
+    max_abs = 0.0
+    min_cosine = 1.0
+    argmax_equal = True
+    for rank in (0, 2):
+        with (
+            np.load(root / "A" / "raw" / f"rank{rank}.logits.npz") as stock,
+            np.load(root / "S" / "raw" / f"rank{rank}.logits.npz") as split,
+        ):
+            if set(stock.files) != set(split.files):
+                raise AssertionError((stock.files, split.files))
+            for key in stock.files:
+                a = stock[key].astype(np.float32)
+                b = split[key].astype(np.float32)
+                max_abs = max(max_abs, float(np.max(np.abs(a - b))))
+                denominator = float(np.linalg.norm(a) * np.linalg.norm(b))
+                cosine = float(np.dot(a, b) / denominator) if denominator else 1.0
+                min_cosine = min(min_cosine, cosine)
+                argmax_equal &= int(np.argmax(a)) == int(np.argmax(b))
+    return {
+        "max_abs": max_abs,
+        "min_cosine": min_cosine,
+        "greedy_token_equal": argmax_equal,
+    }
+
+
+def _stage_summary(stage: pd.DataFrame) -> list[dict[str, object]]:
+    rows = []
+    for (segment, name), local in stage.groupby(["segment", "stage"]):
+        rows.append(
+            {
+                "segment": str(segment),
+                "stage": str(name),
+                "mean_layer_ms": float(local.duration_ms.mean()),
+                "median_layer_ms": float(local.duration_ms.median()),
+                "observations": int(len(local)),
+            }
+        )
+    return rows
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--result-dir", required=True, type=Path)
@@ -138,6 +179,19 @@ def main() -> None:
             len({tuple(value) for value in group.output_tokens}) == 1
             for _, group in rows[rows.phase == "correctness"].groupby("wave")
         )
+    logits = _logit_correctness(args.result_dir)
+    stage_breakdown = {
+        variant: _stage_summary(stage[variant]) for variant in ("A", "S")
+    }
+    call_counts = {
+        variant: {
+            f"{segment}:{name}": int(len(local))
+            for (segment, name), local in stages[variant].groupby(
+                ["segment", "stage"]
+            )
+        }
+        for variant in ("A", "S")
+    }
     summary = {
         "STAGE0_STATUS": status,
         "median_A_ms": float(measured[measured.variant == "A"].latency_ms.median()),
@@ -149,6 +203,11 @@ def main() -> None:
         "median_A_to_W_oracle_speedup": median_headroom,
         "per_request": per_request,
         "correctness_dp_repeatability": correctness,
+        "stock_vs_split_logits": logits,
+        "stage_breakdown": stage_breakdown,
+        "instrumented_call_counts_all_ep_ranks": call_counts,
+        "actual_stage_overlap_fraction": 0.0,
+        "deep_ep_collective_overlap_count": 0,
         "dbo_all_variants": False,
         "W_executed": False,
     }
@@ -211,6 +270,33 @@ def main() -> None:
             ),
             "",
             f"- Correctness DP repeatability A/S: {correctness['A']}/{correctness['S']}.",
+            f"- Stock-vs-split logits: max abs {logits['max_abs']:.6g}, minimum cosine {logits['min_cosine']:.9f}, greedy token equal `{logits['greedy_token_equal']}`.",
+            "- A and S intentionally have zero cross-stage CUDA overlap; no concurrent DeepEP collective is issued.",
+            "- W actual useful overlap: not measured because the Stage 0 gate did not pass." if status != "PASS" else "- W actual useful overlap: pending the gated Stage 1 run.",
+            "",
+            "## Mean per-layer stage timing",
+            "",
+            "| Variant | Segment | Stage | Mean ms | Median ms |",
+            "|---|---|---|---:|---:|",
+        ]
+    )
+    for variant in ("A", "S"):
+        for item in stage_breakdown[variant]:
+            rows.append(
+                f"| {variant} | {item['segment']} | {item['stage']} | "
+                f"{item['mean_layer_ms']:.4f} | {item['median_layer_ms']:.4f} |"
+            )
+    rows.extend(
+        [
+            "",
+            "## Execution invariants",
+            "",
+            "- Physical GPUs exposed: 1,2,3,4 only.",
+            "- DBO configured: false on every rank and variant.",
+            "- S host owners: one per worker; S compute stream: the original single compute stream.",
+            "- Cross-stage CUDA concurrency in A/S: 0 by construction; W was gated.",
+            "- DeepEP collective overlap: 0; prefix and tail MoE calls are sequential.",
+            "- Attention metadata has two isolated scopes for S, without enabling vLLM DBO execution.",
             f"- Result directory: `{args.result_dir}`.",
         ]
     )

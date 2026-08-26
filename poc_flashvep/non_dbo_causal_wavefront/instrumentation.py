@@ -202,6 +202,7 @@ def install() -> None:
 
     variant = os.environ["FLASHVEP_NON_DBO_WAVEFRONT_VARIANT"]
     original_execute = gmr.GPUModelRunner.execute_model
+    original_metadata_init = gmr.GPUModelRunner.initialize_metadata_builders
     original_slices = gmr.maybe_create_ubatch_slices
     original_outer = Qwen3VLMoeForConditionalGeneration.forward
     original_logits = Qwen3VLMoeForConditionalGeneration.compute_logits
@@ -213,6 +214,33 @@ def install() -> None:
     original_prepare = FusedMoEKernelModularImpl._prepare
     original_experts = FusedMoEKernelModularImpl._fused_experts
     original_finalize = FusedMoEKernelModularImpl._finalize
+
+    def patched_metadata_init(
+        self: Any, kv_cache_config: Any, kernel_block_sizes: list[int]
+    ) -> None:
+        original_metadata_init(self, kv_cache_config, kernel_block_sizes)
+        if variant != "S":
+            return
+        if self.parallel_config.use_ubatching:
+            raise RuntimeError("DBO unexpectedly enabled")
+        # Explicit non-DBO prefix/tail slices need independent persistent
+        # attention-builder buffers.  This does not enable vLLM ubatching or
+        # its worker/thread execution; it only gives each sequential slice a
+        # distinct metadata scope.
+        for group_id, groups in enumerate(self.attn_groups):
+            for group in groups:
+                group.create_metadata_builders(
+                    self.vllm_config,
+                    self.device,
+                    kernel_block_sizes[group_id]
+                    if group_id < len(kernel_block_sizes)
+                    else None,
+                    num_metadata_builders=2,
+                )
+                if len(group.metadata_builders) != 2:
+                    raise RuntimeError("failed to create two metadata scopes")
+                _COUNTERS["non_dbo_metadata_builders"] += 2
+        self.calculate_reorder_batch_threshold()
 
     def patched_execute(self: Any, *args: Any, **kwargs: Any) -> Any:
         global _VLLM_CONFIG
@@ -418,6 +446,7 @@ def install() -> None:
 
     gmr.GPUModelRunner.execute_model = patched_execute
     if variant == "S":
+        gmr.GPUModelRunner.initialize_metadata_builders = patched_metadata_init
         gmr.maybe_create_ubatch_slices = patched_slices
     Qwen3VLMoeForConditionalGeneration.forward = patched_model_forward
     Qwen3VLMoeForConditionalGeneration.compute_logits = patched_compute_logits
