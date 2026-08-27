@@ -40,9 +40,13 @@ The primary gate requires a ≥10% Family-A latency shift at both token scales w
 
 Overall gate: **HOLD**. Family-B hotspot is diagnostic only and cannot replace Family-A evidence.
 
+## Stage C real-trace relevance
+
+Stage C was not run: the reused Qwen3-VL route artifacts contain expert IDs but no source-rank attribution or live dispatch/combine timestamps, so a real source→destination matrix cannot be reconstructed without a new live capture. This is recorded as a limitation rather than replaced with synthetic rows.
+
 ## Limitations
 
-Synthetic routes isolate communication geometry and do not represent live Qwen3 hidden-state timing. Each source rank owns its own synthetic route rows, but no expert GEMM is executed. CUDA-event timing uses synchronous DeepEP calls (`async_finish=False`); layout calculation and communication are separated. No real-trace Stage C was run because it is conditional on the primary Family-A gate being at least HOLD.
+Synthetic routes isolate communication geometry and do not represent live Qwen3 hidden-state timing. Each source rank owns its own synthetic route rows, but no expert GEMM is executed. CUDA-event timing uses synchronous DeepEP calls (`async_finish=False`); layout calculation and communication are separated. Family-A evidence is scale-dependent (N=1024 positive, N=256 not), so the overall HOLD does not justify dynamic communication implementation by itself.
 
 Result directory: `poc_flashvep/deepep_revalidation/results/deepep_traffic_matrix_shape_20260827_174530`
 
