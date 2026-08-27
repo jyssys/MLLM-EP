@@ -37,10 +37,6 @@ def _port() -> int:
 
 def _schedule(previous: Path, warmups: int, iterations: int) -> list[dict[str, Any]]:
     manifest = json.loads((previous / "workload_manifest.json").read_text())
-    captures: dict[str, int] = {}
-    for rank in range(2):
-        payload = json.loads((previous / f"capture.dp_rank{rank}.json").read_text())
-        captures.update({row["request_id"]: rank for row in payload["records"]})
     selected = [pair for pair in manifest["pairs"] if int(pair["pair_id"]) in REQUEST_PAIRS]
     if len(selected) != len(REQUEST_PAIRS):
         raise AssertionError("validated request subset is incomplete")
@@ -51,7 +47,9 @@ def _schedule(previous: Path, warmups: int, iterations: int) -> list[dict[str, A
             "request_id": item["request_id"], "modality": "vision",
             "pair_id": int(pair["pair_id"]), "token_bucket": pair["token_bucket"],
             "prompt_tokens": int(item["prompt_tokens"]),
-            "source_dp_rank": _source_dp(pair, "vision", captures),
+            # Vision route artifacts carry their original active-DP source
+            # explicitly; no separate capture file is required.
+            "source_dp_rank": int(item["source_route"].split("routing.dp", 1)[1].split(".", 1)[0]),
         })
     schedule: list[dict[str, Any]] = []
     for row in rows:
