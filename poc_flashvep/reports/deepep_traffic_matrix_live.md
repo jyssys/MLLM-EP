@@ -11,6 +11,22 @@ there are two warmups and two measured repetitions per request. Only physical
 GPUs 1,2,3,4 were exposed. No route, placement, model, or communication policy
 was modified.
 
+The live capture code was fixed and committed at `95626aa` before execution.
+Commands were:
+
+```bash
+RUN_ID=20260827_baseline2 WARMUPS=2 ITERATIONS=2 \
+  ./poc_flashvep/scripts/run_live_traffic_matrix_validation.sh \
+  poc_flashvep/deepep_revalidation/results/live_traffic_matrix_20260827_baseline2 baseline
+RUN_ID=20260827_instrumented WARMUPS=2 ITERATIONS=2 \
+  ./poc_flashvep/scripts/run_live_traffic_matrix_validation.sh \
+  poc_flashvep/deepep_revalidation/results/live_traffic_matrix_20260827_instrumented instrumented
+```
+
+The launcher hard-sets `CUDA_VISIBLE_DEVICES=1,2,3,4`; logical EP ranks 0–3
+therefore map to physical GPUs 1–4. Analysis was run with
+`./poc_flashvep/scripts/analyze_live_traffic_matrix_validation.sh`.
+
 The wrapper measures the existing vLLM `_prepare` (DeepEP dispatch/receiver)
 and `_finalize` (DeepEP combine/receiver) calls with CUDA events, and records
 expert GEMM separately. No extra collective and no per-layer synchronize were
