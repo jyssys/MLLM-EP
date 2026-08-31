@@ -30,14 +30,15 @@ def main()->None:
     ap=argparse.ArgumentParser(); ap.add_argument("--result",required=True); args=ap.parse_args(); root=Path(args.result)
     tasks=json.loads((root/"stage_b_intervals.json").read_text())["tasks"]
     rows=[]
+    measured_costs={}
     for path in sorted((root/"stage_b_cost" ).glob("rank*.json")):
         payload=json.loads(path.read_text());
         for x in payload["rows"]:
-            rows.append({"task_id":x["task_id"],"request_id":x["request_id"],"source":x["source"],"layer":x["layer"],"budget":x["budget"],"rank":x["rank"],"interval":tuple(x["interval"]),"expert_ms":x["expert_stats"]["median_ms"],"wall_ms":x["wall_stats"]["median_ms"],"dispatch_ms":x["dispatch_stats"]["median_ms"],"combine_ms":x["combine_stats"]["median_ms"],"expert_cv":x["expert_stats"]["cv"]})
+            interval = tuple(int(v) for v in x["interval"])
+            rows.append({"task_id":x["task_id"],"request_id":x["request_id"],"source":x["source"],"layer":x["layer"],"budget":x["budget"],"rank":x["rank"],"interval":interval,"expert_ms":x["expert_stats"]["median_ms"],"wall_ms":x["wall_stats"]["median_ms"],"dispatch_ms":x["dispatch_stats"]["median_ms"],"combine_ms":x["combine_stats"]["median_ms"],"expert_cv":x["expert_stats"]["cv"]})
+            measured_costs.setdefault((x["task_id"], interval), []).append(float(x["expert_stats"]["median_ms"]))
     raw=pd.DataFrame(rows); raw.to_csv(root/"stage_b_interval_costs.csv",index=False)
-    costs={};
-    for (task,interval),g in raw.groupby(["task_id","interval"]):
-        costs[(task,f"{interval[0]}:{interval[1]}")]=float(g.expert_ms.max())
+    costs={(task, f"{interval[0]}:{interval[1]}"): float(max(values)) for (task, interval), values in measured_costs.items()}
     cut_rows=[]
     for task in tasks:
         c={k[1]:v for k,v in costs.items() if k[0]==task["task_id"]}; true=strict_dp(task,c)

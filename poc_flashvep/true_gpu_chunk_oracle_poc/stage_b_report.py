@@ -26,9 +26,9 @@ def main()->None:
    summary.append({"source":source,"budget":b,"strategy":s,"tasks":int(vals.notna().sum()),"expert_ms_median":float(g[g.strategy==s].expert_ms.median()),"expert_reduction_vs_fixed_median":float(vals.median()),"expert_positive_fraction":float((vals>0).mean()),"chunks_median":float(g[g.strategy==s].chunks.median()),"size_cv_median":float(g[g.strategy==s].size_cv.median()),"correctness_all":bool(g[g.strategy==s].correctness.all())})
  sm=pd.DataFrame(summary); sm.to_csv(root/"stage_b_summary.csv",index=False)
  figdir=root/"figures"; figdir.mkdir(exist_ok=True)
- fig,ax=plt.subplots(figsize=(10,4.8)); x=np.arange(4); width=.18
- for j,s in enumerate(STRATEGIES[1:]): ax.bar(x+(j-1)*width,[100*sm[(sm.source=="short")&(sm.budget==b)&(sm.strategy==s)].expert_reduction_vs_fixed_median.iloc[0] if len(sm[(sm.source=="short")&(sm.budget==b)&(sm.strategy==s)]) else np.nan for b in (128,256,512,1024)],width,label=s)
- ax.axhline(0,color="k",lw=.7); ax.set_xticks(x,["128","256","512","1024"]); ax.set(xlabel="Budget",ylabel="Max-rank expert reduction vs Fixed (%)",title="Stage B: true GPU-cost oracle validation"); ax.legend(); fig.tight_layout(); fig.savefig(figdir/"plot3_true_gpu_oracle_comparison.png",dpi=180); plt.close(fig)
+ budgets=sorted(sm[(sm.source=="short")].budget.unique().tolist()); fig,ax=plt.subplots(figsize=(8,4.8)); x=np.arange(len(budgets)); width=.18
+ for j,s in enumerate(STRATEGIES[1:]): ax.bar(x+(j-1)*width,[100*sm[(sm.source=="short")&(sm.budget==b)&(sm.strategy==s)].expert_reduction_vs_fixed_median.iloc[0] if len(sm[(sm.source=="short")&(sm.budget==b)&(sm.strategy==s)]) else np.nan for b in budgets],width,label=s)
+ ax.axhline(0,color="k",lw=.7); ax.set_xticks(x,[str(b) for b in budgets]); ax.set(xlabel="Budget",ylabel="Max-rank expert reduction vs Fixed (%)",title="Stage B: true GPU-cost oracle validation"); ax.legend(); fig.tight_layout(); fig.savefig(figdir/"plot3_true_gpu_oracle_comparison.png",dpi=180); plt.close(fig)
  fig,ax=plt.subplots(figsize=(8,4.5)); ax.hist(raw["expert_ms"],bins=30,alpha=.8); ax.set(xlabel="Interval expert CUDA median (ms)",ylabel="Count",title="Measured interval-cost distribution"); fig.tight_layout(); fig.savefig(figdir/"plot4_interval_cost_distribution.png",dpi=180); plt.close(fig)
  true=[]
  for b in (128,256):
