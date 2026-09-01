@@ -33,6 +33,15 @@ def _layer(obj: Any) -> int:
 
 
 def _delay_ms() -> float:
+    # For a positive-control sweep the host publishes the delay in the same
+    # request-boundary control record used by the validated hook.  Falling
+    # back to the environment preserves the single-delay CLI behavior.
+    entry = getattr(base._CONTEXT, "entry", {})
+    if isinstance(entry, dict) and "delay_ms" in entry:
+        try:
+            return float(entry["delay_ms"])
+        except (TypeError, ValueError):
+            pass
     try:
         return float(os.environ.get("FLASHVEP_INJECT_DELAY_MS", "0"))
     except ValueError:

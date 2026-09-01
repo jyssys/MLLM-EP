@@ -40,7 +40,8 @@ def _seq(tokenizer: Any, n: int) -> list[int]:
     return [int(x) for x in ids]
 
 
-def _schedule(dp: int, mode: str, scale: int, delay: float, warmups: int, iterations: int) -> list[dict[str, Any]]:
+def _schedule(dp: int, mode: str, scale: int, delay: float, warmups: int, iterations: int,
+              delay_sweep: list[float] | None = None) -> list[dict[str, Any]]:
     # Same token volume per DP group.  Heterogeneous composition is fixed
     # before measurements: one long request versus many short requests.
     if mode == "balanced":
@@ -48,10 +49,12 @@ def _schedule(dp: int, mode: str, scale: int, delay: float, warmups: int, iterat
     else:
         per = [[scale]] + [[scale // 8] * 8 for _ in range(dp - 1)]
     rows = []
-    for it in range(warmups + iterations):
-        rows.append({"wave": len(rows), "condition": f"{mode}_{scale}", "mode": mode, "scale": scale,
-                     "delay_ms": delay, "measured": it >= warmups, "iteration": it - warmups,
-                     "request_lengths_by_dp": per, "instrument": True, "phase": "prefill"})
+    values = delay_sweep if delay_sweep else [delay]
+    for current_delay in values:
+        for it in range(warmups + iterations):
+            rows.append({"wave": len(rows), "condition": f"{mode}_{scale}", "mode": mode, "scale": scale,
+                         "delay_ms": current_delay, "measured": it >= warmups, "iteration": it - warmups,
+                         "request_lengths_by_dp": per, "instrument": True, "phase": "prefill"})
     return rows
 
 
@@ -140,13 +143,14 @@ def main() -> None:
     ap.add_argument("--model-path", required=True); ap.add_argument("--output-dir", type=Path, required=True)
     ap.add_argument("--topology", choices=("A", "B"), required=True); ap.add_argument("--mode", choices=("balanced", "heterogeneous"), required=True)
     ap.add_argument("--scale", type=int, default=8192); ap.add_argument("--delay-ms", type=float, default=0.0)
+    ap.add_argument("--delay-sweep", type=float, nargs="+", default=None)
     ap.add_argument("--inject-dp", type=int, default=0); ap.add_argument("--inject-layer", type=int, default=24)
     ap.add_argument("--chunked-prefill", action=argparse.BooleanOptionalAction, default=True)
     ap.add_argument("--max-num-batched-tokens", type=int, default=8192); ap.add_argument("--max-model-len", type=int, default=16384)
     ap.add_argument("--warmups", type=int, default=1); ap.add_argument("--iterations", type=int, default=1)
     args = ap.parse_args(); args.tp, args.dp = ((2, 2) if args.topology == "A" else (1, 4))
     args.output_dir.mkdir(parents=True, exist_ok=False)
-    schedule = _schedule(args.dp, args.mode, args.scale, args.delay_ms, args.warmups, args.iterations)
+    schedule = _schedule(args.dp, args.mode, args.scale, args.delay_ms, args.warmups, args.iterations, args.delay_sweep)
     _write(args.output_dir / "schedule.json", schedule)
     _write(args.output_dir / "run_metadata.json", {"model_path": args.model_path, "topology": args.topology, "tp": args.tp, "dp": args.dp, "ep": 4, "pp": 1, "dtype": "BF16", "dbo": False, "chunked_prefill": args.chunked_prefill, "max_num_batched_tokens": args.max_num_batched_tokens, "scale": args.scale, "mode": args.mode, "delay_ms": args.delay_ms, "visible_devices": "1,2,3,4", "warmups": args.warmups, "iterations": args.iterations})
     ctx = mp.get_context("spawn"); barrier = ctx.Barrier(args.dp); port = _port()

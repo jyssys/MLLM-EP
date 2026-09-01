@@ -17,7 +17,14 @@ chunked=${6:-true}
 mkdir -p "$(dirname "$result")"
 chunk_flag=--chunked-prefill
 if [[ "$chunked" != "true" ]]; then chunk_flag=--no-chunked-prefill; fi
+extra_args=()
+if [[ -n "${DELAY_SWEEP:-}" ]]; then
+  # Space-separated values are kept in the preregistered order supplied by
+  # the caller, e.g. DELAY_SWEEP='0 0.5 1 2'.
+  read -r -a sweep_values <<< "$DELAY_SWEEP"
+  extra_args+=(--delay-sweep "${sweep_values[@]}")
+fi
 exec "$venv/bin/python" "$repo_root/poc_flashvep/asap_sync_phenomenon_reproduction/run_asap.py" \
   --model-path "$model" --output-dir "$result" --topology "$topology" --mode "$mode" \
   --scale "$scale" --delay-ms "$delay" --max-num-batched-tokens "${MAX_NUM_BATCHED_TOKENS:-8192}" \
-  "$chunk_flag" --warmups "${WARMUPS:-1}" --iterations "${ITERATIONS:-1}"
+  "$chunk_flag" --warmups "${WARMUPS:-1}" --iterations "${ITERATIONS:-1}" "${extra_args[@]}"
