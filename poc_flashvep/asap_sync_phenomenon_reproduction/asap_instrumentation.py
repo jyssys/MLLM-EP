@@ -61,10 +61,22 @@ def _flush_aux() -> None:
     out.mkdir(parents=True, exist_ok=True)
     rows: list[dict[str, Any]] = []
     for item in _AUX:
+        rec = item.get("record")
+        if not isinstance(rec, dict):
+            continue
         if item.get("layer_start") is None or item.get("moe_entry") is None or item.get("moe_done") is None:
             continue
-        row = {k: v for k, v in item.items()
-               if k not in {"layer_start", "moe_entry", "moe_done", "delay_start", "delay_end", "waits", "dispatch", "expert", "combine"}}
+        # The validated base hook retains the same record in its pending
+        # list and serializes it at the next flush boundary.  Keep every
+        # CUDA Event in this experiment-local side table only; putting an
+        # Event into the shared base record would make the base JSON writer
+        # fail before our resolver gets a chance to consume it.
+        row = {k: v for k, v in rec.items()
+               if k not in {"dispatch", "expert", "combine"}}
+        row.update({k: v for k, v in item.items()
+                    if k not in {"record", "layer_start", "moe_entry", "moe_done",
+                                 "delay_start", "delay_end", "waits",
+                                 "dispatch_events", "expert_events", "combine_events"}})
         row["pre_moe_cuda_ms"] = float(item["layer_start"].elapsed_time(item["moe_entry"]))
         row["ep_entry_to_done_ms"] = float(item["moe_entry"].elapsed_time(item["moe_done"]))
         row["layer_entry_to_ep_done_ms"] = float(item["layer_start"].elapsed_time(item["moe_done"]))
@@ -77,7 +89,7 @@ def _flush_aux() -> None:
         row["event_waits"] = wait_values
         row["event_wait_cuda_ms"] = float(sum(x["cuda_ms"] for x in wait_values))
         for stage in ("dispatch", "expert", "combine"):
-            pair = item.get(stage)
+            pair = item.get(f"{stage}_events")
             if isinstance(pair, dict) and pair.get("start") is not None:
                 row[f"{stage}_cuda_ms"] = float(pair["start"].elapsed_time(pair["end"]))
         rows.append(row)
@@ -102,6 +114,7 @@ def install() -> None:
 
     original_forward = Qwen3MoeDecoderLayer.forward
     original_prepare = FusedMoEKernelModularImpl._prepare
+    original_experts = FusedMoEKernelModularImpl._fused_experts
     original_finalize = FusedMoEKernelModularImpl._finalize
     original_wait = EventOverlap.current_stream_wait
 
@@ -141,40 +154,69 @@ def install() -> None:
         if entry.get("instrument") and layer >= 0:
             rec = getattr(base._CONTEXT, "record", None)
             if rec is not None:
-                rec.update({
+                moe_entry = _event()
+                moe_entry.record(torch.cuda.current_stream())
+                aux = {
+                    "record": rec,
                     "pre_moe_layer": layer,
                     "layer_start": getattr(base._CONTEXT, "asap_layer_start", None),
-                    "moe_entry": _event(),
+                    "moe_entry": moe_entry,
                     "waits": [],
                     "host_moe_entry_ns": time.monotonic_ns(),
-                })
-                rec["moe_entry"].record(torch.cuda.current_stream())
-                rec["delay_start"] = getattr(base._CONTEXT, "asap_delay_start", None)
-                rec["delay_end"] = getattr(base._CONTEXT, "asap_delay_end", None)
+                    "delay_start": getattr(base._CONTEXT, "asap_delay_start", None),
+                    "delay_end": getattr(base._CONTEXT, "asap_delay_end", None),
+                    "dispatch_events": rec.get("dispatch"),
+                }
+                # Only JSON-safe scalars are added to the shared validated
+                # record.  CUDA events stay in `aux`, never in `rec`.
+                rec.update({"pre_moe_layer": layer,
+                            "host_moe_entry_ns": aux["host_moe_entry_ns"]})
+                base._CONTEXT.asap_aux = aux
+        return value
+
+    def patched_experts(self: Any, *args: Any, **kwargs: Any) -> Any:
+        rec = getattr(base._CONTEXT, "record", None)
+        aux = getattr(base._CONTEXT, "asap_aux", None)
+        value = original_experts(self, *args, **kwargs)
+        if rec is not None and isinstance(aux, dict):
+            # The base hook has already recorded the expert span in rec.  Keep
+            # the Event-bearing pair in the side table only for our resolver;
+            # the shared JSON writer excludes this key by design.
+            aux["expert_events"] = rec.get("expert")
         return value
 
     def patched_finalize(self: Any, *args: Any, **kwargs: Any) -> Any:
         rec = getattr(base._CONTEXT, "record", None)
+        aux = getattr(base._CONTEXT, "asap_aux", None)
         value = original_finalize(self, *args, **kwargs)
         if rec is not None:
-            rec["moe_done"] = _event(); rec["moe_done"].record(torch.cuda.current_stream())
-            rec["host_moe_done_ns"] = time.monotonic_ns()
-            with _LOCK:
-                _AUX.append(rec)
+            moe_done = _event(); moe_done.record(torch.cuda.current_stream())
+            if isinstance(aux, dict):
+                aux["moe_done"] = moe_done
+                aux["host_moe_done_ns"] = time.monotonic_ns()
+                aux["combine_events"] = rec.get("combine")
+                with _LOCK:
+                    _AUX.append(aux)
+            # The base finalizer clears `record`; clear our side reference as
+            # well so a later wait cannot attach to a completed invocation.
+            base._CONTEXT.asap_aux = None
         return value
 
     def patched_wait(self: Any) -> None:
         rec = getattr(base._CONTEXT, "record", None)
+        aux = getattr(base._CONTEXT, "asap_aux", None)
         if rec is None:
             return original_wait(self)
         start = _event(); start.record(torch.cuda.current_stream())
         value = original_wait(self)
         end = _event(); end.record(torch.cuda.current_stream())
-        rec.setdefault("waits", []).append((start, end, "deepep_event_overlap"))
+        if isinstance(aux, dict):
+            aux.setdefault("waits", []).append((start, end, "deepep_event_overlap"))
         return value
 
     Qwen3MoeDecoderLayer.forward = patched_forward
     FusedMoEKernelModularImpl._prepare = patched_prepare
+    FusedMoEKernelModularImpl._fused_experts = patched_experts
     FusedMoEKernelModularImpl._finalize = patched_finalize
     # EventOverlap is intentionally left unmodified in the baseline run.  A
     # separate positive-control mode enables the wrapper below; keeping the
