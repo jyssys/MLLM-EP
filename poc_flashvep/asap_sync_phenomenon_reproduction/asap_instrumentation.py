@@ -111,7 +111,12 @@ def _flush_aux() -> None:
         for row in rows:
             handle.write(json.dumps(row, separators=(",", ":"), allow_nan=True) + "\n")
     (out / f"asap_rank{rank}.proof.json").write_text(
-        json.dumps({"events": len(rows), "wait_metric": "CUDA event recorded before/after EventOverlap.current_stream_wait", "cross_gpu_absolute_subtraction": False, "injected_delay_gpu_sleep": True}, indent=2) + "\n", encoding="utf-8")
+        json.dumps({"events": len(rows),
+                    "wait_metric": "CUDA event recorded before/after EventOverlap.current_stream_wait",
+                    "forced_sync_wait": os.environ.get("FLASHVEP_FORCE_SYNC_WAIT", "0") == "1",
+                    "host_prepare_span": True,
+                    "cross_gpu_absolute_subtraction": False,
+                    "injected_delay_gpu_sleep": True}, indent=2) + "\n", encoding="utf-8")
 
 
 def install() -> None:
@@ -162,7 +167,9 @@ def install() -> None:
         if entry.get("instrument") and layer >= 0:
             from poc_flashvep.dp_ep_arrival_skew_two_topologies.topology_probe import write_once
             write_once()
+        host_prepare_start = time.monotonic_ns()
         value = original_prepare(self, *args, **kwargs)
+        host_prepare_end = time.monotonic_ns()
         if entry.get("instrument") and layer >= 0:
             rec = getattr(base._CONTEXT, "record", None)
             if rec is not None:
@@ -175,6 +182,8 @@ def install() -> None:
                     "moe_entry": moe_entry,
                     "waits": [],
                     "host_moe_entry_ns": time.monotonic_ns(),
+                    "host_prepare_start_ns": host_prepare_start,
+                    "host_prepare_end_ns": host_prepare_end,
                     "delay_start": getattr(base._CONTEXT, "asap_delay_start", None),
                     "delay_end": getattr(base._CONTEXT, "asap_delay_end", None),
                     "delay_ms": _delay_ms(),
@@ -207,6 +216,7 @@ def install() -> None:
             if isinstance(aux, dict):
                 aux["moe_done"] = moe_done
                 aux["host_moe_done_ns"] = time.monotonic_ns()
+                aux["prepare_host_ms"] = (aux["host_prepare_end_ns"] - aux["host_prepare_start_ns"]) / 1e6
                 aux["combine_events"] = rec.get("combine")
                 with _LOCK:
                     _AUX.append(aux)
