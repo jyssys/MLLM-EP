@@ -21,6 +21,7 @@ but not as a robust rank straggler.
 
 ## Environment and serving proof
 
+- Experiment base commit: `d25438863d44688a0abdd79689dc358e8118e2e2`.
 - Model: Qwen3-VL-30B-A3B-Instruct, BF16, snapshot `9c4b90e1e4ba969fd3b5378b57d966d725f1b86c`.
 - Runtime: vLLM 0.20.0 V1 engine, eager mode, chunked prefill, prefix cache off.
 - Topology: TP2 / DP2 / EP4 / PP1, DBO off, linear expert placement
