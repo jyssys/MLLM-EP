@@ -174,4 +174,9 @@ def install() -> None:
     Qwen3MoeDecoderLayer.forward = patched_forward
     FusedMoEKernelModularImpl._prepare = patched_prepare
     FusedMoEKernelModularImpl._finalize = patched_finalize
-    EventOverlap.current_stream_wait = patched_wait
+    # EventOverlap is intentionally left unmodified in the baseline run.  A
+    # separate positive-control mode enables the wrapper below; keeping the
+    # stock method on production runs avoids perturbing DeepEP's Python/CUDA
+    # callback lifetime.
+    if os.environ.get("FLASHVEP_CAPTURE_EVENT_WAITS", "0") == "1":
+        EventOverlap.current_stream_wait = patched_wait
