@@ -1,0 +1,67 @@
+{
+  "run_id": "20260901_124106",
+  "live_invocations": 1056,
+  "requests": 11,
+  "conditions": {
+    "diverse_multi_image": 3,
+    "repeated_multi_image": 3,
+    "text_only": 3,
+    "single_image": 2
+  },
+  "gpu_mapping": "CUDA_VISIBLE_DEVICES=1,2,3,4",
+  "configuration": {
+    "model": "Qwen3-VL-30B-A3B-Instruct",
+    "dtype": "BF16",
+    "TP": 2,
+    "DP": 2,
+    "EP": 4,
+    "PP": 1,
+    "DeepEP": "deepep_high_throughput",
+    "DBO": false,
+    "prefix_cache": false,
+    "placement": "linear expert_id//32"
+  },
+  "stage_timing_scope": "existing live DeepEP CUDA-event hook; max of four EP ranks per request/layer/iteration",
+  "exact_route_source": "poc_flashvep/deepep_revalidation/results/live_prefill_execution_regime_20260821_111609",
+  "pair_scarcity": [
+    {
+      "image_count": 2,
+      "repeated_id": "repeat2_coins",
+      "diverse_id": "diverse2_small",
+      "repeated_tokens": 238,
+      "diverse_tokens": 256,
+      "token_ratio": 1.0756302521008403,
+      "eligible_10pct": true,
+      "repeated_expert_ms": 0.4225600063800812,
+      "diverse_expert_ms": 0.42497600615024567,
+      "repeated_prefill_ms": 2842.5956015,
+      "diverse_prefill_ms": 125.41064750000001
+    },
+    {
+      "image_count": 4,
+      "repeated_id": "repeat4_coins",
+      "diverse_id": "diverse4_small",
+      "repeated_tokens": 458,
+      "diverse_tokens": 772,
+      "token_ratio": 1.685589519650655,
+      "eligible_10pct": false,
+      "repeated_expert_ms": 0.4388960003852844,
+      "diverse_expert_ms": 0.4696799963712692,
+      "repeated_prefill_ms": 133.724314,
+      "diverse_prefill_ms": 2972.668715
+    },
+    {
+      "image_count": 8,
+      "repeated_id": "repeat8_coins",
+      "diverse_id": "diverse8_small",
+      "repeated_tokens": 898,
+      "diverse_tokens": 1672,
+      "token_ratio": 1.8619153674832962,
+      "eligible_10pct": false,
+      "repeated_expert_ms": 0.4666240066289902,
+      "diverse_expert_ms": 0.5226079821586609,
+      "repeated_prefill_ms": 3036.1385015,
+      "diverse_prefill_ms": 225.879872
+    }
+  ]
+}
