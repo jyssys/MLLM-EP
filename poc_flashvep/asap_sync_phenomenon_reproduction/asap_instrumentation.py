@@ -150,7 +150,11 @@ def install() -> None:
             delay_start = _event(); delay_start.record(torch.cuda.current_stream())
             # torch.cuda._sleep executes on the current GPU stream.  The
             # cycle scale is calibrated by the paired CUDA events below.
-            torch.cuda._sleep(max(1, int(delay * 1_000_000)))
+            # On this H100 driver one million device cycles measured at
+            # roughly 0.5 ms in the paired event span; use the calibrated
+            # factor so the recorded diagnostic delays track the requested
+            # 0.5/1/2 ms levels.
+            torch.cuda._sleep(max(1, int(delay * 2_000_000)))
             delay_end = _event(); delay_end.record(torch.cuda.current_stream())
         base._CONTEXT.asap_delay_start = delay_start
         base._CONTEXT.asap_delay_end = delay_end
