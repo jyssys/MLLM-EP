@@ -212,6 +212,12 @@ def install() -> None:
             return original_wait(self)
         start = _event(); start.record(torch.cuda.current_stream())
         value = original_wait(self)
+        # Positive-control mode makes the normally asynchronous stream wait
+        # observable as an elapsed GPU interval.  It is never enabled for
+        # natural serving measurements, because synchronizing here would
+        # intentionally perturb overlap semantics.
+        if os.environ.get("FLASHVEP_FORCE_SYNC_WAIT", "0") == "1":
+            torch.cuda.current_stream().synchronize()
         end = _event(); end.record(torch.cuda.current_stream())
         if isinstance(aux, dict):
             aux.setdefault("waits", []).append((start, end, "deepep_event_overlap"))

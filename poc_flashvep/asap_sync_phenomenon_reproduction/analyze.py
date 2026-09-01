@@ -9,6 +9,13 @@ import matplotlib.pyplot as plt
 
 def load(root: Path) -> pd.DataFrame:
     rows=[]
+    metadata = {}
+    meta_path = root / "run_metadata.json"
+    if meta_path.exists():
+        try:
+            metadata = json.loads(meta_path.read_text())
+        except (OSError, json.JSONDecodeError):
+            metadata = {}
     for p in sorted((root/"asap_raw").glob("asap_rank*.jsonl")):
         suffix = p.stem.split("rank")[-1]
         try:
@@ -17,7 +24,19 @@ def load(root: Path) -> pd.DataFrame:
             rank = -1
         for line in p.read_text().splitlines():
             if line:
-                x=json.loads(line); x["ep_rank_file"]=rank; rows.append(x)
+                try:
+                    x=json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+                x["ep_rank_file"]=rank
+                # The worker-side control record predates the metadata
+                # fields; fill them from the immutable run manifest.
+                for key in ("mode", "scale", "delay_ms", "topology", "chunked_prefill", "max_num_batched_tokens"):
+                    if key not in x and key in metadata:
+                        x[key] = metadata[key]
+                if "mode" not in x:
+                    x["mode"] = str(x.get("condition", "unknown")).split("_")[0]
+                rows.append(x)
     return pd.DataFrame(rows)
 
 def main():
