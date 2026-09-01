@@ -93,7 +93,10 @@ def _flush_aux() -> None:
             if isinstance(pair, dict) and pair.get("start") is not None:
                 row[f"{stage}_cuda_ms"] = float(pair["start"].elapsed_time(pair["end"]))
         rows.append(row)
-    rank = os.environ.get("RANK", os.environ.get("LOCAL_RANK", "na"))
+    # VLLM's DP worker processes do not always export torch.distributed RANK
+    # to this hook.  Use the explicit DP rank first so concurrent workers do
+    # not interleave their JSONL writes into one ``rankna`` file.
+    rank = os.environ.get("VLLM_DP_RANK", os.environ.get("RANK", os.environ.get("LOCAL_RANK", "na")))
     path = out / f"asap_rank{rank}.jsonl"
     with path.open("w", encoding="utf-8") as handle:
         for row in rows:

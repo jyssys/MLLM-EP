@@ -10,7 +10,11 @@ import matplotlib.pyplot as plt
 def load(root: Path) -> pd.DataFrame:
     rows=[]
     for p in sorted((root/"asap_raw").glob("asap_rank*.jsonl")):
-        rank=int(p.stem.split("rank")[-1])
+        suffix = p.stem.split("rank")[-1]
+        try:
+            rank = int(suffix)
+        except ValueError:
+            rank = -1
         for line in p.read_text().splitlines():
             if line:
                 x=json.loads(line); x["ep_rank_file"]=rank; rows.append(x)
