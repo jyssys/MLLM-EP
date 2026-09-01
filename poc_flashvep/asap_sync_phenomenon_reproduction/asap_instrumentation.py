@@ -105,7 +105,13 @@ def _flush_aux() -> None:
     # VLLM's DP worker processes do not always export torch.distributed RANK
     # to this hook.  Use the explicit DP rank first so concurrent workers do
     # not interleave their JSONL writes into one ``rankna`` file.
-    rank = os.environ.get("VLLM_DP_RANK", os.environ.get("RANK", os.environ.get("LOCAL_RANK", "na")))
+    # A (TP2, DP2, EP4) has two tensor-parallel workers inside each DP rank;
+    # DP rank alone is therefore not a unique writer key.  The validated
+    # record carries the runtime EP-group rank, which is unique across all
+    # participating workers and works for both topologies.
+    rank = rows[0].get("ep_rank") if rows else None
+    if rank is None:
+        rank = os.environ.get("VLLM_DP_RANK", os.environ.get("RANK", os.environ.get("LOCAL_RANK", "na")))
     path = out / f"asap_rank{rank}.jsonl"
     with path.open("w", encoding="utf-8") as handle:
         for row in rows:
