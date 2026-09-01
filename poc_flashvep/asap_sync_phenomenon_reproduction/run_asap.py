@@ -125,7 +125,11 @@ def _worker(dp_rank: int, args: argparse.Namespace, barrier: Any, schedule: list
         if dp_rank == 0:
             _write(args.output_dir / "control.tmp.json", flush); (args.output_dir / "control.tmp.json").replace(args.output_dir / "control.json")
         barrier.wait(timeout=1800)
-        _run_engine(llm, [{"prompt_token_ids": _seq(tokenizer, 32)}] if dp_rank == 0 else [], sampling, barrier, int(flush["wave"]), args.dp)
+        # Every DP engine receives the same tiny text flush request.  This
+        # keeps the final collective participation explicit for text-only
+        # experiments (an empty START_DP_WAVE can otherwise return before a
+        # sibling has drained its request queue).
+        _run_engine(llm, [{"prompt": "the " * 32}], sampling, barrier, int(flush["wave"]), args.dp)
         _write(output, {"ok": True, "dp_rank": dp_rank, "records": records})
     except BaseException:
         _write(output, {"ok": False, "dp_rank": dp_rank, "traceback": traceback.format_exc()}); raise
