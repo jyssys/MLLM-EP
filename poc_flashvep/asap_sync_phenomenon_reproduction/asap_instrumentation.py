@@ -61,6 +61,8 @@ def _flush_aux() -> None:
     out.mkdir(parents=True, exist_ok=True)
     rows: list[dict[str, Any]] = []
     for item in _AUX:
+        if item.get("layer_start") is None or item.get("moe_entry") is None or item.get("moe_done") is None:
+            continue
         row = {k: v for k, v in item.items()
                if k not in {"layer_start", "moe_entry", "moe_done", "delay_start", "delay_end", "waits", "dispatch", "expert", "combine"}}
         row["pre_moe_cuda_ms"] = float(item["layer_start"].elapsed_time(item["moe_entry"]))
