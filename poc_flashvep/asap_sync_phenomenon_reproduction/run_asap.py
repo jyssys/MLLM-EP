@@ -87,8 +87,12 @@ def _worker(dp_rank: int, args: argparse.Namespace, barrier: Any, schedule: list
         })
         from poc_flashvep.deepep_revalidation.backend_probe import install_backend_probe
         from poc_flashvep.ep4_serving_straggler_regime.serving_probe import install as install_scheduler
-        from poc_flashvep.asap_sync_phenomenon_reproduction.asap_instrumentation import install
-        install_backend_probe(); install(); install_scheduler()
+        install_backend_probe(); install_scheduler()
+        if os.environ.get("FLASHVEP_ASAP_BASE_ONLY", "0") == "1":
+            from poc_flashvep.ep4_serving_straggler_regime.live_instrumentation import install
+        else:
+            from poc_flashvep.asap_sync_phenomenon_reproduction.asap_instrumentation import install
+        install()
         from transformers import AutoTokenizer
         from vllm import LLM, SamplingParams
         tokenizer = AutoTokenizer.from_pretrained(args.model_path, trust_remote_code=True)
