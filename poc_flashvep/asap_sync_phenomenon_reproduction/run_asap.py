@@ -111,12 +111,15 @@ def _worker(dp_rank: int, args: argparse.Namespace, barrier: Any, schedule: list
             if dp_rank == 0:
                 _write(args.output_dir / "control.tmp.json", entry); (args.output_dir / "control.tmp.json").replace(args.output_dir / "control.json")
             barrier.wait(timeout=1800)
-            prompts = [{"prompt_token_ids": _seq(tokenizer, int(n))} for n in entry["request_lengths_by_dp"][dp_rank]]
+            # Use ordinary text prompts for the real vLLM request path.  The
+            # repeated token sequence is deterministic; the scheduler records
+            # the realized prompt length in its trace.
+            prompts = [{"prompt": "the " * int(n)} for n in entry["request_lengths_by_dp"][dp_rank]]
             started = time.perf_counter_ns()
             outputs = _run_engine(llm, prompts, sampling, barrier, int(entry["wave"]), args.dp)
             wall = (time.perf_counter_ns() - started) / 1e6
             records.append({**entry, "dp_rank": dp_rank, "wall_ms": wall,
-                            "prompt_lengths": [len(x["prompt_token_ids"]) for x in prompts],
+                            "prompt_lengths": [int(n) for n in entry["request_lengths_by_dp"][dp_rank]],
                             "output_tokens": [[int(t) for t in o.outputs[0].token_ids] for o in outputs]})
         flush = {**schedule[-1], "wave": len(schedule), "flush": True, "instrument": False, "measured": False}
         if dp_rank == 0:
