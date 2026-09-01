@@ -177,6 +177,7 @@ def install() -> None:
                     "host_moe_entry_ns": time.monotonic_ns(),
                     "delay_start": getattr(base._CONTEXT, "asap_delay_start", None),
                     "delay_end": getattr(base._CONTEXT, "asap_delay_end", None),
+                    "delay_ms": _delay_ms(),
                     "dispatch_events": rec.get("dispatch"),
                 }
                 # Only JSON-safe scalars are added to the shared validated
