@@ -75,6 +75,10 @@ def _rank_worker(rank: int, port: int, args: argparse.Namespace, barrier: Any) -
             max_num_seqs=2,
             skip_mm_profiling=True,
             enable_prefix_caching=False,
+            # Prevent identical warmup images from reusing the multimodal
+            # processor/embedding cache; the measured request must include
+            # the real Vision Encoder kernels in the capture window.
+            mm_processor_cache_gb=0,
             enable_flashinfer_autotune=False,
             enforce_eager=True,
             disable_log_stats=False,
