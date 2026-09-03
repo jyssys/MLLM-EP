@@ -1,0 +1,9 @@
+Base branch: flashvep/qwen3vl-full-serving-resource-atlas
+Base commit at PoC branch creation: 53f8f73
+Measured branch: flashvep/visual-streaming-prefill-poc
+GPU mapping: CUDA_VISIBLE_DEVICES=1,2,3,4 (physical GPUs 1,2,3,4 only)
+Command:
+CUDA_VISIBLE_DEVICES=1,2,3,4 /home/esjung/.venvs/flashvep-deepep-v020/bin/python -u poc_flashvep/visual_streaming_prefill_poc/run_streaming.py --output poc_flashvep/deepep_revalidation/results/visual_streaming_prefill_poc_20260903_150121_rep3 --warmups 1 --repetitions 3 --decode-tokens 1
+Analysis:
+python -m poc_flashvep.visual_streaming_prefill_poc.analyze_streaming --result poc_flashvep/deepep_revalidation/results/visual_streaming_prefill_poc_20260903_150121_rep3
+Equivalence analysis used the same venv with torch.load on the saved vision-output tensors; raw tensor files remain local and are ignored by the repository's *.pt rule.

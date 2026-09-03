@@ -1,0 +1,55 @@
+{
+  "FINAL_STATUS": "GO",
+  "IMAGE_LEVEL_EQUIVALENCE": "PASS",
+  "REAL_PIPELINE_PROTOTYPE": "NOT_RUN",
+  "GPU_EXECUTION_STATUS": "COMPLETED",
+  "configuration": {
+    "dtype": "BF16",
+    "tp": 2,
+    "dp": 2,
+    "ep": 4,
+    "pp": 1,
+    "backend": "deepep_high_throughput",
+    "triton_experts": true,
+    "dbo": false,
+    "prefix_cache": false,
+    "enforce_eager": true,
+    "physical_gpus": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "max_num_batched_tokens": 8192,
+    "max_model_len": 4096
+  },
+  "equivalence": {
+    "status": "PASS",
+    "comparisons": 36,
+    "ok_comparisons": 36,
+    "min_cosine": 0.9995812594337891,
+    "max_abs_error": 0.765625,
+    "mean_abs_error_median": 0.0027786539894990784,
+    "tolerance": "cosine >= 0.999; BF16 outputs compared in float64"
+  },
+  "oracle": {
+    "status": "COMPUTED",
+    "reasons": [
+      "n=4: missing/negative segment timing"
+    ],
+    "rows": [
+      {
+        "image_count": 2,
+        "measured_baseline_wall_ms": 4924.257169,
+        "decomposed_serial_ms": 202.57241535186768,
+        "oracle_streaming_ms": 179.4843349456787,
+        "oracle_reduction_vs_decomposed": 0.11397445385683455,
+        "oracle_reduction_vs_measured_wall": 0.9635509826587453,
+        "oracle_speedup_vs_decomposed": 1.128635629472492,
+        "encode_sum_ms": 50.81454372406006,
+        "prefill_sum_ms": 151.75787162780762
+      }
+    ]
+  },
+  "lm_separated_embedding_equivalence": "NOT_DIRECTLY_EXPOSED_BY_CURRENT_VLLM_API"
+}
