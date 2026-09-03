@@ -130,7 +130,7 @@ def _write_csvs(result: Path, raw: pd.DataFrame, agg: pd.DataFrame) -> tuple[pd.
     return curves, piv
 
 
-def _gate(result: Path, agg: pd.DataFrame, curves: pd.DataFrame) -> dict:
+def _gate(result: Path, agg: pd.DataFrame, curves: pd.DataFrame, raw: pd.DataFrame) -> dict:
     best: dict[str, int] = {}
     curve_med: dict[str, dict[str, float]] = {}
     for modality, g in curves.groupby("modality"):
@@ -175,7 +175,9 @@ def _gate(result: Path, agg: pd.DataFrame, curves: pd.DataFrame) -> dict:
         "repeated_separation_at_least_2x": repeated_separation,
         "correctness_all": bool(agg["correctness"].all()),
         "route_identity_all": bool(agg["correctness"].all()),
-        "measurement": {"rank_count": int(agg["ranks"].min()), "warmups": 3, "iterations": 20},
+        "measurement": {"rank_count": int(agg["ranks"].min()),
+                         "warmups": int(raw["warmups"].max()),
+                         "iterations": int(raw["iterations"].max())},
     }
     (result / "gate_summary.json").write_text(json.dumps(gate, indent=2) + "\n")
     return gate
@@ -189,7 +191,7 @@ def main() -> None:
     agg = _aggregate(raw)
     curves, pairs = _write_csvs(args.result, raw, agg)
     _make_figures(args.result, agg)
-    gate = _gate(args.result, agg, curves)
+    gate = _gate(args.result, agg, curves, raw)
     print(json.dumps({"rows": len(agg), "matched_rows": len(pairs), "gate": gate}, indent=2))
 
 

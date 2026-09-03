@@ -25,7 +25,7 @@ modalities, not evidence for a Vision-specific fused/persistent policy.
   `retina` (fine-grained); layers 4/24/44.
 - M values: 32/64/128/256/512.  For each modality, the first M positions in
   the original request order were selected; no token reorder was performed.
-- Timing: three warmups and 20 measured repetitions per case, CUDA events in
+- Timing: three warmups and 30 measured repetitions per case, CUDA events in
   the existing vLLM worker hook, four EP ranks.  Route IDs are exact real
   captures.  The activation input is the validated BF16 layer-24 capture
   (`layer24_capture.pt`) cycled only as an operator-replay input; therefore
@@ -37,7 +37,7 @@ Preparation and execution command:
 ```text
 CUDA_VISIBLE_DEVICES=1,2,3,4 WARMUPS=3 ITERATIONS=20 \
   poc_flashvep/modality_aware_moe_granularity/run_gpu.sh \
-  poc_flashvep/deepep_revalidation/results/modality_aware_moe_granularity_poc_20260903_1945
+  poc_flashvep/deepep_revalidation/results/modality_aware_moe_granularity_poc_20260903_2000
 ```
 
 ## GPU results
@@ -48,25 +48,25 @@ request/layer cases per modality and M.
 
 | modality | M | total ms/token | dispatch ms/token | expert ms/token | combine ms/token | active experts | effective experts | p50 local expert M | rank CV |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| Text | 32 | 0.026702 | 0.005598 | 0.012713 | 0.003218 | 67 | 43.05 | 2 | 0.165 |
-| Text | 64 | 0.013381 | 0.002842 | 0.006305 | 0.001539 | 82 | 50.12 | 4 | 0.155 |
-| Text | 128 | 0.006731 | 0.001474 | 0.003255 | 0.000838 | 92 | 54.93 | 6 | 0.161 |
-| Text | 256 | 0.003403 | 0.000795 | 0.001794 | 0.000410 | 102 | 56.83 | 12 | 0.184 |
-| Text | 512 | **0.002661** | 0.000457 | 0.001236 | 0.001017 | 109 | 56.93 | 19 | 0.173 |
-| Vision | 32 | 0.027030 | 0.005678 | 0.012620 | 0.003064 | 47 | 30.19 | 3 | 0.218 |
-| Vision | 64 | 0.013331 | 0.002853 | 0.006294 | 0.001488 | 77 | 44.68 | 4 | 0.199 |
-| Vision | 128 | 0.006841 | 0.001490 | 0.003331 | 0.000834 | 97 | 59.91 | 6.5 | 0.178 |
-| Vision | 256 | 0.003395 | 0.000795 | 0.001816 | 0.000397 | 110 | 70.62 | 12 | 0.155 |
-| Vision | 512 | **0.002644** | 0.000458 | 0.001198 | 0.000549 | 118 | 78.50 | 24 | 0.149 |
+| Text | 32 | 0.026663 | 0.005643 | 0.012604 | 0.002840 | 67 | 43.05 | 2 | 0.165 |
+| Text | 64 | 0.013371 | 0.002906 | 0.006343 | 0.001489 | 82 | 50.12 | 4 | 0.155 |
+| Text | 128 | 0.006768 | 0.001488 | 0.003250 | 0.000818 | 92 | 54.93 | 6 | 0.161 |
+| Text | 256 | 0.003406 | 0.000805 | 0.001791 | 0.000392 | 102 | 56.83 | 12 | 0.184 |
+| Text | 512 | **0.002655** | 0.000450 | 0.001230 | 0.001003 | 109 | 56.93 | 19 | 0.173 |
+| Vision | 32 | 0.026649 | 0.005623 | 0.012615 | 0.002983 | 47 | 30.19 | 3 | 0.218 |
+| Vision | 64 | 0.013447 | 0.002869 | 0.006365 | 0.001547 | 77 | 44.68 | 4 | 0.199 |
+| Vision | 128 | 0.006750 | 0.001500 | 0.003272 | 0.000799 | 97 | 59.91 | 6.5 | 0.178 |
+| Vision | 256 | 0.003376 | 0.000786 | 0.001819 | 0.000392 | 110 | 70.62 | 12 | 0.155 |
+| Vision | 512 | **0.002620** | 0.000455 | 0.001206 | 0.000754 | 118 | 78.50 | 24 | 0.149 |
 
 At M=512, Vision's route working set is broader (118 vs 109 active experts,
 78.50 vs 56.93 effective experts), but critical total latency/token differs by
-only -0.08% (Vision minus Text) in the paired median.  Paired phase deltas are:
-dispatch -0.01%, expert +1.01%, and combine -1.83% (Vision minus Text).
+only +0.04% (Vision minus Text) in the paired median.  Paired phase deltas are:
+dispatch +0.09%, expert +0.65%, and combine -0.06% (Vision minus Text).
 These are far below the preregistered 5%/8% decision levels.
 
 The M curve decreases for both populations: the common fixed M=128 to M=512
-reduction is 61.35% for Vision and 60.46% for Text.  This is a shared
+reduction is 61.18% for Vision and 60.77% for Text.  This is a shared
 granularity/batching effect, not a modality-aware gain.  Every one of the nine
 request/layer groups selected M=512 as its per-case minimum for both modalities.
 
@@ -98,7 +98,7 @@ not a claim of end-to-end logits equivalence for the replay activation.
   "text_optimal_M": 512,
   "modality_specific_gain": "0% (same optimum)",
   "common_M": 128,
-  "common_to_own_opt_gain_pct": {"vision": 61.35, "text": 60.46},
+  "common_to_own_opt_gain_pct": {"vision": 61.18, "text": 60.77},
   "repeated_optimum": {"vision": "9/9 at 512", "text": "9/9 at 512"},
   "routing_causality": "rejected for a modality-specific optimum",
   "correctness": "route and token partition identity pass"
@@ -113,7 +113,7 @@ fused/persistent or modality-conditioned execution method in this branch.
 ## Artifacts
 
 Result directory:
-[`modality_aware_moe_granularity_poc_20260903_1945`](../deepep_revalidation/results/modality_aware_moe_granularity_poc_20260903_1945/)
+[`modality_aware_moe_granularity_poc_20260903_2000`](../deepep_revalidation/results/modality_aware_moe_granularity_poc_20260903_2000/)
 
 - `workload_manifest.json`, `selection_policy.json`, `cases.json`
 - `route_statistics.csv`, `rank_timing_raw.csv`, `granularity_results.csv`
