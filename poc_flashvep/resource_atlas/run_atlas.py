@@ -46,6 +46,8 @@ def _rank_worker(rank: int, port: int, args: argparse.Namespace, barrier: Any) -
             "FLASHVEP_ATLAS_DISABLE": "0",
             "FLASHVEP_CONFIGURED_ALL2ALL_BACKEND": "deepep_high_throughput",
             "FLASHVEP_CONFIGURED_DBO": "false",
+            "FLASHVEP_CUDA_PROFILER_API": "1" if args.cuda_profiler_api else "0",
+            "FLASHVEP_PROFILER_WATCH_SECONDS": "240",
         })
         from PIL import Image
         from transformers import AutoProcessor
@@ -87,11 +89,21 @@ def _rank_worker(rank: int, port: int, args: argparse.Namespace, barrier: Any) -
             llm._add_completion_requests([copy.deepcopy(_request(processor, image, f"warmup {i}"))], sampling, use_tqdm=False)
             warmup_outputs.extend(llm._run_engine(RequestOutput, use_tqdm=False))
         barrier.wait(timeout=900)
+        # The read-only hook in CUDA-owning child workers watches this signal.
+        # Starting there avoids model/NCCL/Triton initialization in the trace.
+        if args.cuda_profiler_api:
+            start_signal = args.output / "cuda_profiler_start.signal"
+            stop_signal = args.output / "cuda_profiler_stop.signal"
+            start_signal.touch()
+            if stop_signal.exists():
+                stop_signal.unlink()
         measured_request = copy.deepcopy(request)
         llm._add_completion_requests([measured_request], sampling, use_tqdm=False)
         start = time.perf_counter_ns()
         outputs = llm._run_engine(RequestOutput, use_tqdm=False)
         wall_ms = (time.perf_counter_ns() - start) / 1e6
+        if args.cuda_profiler_api:
+            (args.output / "cuda_profiler_stop.signal").touch()
         barrier.wait(timeout=900)
         out.write_text(json.dumps({
             "ok": True,
@@ -117,11 +129,15 @@ def main() -> None:
     p.add_argument("--model", default=MODEL)
     p.add_argument("--warmups", type=int, default=2)
     p.add_argument("--decode-tokens", type=int, default=8)
+    p.add_argument("--cuda-profiler-api", action="store_true")
     a = p.parse_args()
     # The profiler creates the result directory before launching this target
     # so that its -o path can live inside it.  Each run uses a fresh timestamp;
     # workers only write their own manifest/proof files.
     a.output.mkdir(parents=True, exist_ok=True)
+    for signal in (a.output / "cuda_profiler_start.signal", a.output / "cuda_profiler_stop.signal"):
+        if signal.exists():
+            signal.unlink()
     repo = Path(__file__).resolve().parents[2]
     hook_dir = repo / "poc_flashvep/resource_atlas/hooks"
     os.environ["CUDA_VISIBLE_DEVICES"] = "1,2,3,4"
@@ -130,6 +146,7 @@ def main() -> None:
         "model": a.model, "image": IMAGE,
         "prompt_type": "single_real_image_describe",
         "warmups": a.warmups, "decode_tokens": a.decode_tokens,
+        "cuda_profiler_api": a.cuda_profiler_api,
         "configuration": {
             "dtype": "BF16", "tp": 2, "dp": 2, "ep": 4, "pp": 1,
             "backend": "deepep_high_throughput", "triton_experts": True,

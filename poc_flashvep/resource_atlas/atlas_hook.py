@@ -11,6 +11,7 @@ import atexit
 import json
 import os
 import threading
+import time
 from collections import Counter
 from pathlib import Path
 from typing import Any, Callable
@@ -19,6 +20,8 @@ _INSTALLED = False
 _LOCK = threading.Lock()
 _COUNTS: Counter[str] = Counter()
 _PATCHED: list[str] = []
+_PROFILER_STARTED = False
+_PROFILER_STOPPED = False
 
 
 def _nvtx_push(name: str) -> None:
@@ -36,6 +39,51 @@ def _nvtx_pop() -> None:
         torch.cuda.nvtx.range_pop()
     except Exception:
         pass
+
+
+def _profiler_api_watch() -> None:
+    """Start/stop Nsight's CUDA-profiler API inside each CUDA worker.
+
+    vLLM creates CUDA-owning child processes after the driver is launched.  A
+    signal-file watcher keeps the capture window out of model/NCCL warmup while
+    making the API calls in the process that owns the CUDA context.  It is
+    disabled by default and does not touch execution when the env flag is off.
+    """
+    global _PROFILER_STARTED, _PROFILER_STOPPED
+    result = os.environ.get("FLASHVEP_ATLAS_RESULT_DIR")
+    if os.environ.get("FLASHVEP_CUDA_PROFILER_API") != "1" or not result:
+        return
+    start = os.path.join(result, "cuda_profiler_start.signal")
+    stop = os.path.join(result, "cuda_profiler_stop.signal")
+    deadline = time.monotonic() + float(os.environ.get("FLASHVEP_PROFILER_WATCH_SECONDS", "180"))
+    cudart = None
+    while time.monotonic() < deadline and not _PROFILER_STOPPED:
+        try:
+            if os.path.exists(start) and not _PROFILER_STARTED:
+                import torch
+                if torch.cuda.is_available():
+                    cudart = torch.cuda.cudart()
+                    err = cudart.cudaProfilerStart()
+                    _PROFILER_STARTED = int(err) == 0
+                    with open(os.path.join(result, f"profiler_start_{os.getpid()}.json"), "w") as f:
+                        json.dump({"pid": os.getpid(), "cuda_profiler_start_return": int(err), "started": _PROFILER_STARTED}, f)
+            if os.path.exists(stop) and _PROFILER_STARTED and not _PROFILER_STOPPED:
+                if cudart is None:
+                    import torch
+                    cudart = torch.cuda.cudart()
+                err = cudart.cudaProfilerStop()
+                _PROFILER_STOPPED = True
+                with open(os.path.join(result, f"profiler_stop_{os.getpid()}.json"), "w") as f:
+                    json.dump({"pid": os.getpid(), "cuda_profiler_stop_return": int(err)}, f)
+                return
+        except Exception as exc:
+            try:
+                with open(os.path.join(result, f"profiler_api_error_{os.getpid()}.txt"), "w") as f:
+                    f.write(repr(exc) + "\n")
+            except Exception:
+                pass
+            return
+        time.sleep(0.01)
 
 
 def _wrap(cls: type, method: str, name: str, *, classify: Callable | None = None) -> None:
@@ -84,6 +132,8 @@ def _write_proof() -> None:
         "torch_cuda": cuda,
         "patched": _PATCHED,
         "nvtx_range_counts": dict(_COUNTS),
+        "cuda_profiler_api_started": _PROFILER_STARTED,
+        "cuda_profiler_api_stopped": _PROFILER_STOPPED,
     }
     try:
         import vllm
@@ -108,6 +158,8 @@ def install() -> None:
         if _INSTALLED:
             return
         _INSTALLED = True
+    if os.environ.get("FLASHVEP_CUDA_PROFILER_API") == "1":
+        threading.Thread(target=_profiler_api_watch, name="flashvep-profiler-watch", daemon=True).start()
     # Imports are intentionally local: sitecustomize runs before vLLM starts.
     from vllm.model_executor.models.qwen3_vl import (
         Qwen3_VisionMLP, Qwen3_VisionPatchEmbed, Qwen3_VisionPatchMerger,
