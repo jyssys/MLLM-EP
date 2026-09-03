@@ -1,0 +1,16 @@
+# GPU mapping used for every replay process
+export CUDA_VISIBLE_DEVICES=1,2,3,4
+export PYTHONPATH=/home/esjung/MLLM-EP-github
+export FLASHVEP_ATLAS_DISABLE=1
+export FLASHVEP_PYTHON=/home/esjung/.venvs/flashvep-deepep-v020/bin/python
+
+# Final bounded exact-route Nsight capture (one rank per child; all four ranks profiled)
+nsys profile --trace=cuda,osrt --sample=none --cpuctxsw=none --backtrace=none --stats=false --export=sqlite --force-overwrite=true -o <result>/resource_atlas_main /home/esjung/.venvs/flashvep-deepep-v020/bin/python poc_flashvep/resource_atlas/replay_rank.py
+
+# Exact launcher used (one Nsight wrapper per rank):
+/home/esjung/.venvs/flashvep-deepep-v020/bin/python -m torch.distributed.run --standalone --nproc-per-node=4 poc_flashvep/resource_atlas/nsys_rank_wrapper.py
+
+# The wrapper's rank-specific commands are preserved as replay_nsys_command_rank0..3.txt.
+# Full-serving attempts used run_atlas.py with vLLM TP2/DP2/EP4, warmups 2, decode 8;
+# those attempts are recorded in sibling result directories 20260903_131420 and
+# 20260903_131609. They completed driver smoke but did not export child-worker kernels.

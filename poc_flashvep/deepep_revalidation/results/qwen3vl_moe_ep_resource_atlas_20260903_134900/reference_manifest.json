@@ -1,0 +1,45 @@
+{
+  "repository": "https://github.com/jyssys/MLLM-EP.git",
+  "branch": "flashvep/qwen3vl-moe-ep-resource-atlas",
+  "model": "Qwen/Qwen3-VL-30B-A3B-Instruct",
+  "model_snapshot": "/home/esjung/.cache/huggingface/hub/models--Qwen--Qwen3-VL-30B-A3B-Instruct/snapshots/9c4b90e1e4ba969fd3b5378b57d966d725f1b86c",
+  "environment": {
+    "python": "3.12.13",
+    "torch": "2.11.0+cu129",
+    "cuda": "12.9",
+    "vllm": "0.20.0",
+    "triton": "3.6.0",
+    "deep_ep_version": "not exposed by installed module",
+    "nsys": "2024.6.2.225-246235244400v0"
+  },
+  "configuration": {
+    "dtype": "BF16",
+    "tp": 2,
+    "dp": 2,
+    "ep": 4,
+    "pp": 1,
+    "backend": "deepep_high_throughput",
+    "triton_experts": true,
+    "dbo": false,
+    "prefix_cache": false,
+    "enforce_eager": true,
+    "physical_gpus": [1, 2, 3, 4]
+  },
+  "references": {
+    "SpaceServe": {"path": "/home/esjung/external/SpaceServe", "commit": "66de079af4234b27f7f82ff91d238ef1351324ba", "url": "https://github.com/gofreelee/SpaceServe"},
+    "Flux": {"path": "/home/esjung/external/flux", "commit": "19831ca2d820e3e782ed1d15d8b52d0898b78b26", "url": "https://github.com/bytedance/flux"},
+    "DeepEP": {"path": "/home/esjung/.cache/flashvep-deepep-v020/DeepEP", "commit": "local checkout used by installed deep_ep", "url": "https://github.com/deepseek-ai/DeepEP"},
+    "RESONATOR": {"status": "NOT_PUBLICLY_FOUND", "paper": "https://doi.org/10.1109/ISCA66397.2026.00173"}
+  },
+  "exact_route_capture": {
+    "path": "/home/esjung/MLLM-EP/poc_flashvep/results/offline_wavefront_quick_poc_20260805_130322/layer24_capture.pt",
+    "tokens": 799,
+    "vision_tokens": 784,
+    "hidden_size": 2048,
+    "top_k": 8,
+    "experts": 128,
+    "expert_intermediate": 768,
+    "ep": 4
+  },
+  "evidence_scope": "Main Nsight artifact is a bounded exact-route DeepEP replay. Full-serving driver smoke succeeded, but child-worker CUDA kernels were not captured in the Nsight export; NVTX tracing triggered a NCCL NVTX-extension segmentation fault."
+}

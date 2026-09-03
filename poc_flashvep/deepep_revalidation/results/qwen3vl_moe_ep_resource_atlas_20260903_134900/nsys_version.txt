@@ -1,0 +1,628 @@
+nsys --version
+NVIDIA Nsight Systems version 2024.6.2.225-246235244400v0
+
+nsys profile --help (first 220 lines)
+
+usage: nsys profile [<args>] [application] [<application args>]
+
+	-b, --backtrace=
+
+	   Possible values are 'lbr', 'fp', 'dwarf', or 'none'.
+	   Select the backtrace method to use while sampling.
+	   Select 'none' to disable backtrace collection.
+	   Default is 'lbr'.
+
+	-c, --capture-range=
+
+	   Possible values are none, cudaProfilerApi, nvtx, hotkey.
+	   When '-c cudaProfilerApi' is used, profiling will start only when cudaProfilerStart API is
+	   invoked in the application.
+	   When '-c nvtx' is used, profiling will start only when the specified NVTX range is
+	   started in the application.
+	   When '-c hotkey' is used, profiling will start only when the hotkey
+	   set by '--hotkey-capture' is pressed in the application. This works for graphic apps only.
+	   Note that you must enable CUDA or NVTX tracing of the target application
+	   for '-c cudaProfilerApi' or '-c nvtx' to work.
+	   When '-capture-range none' is used, cudaProfilerStart/Stop APIs and hotkey will
+	   be ignored and NVTX ranges will be ignored as collection start/stop triggers.
+	   Default is none.
+
+	--capture-range-end=
+
+	   Possible values are 'none', 'stop', 'stop-shutdown', 'repeat[:N]' or 'repeat-shutdown:N'.
+	   Specify the desired behavior when a capture range ends. Applicable only when used along
+	   with --capture-range option.
+	   If 'none', capture range end will be ignored.
+	   If 'stop', collection will stop at capture range end. Any subsequent capture ranges will be
+	   ignored. Target app will continue running.
+	   If 'stop-shutdown', collection will stop at capture range end and session will be shutdown.
+	   If 'repeat[:N]', collection will stop at capture range end and subsequent capture ranges
+	   will trigger more collections.
+	   Use the optional ':N' to specify max number of capture ranges to be honored. Any subsequent
+	   capture ranges will be ignored once N capture ranges are collected.
+	   If 'repeat-shutdown:N', same behavior as 'repeat:N' but session will be shutdown after N
+	   ranges.
+	   For 'stop-shutdown' and 'repeat-shutdown:N', use --kill option to specify the signal to be
+	   sent to target app when shutting down session.
+	   Default is 'stop-shutdown'.
+
+	--command-file=
+
+	   Open a file that contains nsys switches and parse the switches. Note that
+	   command line switches will override switches found in the command-file.
+
+	--cpu-core-events=
+
+	   CPU Core events to sample.
+	   Possible values are (for example) '2,3,...'.
+	   Use the '--cpu-core-events=help' switch to see the full list of events.
+	   Multiple values can be selected, separated by commas only (no spaces).
+	   Requires root privileges or a paranoid level of 0 or less.
+	   Use the --event-sample switch to enable.
+
+	--cpuctxsw=
+
+	   Possible values are 'process-tree', 'system-wide', or 'none'.
+	   Trace OS thread scheduling activity. Select 'none' to disable tracing CPU context switches.
+	   'system-wide' requires root privileges or a paranoid level of 0 or less.
+	   If CPU IP/backtrace sampling is enabled, --cpuctxsw equals the --sample setting.
+	   For example, if --sample=process-tree, then --cpuctxsw=process-tree.
+	   If --sample=none and a target application is launched, the default is 'process-tree',
+	   otherwise the default is 'none'.
+
+	--cuda-flush-interval=
+
+	   Set the interval, in milliseconds, when buffered CUDA data is automatically saved to
+	   storage. CUDA data buffer saves may cause profiler overhead. Buffer save behavior can be
+	   controlled with this switch.
+
+	   If the CUDA flush interval is set to 0 on systems running CUDA 11.0 or newer, buffers are
+	   saved when they fill. If a flush interval is set to a non-zero value on such systems,
+	   buffers are saved only when the flush interval expires. If a flush interval is set and the
+	   profiler runs out of available buffers before the flush interval expires, additional buffers
+	   will be allocated as needed. In this case, setting a flush interval can reduce buffer
+	   save overhead but increase memory use by the profiler.
+
+	   If the flush interval is set to 0 on systems running older versions of CUDA,
+	   buffers are saved at the end of the collection. If the profiler runs out of available
+	   buffers, additional buffers are allocated as needed. If a flush interval is set to a
+	   non-zero value on such systems, buffers are saved when the flush interval expires.
+	   A cuCtxSynchronize call may be inserted into the workflow before the buffers
+	   are saved which will cause application overhead. In this case, setting a flush interval
+	   can reduce memory use by the profiler but may increase save overhead.
+	   Default is '0'. Application scope.
+
+	--cuda-graph-trace=<granularity>[:<launch origin>]
+
+	   Set the granularity and launch origin for CUDA graph trace.
+	   Applicable only when CUDA tracing is enabled.
+
+	   Possible values for <granularity> are 'graph' or 'node'.
+	   If 'graph' is selected, CUDA graphs will be traced as a whole and node
+	   activities will not be collected. This can reduce overhead to the minimal,
+	   but requires CUDA driver version 11.7 or higher.
+	   If 'node' is selected, node activities will be collected, but CUDA graphs
+	   will not be traced as a whole. This may cause significant runtime overhead.
+	   If CUDA driver version is 11.7 or higher, default is 'graph', otherwise default is 'node'.
+
+	   Possible values for <launch origin> are 'host-only' or 'host-and-device'.
+	   If 'host-only' is selected, only CUDA graphs launched from host codes will be traced.
+	   If 'host-and-device' is selected, CUDA graphs launched from host codes and device codes
+	   will both be traced. This is only supported when the granularity is set to 'graph' and
+	   the CUDA driver is version 12.3 or higher. This may cause significant runtime overhead.
+	   If granularity is set to 'graph' and the CUDA driver version is 12.3 or higher,
+	   the default is 'host-and-device', otherwise default is 'host-only'.'.
+
+	   Application scope.
+
+	--cuda-memory-usage=
+
+	   Possible values are 'true' or 'false'.
+	   Track the GPU memory usage. Applicable only when CUDA tracing is enabled.
+	   This feature may cause significant runtime overhead.
+	   Default is 'false'. Application scope.
+
+	--cuda-um-cpu-page-faults=
+
+	   Possible values are 'true' or 'false'.
+	   Track the CPU page faults that occur with Unified Memory.
+	   Applicable only when CUDA tracing is enabled.
+	   This feature may cause significant runtime overhead.
+	   Default is 'false'. Application scope.
+
+	--cuda-um-gpu-page-faults=
+
+	   Possible values are 'true' or 'false'.
+	   Track the GPU page faults that occur with Unified Memory.
+	   Applicable only when CUDA tracing is enabled.
+	   This feature may cause significant runtime overhead.
+	   Default is 'false'. Application scope.
+
+	--cudabacktrace=
+
+	   Possible values are 'all','none','kernel','memory','sync','other'.
+	   If tracing CUDA APIs, enable the collection of a backtrace when a CUDA API is invoked.
+	   When selected, significant runtime overhead may occur.
+	   Values may be combined using ','.
+	   Each value except 'none' may be appended with a threshold after ':'.
+	   Threshold is the duration, in nanoseconds, that CUDA APIs must execute before backtraces are
+	   collected, e.g. 'kernel:500'.
+	   Default value for each threshold is 80000ns (80us).
+	   Note that CPU sampling must be enabled.
+	   Default is 'none'. Application scope.
+
+	-d, --duration=
+
+	   Collection duration in seconds.
+	   Default is 0 seconds.
+
+	--debug-symbols=
+
+	   Specify the paths to directories with symbol files.
+	   Multiple directories can be selected, separated by a colon (':') only (no spaces).
+
+	--duration-frames=
+
+	   Stop the recording session after this many frames have been captured.
+	   Minimum supported frame is '60'.
+	   Note when it is selected cannot include any other stop options.
+	   If not specified the default is disabled. Application scope.
+
+	-e, --env-var=
+
+	   Set environment variable(s) for application process to be launched.
+	   Environment variable(s) should be defined as 'A=B'.
+	   Multiple environment variables can be specified as 'A=B,C=D'
+
+	(Experimental) --enable=<plugin_name>[,arg1,arg2,...]
+
+	   Use the specified plugin.
+	   The option can be specified multiple times to enable multiple plugins.
+	   Plugin arguments are separated by commas only (no spaces).
+	   Commas can be escaped with a backslash '\'. The backslash itself can be
+	   escaped by another backslash '\\'. To include spaces in an argument,
+	   enclose the argument in double quotes '"'.
+	   To list all available plugins, use '--enable=help' command.
+
+	--event-sample=
+
+	   Enable event sampling.
+	   Possible values are 'system-wide' or 'none'.
+	   Select 'none' to disable event sampling.
+	   The default is 'none'.
+	   Use the '--cpu-core-events=help' and the '--os-events=help' switches to see the
+	   full list of events.
+	   Requires root privileges or a paranoid level of 0 or less.
+	   If event sampling is enabled and no events are selected,
+	   the CPU Core event 'Instructions Retired' is selected by default.
+
+	(Deprecated) --event-sampling-frequency=
+
+	   WARNING: This switch is no longer supported.
+	   Please use the event-sampling-interval switch instead.
+
+	--event-sampling-interval=
+
+	   The interval between each event sample collection.
+	   Minimum event sampling interval is '1' milliseconds.
+	   Maximum event sampling interval is '1000' milliseconds.
+	   The default is '10' milliseconds.
+
+	--export=<format>[,<format>...]
+
+	   Possible formats are: none sqlite hdf text json arrow arrowdir parquetdir
+	   Create additional output file(s) based on the data collected.
+	   If 'none' is selected, no additional files are created.
+	   Default is 'none'. This option can be given more than once.
+
+	-f, --force-overwrite=
+
+	   Possible values are 'true' or 'false'.
+	   If true, overwrite all existing result files with same output filename
+	   (QDSTRM, nsys-rep, SQLITE, HDF, TEXT, JSON, ARROW, ARROWDIR, PARQUETDIR).
+	   Default is 'false'.
+
+
+nsys stats --help (first 220 lines)
+
+usage: nsys stats [<args>] <input-file>
+
+<input-file> : Read data from a .nsys-rep or exported .sqlite file.
+
+	-f, --format <name[:args...][,name[:args...]...]>
+
+           Specify the output format. The special name "." indicates the
+           default format for the given output.
+
+           The default format for console is:    column
+           The default format for files is:      csv
+           The default format for processes is:  csv
+
+           Available formats (and file extensions):
+
+             column     Human readable columns (.txt)
+             table      Human readable table (.txt)
+             csv        Comma Separated Values (.csv)
+             tsv        Tab Separated Values (.tsv)
+             json       JavaScript Object Notation (.json)
+             hdoc       HTML5 document with <table> (.html)
+             htable     Raw HTML <table> (.html)
+
+           This option may be used multiple times. Multiple formats may also
+           be specified using a comma-separated list. If a list item is left
+           blank by using repeating commas, the last specified format (and args)
+           will be repeated to fill in the blanks. If the list starts with a
+           comma, creating an initial blank format, the default will be
+           substituted.
+
+	--filter-nvtx  <nvtx_range_name>[@<domain_name>][/<index>]
+
+           Filter the events and data records used to generate reports by
+           the time range defined by the first instance of the given NVTX
+           range. Only events or records that overlap with any of the given
+           NVTX range are used to compile and calculate the report. Note
+           that an event or data record can start before or end after the
+           given NVTX range, as long as it exists at some point during the
+           specified NVTX range.
+
+           The domain name is not optional, and can only be excluded if
+           the range was not assigned to a domain; if the range has a
+           domain it must be given.
+
+           By default, the first instance of the given NVTX range (as
+           defined by the start time) is used to define the time range. A
+           different instance of the given NVTX range can be used by
+           specifying an index number.  The index is zero-based, so the first
+           instance has an index of "0". If the characters after the final
+           slash do not represent a positive integer, it is assumed they
+           are part of the range/domain name.
+
+           If used in conjunction with the --filter-time option, this option
+           will override any explicit time values.
+
+	--filter-time  [<start_time>]/[<end_time>]
+
+           Filter the events and data records used to generate reports by
+           the given time range. Only events or records that overlap with
+           any of the given time range are used to compile and calculate
+           the report. Note that an event or data record can start before
+           or end after the given time range, as long as it exists at some
+           point during the specified time range.
+
+           Times are defined in nanoseconds. At least one time value is
+           required. Any omitted time value will default to the minimum or
+           maximum value (approximately +/- 290 years from the zero-point).
+           The start time must be less than or equal to the end time.
+
+           The time values are a series of integer or floating-point values
+           followed by an optional unit. If no unit is given, the number is
+           assumed to be in nanoseconds. Positive and negative values are
+           supported, as well as scientific "e" notation. More than one
+           value/unit can be given as long as there are no spaces. The
+           units do not need to be given in any order and can even repeat.
+
+           The following units are understood:
+
+              ns, nsec : nanosecond
+              us, usec : microsecond
+              ms, msec : millisecond
+              s, sec   : second
+              m, min   : minute (60 seconds)
+              h, hour  : hour (3600 seconds)
+
+           For example, the value "1s2ms3us4ns" would indicate 1,002,003,004
+           nanoseconds. "2ns5us2" would be 5004 nanoseconds (2 nanoseconds
+           plus 5 microseconds plus 2 nanoseconds). A floating-point value
+           is converted as a 64-bit "double" and is subject to the precision
+           limitations of that format.
+
+           If used in conjunction with the --filter-nvtx option, the
+           --filter-nvtx option will take precedence.
+
+	--force-export [true|false]
+
+           Force a re-export of the SQLite file from the specified .nsys-rep file,
+           even if an SQLite file already exists.
+
+	--force-overwrite [true|false]
+
+           Overwrite any existing output file(s).
+
+	-h, --help=[<tag>]
+
+	   Print the command's help menu. The switch can take one optional
+	   argument that will be used as a tag. If a tag is provided, only options
+	   relevant to the tag will be printed.
+	   The available help menu tags for this command are:
+
+	   export, format, help, nvtx, output, report, reports, rule, sql, sqlite,
+	   stats, status, time, and units.
+
+	--help-formats [<format_name>|ALL]
+
+           With no argument, list a summary of the available output formats.
+           If a format name is given, a more detailed explanation of the
+           the format is displayed. If 'ALL' is given, a more detailed
+           explanation of all available formats is displayed.
+
+	--help-reports [<report_name>|ALL]
+
+           With no argument, list a summary of the available summary and
+           trace reports. If a report name is given, a more detailed
+           explanation of the report is displayed. If 'ALL' is given, a
+           more detailed explanation of all available reports is displayed.
+
+	-o, --output <output>
+
+           Specify the output mechanism. There are three output mechanisms:
+           print to console, output to file, or output to command. If no
+           outputs are designated, the default is to print rules to the
+           console.
+
+           This option may be used multiple times. Multiple outputs may also
+           be specified using a comma-separated list. If a list item is left
+           blank by using repeating commas, the last specified output will be
+           repeated to fill in the blanks. If the list starts with a comma,
+           creating an initial blank output, the default will be substituted.
+
+           If the given output name is "-", the output will be displayed
+           on the console. If the output name starts with "@", the output
+           designates a command to run. The nsys command will be executed and
+           the analysis output will be piped into the command. Any other output
+           is assumed to be the base path and name for a file.
+
+           If a file basename is given, the filename used will be:
+
+              <basename>_<analysis&args>.<output_format>
+
+           The default base (including path) is the name of the SQLite file
+           (as derived from the input file or --sqlite option), minus the
+           extension. The output "." can be used to indicate the analysis
+           should be output to a file, and the default basename should be
+           used. To write one or more analysis outputs to files using the
+           default basename, use the option: "--output .".
+
+           If the output starts with "@", the nsys command output is piped to
+           the given command. The command is run, and the output
+           is piped to the command's stdin (standard-input). The command's
+           stdout and stderr remain attached to the console, so any output
+           will be displayed directly to the console.
+
+           Be aware there are some limitations in how the command string is
+           parsed. No shell expansions (including *, ?, [], and ~) are
+           supported. The command cannot be piped to another command, nor
+           redirected to a file using shell syntax. The command and command
+           arguments are split on whitespace, and no quotes (within the command
+           syntax) are supported. For commands that require complex command
+           line syntax, it is suggested that the command be put into a shell
+           script file, and the script designated as the output command.
+
+	-q, --quiet
+
+           Only display errors.
+
+	-r, --report <name[:args...][,name[:args...]...]>
+
+           Specify the report(s) to generate, including any arguments. This
+           option may be used multiple times. Multiple reports may also be
+           specified using a comma-separated list. If a list item is left
+           blank by using repeating commas, the last specified report (and args)
+           will be repeated to fill in the blanks. This allows the same report
+           to be executed multiple times, possibly given different formats or
+           outputs. If the list starts with a comma, creating an initial blank
+           report name, that is considered an error.
+
+           If no reports are given, the following will be used as the
+           default report set:
+
+             nvtx_sum
+             osrt_sum
+             cuda_api_sum
+             cuda_gpu_kern_sum
+             cuda_gpu_mem_time_sum
+             cuda_gpu_mem_size_sum
+             openmp_sum
+             opengl_khr_range_sum
+             opengl_khr_gpu_range_sum
+             vulkan_marker_sum
+             vulkan_gpu_marker_sum
+             dx11_pix_sum
+             dx12_gpu_marker_sum
+             dx12_pix_sum
+             wddm_queue_sum
+             um_sum
+             um_total_sum
+             um_cpu_page_faults_sum
+             openacc_sum
+             syscall_sum
+
+           See --help-reports for a list of built-in reports, along with more
+           information on each report.
+
+	--report-dir <path>
+
+           Add one or more directories to the path used to find report scripts.
+           This is usually only needed if you have one or more directories with
+           personal scripts. This option may be used multiple times. Each use
+
+nsys export --help (first 180 lines)
+
+usage: nsys export [<args>] [nsys-rep-file]
+
+	--append
+
+           This option only applies to "directory of files" output formats
+           with existing export files. If this option is given, an error
+           will not be reported and the existing output files will not be
+           over-written.
+
+	-f, --force-overwrite=
+
+	   Possible values are 'true' or 'false'.
+	   If true, overwrite all existing result files with same output filename
+	   (QDSTRM, nsys-rep, SQLITE, HDF, TEXT, JSON, ARROW, ARROWDIR, PARQUETDIR).
+	   Default is 'false'.
+
+	-h, --help=[<tag>]
+
+	   Print the command's help menu. The switch can take one optional
+	   argument that will be used as a tag. If a tag is provided, only options
+	   relevant to the tag will be printed.
+	   The available help menu tags for this command are:
+
+	   export, output, and type.
+
+	--include-blobs [true|false]
+
+           Optional values are 'true' or 'false'. If no value is given,
+           'true' is assumed. If the flag is not given, the default is 'false'.
+
+           Controls if NVTX extended payloads are exported as binary data. This
+           affects SQLite, Arrow, and Arrow/Parquet directory exports only.
+
+	--include-json [true|false]
+
+           Optional values are 'true' or 'false'. If no value is given,
+           'true' is assumed. If the flag is not given, the default is 'false'.
+
+           Controls if repetitive JSON blocks are included in an export or not.
+
+           Some events contain dynamically defined payloads. These payloads are
+           often exported as JSON blocks to preserve their free-form structure.
+           Unfortunately, blocks of JSON text are not an efficient way to
+           represent data, and can cause the export files to become quite large.
+
+           To address this, some classes of events (such as GENERIC_EVENT data)
+           were extended to export payload data in the native export format.
+           For those events that have an export-native representation, this flag
+           will enable or disable the export of the equivalent JSON blocks.
+
+           Note that this does not suppress all JSON output. Some tables, like
+           META_DATA_* tables and TARGET_INFO_* tables may contain a small
+           number of JSON strings. This flag will not suppress those.
+
+           Additionally, some classes of events (such as ETW events and NVTX
+           events with user-defined payloads) do not have a native export
+           representation. For events where the JSON block is the only export
+           format, it will always be included.
+
+           Please note that this flag has nothing to do with JSON exports,
+           (i.e. --type=json), nor does it alter the JSON export output.
+
+	-l, --lazy=
+
+           Possible values are 'true' or 'false'.
+           Controls if table creation is lazy or not. Lazy table creation will
+           only create a table if it contains data. This affects SQLite, HDF5,
+           Arrow, and Arrow/Parquet directory exports only. Default is 'true',
+           although this is likely to change in a future release.
+
+	-o, --output=
+
+           Path to results file.
+           Default is name of input file with modified extension.
+
+	-q, --quiet=
+
+           Possible values are 'true' or 'false'.
+           If 'true', don't display progress bar.
+           Default is 'false'.
+
+	--separate-strings=
+
+           Possible values are 'true' or 'false'.
+           Output stored strings and thread names separately, one
+           value per line. This affects JSON and text output only.
+           Default is 'false'.
+
+	-t, --type=
+
+           Possible values are: sqlite, hdf, text, json, info, arrow,
+           arrowdir, and parquetdir.
+
+           Export format type.
+
+             sqlite (.sqlite) -- SQLite v3 file. Data sets are stored as
+             tables in a single SQLite file. Schema contains comments
+             trying to explain meaning of tables/columns.
+
+             hdf (.h5) -- HDF5. Data sets are stored in a single H5 file.
+
+             text (.txt) -- Text. Raw event data is dumped in text format,
+             as defined by the Google Protobuf library. File headers,
+             generic events, and some other data is not included.
+
+             json (.json) -- JSON file. Raw event data is dumped in JSON
+             format, as defined by the Google Protobuf library. File headers,
+             generic events, and some other data is not included.
+
+             info (.info.json) -- JSON file.  Dump of header parts of file.
+
+             arrow (.arrows) -- Apache Arrow IPC stream format. All data
+             sets are stored in a single file sequentially. Meta-data is
+             included to identify the table and meaning.
+
+             arrowdir (_arwdir/*.arrow) -- Apache Arrow IPC file format.
+             Each data set is stored in a single file.
+
+             parquetdir (_pqtdir/*.parquet) -- Apache Parquet format. Each
+             data set is stored in a single file.
+
+           HDF format is supported only on x86-64 Linux and Windows.
+
+	--tables=<pattern>[,<pattern>...]
+
+           Value is a comma-separated list of search patterns (no spaces).
+           This option can be given more than once. If set, only tables that
+           match one or more of the patterns will be exported. If not set,
+           all tables will be exported. This feature applies to SQLite, HDFS,
+           Arrow, and Arrow/Parquet directory exports only. The patterns are
+           case-insensitive POSIX basic regular expressions.
+
+           Please note: This is an advanced feature intended for expert users.
+           This option does not enforce any type of dependency or relationship
+           between tables and will truly export only the listed tables. If
+           partial exports are used with analytics features such as "nsys stats"
+           or "nsys analyze", it is the responsibility of the user in ensure
+           all required tables are exported.
+
+	--times=<timerange>[,<timerange>...]
+
+           Value is a comma-separated list of time ranges (no spaces). This
+           option can be given more than once. If set, only events that fall
+           within at least one of the given ranges will be exported. If not
+           set, all events will be exported. This feature applies to SQLite,
+           HDFS, Arrow, and Arrow/Parquet directory exports only.
+
+           Please note: This is an advanced feature intended for expert users.
+           This option does not enforce any type of dependency or relationship
+           between related events (such as CUDA launch APIs and CUDA kernel
+           executions). If filtered exports are used with analytics features
+           such as "nsys stats" or "nsys analyze", no warnings or errors will
+           be generated due to missing data, and unexpected or misleading
+           results may be generated. It is the responsibility of the user
+           to ensure all relevant and interrelated events are exported.
+
+           The format of a time-range is:   [:][<start-time>]/[<end-time>][:]
+
+           A single time range is defined by a pair of time values, separated
+           by a slash. At least one time value is required. Any omitted time
+           value will default to the minimum or maximum value (approximately
+           +/- 290 years from the zero-point). The start time must be less
+           than or equal to the end time.
+
+           The time values are a series of integer or floating-point values
+           followed by an optional unit. If no unit is given, the number is
+           assumed to be in nanoseconds. Positive and negative values are
+           supported, as well as scientific "e" notation. More than one
+           value/unit can be given as long as there are no spaces. The
+           units do not need to be given in any order and can even repeat.
+
+           The following units are understood:
+
+              ns, nsec : nanosecond
+              us, usec : microsecond
+              ms, msec : millisecond
+              s, sec   : second
+              m, min   : minute (60 seconds)
+              h, hour  : hour (3600 seconds)
