@@ -1,0 +1,235 @@
+{
+  "sqlite": "poc_flashvep/deepep_revalidation/results/qwen3vl_full_serving_resource_atlas_20260903_154500/full_serving_resource_atlas.sqlite",
+  "capture_kind": "FULL_SERVING",
+  "kernel_table": "CUPTI_ACTIVITY_KIND_KERNEL",
+  "kernel_rows": 208529,
+  "memcpy_table": "CUPTI_ACTIVITY_KIND_MEMCPY",
+  "memcpy_rows": 25188,
+  "nvtx_table": "NVTX_EVENTS",
+  "nvtx_rows": 43244,
+  "nvtx_tables": [
+    "NVTX_PAYLOAD_SCHEMAS",
+    "NVTX_PAYLOAD_SCHEMA_ENTRIES",
+    "NVTX_PAYLOAD_ENUMS",
+    "NVTX_PAYLOAD_ENUM_ENTRIES",
+    "NVTX_EVENTS"
+  ],
+  "nvtx_present": true,
+  "string_ids_resolved": 2696,
+  "total_kernel_ms": 3371.538676,
+  "observed_resource_classes": {
+    "UNKNOWN": 103225,
+    "COPY": 18303,
+    "COMPUTE_HEAVY": 43697,
+    "COMMUNICATION_MIXED": 43304
+  },
+  "replay_rank_files": 0,
+  "full_serving_phase_mapping": "NVTX_ENCLOSING_RANGE",
+  "replay_phase_groups": {
+    "BOUNDED_REPLAY_AUXILIARY": 1315,
+    "VISION_PATCH": 4,
+    "VISION_ATTN": 737,
+    "DEEPEP_COMBINE": 586,
+    "TP_COMM": 6408,
+    "VISION_MLP": 315,
+    "LLM_ATTN": 2173,
+    "VISION_MERGER": 61,
+    "LLM_PREFILL": 338,
+    "LLM_MOE": 41424,
+    "ROUTER_TOPK": 6144,
+    "DEEPEP_LAYOUT": 6144,
+    "DEEPEP_DISPATCH": 390,
+    "EXPERT_GEMM": 1354,
+    "DEEPEP_COMM_UNKNOWN_PHASE": 494,
+    "DECODE_DISPATCH": 13842,
+    "LLM_DECODE": 9857,
+    "DECODE_ATTN": 60782,
+    "DECODE_EXPERT": 44260,
+    "DECODE_COMBINE": 11901
+  },
+  "child_worker_cuda_capture": true,
+  "capture_method": "Nsight Systems CUDA profiler API capture from CUDA-owning child workers; trace=cuda,nvtx,osrt; trace-fork-before-exec=true; wait=all",
+  "physical_gpus": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "profiled_topology": "TP2/DP2/EP4/PP1",
+  "major_phase_evidence": {
+    "VISION_PATCH": {
+      "wall_ms": 2.775151,
+      "cuda_kernel_time_ms": 0.038272,
+      "kernel_count": 4,
+      "resource_class": "UNKNOWN",
+      "evidence_type": "FULL_SERVING_OBSERVED",
+      "confidence": "HIGH"
+    },
+    "VISION_ATTN": {
+      "wall_ms": 150.143438,
+      "cuda_kernel_time_ms": 5.517742,
+      "kernel_count": 737,
+      "resource_class": "COMPUTE_HEAVY",
+      "evidence_type": "FULL_SERVING_OBSERVED",
+      "confidence": "HIGH"
+    },
+    "VISION_MLP": {
+      "wall_ms": 45.85106,
+      "cuda_kernel_time_ms": 3.012995,
+      "kernel_count": 315,
+      "resource_class": "COMPUTE_HEAVY",
+      "evidence_type": "FULL_SERVING_OBSERVED",
+      "confidence": "HIGH"
+    },
+    "VISION_MERGER": {
+      "wall_ms": 6.134868,
+      "cuda_kernel_time_ms": 0.524736,
+      "kernel_count": 61,
+      "resource_class": "UNKNOWN",
+      "evidence_type": "FULL_SERVING_OBSERVED",
+      "confidence": "HIGH"
+    },
+    "LLM_PREFILL": {
+      "wall_ms": 525.014818,
+      "cuda_kernel_time_ms": 1.523557,
+      "kernel_count": 338,
+      "resource_class": "COMMUNICATION_MIXED",
+      "evidence_type": "FULL_SERVING_OBSERVED",
+      "confidence": "HIGH"
+    },
+    "LLM_QKV": {
+      "wall_ms": 0.0,
+      "cuda_kernel_time_ms": 0.0,
+      "kernel_count": 0,
+      "resource_class": "UNKNOWN",
+      "evidence_type": "SOURCE_INFERRED",
+      "confidence": "LOW"
+    },
+    "LLM_ATTN": {
+      "wall_ms": 4173.766695,
+      "cuda_kernel_time_ms": 12.202039,
+      "kernel_count": 2173,
+      "resource_class": "COMMUNICATION_MIXED",
+      "evidence_type": "FULL_SERVING_OBSERVED",
+      "confidence": "HIGH"
+    },
+    "LLM_O_PROJ": {
+      "wall_ms": 0.0,
+      "cuda_kernel_time_ms": 0.0,
+      "kernel_count": 0,
+      "resource_class": "UNKNOWN",
+      "evidence_type": "SOURCE_INFERRED",
+      "confidence": "LOW"
+    },
+    "TP_COMM": {
+      "wall_ms": 0.0,
+      "cuda_kernel_time_ms": 569.239875,
+      "kernel_count": 6408,
+      "resource_class": "COMMUNICATION_MIXED",
+      "evidence_type": "FULL_SERVING_OBSERVED",
+      "confidence": "MEDIUM"
+    },
+    "ROUTER_TOPK": {
+      "wall_ms": 11621.640403,
+      "cuda_kernel_time_ms": 26.602456,
+      "kernel_count": 6144,
+      "resource_class": "ROUTING",
+      "evidence_type": "FULL_SERVING_OBSERVED",
+      "confidence": "HIGH"
+    },
+    "DEEPEP_LAYOUT": {
+      "wall_ms": 0.0,
+      "cuda_kernel_time_ms": 23.288389,
+      "kernel_count": 6144,
+      "resource_class": "COMMUNICATION_MIXED",
+      "evidence_type": "FULL_SERVING_OBSERVED",
+      "confidence": "MEDIUM"
+    },
+    "DEEPEP_DISPATCH": {
+      "wall_ms": 2551.266901,
+      "cuda_kernel_time_ms": 24.788819,
+      "kernel_count": 390,
+      "resource_class": "COMMUNICATION_MIXED",
+      "evidence_type": "FULL_SERVING_OBSERVED",
+      "confidence": "HIGH"
+    },
+    "EXPERT_GEMM": {
+      "wall_ms": 3534.88616,
+      "cuda_kernel_time_ms": 30.875216,
+      "kernel_count": 1354,
+      "resource_class": "COMPUTE_HEAVY",
+      "evidence_type": "FULL_SERVING_OBSERVED",
+      "confidence": "HIGH"
+    },
+    "DEEPEP_COMBINE": {
+      "wall_ms": 599.902645,
+      "cuda_kernel_time_ms": 58.42943,
+      "kernel_count": 586,
+      "resource_class": "COMMUNICATION_MIXED",
+      "evidence_type": "FULL_SERVING_OBSERVED",
+      "confidence": "HIGH"
+    },
+    "LLM_DECODE": {
+      "wall_ms": 15788.743524,
+      "cuda_kernel_time_ms": 38.294808,
+      "kernel_count": 9857,
+      "resource_class": "COMMUNICATION_MIXED",
+      "evidence_type": "FULL_SERVING_OBSERVED",
+      "confidence": "HIGH"
+    },
+    "DECODE_ATTN": {
+      "wall_ms": 4019.782034,
+      "cuda_kernel_time_ms": 268.963385,
+      "kernel_count": 60782,
+      "resource_class": "COMMUNICATION_MIXED",
+      "evidence_type": "FULL_SERVING_OBSERVED",
+      "confidence": "HIGH"
+    },
+    "DECODE_DISPATCH": {
+      "wall_ms": 2480.700834,
+      "cuda_kernel_time_ms": 1036.83504,
+      "kernel_count": 13842,
+      "resource_class": "COMMUNICATION_MIXED",
+      "evidence_type": "FULL_SERVING_OBSERVED",
+      "confidence": "HIGH"
+    },
+    "DECODE_EXPERT": {
+      "wall_ms": 3427.064533,
+      "cuda_kernel_time_ms": 232.650223,
+      "kernel_count": 44260,
+      "resource_class": "COMPUTE_HEAVY",
+      "evidence_type": "FULL_SERVING_OBSERVED",
+      "confidence": "HIGH"
+    },
+    "DECODE_COMBINE": {
+      "wall_ms": 580.150152,
+      "cuda_kernel_time_ms": 800.16071,
+      "kernel_count": 11901,
+      "resource_class": "COMMUNICATION_MIXED",
+      "evidence_type": "FULL_SERVING_OBSERVED",
+      "confidence": "HIGH"
+    },
+    "DEEPEP_COMM_UNKNOWN_PHASE": {
+      "wall_ms": 0.0,
+      "cuda_kernel_time_ms": 64.172704,
+      "kernel_count": 494,
+      "resource_class": "COMMUNICATION_MIXED",
+      "evidence_type": "FULL_SERVING_OBSERVED",
+      "confidence": "MEDIUM"
+    },
+    "BOUNDED_REPLAY_AUXILIARY": {
+      "wall_ms": 0.0,
+      "cuda_kernel_time_ms": 4.048358,
+      "kernel_count": 1315,
+      "resource_class": "UNKNOWN",
+      "evidence_type": "FULL_SERVING_OBSERVED",
+      "confidence": "MEDIUM"
+    }
+  },
+  "sqlite_counts": {
+    "CUPTI_ACTIVITY_KIND_KERNEL": 208529,
+    "CUPTI_ACTIVITY_KIND_MEMCPY": 25188,
+    "NVTX_EVENTS": 49428,
+    "CUPTI_ACTIVITY_KIND_SYNCHRONIZATION": 162897
+  }
+}

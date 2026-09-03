@@ -1,0 +1,44 @@
+{
+  "base_branch": "flashvep/qwen3vl-moe-ep-resource-atlas",
+  "base_commit": "47c0a5426a511516079ffb6e0829ff2228c82db9",
+  "capture_source_commit": "aa4de81",
+  "capture_source_note": "Read-only profiler API watcher plus multimodal cache disabled for the measured request; no installed vLLM/DeepEP source modification.",
+  "model": "Qwen/Qwen3-VL-30B-A3B-Instruct",
+  "model_snapshot": "9c4b90e1e4ba969fd3b5378b57d966d725f1b86c",
+  "runtime": {
+    "vllm": "0.20.0",
+    "dtype": "BF16",
+    "tensor_parallel": 2,
+    "data_parallel": 2,
+    "expert_parallel": 4,
+    "pipeline_parallel": 1,
+    "backend": "deepep_high_throughput",
+    "triton_experts": true,
+    "dbo": false,
+    "prefix_cache": false,
+    "enforce_eager": true,
+    "expert_placement": "linear (expert_id // 32)"
+  },
+  "cuda_visible_devices": "1,2,3,4",
+  "nsight_systems": "2024.6.2.225-246235244400v0",
+  "capture": {
+    "method": "cudaProfilerStart/Stop in CUDA-owning child workers",
+    "trace_domains": ["cuda", "nvtx", "osrt"],
+    "fork_before_exec": true,
+    "wait_all": true,
+    "cpu_sampling": "none",
+    "context_switch": "none",
+    "warmups": 2,
+    "decode_tokens": 8,
+    "profiling_exit": 143,
+    "profiling_exit_note": "Nsight stop-shutdown terminates the target after cudaProfilerStop; exports are valid."
+  },
+  "related_references": {
+    "resonator_code": "NOT_PUBLICLY_FOUND",
+    "spaceserve_repository": "https://github.com/gofreelee/SpaceServe",
+    "spaceserve_commit": "66de079af4234b27f7f82ff91d238ef1351324ba",
+    "flux_repository": "https://github.com/bytedance/flux",
+    "flux_commit": "19831ca2d820e3e782ed1d15d8b52d0898b78b26",
+    "deepep_repository": "https://github.com/deepseek-ai/DeepEP"
+  }
+}

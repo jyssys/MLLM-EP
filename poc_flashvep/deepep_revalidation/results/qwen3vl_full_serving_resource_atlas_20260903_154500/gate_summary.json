@@ -1,0 +1,39 @@
+{
+  "final_status": "FULL_RESOURCE_ATLAS_COMPLETE",
+  "full_serving_trace": "PASS",
+  "child_worker_cuda_capture": "PASS",
+  "automated_analysis": "PASS",
+  "nsys_rep_and_sqlite": "PASS",
+  "major_phases_observed": {
+    "vision_patch": true,
+    "vision_attention": true,
+    "vision_mlp": true,
+    "vision_merger": true,
+    "llm_attention": true,
+    "tp_communication": true,
+    "router_topk": true,
+    "deepep_layout": true,
+    "deepep_dispatch": true,
+    "expert_prefill": true,
+    "deepep_combine": true,
+    "decode_attention": true,
+    "decode_expert": true,
+    "decode_combine": true
+  },
+  "profiling_method": "Nsight Systems cudaProfilerApi range; profiler Start/Stop called from CUDA-owning vLLM child workers after initialization and warmup",
+  "cuda_visible_devices": "1,2,3,4",
+  "topology": "TP2/DP2/EP4/PP1",
+  "correctness": {
+    "instrumented_greedy_tokens": [1986, 374, 264, 33033, 315, 46633, 3686, 64],
+    "both_dp_drivers_agree": true,
+    "model_or_routing_changed": false
+  },
+  "prior_measured_negative_pairs_preserved": {
+    "vision_encoder_plus_dispatch_wall_slowdown_pct": 12.4,
+    "vision_encoder_plus_dispatch_comm_slowdown_pct": 19.0,
+    "vision_encoder_plus_combine_wall_slowdown_pct": 5.0,
+    "vision_encoder_plus_combine_comm_slowdown_pct": 14.0,
+    "vision_encoder_plus_expert_wall_slowdown_pct": 8.9
+  },
+  "notes": "Range durations are aggregate across worker/rank instances; kernel time is summed device activity, not utilization. QKV/O-projection and separate decode wrappers are source-inferred or reconstructed where the installed vLLM path has no safe standalone boundary."
+}
