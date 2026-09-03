@@ -1,0 +1,31 @@
+{
+  "experiment": "visual_streaming_real_pipeline_poc",
+  "base_commit": "334e4128974435a125d4c0b5327e739b1416bf38",
+  "branch": "flashvep/visual-streaming-real-pipeline-poc",
+  "cuda_visible_devices": "1,2,3,4",
+  "physical_gpus": [1, 2, 3, 4],
+  "model": "Qwen3-VL-30B-A3B-Instruct",
+  "dtype": "BF16",
+  "vllm": "0.20.0 V1",
+  "topology": "TP2/DP2/EP4/PP1",
+  "backend": "DeepEP high-throughput",
+  "expert_backend": "TritonExperts",
+  "dbo": false,
+  "prefix_cache": false,
+  "enforce_eager": true,
+  "max_num_batched_tokens": 256,
+  "prompt_tokens": 483,
+  "image_count": 2,
+  "visual_tokens_per_image": 196,
+  "decode_tokens": 8,
+  "primary_run": "../visual_streaming_real_pipeline_poc_20260903_162420_stablecheck",
+  "secondary_run": "../visual_streaming_real_pipeline_poc_20260903_161835_handoff2",
+  "stock_control": "../visual_streaming_real_pipeline_poc_20260903_160445_full",
+  "aborted_streaming_runs": [
+    "../visual_streaming_real_pipeline_poc_20260903_162016_final",
+    "../visual_streaming_real_pipeline_poc_20260903_162547_final2",
+    "../visual_streaming_real_pipeline_poc_20260903_162856_diagnostic",
+    "../visual_streaming_real_pipeline_poc_20260903_163153_debug"
+  ],
+  "notes": "Primary comparison uses direct decoder-layer CUDA-event sums. The complete real streaming run has one pair; repeated custom streaming runs hung after first-chunk gather because side-stream image-2 vision execution uses collectives that did not complete reliably."
+}

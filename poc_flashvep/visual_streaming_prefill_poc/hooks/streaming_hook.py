@@ -25,6 +25,10 @@ _LAYER_ROWS: list[dict[str, Any]] = []
 _VISION_CALL = 0
 _ACTIVE_MTIME: int | None = None
 _ACTIVE_ID = "unknown"
+# The real-pipeline hook sets this while a second image encoder is launched on
+# a side stream.  The ordinary PoC hook must not synchronize/copy the result in
+# that narrow window, otherwise it would destroy the intended handoff.
+_ASYNC_VISION = False
 
 
 def _result_dir() -> Path | None:
@@ -138,6 +142,11 @@ def install() -> None:
         start.record(torch.cuda.current_stream())
         output = vision_original(self, *args, **kwargs)
         end.record(torch.cuda.current_stream())
+        if _ASYNC_VISION:
+            # The caller owns the completion event and will establish a
+            # dependency before the embedding is consumed.  Saving a CPU copy
+            # here would implicitly synchronize the side stream.
+            return output
         end.synchronize()
         duration = _event_elapsed(start, end)
         grid = kwargs.get("grid_thw", args[1] if len(args) > 1 else None)

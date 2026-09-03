@@ -1,0 +1,96 @@
+{
+  "primary": "poc_flashvep/deepep_revalidation/results/visual_streaming_real_pipeline_poc_20260903_162420_stablecheck",
+  "secondary": "poc_flashvep/deepep_revalidation/results/visual_streaming_real_pipeline_poc_20260903_161835_handoff2",
+  "stock_control": "poc_flashvep/deepep_revalidation/results/visual_streaming_real_pipeline_poc_20260903_160445_full",
+  "paired_count": 2,
+  "correctness": {
+    "streaming_correctness": "PASS",
+    "primary_complete_pairs": 2,
+    "primary_exact_8_token_pairs": 1,
+    "primary_pairs": [
+      {
+        "source": "primary_stablecheck",
+        "baseline_tokens": [
+          785,
+          1156,
+          2168,
+          4933,
+          264,
+          8778,
+          46633,
+          304
+        ],
+        "streaming_tokens": [
+          785,
+          1156,
+          2168,
+          4933,
+          264,
+          8778,
+          46633,
+          304
+        ],
+        "exact_match": true
+      },
+      {
+        "source": "secondary_handoff",
+        "baseline_tokens": [
+          785
+        ],
+        "streaming_tokens": [
+          785
+        ],
+        "exact_match": true
+      }
+    ],
+    "prior_image_level_equivalence": {
+      "pass": 36,
+      "total": 36,
+      "min_cosine": 0.999581
+    }
+  },
+  "oracle": {
+    "oracle_decomposed_ms": 202.57241535186768,
+    "oracle_streaming_ms": 179.4843349456787,
+    "oracle_reduction_pct": 11.39745385683455,
+    "actual_primary_prefill_reduction_pct": -0.330551530740134,
+    "actual_primary_wall_reduction_pct": 0.7982054512453013,
+    "oracle_realization_ratio": null,
+    "note": "Actual ratio is not treated as a gain claim when direct prefill reduction is non-positive."
+  },
+  "interference": {
+    "status": "PARTIAL_DIRECT_MEASUREMENT",
+    "E2_alone_ms": 21.358367919921875,
+    "P1_alone_ms": 93.72480022907257,
+    "E2_plus_P1_concurrent_ms": null,
+    "concurrent_first_chunk_ms": 93.49772799015045,
+    "reason": "A persistent serving call does not expose isolated E2+P1 wall without a second request/scheduler; no fabricated value."
+  },
+  "failed_runs": [
+    {
+      "run": "poc_flashvep/deepep_revalidation/results/visual_streaming_real_pipeline_poc_20260903_162016_final",
+      "status": "ABORTED_OR_HUNG",
+      "active_request": "streaming_2_r0",
+      "reason": "side-stream image-2 encoder/collective did not reach event completion; no decoder rows"
+    },
+    {
+      "run": "poc_flashvep/deepep_revalidation/results/visual_streaming_real_pipeline_poc_20260903_162547_final2",
+      "status": "ABORTED_OR_HUNG",
+      "active_request": "streaming_2_r0",
+      "reason": "side-stream image-2 encoder/collective did not reach event completion; no decoder rows"
+    },
+    {
+      "run": "poc_flashvep/deepep_revalidation/results/visual_streaming_real_pipeline_poc_20260903_162856_diagnostic",
+      "status": "ABORTED_OR_HUNG",
+      "active_request": "streaming_2_r0",
+      "reason": "side-stream image-2 encoder/collective did not reach event completion; no decoder rows"
+    },
+    {
+      "run": "poc_flashvep/deepep_revalidation/results/visual_streaming_real_pipeline_poc_20260903_163153_debug",
+      "status": "ABORTED_OR_HUNG",
+      "active_request": "streaming_2_r0",
+      "reason": "side-stream image-2 encoder/collective did not reach event completion; no decoder rows"
+    }
+  ],
+  "gate": "NO_GO_RUNTIME_UNRELIABLE"
+}
