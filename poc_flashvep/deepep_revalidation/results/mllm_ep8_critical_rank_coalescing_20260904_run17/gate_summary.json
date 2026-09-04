@@ -1,0 +1,170 @@
+{
+  "final_status": "NO_GO",
+  "decision_basis": "quality-preserving critical-rank coalescing headroom was not demonstrated",
+  "model": "Qwen3-VL-30B-A3B-Instruct",
+  "topology": "TP2/DP4/EP8/PP1",
+  "experts_per_gpu": 16,
+  "trace": {
+    "route_files": 6912,
+    "invocations": 864,
+    "timing_rows": 9216,
+    "measured_repetitions": 3,
+    "request_count": 6,
+    "layers": 48
+  },
+  "stage_b_straggler_current_multimodal": {
+    "expert_cuda_max_mean": {
+      "median": 1.0563882387164036,
+      "p90": 1.1126465595202162,
+      "max": 1.9021099348892447
+    },
+    "rank_assignment_max_mean": {
+      "median": 1.325916812977571,
+      "p90": 1.5450908609738887,
+      "max": 1.997536945812808
+    },
+    "interpretation": "rank pressure is visible, but expert CUDA imbalance is mostly mild in this bounded image workload"
+  },
+  "critical_excess": {
+    "vision_median": 213.0,
+    "vision_mean": 234.02430555555554,
+    "text_median": -4.0,
+    "text_mean": -1.1458333333333333
+  },
+  "hidden_similarity": {
+    "sample_assignments": 106272,
+    "pairs_cosine_ge_0_90": 3207,
+    "pair_fraction": 0.06035456187895212,
+    "median_cosine": 0.9305993914604188,
+    "critical_pair_fraction": 0.1880261927034612,
+    "expert_output_similarity": "NOT_CAPTURED_EP8"
+  },
+  "requested_assignment_budget_results": {
+    "0.05_CRITICAL_RANK_AWARE": {
+      "actual_removed_fraction_median": 0.0,
+      "max_rank_load_reduction_median": 0.0,
+      "critical_rank_load_reduction_median": 0.0
+    },
+    "0.05_RANDOM": {
+      "actual_removed_fraction_median": 0.05005186036678815,
+      "max_rank_load_reduction_median": 0.0497485151017313,
+      "critical_rank_load_reduction_median": 0.049831619289512755
+    },
+    "0.05_REDUNDANCY_ONLY": {
+      "actual_removed_fraction_median": 0.0,
+      "max_rank_load_reduction_median": 0.0,
+      "critical_rank_load_reduction_median": 0.0
+    },
+    "0.10_CRITICAL_RANK_AWARE": {
+      "actual_removed_fraction_median": 0.0,
+      "max_rank_load_reduction_median": 0.0,
+      "critical_rank_load_reduction_median": 0.0
+    },
+    "0.10_RANDOM": {
+      "actual_removed_fraction_median": 0.10006448089971184,
+      "max_rank_load_reduction_median": 0.0994989005943605,
+      "critical_rank_load_reduction_median": 0.0997800406153074
+    },
+    "0.10_REDUNDANCY_ONLY": {
+      "actual_removed_fraction_median": 0.0,
+      "max_rank_load_reduction_median": 0.0,
+      "critical_rank_load_reduction_median": 0.0
+    },
+    "0.20_CRITICAL_RANK_AWARE": {
+      "actual_removed_fraction_median": 0.0,
+      "max_rank_load_reduction_median": 0.0,
+      "critical_rank_load_reduction_median": 0.0
+    },
+    "0.20_RANDOM": {
+      "actual_removed_fraction_median": 0.2001174356033874,
+      "max_rank_load_reduction_median": 0.1993127147766322,
+      "critical_rank_load_reduction_median": 0.1998809935562195
+    },
+    "0.20_REDUNDANCY_ONLY": {
+      "actual_removed_fraction_median": 0.0,
+      "max_rank_load_reduction_median": 0.0,
+      "critical_rank_load_reduction_median": 0.0
+    },
+    "0.30_CRITICAL_RANK_AWARE": {
+      "actual_removed_fraction_median": 0.0,
+      "max_rank_load_reduction_median": 0.0,
+      "critical_rank_load_reduction_median": 0.0
+    },
+    "0.30_RANDOM": {
+      "actual_removed_fraction_median": 0.30005186036678816,
+      "max_rank_load_reduction_median": 0.29827759025008665,
+      "critical_rank_load_reduction_median": 0.2995951417004049
+    },
+    "0.30_REDUNDANCY_ONLY": {
+      "actual_removed_fraction_median": 0.0,
+      "max_rank_load_reduction_median": 0.0,
+      "critical_rank_load_reduction_median": 0.0
+    }
+  },
+  "matched_available_pair_results": {
+    "0.25_CRITICAL_RANK_AWARE": {
+      "max_rank_load_reduction_median": 0.0060425166808144495,
+      "actual_removed_fraction_median": 0.00126347708894875,
+      "critical_pair_fraction_median": 0.6666666666666666
+    },
+    "0.25_RANDOM_MATCHED": {
+      "max_rank_load_reduction_median": 0.0011577453094239998,
+      "actual_removed_fraction_median": 0.00126347708894875,
+      "critical_pair_fraction_median": 0.1428571428571428
+    },
+    "0.25_REDUNDANCY_ONLY": {
+      "max_rank_load_reduction_median": 0.0017894965167019501,
+      "actual_removed_fraction_median": 0.00126347708894875,
+      "critical_pair_fraction_median": 0.19785575048732934
+    },
+    "0.50_CRITICAL_RANK_AWARE": {
+      "max_rank_load_reduction_median": 0.0060425166808144495,
+      "actual_removed_fraction_median": 0.0024427223719676004,
+      "critical_pair_fraction_median": 0.35871357888949973
+    },
+    "0.50_RANDOM_MATCHED": {
+      "max_rank_load_reduction_median": 0.00302125834040725,
+      "actual_removed_fraction_median": 0.0024427223719676004,
+      "critical_pair_fraction_median": 0.1883445945945946
+    },
+    "0.50_REDUNDANCY_ONLY": {
+      "max_rank_load_reduction_median": 0.0026433523445237002,
+      "actual_removed_fraction_median": 0.0024427223719676004,
+      "critical_pair_fraction_median": 0.18337964132356654
+    },
+    "0.75_CRITICAL_RANK_AWARE": {
+      "max_rank_load_reduction_median": 0.0060425166808144495,
+      "actual_removed_fraction_median": 0.0036219676549865,
+      "critical_pair_fraction_median": 0.23650262780697562
+    },
+    "0.75_RANDOM_MATCHED": {
+      "max_rank_load_reduction_median": 0.0060060060060059,
+      "actual_removed_fraction_median": 0.0036219676549865,
+      "critical_pair_fraction_median": 0.1666666666666666
+    },
+    "0.75_REDUNDANCY_ONLY": {
+      "max_rank_load_reduction_median": 0.0053141394369072,
+      "actual_removed_fraction_median": 0.0036219676549865,
+      "critical_pair_fraction_median": 0.1858704950347751
+    },
+    "1.00_CRITICAL_RANK_AWARE": {
+      "max_rank_load_reduction_median": 0.0060425166808144495,
+      "actual_removed_fraction_median": 0.00471698113207545,
+      "critical_pair_fraction_median": 0.17935678944474986
+    },
+    "1.00_RANDOM_MATCHED": {
+      "max_rank_load_reduction_median": 0.0060425166808144495,
+      "actual_removed_fraction_median": 0.00471698113207545,
+      "critical_pair_fraction_median": 0.17935678944474986
+    },
+    "1.00_REDUNDANCY_ONLY": {
+      "max_rank_load_reduction_median": 0.0060425166808144495,
+      "actual_removed_fraction_median": 0.00471698113207545,
+      "critical_pair_fraction_median": 0.17935678944474986
+    }
+  },
+  "quality_preserving_headroom": "NOT_DEMONSTRATED; sampled-layer max-rank proxy median 0.47%, max targeted-layer median 1.00%",
+  "critical_rank_advantage": "small absolute advantage at matched pair budgets, not a >=3% latency headroom result",
+  "trace_reusable_on_4gpu": true,
+  "measurement_mode_caveat": "same real request submitted to all four DP engines so multimodal EP collectives participate; canonical route metrics use DP0, timing includes four replicated copies"
+}
