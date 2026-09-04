@@ -1,0 +1,12 @@
+export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
+export VLLM_NO_USAGE_STATS=1 VLLM_WORKER_MULTIPROC_METHOD=spawn VLLM_USE_V2_MODEL_RUNNER=0
+export NVSHMEM_DIR=/home/esjung/.cache/flashvep-deepep-v020/nvshmem
+export LD_LIBRARY_PATH="$NVSHMEM_DIR/lib:${LD_LIBRARY_PATH:-}"
+export PYTHONPATH=/home/esjung/MLLM-EP-github/poc_flashvep/rl_ep_straggler_qwen_ep8_poc/hooks:/home/esjung/MLLM-EP-github/poc_flashvep/deepep_revalidation/hooks:/home/esjung/MLLM-EP-github
+export FLASHVEP_MATRIX_ENABLE=1
+export FLASHVEP_MATRIX_RAW_DIR=/home/esjung/MLLM-EP-github/poc_flashvep/deepep_revalidation/results/rl_ep_straggler_qwen_ep8_poc_20260904_stage0_attempt7/raw_live
+export FLASHVEP_MATRIX_CONTROL=/home/esjung/MLLM-EP-github/poc_flashvep/deepep_revalidation/results/rl_ep_straggler_qwen_ep8_poc_20260904_stage0_attempt7/control.json
+/home/esjung/.venvs/flashvep-deepep-v020/bin/python poc_flashvep/rl_ep_straggler_qwen_ep8_poc/run_serving.py \
+  --model /home/esjung/.cache/huggingface/hub/models--Qwen--Qwen3-30B-A3B/snapshots/ad44e777bcd18fa416d9da3bd8f70d33ebb85d39 \
+  --output poc_flashvep/deepep_revalidation/results/rl_ep_straggler_qwen_ep8_poc_20260904_stage0_attempt7 \
+  --reps 3 --max-tokens 1
