@@ -1,0 +1,32 @@
+{
+  "experiment": "H01_balance_fragmentation_paradox",
+  "m": [
+    512
+  ],
+  "active_experts_per_rank": [
+    2,
+    16,
+    32
+  ],
+  "top_k": 8,
+  "global_experts": 128,
+  "ep": 4,
+  "invariants": [
+    "M",
+    "total_assignments",
+    "rank_assignments",
+    "hidden_size",
+    "dtype"
+  ],
+  "changed_factor": "active experts within each rank",
+  "layer": 24,
+  "route_construction": "two assignments per destination rank per token; cyclic balanced IDs",
+  "model_activation": "validated BF16 Qwen3-VL layer-24 capture rows",
+  "placement": "expert_id // 32",
+  "physical_gpus": [
+    1,
+    2,
+    3,
+    4
+  ]
+}

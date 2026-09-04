@@ -67,7 +67,13 @@ def _prompt(
                 tokenize=False,
                 add_generation_prompt=True,
             )
-            token_count = len(processor.tokenizer.encode(candidate))
+            # Qwen-VL's processor exposes a nested tokenizer in some
+            # versions, while text-only Qwen3 exposes the tokenizer itself.
+            # Both implement ``encode``; use the normalized object so the
+            # controlled replay driver can also serve the generic Qwen3 model.
+            tokenizer = getattr(processor, "tokenizer", processor)
+            tokenizer = getattr(tokenizer, "tokenizer", tokenizer)
+            token_count = len(tokenizer.encode(candidate))
             if token_count <= text_target_tokens or words == 1:
                 break
             words -= max(1, token_count - text_target_tokens)

@@ -14,7 +14,7 @@ from pathlib import Path
 import numpy as np
 
 
-def build_cases(m: int = 512, active_values: tuple[int, ...] = (1, 2, 4, 8, 16)) -> list[dict]:
+def build_cases(m: int = 512, active_values: tuple[int, ...] = (1, 2, 4, 8, 16), layer: int = 24) -> list[dict]:
     cases: list[dict] = []
     for active in active_values:
         routes = np.empty((m, 8), dtype=np.int64)
@@ -35,7 +35,7 @@ def build_cases(m: int = 512, active_values: tuple[int, ...] = (1, 2, 4, 8, 16))
             "request_id": "fragmentation_control",
             "category": "controlled",
             "modality": "synthetic_route_diagnostic",
-            "layer": 24,
+            "layer": layer,
             "M": m,
             "routes": routes.tolist(),
             "token_count": m,
@@ -52,11 +52,17 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--output", type=Path, required=True)
     ap.add_argument("--m", type=int, default=512)
+    ap.add_argument("--m-values", type=str, default=None, help="comma-separated M values; overrides --m")
+    ap.add_argument("--layer", type=int, default=24)
+    ap.add_argument("--active-values", type=str, default="1,2,4,8,16",
+                    help="comma-separated active experts/rank values")
     args = ap.parse_args()
     if args.output.exists():
         raise FileExistsError(args.output)
     args.output.mkdir(parents=True)
-    cases = build_cases(args.m)
+    m_values = [args.m] if args.m_values is None else [int(x) for x in args.m_values.split(",") if x]
+    active_values = tuple(int(x) for x in args.active_values.split(",") if x)
+    cases = [c for m in m_values for c in build_cases(m, active_values=active_values, layer=args.layer)]
     (args.output / "cases.json").write_text(json.dumps(cases, separators=(",", ":")) + "\n")
     rows = []
     for case in cases:
@@ -76,10 +82,11 @@ def main() -> None:
         writer.writeheader(); writer.writerows(rows)
     (args.output / "experiment_manifest.json").write_text(json.dumps({
         "experiment": "H01_balance_fragmentation_paradox",
-        "m": args.m, "active_experts_per_rank": [1, 2, 4, 8, 16],
+        "m": args.m if args.m_values is None else m_values, "active_experts_per_rank": list(active_values),
         "top_k": 8, "global_experts": 128, "ep": 4,
         "invariants": ["M", "total_assignments", "rank_assignments", "hidden_size", "dtype"],
         "changed_factor": "active experts within each rank",
+        "layer": args.layer,
         "route_construction": "two assignments per destination rank per token; cyclic balanced IDs",
         "model_activation": "validated BF16 Qwen3-VL layer-24 capture rows",
         "placement": "expert_id // 32", "physical_gpus": [1, 2, 3, 4],
