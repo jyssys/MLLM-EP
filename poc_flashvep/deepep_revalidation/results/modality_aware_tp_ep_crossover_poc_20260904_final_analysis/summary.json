@@ -1,0 +1,78 @@
+{
+  "status": "complete",
+  "ep4_run": "poc_flashvep/deepep_revalidation/results/modality_aware_tp_ep_crossover_poc_20260904_final_ep4",
+  "tp_only_run": "poc_flashvep/deepep_revalidation/results/modality_aware_tp_ep_crossover_poc_20260904_final_tp_only",
+  "pairs": 24,
+  "workloads": {
+    "text_heavy": {
+      "n": 8,
+      "prompt_tokens": [
+        2980
+      ],
+      "median_wall_reduction_pct": 23.221303629853512,
+      "median_t_moe_reduction_pct": 22.336583276058814,
+      "mean_tp_t_moe_ms": 393.54564440250397,
+      "mean_ep_t_moe_ms": 274.9935958981514,
+      "phase_mean_tp_ms": {
+        "dispatch": 1.2189640004653484,
+        "expert": 31.014596074819565,
+        "combine": 0.9205279982415959
+      },
+      "phase_mean_ep_ms": {
+        "dispatch": 0.9206119973678142,
+        "expert": 30.467519961297512,
+        "combine": 0.5803519987966865
+      },
+      "ep_prepare_finalize_backend": "MoEPrepareAndFinalizeNoDPEPModular",
+      "ep_expert_backend": "TritonExperts"
+    },
+    "mixed": {
+      "n": 8,
+      "prompt_tokens": [
+        3022
+      ],
+      "median_wall_reduction_pct": 27.439233050552744,
+      "median_t_moe_reduction_pct": 35.77742499726624,
+      "mean_tp_t_moe_ms": 395.93199223279953,
+      "mean_ep_t_moe_ms": 279.16472029685974,
+      "phase_mean_tp_ms": {
+        "dispatch": 1.2546080042957328,
+        "expert": 32.31534402817488,
+        "combine": 0.9544919995823875
+      },
+      "phase_mean_ep_ms": {
+        "dispatch": 0.9205159980338067,
+        "expert": 30.648403987288475,
+        "combine": 0.5892600005026907
+      },
+      "ep_prepare_finalize_backend": "MoEPrepareAndFinalizeNoDPEPModular",
+      "ep_expert_backend": "TritonExperts"
+    },
+    "vision_heavy": {
+      "n": 8,
+      "prompt_tokens": [
+        3163
+      ],
+      "median_wall_reduction_pct": 15.547759894811794,
+      "median_t_moe_reduction_pct": 29.529207637878095,
+      "mean_tp_t_moe_ms": 414.8469321131706,
+      "mean_ep_t_moe_ms": 290.6641206741333,
+      "phase_mean_tp_ms": {
+        "dispatch": 1.2120360003318638,
+        "expert": 32.26850391924381,
+        "combine": 0.8581960020819679
+      },
+      "phase_mean_ep_ms": {
+        "dispatch": 0.8956599981465843,
+        "expert": 31.335151962935925,
+        "combine": 0.5937519995495677
+      },
+      "ep_prepare_finalize_backend": "MoEPrepareAndFinalizeNoDPEPModular",
+      "ep_expert_backend": "TritonExperts"
+    }
+  },
+  "overall_median_t_moe_reduction_pct": 35.69861807734131,
+  "raw_reduction_decision": "GO",
+  "decision": "NO_GO",
+  "requested_gate_note": "The requested TP4/DP1 EP4 flag path does not activate vLLM all-to-all kernels in this local build: use_all2all_kernels requires dp_size > 1. Thus the paired EP flag path is an expert-sharded/no-DP-EP path, not a valid DeepEP topology crossover."
+}

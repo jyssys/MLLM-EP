@@ -1,0 +1,59 @@
+{
+  "final_status": "NO_GO",
+  "gate": "modality-aware static TP/EP crossover",
+  "reason": "No modality-dependent winner was observed, and the requested TP4/DP1 EP4 flag path is not a live DeepEP all-to-all path in local vLLM 0.20 because use_all2all_kernels requires dp_size > 1.",
+  "primary_runs": {
+    "ep_flag": "modality_aware_tp_ep_crossover_poc_20260904_final_ep4",
+    "tp_only": "modality_aware_tp_ep_crossover_poc_20260904_final_tp_only",
+    "workloads": 3,
+    "repetitions_per_workload": 8,
+    "matched_token_counts": {
+      "text_heavy": 2980,
+      "mixed": 3022,
+      "vision_heavy": 3163
+    }
+  },
+  "vision_token_fraction": {
+    "text_heavy": 0.0,
+    "mixed": 0.5188616810059563,
+    "vision_heavy": 0.9914638001896934,
+    "method": "exact processor input_ids count of image_token_id=151655"
+  },
+  "median_t_moe_ms": {
+    "text_heavy": {"tp_only": 379.7833442687988, "ep_flag": 272.24496030807495},
+    "mixed": {"tp_only": 441.4041450023651, "ep_flag": 280.27903962135315},
+    "vision_heavy": {"tp_only": 425.6830406188965, "ep_flag": 289.0313763618469}
+  },
+  "median_ep_flag_reduction_vs_tp_only_pct": {
+    "text_heavy": 22.336583276058814,
+    "mixed": 35.77742499726624,
+    "vision_heavy": 29.529207637878095
+  },
+  "mean_request_t_moe_gap_pct": {
+    "text_heavy": 30.126344,
+    "mixed": 29.491013,
+    "vision_heavy": 29.930144
+  },
+  "phase_mean_ms": {
+    "text_heavy": {
+      "tp_only": {"dispatch": 1.2189640004653484, "expert": 31.014596074819565, "combine": 0.9205279982415959},
+      "ep_flag": {"dispatch": 0.9206119973678142, "expert": 30.467519961297512, "combine": 0.5803519987966865}
+    },
+    "mixed": {
+      "tp_only": {"dispatch": 1.2546080042957328, "expert": 32.31534402817488, "combine": 0.9544919995823875},
+      "ep_flag": {"dispatch": 0.9205159980338067, "expert": 30.648403987288475, "combine": 0.5892600005026907}
+    },
+    "vision_heavy": {
+      "tp_only": {"dispatch": 1.2120360003318638, "expert": 32.26850391924381, "combine": 0.8581960020819679},
+      "ep_flag": {"dispatch": 0.8956599981465843, "expert": 31.335151962935925, "combine": 0.5937519995495677}
+    }
+  },
+  "crossover": {
+    "winner_by_workload": {"text_heavy": "ep_flag", "mixed": "ep_flag", "vision_heavy": "ep_flag"},
+    "max_modality_dependent_difference_pct": 0.0,
+    "same_winner_all_workloads": true,
+    "valid_deepep_crossover_evidence": false
+  },
+  "secondary_tp2_dp2_ep4": {"status": "not_run"},
+  "dynamic_hybrid_parallelism": "not_justified"
+}

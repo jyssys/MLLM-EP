@@ -1,0 +1,44 @@
+{
+  "model": "Qwen3-VL-30B-A3B-Instruct",
+  "model_snapshot": "/home/esjung/.cache/huggingface/hub/models--Qwen--Qwen3-VL-30B-A3B-Instruct/snapshots/9c4b90e1e4ba969fd3b5378b57d966d725f1b86c",
+  "text_config": {
+    "hidden_size": 2048,
+    "num_hidden_layers": 48,
+    "num_experts": 128,
+    "num_experts_per_tok": 8,
+    "dtype": "bfloat16"
+  },
+  "visible_devices": "1,2,3,4",
+  "physical_gpus": [1, 2, 3, 4],
+  "vllm_version": "0.20.0",
+  "backend": "TritonExperts",
+  "placement": "linear",
+  "db0": false,
+  "prefix_caching": false,
+  "enforce_eager": true,
+  "primary_topologies": {
+    "tp_only": {
+      "requested": "TP4/DP1/EP disabled",
+      "runtime": "TP4/DP1, use_ep=false, ep_size=1, use_all2all_kernels=false",
+      "prepare_finalize_backend": "MoEPrepareAndFinalizeNoDPEPModular"
+    },
+    "ep_flag": {
+      "requested": "TP4/DP1/EP4, all2all_backend=deepep_high_throughput",
+      "runtime": "TP4/DP1, use_ep=true, ep_size=4, use_all2all_kernels=false",
+      "prepare_finalize_backend": "MoEPrepareAndFinalizeNoDPEPModular",
+      "deepep_high_throughput_active": false,
+      "reason": "local vLLM property use_all2all_kernels is dp_size > 1 and use_ep"
+    }
+  },
+  "secondary_true_ep": {
+    "requested": "TP2/DP2/EP4",
+    "status": "not_run_in_this_bounded_primary",
+    "reason": "not substituted for the preregistered TP4/DP1 comparison"
+  },
+  "matched_workloads": {
+    "text_heavy": {"prompt_tokens": 2980, "images": 0},
+    "mixed": {"prompt_tokens": 3022, "images": 2},
+    "vision_heavy": {"prompt_tokens": 3163, "images": 4}
+  },
+  "repetitions": {"warmups": 2, "measured": 8, "decode_tokens": 1}
+}
