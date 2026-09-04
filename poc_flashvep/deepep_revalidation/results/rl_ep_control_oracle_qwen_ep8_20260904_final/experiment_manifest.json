@@ -1,0 +1,50 @@
+{
+  "experiment": "RL EP control oracle follow-up",
+  "model": "Qwen3-30B-A3B",
+  "checkpoint": "/home/esjung/.cache/huggingface/hub/models--Qwen--Qwen3-30B-A3B/snapshots/ad44e777bcd18fa416d9da3bd8f70d33ebb85d39",
+  "configuration": {
+    "dtype": "BF16",
+    "tensor_parallel": 2,
+    "data_parallel": 4,
+    "expert_parallel": 8,
+    "pipeline_parallel": 1,
+    "experts": 128,
+    "top_k": 8,
+    "experts_per_gpu": 16,
+    "backend": "DeepEP high-throughput",
+    "expert_kernel": "TritonExperts",
+    "placement": "linear expert_id // 16",
+    "eplb": false,
+    "dbo": false,
+    "prefix_cache": false,
+    "max_num_batched_tokens": 16384,
+    "physical_gpus": [0, 1, 2, 3, 4, 5, 6, 7],
+    "cuda_visible_devices": "0,1,2,3,4,5,6,7"
+  },
+  "runs": {
+    "keep": "../rl_ep_control_oracle_qwen_ep8_20260904_keep",
+    "temp_balance": "../rl_ep_control_oracle_qwen_ep8_20260904_temp3",
+    "migration_benchmark": "../rl_ep_control_oracle_qwen_ep8_20260904_migration2",
+    "prior_stage0": "../rl_ep_straggler_qwen_ep8_poc_20260904_stage0_attempt7"
+  },
+  "commands": [
+    "CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 /home/esjung/.venvs/flashvep-deepep-v020/bin/python poc_flashvep/rl_ep_control_oracle_qwen_ep8/run_serving.py --action KEEP --reps 2 --max-tokens 1",
+    "CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 /home/esjung/.venvs/flashvep-deepep-v020/bin/python poc_flashvep/rl_ep_control_oracle_qwen_ep8/run_serving.py --action TEMP_BALANCE --reps 2 --max-tokens 1",
+    "CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 /home/esjung/.venvs/flashvep-deepep-v020/bin/python poc_flashvep/rl_ep_control_oracle_qwen_ep8/run_serving.py --action KEEP --migration-bench --reps 1 --max-tokens 1",
+    "/home/esjung/.venvs/flashvep-deepep-v020/bin/python poc_flashvep/rl_ep_control_oracle_qwen_ep8/make_eplb_plan.py --csv <KEEP>/invocation_metrics.csv --output <RESULT>/placement_plan.json",
+    "python3 poc_flashvep/rl_ep_control_oracle_qwen_ep8/analyze_control_oracle.py --keep <KEEP> --temp <TEMP> --migration <MIGRATION> --prior <PRIOR> --plan <RESULT>/placement_plan.json --output <RESULT>"
+  ],
+  "reference_implementations": {
+    "capacity_aware_moe": {
+      "repository": "https://github.com/CASE-Lab-UMD/Capacity-Aware-MoE",
+      "commit": "9c73c8eee6ca64836eb873e77aa096fb4955e658",
+      "use": "source audit; score-ranked capacity-selection semantics"
+    },
+    "eplb": {
+      "repository": "https://github.com/deepseek-ai/EPLB",
+      "commit": "d52c72d5b2f2fb4c41afbf8eb21366820239913d",
+      "use": "actual load trace -> diagnostic 136/144 physical expert plans"
+    }
+  },
+  "scope": "bounded action validation; no RL training, no production placement/routing integration"
+}

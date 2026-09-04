@@ -1,0 +1,88 @@
+{
+  "model": "Qwen3-30B-A3B",
+  "topology": "TP2/DP4/EP8/PP1",
+  "physical_gpus": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
+  "experts": 128,
+  "top_k": 8,
+  "experts_per_gpu": 16,
+  "stage0_from_previous_validated_capture": {
+    "expert_ratio_median": 1.2866829393886752,
+    "expert_ratio_p90": 1.4577590417126927,
+    "expert_ratio_max": 1.8779217512690818
+  },
+  "keep": {
+    "n_pairs": 288,
+    "expert_ratio_median": 1.3140190247618917,
+    "moe_stage_median_ms": 2.5792959332466125
+  },
+  "temp_measured": {
+    "n_pairs": 288,
+    "expert_ratio_median": 1.0584243664512654,
+    "moe_stage_median_ms": 2.3433600068092346,
+    "paired_moe_stage_reduction_median": 0.12641692538999327,
+    "paired_expert_reduction_median": 0.22438528983371592,
+    "paired_dispatch_reduction_median": -0.4236131639719416,
+    "paired_combine_reduction_median": 0.6059379223690484,
+    "rank_ratio_reduction_median": 0.3979804558593504,
+    "changed_fraction_median": 0.9507803916931152,
+    "invalid_fraction_median": 0.12158096280087527
+  },
+  "driver_wall": {
+    "keep_median_ms": 3415.9128005000002,
+    "temp_median_ms": 3577.8359090000004,
+    "temp_wall_reduction_median": -0.051700540406004025
+  },
+  "migration": {
+    "ranks": 8,
+    "bytes_per_expert_broadcast": 9437184,
+    "broadcast_ms_median": 37.260080337524414,
+    "broadcast_ms_max": 37.47292709350586
+  },
+  "eplb": [
+    {
+      "action": "EPLB_SMALL",
+      "replicas": 136,
+      "physical_experts_per_gpu": 17,
+      "baseline_rank_ratio": 1.928984549285301,
+      "predicted_rank_ratio": 1.0000413120713874,
+      "predicted_count_proxy_reduction": 0.48123481352214936
+    },
+    {
+      "action": "EPLB_LARGE",
+      "replicas": 144,
+      "physical_experts_per_gpu": 18,
+      "baseline_rank_ratio": 1.928984549285301,
+      "predicted_rank_ratio": 1.0000490580847723,
+      "predicted_count_proxy_reduction": 0.48119934212077586
+    }
+  ],
+  "oracle": {
+    "action_distribution": {
+      "KEEP": 1.0
+    },
+    "raw_timing_best_action_distribution": {
+      "TEMP_BALANCE": 0.7152777777777778,
+      "KEEP": 0.2847222222222222
+    },
+    "temp_rejected_for_invalid_routes": true,
+    "n_rows": 288,
+    "dynamic_gain_vs_keep": 0.0,
+    "status": "conservative_counterfactual; PERSIST not installed in vLLM"
+  },
+  "persistence": {
+    "adjacent_hot_expert_recurrence_median": 1.0,
+    "n_wave_views": 3,
+    "interpretation": "deterministic repeated schedule only; no domain-switch episode evidence"
+  },
+  "rl_policy": "NOT_RUN: action gate not passed",
+  "gate": "NO_GO_FOR_RL_HEADROOM"
+}
