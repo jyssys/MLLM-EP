@@ -1,0 +1,26 @@
+{
+  "experiment": "overnight_moe_ep_discovery",
+  "date": "2026-09-05",
+  "repository": "/home/esjung/MLLM-EP-github",
+  "branch": "flashvep/overnight-moe-ep-discovery",
+  "base_commit": "dac63be",
+  "model": "Qwen3-VL-30B-A3B-Instruct",
+  "model_snapshot": "/home/esjung/.cache/huggingface/hub/models--Qwen--Qwen3-VL-30B-A3B-Instruct/snapshots/9c4b90e1e4ba969fd3b5378b57d966d725f1b86c",
+  "physical_gpus": [1, 2, 3, 4],
+  "cuda_visible_devices": "1,2,3,4",
+  "topology": {"tp": 2, "dp": 2, "ep": 4, "pp": 1, "backend": "deepep_high_throughput", "dtype": "BF16", "placement": "linear expert_id//32", "dbo": false, "prefix_cache": false, "enforce_eager": true},
+  "new_gpu_runs": [
+    {"hypothesis": "H1", "M": 512, "warmups": 2, "iterations": 5, "result": "H01_balance_fragmentation"},
+    {"hypothesis": "H1", "M": 1024, "warmups": 2, "iterations": 5, "result": "H01_balance_fragmentation_M1024"},
+    {"hypothesis": "H4/H5", "conditions": ["steady", "alternating", "similar", "disjoint"], "M_target": 256, "warmups": 1, "iterations": 3, "result_prefix": "H04_H05_"}
+  ],
+  "replay_command_template": "CUDA_VISIBLE_DEVICES=1,2,3,4 PYTHONPATH=poc_flashvep/overnight_moe_ep_discovery/hooks:/home/esjung/MLLM-EP-github FLASHVEP_GRANULARITY_RESULT_DIR=<RESULT> FLASHVEP_GRANULARITY_WARMUPS=<W> FLASHVEP_GRANULARITY_ITERATIONS=<I> /home/esjung/.venvs/flashvep-deepep-v020/bin/python poc_flashvep/deepep_revalidation/vllm_backend_matrix.py --all2all-backend deepep_high_throughput --request-counts 1 --warmups 0 --iterations 1 --modality vision --image-size 448 --text-target-tokens 790 --max-tokens 1 --kv-cache-memory-bytes 1073741824",
+  "analysis_sources": [
+    "modality_aware_moe_granularity_poc_20260903_1945",
+    "live_prefill_execution_regime_20260821_111609",
+    "flashvep_tile_slack_mechanism_report.md",
+    "complementary_rebatch_oracle.md",
+    "modality_aware_tp_ep_real_deepep_final.md"
+  ],
+  "scope_note": "No routing, placement, scheduler, kernel, or quality-changing method was implemented; H2/H6/H10/H13/H15 and Tier-B/C were mined offline from preserved real-route artifacts."
+}

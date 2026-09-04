@@ -1,0 +1,22 @@
+# All new GPU runs were restricted to physical GPUs 1-4.
+export CUDA_VISIBLE_DEVICES=1,2,3,4
+export VLLM_WORKER_MULTIPROC_METHOD=spawn
+export VLLM_ENABLE_V1_MULTIPROCESSING=1
+export NVSHMEM_DIR=/home/esjung/.cache/flashvep-deepep-v020/nvshmem
+export LD_LIBRARY_PATH="$NVSHMEM_DIR/lib:${LD_LIBRARY_PATH:-}"
+export PYTHONPATH=/home/esjung/MLLM-EP-github/poc_flashvep/overnight_moe_ep_discovery/hooks:/home/esjung/MLLM-EP-github
+export FLASHVEP_GRANULARITY_RESULT_DIR=<RESULT>
+export FLASHVEP_GRANULARITY_CAPTURE=/home/esjung/MLLM-EP/poc_flashvep/results/offline_wavefront_quick_poc_20260805_130322/layer24_capture.pt
+export FLASHVEP_GRANULARITY_WARMUPS=2  # H1; history conditions used 1
+export FLASHVEP_GRANULARITY_ITERATIONS=5  # H1; history conditions used 3
+/home/esjung/.venvs/flashvep-deepep-v020/bin/python /home/esjung/MLLM-EP-github/poc_flashvep/deepep_revalidation/vllm_backend_matrix.py \
+  --model-path /home/esjung/.cache/huggingface/hub/models--Qwen--Qwen3-VL-30B-A3B-Instruct/snapshots/9c4b90e1e4ba969fd3b5378b57d966d725f1b86c \
+  --output <RESULT>/trigger.json --all2all-backend deepep_high_throughput \
+  --request-counts 1 --warmups 0 --iterations 1 --modality vision \
+  --image-size 448 --text-target-tokens 790 --max-tokens 1 \
+  --kv-cache-memory-bytes 1073741824 --timeout-seconds 1800
+
+# Offline analysis:
+python -m poc_flashvep.overnight_moe_ep_discovery.analyze_history --result <RESULT>
+env -u PYTHONPATH python -m poc_flashvep.overnight_moe_ep_discovery.analyze_history_aggregate --root <SPRINT_ROOT>
+env -u PYTHONPATH python -m poc_flashvep.overnight_moe_ep_discovery.analyze_discovery --root <SPRINT_ROOT>
