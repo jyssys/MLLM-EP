@@ -1,0 +1,6 @@
+CUDA_VISIBLE_DEVICES=4,5,6,7
+PYTHONPATH=/home/esjung/MLLM-EP-github/poc_flashvep/modality_aware_tp_ep_crossover/hooks:/home/esjung/MLLM-EP-github
+FLASHVEP_CROSSOVER_ENABLE=1 FLASHVEP_CROSSOVER_SYNC_RECORD=1
+/home/esjung/.venvs/flashvep-deepep-v020/bin/python poc_flashvep/modality_aware_tp_ep_crossover/run_volume.py --topology tp_only --warmups 1 --iterations 2 --output poc_flashvep/deepep_revalidation/results/modality_aware_tp_ep_real_deepep_20260904_tp_only_sync
+/home/esjung/.venvs/flashvep-deepep-v020/bin/python poc_flashvep/modality_aware_tp_ep_crossover/run_volume.py --topology real_deepep --warmups 1 --iterations 2 --output poc_flashvep/deepep_revalidation/results/modality_aware_tp_ep_real_deepep_20260904_real_deepep_v6
+python poc_flashvep/modality_aware_tp_ep_crossover/analyze_volume.py --tp-only poc_flashvep/deepep_revalidation/results/modality_aware_tp_ep_real_deepep_20260904_tp_only_sync --real-deepep poc_flashvep/deepep_revalidation/results/modality_aware_tp_ep_real_deepep_20260904_real_deepep_v6 --output poc_flashvep/deepep_revalidation/results/modality_aware_tp_ep_real_deepep_20260904_analysis

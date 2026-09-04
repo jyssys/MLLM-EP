@@ -1,0 +1,29 @@
+{
+  "requested": {
+    "tp": 2,
+    "dp": 2,
+    "ep": 4,
+    "all2all": "deepep_high_throughput"
+  },
+  "topology": "real_deepep",
+  "dp_rank": 0,
+  "physical_gpus": [
+    4,
+    5,
+    6,
+    7
+  ],
+  "visible_devices": "4,5,6,7",
+  "parallel_config": {
+    "tensor_parallel_size": 2,
+    "data_parallel_size": 2,
+    "pipeline_parallel_size": 1,
+    "enable_expert_parallel": true,
+    "all2all_backend": "deepep_high_throughput",
+    "use_sequence_parallel_moe": true,
+    "enable_dbo": false
+  },
+  "world_size": 2,
+  "source_semantics": "use_all2all_kernels = dp_size > 1 and use_ep",
+  "hook": "poc_flashvep.modality_aware_tp_ep_crossover.worker_hook"
+}

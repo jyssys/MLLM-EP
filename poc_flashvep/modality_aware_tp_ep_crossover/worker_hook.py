@@ -104,11 +104,44 @@ def _flush() -> None:
             Path(path, f"flush_error_{os.getpid()}.txt").write_text(repr(exc) + "\n")
 
 
+def _write_resolved_now(rec: dict[str, Any]) -> None:
+    """Persist one completed span for workers that are terminated by V1.
+
+    V1's EngineCore commonly terminates GPU workers rather than running their
+    Python ``atexit`` handlers.  With the opt-in capture flag, synchronize
+    only the diagnostic worker after each MoE call, resolve CUDA events, and
+    append the record immediately.  This is intentionally disabled by
+    default; the volume experiment enables it only for the short capture run.
+    """
+    raw = Path(os.environ["FLASHVEP_CROSSOVER_RAW_DIR"])
+    raw.mkdir(parents=True, exist_ok=True)
+    torch.cuda.synchronize()
+    row = dict(rec)
+    for phase in ("full_moe", "dispatch", "expert", "combine"):
+        pair = row.pop(f"_{phase}_events", None)
+        row[f"{phase}_ms"] = _span(pair)
+    local_rank = int(row.get("local_rank", _rank()))
+    out = raw / f"rank{local_rank}_pid{os.getpid()}.jsonl"
+    with out.open("a", encoding="utf-8") as f:
+        f.write(json.dumps(row, separators=(",", ":")) + "\n")
+
+
 def install() -> None:
     global _INSTALLED
     if _INSTALLED:
         return
     _INSTALLED = True
+    # Leave a lightweight proof for spawned vLLM workers.  This is useful
+    # because DP/engine workers can start after Python sitecustomize runs.
+    raw_dir = os.environ.get("FLASHVEP_CROSSOVER_RAW_DIR")
+    if raw_dir:
+        try:
+            Path(raw_dir).mkdir(parents=True, exist_ok=True)
+            Path(raw_dir, f"hook_install_{os.getpid()}.txt").write_text(
+                "installed\n", encoding="utf-8"
+            )
+        except Exception:
+            pass
     from vllm.model_executor.layers.fused_moe.layer import FusedMoE
     from vllm.model_executor.layers.fused_moe.modular_kernel import FusedMoEKernelModularImpl
 
@@ -140,6 +173,8 @@ def install() -> None:
             "layer": layer,
             "worker_pid": os.getpid(),
             "local_rank": _rank(),
+            "dp_rank": int(os.environ.get("VLLM_DP_RANK", "-1")),
+            "tp_rank": int(os.environ.get("VLLM_TP_RANK", "-1")),
             "_full_moe_events": (start, end),
         }
         try:
@@ -149,7 +184,17 @@ def install() -> None:
             rec = getattr(_CTX, "record", None)
             if rec is not None:
                 # Kernel wrappers populate phase pairs; no route mutation.
-                _PENDING.append(rec)
+                if os.environ.get("FLASHVEP_CROSSOVER_SYNC_RECORD") == "1":
+                    try:
+                        _write_resolved_now(rec)
+                    except Exception as exc:  # pragma: no cover
+                        raw = os.environ.get("FLASHVEP_CROSSOVER_RAW_DIR")
+                        if raw:
+                            Path(raw, f"record_error_{os.getpid()}.txt").write_text(
+                                repr(exc) + "\n", encoding="utf-8"
+                            )
+                else:
+                    _PENDING.append(rec)
             _CTX.record = prior
 
     def timed_prepare(self: Any, *args: Any, **kwargs: Any) -> Any:
