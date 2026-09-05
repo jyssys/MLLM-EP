@@ -1,0 +1,58 @@
+{
+  "final_status": "HOLD",
+  "runtime_method_status": "NO_GO",
+  "created_unix": 1788606736.2789133,
+  "cuda_visible_devices": "1,2,3,4",
+  "model": "Qwen3-VL-30B-A3B-Instruct",
+  "topology": "TP2/DP2/EP4/PP1",
+  "deep_ep_ht_verified": true,
+  "deep_ep_ll_status": "BLOCKED_NVSHMEM_QP_DEPTH_ASSERTION",
+  "clean_rank_rows": 6105264,
+  "complete_invocations": 1524288,
+  "timing_sanity": {
+    "status": "INSUFFICIENT",
+    "groups": 9191,
+    "median_cv": 0.4186369547475677,
+    "p90_cv": 0.718914183912141
+  },
+  "fanout_model2_to_model3_rmse_change_pct": 0.000953354371662611,
+  "sms_oracle_headroom_pct": {
+    "prefill_median": 0.10781088747133619,
+    "prefill_p90": 1.7130203022483386,
+    "prefill_max": 2.1012273979594145,
+    "decode_median": 0.24881180076934237
+  },
+  "tail_anomaly": {
+    "fixed_m284_prefill_gap_pct_max": 17584.865122159328,
+    "prefill_corr_rank_imbalance": 0.1396199014617365,
+    "decode_corr_rank_imbalance": 0.13650486981784804,
+    "route_joined_prefill_quantiles_ms": [0.9864959717, 3.0713824749, 3.7532912374, 4.6861732292],
+    "route_joined_decode_quantiles_ms": [0.9175360203, 2.0597984314, 2.2481920719, 3.4943358898]
+  },
+  "hypotheses": {
+    "H1": "NO_GO",
+    "H2": "BLOCKED",
+    "H3": "BLOCKED",
+    "H4": "HOLD",
+    "H5": "BLOCKED",
+    "H6": "NOT_RUN",
+    "H7": "HOLD",
+    "H8": "PROMISING_ANOMALY",
+    "H9": "BLOCKED",
+    "H10": "HOLD",
+    "H11": "NO_GO",
+    "H12": "NOT_RUN"
+  },
+  "primary_analysis": "analysis_final/analysis_summary.json",
+  "excluded_partial": [
+    "online_trace_mbt4096",
+    "online_trace_sms4_c8",
+    "online_trace_sms16_c8",
+    "online_trace_recovery_c8"
+  ],
+  "notes": [
+    "No optimization method implemented.",
+    "Dispatch/expert/combine were not separately event-instrumented in the stock online hook; tails are unresolved.",
+    "Primary uses clean HT traces; LL attempts and partial MBT16 trace are retained as blockers/diagnostics."
+  ]
+}

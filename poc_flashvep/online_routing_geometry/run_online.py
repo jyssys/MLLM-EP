@@ -71,7 +71,7 @@ def _worker(dp_rank: int, args, barrier):
     ]
     llm = LLM(model=model, dtype="bfloat16", tensor_parallel_size=2,
               enable_expert_parallel=True, expert_placement_strategy="linear",
-              all2all_backend="deepep_high_throughput", enable_dbo=False,
+              all2all_backend=args.backend, enable_dbo=False,
               enable_return_routed_experts=False, enable_ep_weight_filter=True,
               trust_remote_code=True, kv_cache_memory_bytes=1073741824,
               max_model_len=2048, max_num_batched_tokens=args.max_batched_tokens,
@@ -118,6 +118,9 @@ def main():
     ap.add_argument("--concurrency", type=int, default=8); ap.add_argument("--waves", type=int, default=12)
     ap.add_argument("--warmups", type=int, default=3); ap.add_argument("--max-tokens", type=int, default=1)
     ap.add_argument("--max-batched-tokens", type=int, default=8192); ap.add_argument("--regime", default="mixed_online")
+    ap.add_argument("--backend", default="deepep_high_throughput",
+                    choices=["deepep_high_throughput", "deepep_low_latency"],
+                    help="validated DeepEP all2all backend; no scheduler semantics change")
     args = ap.parse_args(); args.port = _port()
     ctx = mp.get_context("spawn"); barrier = ctx.Barrier(2)
     ps = [ctx.Process(target=_worker, args=(r, args, barrier)) for r in range(2)]

@@ -1,4 +1,4 @@
-# Live hypothesis queue — autonomous discovery loop
+# Live hypothesis queue — autonomous online-runtime discovery (2026-09-05)
 
 The queue is intentionally kept at eight or more pending questions.  Statuses
 are updated after each bounded live measurement; a negative result generates at
@@ -24,3 +24,23 @@ least two follow-ups rather than ending the loop.
 | H21 | Natural Qwen3-VL routes fall near the A32/fanout fast band | controlled A32 benefit is large | natural route geometry proximity | matched real route replay, no synthetic route changes | 45 min | low | 5 | PENDING |
 | H22 | H6 fanout phase effect is driven by expert launch shape while combine remains noisy | M512 expert −12…−17%; combine changes large but unstable | phase-specific launch/communication regime | same routes, longer persistent repetitions | 30 min | medium | 6 | GENERATED |
 | H23 | Route-order state can contaminate any shape comparison unless first-use kernels are separately prewarmed | H16 sign flip and H5 position correlation | order-invariant medians after global prewarm | randomized case order with per-shape compile warmup | 30 min | low | 7 | GENERATED |
+
+## Sprint-local runtime hypotheses (seeded from the current specification)
+
+These are intentionally kept pending while measurements are collected; a
+negative result generates a follow-up rather than ending the discovery loop.
+
+| ID | Hypothesis | Evidence so far | Expected signal | Required control | Estimated runtime | Novelty risk | Priority | Status |
+|---|---|---|---|---|---:|---|---:|---|
+| H1R | DeepEP high-throughput communication SM allocation has a workload-dependent optimum | vLLM exposes VLLM_DBO_COMM_SMS and DeepEP Buffer.set_num_sms | >=5% best-per-regime vs static | same requests/routes, per-shape warmup | 35 min | medium | 1 | PENDING |
+| H2R | Dispatch and combine prefer different communication-SM settings | source has separate dispatch/combine configs | phase ranking reversal | identical route snapshot | 25 min | medium | 2 | PENDING |
+| H3R | DeepEP backend ranking crosses within prefill, not only prefill/decode | deepep HT and LL are available in config | >=5% within prefill | matched M and phase | 40 min | high | 3 | PENDING |
+| H4R | Mixed scheduler steps expose a backend/config anomaly after matching M | online trace includes prefill/decode waves | >=5% residual effect | same M, phase composition | 25 min | high | 4 | PENDING |
+| H5R | DP-source asymmetry creates an online EP critical-path penalty beyond destination load | prior proxy was indirect | >=5% matched effect | matched global M/rank loads | 30 min | high | 5 | PENDING |
+| H6R | Empty/dummy DP participants add a nonlinear communication tax | V1 DP metadata has empty forwards | >=10% at a volume boundary | both DP ranks active vs one empty | 25 min | low | 6 | PENDING |
+| H7R | Identical routing shapes have layer-specific runtime configuration rankings | prior layer spread | >=5% ranking change | same M/routes across layers | 30 min | medium | 7 | PENDING |
+| H8R | Slow online T_MoE tails are caused by queue/state rather than route/load | previous held-out model R2 near zero | matched tail phase explains >=10% | same M/layer/load fast controls | 30 min | medium | 8 | PENDING |
+| H9R | Cross-rank tail co-occurrence distinguishes communication queue stalls from local expert compute | no direct rank timing yet | stable single/global category | rank-wise event proxy | 25 min | medium | 9 | PENDING |
+| H10R | Burst and steady workloads with matched average rate have different sustained T_MoE tails | online waves available | >5% after idle warmup control | matched total tokens/rate | 25 min | medium | 10 | PENDING |
+| H11R | Safe runtime configurations leave measurable per-regime oracle headroom | only HT currently validated | 3–10% lower envelope | all configs separately restarted | 40 min | high | 11 | PENDING |
+| H12R | Generic Qwen3 text-only and Qwen3-VL share the strongest runtime anomaly | prior MLLM trace exists | replication or clear divergence | same shape/config | 35 min | high | 12 | PENDING |
