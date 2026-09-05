@@ -4,7 +4,7 @@
 
 ### Sprint accounting
 
-- Wall time (19:17:11–23:31:20 KST): **4 h 14 min**.
+- Wall time (19:17:11–23:38:53 KST): **4 h 22 min**.
 - Live GPU time: **6,591 s** of rank-local event-trace span across 12 traces
   (conservative; excludes model-load wall time and no-row launches).
 - Equivalent 4-GPU time: **7.32 GPU-hours**.  Ten completed HT runs plus two
