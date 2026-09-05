@@ -96,8 +96,8 @@ causal claim; rows are correlated worker repetitions and the online hook does
 not separately timestamp dispatch/expert/combine.
 
 The slow Model-2 residual tail is not enriched for fanout: for prefill rows
-with M>=100, the slow residual decile has median fanout 3.620 and F4 0.636,
-versus 3.654 and 0.665 for the remaining rows (pooled runs; see raw model
+with M>=100, the slow residual decile has median fanout 3.609 and F4 0.630,
+versus 3.654 and 0.667 for the remaining rows (pooled runs; see raw model
 features).  This is an **ONLINE_TAIL_ASSOCIATION:
 NONE/OPPOSITE**, not evidence of a fanout tail signal.
 
