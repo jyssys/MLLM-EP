@@ -1,0 +1,49 @@
+{
+  "model": "Qwen3-VL-30B-A3B-Instruct",
+  "snapshot": "9c4b90e1e4ba969fd3b5378b57d966d725f1b86c",
+  "topology": "TP2/DP2/EP4",
+  "cuda_visible_devices": "1,2,3,4",
+  "backend": "DeepEP high-throughput + Triton Unquantized",
+  "precision": "BF16",
+  "scheduler": "vLLM V1 continuous batching; max_num_batched_tokens=8192; max_num_seqs=16; chunked prefill enabled",
+  "online_runs": {
+    "online_trace3": {
+      "rows": 37056,
+      "context": "mixed_online"
+    },
+    "online_trace_high2": {
+      "rows": 37056,
+      "context": "high_burst_16"
+    }
+  },
+  "rows": 74112,
+  "phase_counts": {
+    "prefill": 4416,
+    "decode": 69696
+  },
+  "M_distribution": {
+    "1.0": 69696,
+    "8.0": 384,
+    "107.0": 1152,
+    "114.0": 384,
+    "284.0": 768,
+    "321.0": 384,
+    "401.0": 384,
+    "505.0": 384,
+    "622.0": 384,
+    "749.0": 192
+  },
+  "route_features": [
+    "per-token fanout F1..F4",
+    "mean/median/p10/p90 fanout",
+    "per-expert histogram",
+    "rank assignment loads",
+    "sender-destination conservative local row"
+  ],
+  "limitations": [
+    "online hook records full FusedMoE CUDA interval rather than independent dispatch/expert/combine CUDA events",
+    "worker rows are correlated, not independent requests",
+    "M>2048 vLLM profile dummy forwards excluded from natural analysis",
+    "old layer=-1 debugging trace retained but excluded"
+  ]
+}

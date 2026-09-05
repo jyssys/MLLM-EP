@@ -1,0 +1,68 @@
+{
+  "status": "NO_GO",
+  "deepep_verified": true,
+  "online_serving_verified": true,
+  "natural_fanout_variation_sufficient": "PARTIAL",
+  "model2_to_model3_rmse_reduction_pct": -0.3081366712426496,
+  "phase_model2_to_model3_rmse_reduction_pct": {
+    "decode": -0.28048390960904696,
+    "prefill": -0.020137556021623877
+  },
+  "matched_pairs": {
+    "candidate_rows": 4032,
+    "pairs": 36,
+    "summary": {
+      "candidate_rows": 4032,
+      "pairs_emitted": 36,
+      "matching": [
+        "same layer",
+        "same M",
+        "active experts delta <=8",
+        "rank max/mean within 5%",
+        "fanout delta >=0.25"
+      ],
+      "fanout_delta_quantiles": [
+        0.26056338028169046,
+        0.29824561403508776,
+        0.4014084507042255
+      ],
+      "t_moe_delta_pct_quantiles": [
+        -17.96508855048426,
+        -2.260318050559749,
+        14.187227051387833
+      ],
+      "median_abs_t_moe_delta_pct": 6.635784190201775,
+      "interpretation": "worker-level natural pairs; association only, not an independent causal estimate"
+    }
+  },
+  "histogram_preserving_replay": {
+    "cases": {
+      "real_original": {
+        "wall": 2.169335961341858,
+        "layout": 0.03758400119841099,
+        "dispatch": 0.26929600117728114,
+        "expert": 0.8722879886627197,
+        "combine": 0.24970397353172302
+      },
+      "real_low_fanout": {
+        "wall": 2.423919975757599,
+        "layout": 0.02798399981111288,
+        "dispatch": 0.2639280082657933,
+        "expert": 0.8905359953641891,
+        "combine": 0.26027199625968933
+      },
+      "real_high_fanout": {
+        "wall": 2.050815999507904,
+        "layout": 0.03193600010126829,
+        "dispatch": 0.23656799970194697,
+        "expert": 0.8991839736700058,
+        "combine": 0.16711997985839844
+      }
+    },
+    "M_e_exactly_preserved": true,
+    "rank_load_preserved": true,
+    "note": "actual DeepEP route-transfer diagnostic; not full model online routing"
+  },
+  "reason": "fanout geometry adds no robust held-out information beyond M, expert distribution, and rank-load controls; replay direction is non-monotonic and online prefill association is unstable",
+  "optimization_method": "NOT_IMPLEMENTED"
+}
