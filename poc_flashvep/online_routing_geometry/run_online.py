@@ -20,12 +20,15 @@ def _port() -> int:
     s = socket.socket(); s.bind(("127.0.0.1", 0)); p = s.getsockname()[1]; s.close(); return int(p)
 
 
-def _prompt(model: str, modality: str, text_tokens: int, image_size: int, fill: str):
+def _prompt(model: str, modality: str, text_tokens: int, image_size: int, fill: str, image_path: str | None = None):
     from PIL import Image
     from transformers import AutoProcessor
     proc = AutoProcessor.from_pretrained(model, trust_remote_code=True)
     if modality == "vision":
-        image = Image.new("RGB", (image_size, image_size), (96, 128, 160))
+        if image_path:
+            image = Image.open(image_path).convert("RGB")
+        else:
+            image = Image.new("RGB", (image_size, image_size), (96, 128, 160))
         content = [{"type": "image", "image": image}, {"type": "text", "text": "Describe the image and explain two details."}]
     else:
         content = [{"type": "text", "text": (" " + fill) * max(1, text_tokens)}]
@@ -54,11 +57,17 @@ def _worker(dp_rank: int, args, barrier):
     from vllm import LLM, SamplingParams
     from vllm.outputs import RequestOutput
     model = args.model
+    real_images = [
+        "/home/esjung/anaconda3/lib/python3.14/site-packages/skimage/data/astronaut.png",
+        "/home/esjung/anaconda3/lib/python3.14/site-packages/skimage/data/motorcycle_left.png",
+        "/home/esjung/anaconda3/lib/python3.14/site-packages/skimage/data/coffee.png",
+        "/home/esjung/anaconda3/lib/python3.14/site-packages/skimage/data/rocket.jpg",
+    ]
     templates = [
         _prompt(model, "text", 220, 448, "blue"),
         _prompt(model, "text", 560, 448, "red"),
-        _prompt(model, "vision", 180, 448, "green"),
-        _prompt(model, "vision", 320, 896, "yellow"),
+        _prompt(model, "vision", 180, 448, "green", real_images[0]),
+        _prompt(model, "vision", 320, 896, "yellow", real_images[1]),
     ]
     llm = LLM(model=model, dtype="bfloat16", tensor_parallel_size=2,
               enable_expert_parallel=True, expert_placement_strategy="linear",

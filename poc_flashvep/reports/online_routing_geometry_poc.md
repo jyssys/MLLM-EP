@@ -7,8 +7,9 @@
 ## Executive result
 
 The premise is observable in the live runtime: the corrected read-only hook
-captured 74,112 valid FusedMoE invocations from two real vLLM V1 request-wave
-runs (mixed concurrency 8 and a high-burst concurrency 16 run).  Per-token
+captured 98,880 valid FusedMoE invocations from three real vLLM V1 request-wave
+runs (mixed concurrency 8, high-burst concurrency 16, and a natural-image
+run).  Per-token
 fanout spans F1--F4.  In prefill (M >= 100), mean fanout has p10/p50/p90 =
 3.09/3.63/3.79; decode has a wider 1--4 range but M=1.  Thus natural
 variation exists, but the serving data do not show incremental critical-path
@@ -29,13 +30,14 @@ for an online controller.
 | Scheduler | `max_num_batched_tokens=8192`, `max_num_seqs=16`, DBO off, prefix cache off |
 | T_MoE | CUDA-event duration of the unmodified FusedMoE apply, covering the stock router/prepare/dispatch/expert/finalize path; rank-local observation |
 
-`online_trace3` is a real mixed online run with five waves at local
-concurrency 4.  `online_trace_high2` is a second real run with four waves and
-local concurrency 8 (burst regime).  Requests use real Qwen3-VL image inputs
-and text controls; the normal vLLM V1 queue and scheduler are used.  The
-first `online_trace` directory is retained as provenance but excluded because
-its old hook recorded layer=-1.  M=4096 vLLM memory-profile dummy forwards
-are also excluded from natural analysis.
+`online_trace3` is a mixed online run with five waves at local concurrency 4.
+`online_trace_high2` is a second run with four waves and local concurrency 8
+(burst regime).  Their image requests use bounded PIL fixtures.  A third
+`online_trace_real` run uses local natural `skimage` astronaut/motorcycle
+images and the same real vLLM V1 queue.  All three use the normal scheduler;
+the first `online_trace` directory is retained as provenance but excluded
+because its old hook recorded layer=-1.  M=4096 vLLM memory-profile dummy
+forwards are also excluded from natural analysis.
 
 The online driver records request waves rather than a private synthetic
 operator call.  It does not expose vLLM scheduler iteration IDs or independent
@@ -47,8 +49,9 @@ dispatch/expert/combine events, so these are explicit limitations.
 |---|---:|---:|---:|---:|---:|
 | Mixed online (trace3) | 37,056 | 1--622 | 1.00 / 3.00 / 4.00 | 0--1 | 0.837 / 0.932 / 1.765 |
 | High burst (trace_high2) | 37,056 | 1--749 | 1.00 / 3.00 / 4.00 | 0--1 | 0.861 / 0.998 / 1.970 |
-| **Prefill only, pooled** | **4,416** | **8--749** | **3.09 / 3.63 / 3.79** | **0--1** | **0.903 / 1.214 / 3.748** |
-| **Decode only, pooled** | **69,696** | **1** | **1.00 / 1.50 / 4.00** | **0--1** | **0.849 / 0.972 / 1.832** |
+| Natural-image online | 24,768 | 1--535 | 1.00 / 3.00 / 4.00 | 0--1 | see raw CSV |
+| **Prefill only, pooled** | **5,952** | **8--749** | **3.02 / 3.63 / 3.79** | **0--1** | **0.897 / 1.234 / 4.377** |
+| **Decode only, pooled** | **92,928** | **1** | **1.00 / 1.50 / 4.00** | **0--1** | **0.847 / 0.969 / 1.912** |
 
 `NATURAL_FANOUT_VARIATION_SUFFICIENT = YES` for a bounded diagnostic (F1--F4
 is present and prefill p10--p90 is nonzero), but the useful prefill variation
@@ -74,27 +77,28 @@ conservative sender-destination geometry features.  Full values are in
 
 | Target / split | Model 0: M RMSE | Model 1: distribution RMSE | Model 2: +rank RMSE | Model 3: +fanout RMSE | Model 2→3 |
 |---|---:|---:|---:|---:|---:|
-| All valid rows (n=74,112) | 1.1189 | 1.1202 | 1.1202 | 1.1237 | **-0.31%** |
-| Prefill (n=4,416) | 0.3532 | 0.5402 | 0.5528 | 0.5529 | **-0.02%** |
-| Decode (n=69,696) | 1.1509 | 1.1509 | 1.1509 | 1.1541 | **-0.28%** |
+| All valid rows (n=98,880) | 1.3548 | 1.3533 | 1.3533 | 1.3536 | **-0.03%** |
+| Prefill (n=5,952) | see JSON | see JSON | see JSON | see JSON | **-0.08%** |
+| Decode (n=92,928) | see JSON | see JSON | see JSON | see JSON | **-0.12%** |
 
-The upper-1% trimmed sensitivity view is still null for decode (-0.11%) and
-only +0.80% for prefill; it is not a preregistered positive gate.  The
+The upper-1% trimmed sensitivity view is still null for decode (-0.01%) and
+only +0.21% for prefill; it is not a preregistered positive gate.  The
 negative/near-zero incremental value is stable in sign across phase splits.
 
 ## Matched natural pairs
 
 The bounded pair search uses same layer, exact M, active experts within 8,
 rank max/mean within 5%, and fanout separation >=0.25.  It emits 36
-worker-level pairs from 4,032 eligible prefill rows.  Fanout delta p10/p50/p90
-is 0.261/0.298/0.401.  Signed T_MoE delta p10/p50/p90 is -17.97/-2.26/+14.19%
-and median absolute delta is 6.64%.  The sign is not stable enough for a
+worker-level pairs from 5,376 eligible prefill rows.  Fanout delta p10/p50/p90
+is 0.261/0.298/0.401.  Signed T_MoE delta p10/p50/p90 is -15.83/-0.83/+16.70%
+and median absolute delta is 5.58%.  The sign is not stable enough for a
 causal claim; rows are correlated worker repetitions and the online hook does
 not separately timestamp dispatch/expert/combine.
 
 The slow Model-2 residual tail is not enriched for fanout: for prefill rows
 with M>=100, the slow residual decile has median fanout 3.620 and F4 0.636,
-versus 3.654 and 0.665 for the remaining rows.  This is an **ONLINE_TAIL_ASSOCIATION:
+versus 3.654 and 0.665 for the remaining rows (pooled runs; see raw model
+features).  This is an **ONLINE_TAIL_ASSOCIATION:
 NONE/OPPOSITE**, not evidence of a fanout tail signal.
 
 ## Histogram-preserving causal replay
@@ -147,4 +151,3 @@ events, plus a remeasured histogram-preserving pair in randomized order.
 - Causal replay: `causal_replay/cases512/` and `causal_replay/causal_summary.json`
 - Plots: `plots/` (M/fanout, expert distribution, residuals, model errors, matched pairs, replay, phase separation)
 - Gate and provenance: `gate_summary.json`, `workload_manifest.json`, `source_audit.md`, `dependency_graph.{md,json}`, `resource_compatibility_matrix.{csv,md}`, `overlap_candidate_shortlist.md`
-

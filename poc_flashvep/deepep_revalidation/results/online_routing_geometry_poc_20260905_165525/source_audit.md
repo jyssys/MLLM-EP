@@ -2,8 +2,9 @@
 
 - Model: local `Qwen3-VL-30B-A3B-Instruct` snapshot `9c4b90e1e4ba969fd3b5378b57d966d725f1b86c`.
 - Runtime: vLLM 0.20.0 V1, BF16, `TP2/DP2/EP4`, eager, chunked prefill (`max_num_batched_tokens=8192`), DBO off, prefix cache off.
-- GPU visibility: `CUDA_VISIBLE_DEVICES=1,2,3,4` (physical mapping recorded in `online_trace3/topology.dp*.json` and `online_trace_high2/topology.dp*.json`).
-- Runtime proof in `online_trace3/serving.log` / `online_trace_high2/run.log`: `Using DeepEPHTAll2AllManager`, EP world size 4, linear 32/128 experts, `Using TRITON Unquantized MoE backend`, `Using DeepEPHTPrepareAndFinalize`.
+- GPU visibility: `CUDA_VISIBLE_DEVICES=1,2,3,4` (physical mapping recorded in each topology JSON).
+- Runtime proof in `online_trace3/serving.log`, `online_trace_high2/run.log`, and `online_trace_real/run.log`: `Using DeepEPHTAll2AllManager`, EP world size 4, linear 32/128 experts, `Using TRITON Unquantized MoE backend`, `Using DeepEPHTPrepareAndFinalize`.
+- `online_trace_real` uses local natural `skimage` images (astronaut and motorcycle); the earlier trace3/high2 runs used bounded PIL fixtures and are retained as separate controls.
 
 ## Boundary
 
