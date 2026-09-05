@@ -18,7 +18,11 @@ from typing import Any
 import torch
 
 from poc_flashvep.deepep_revalidation.operator_replay import ExpertSpec
-from poc_flashvep.tile_slack_mechanism.operator_replay import _run_variant
+from poc_flashvep.tile_slack_mechanism.operator_replay import (
+    _run_variant,
+    _states_from_groups,
+    _dispatch,
+)
 
 
 _INSTALLED = False
@@ -71,6 +75,52 @@ def _layout_stats(buffer: Any, routes: torch.Tensor, spec: ExpertSpec,
     return _stats(values)
 
 
+def _local_expert_stats(state: Any, kernel: Any, original_experts: Any,
+                        spec: ExpertSpec, rank: int, warmups: int,
+                        iterations: int) -> dict[str, float]:
+    """Measure only the local Triton expert call on an already-dispatched input.
+
+    Dispatch is performed once by the caller to obtain the exact real DeepEP
+    receive layout.  The timed loop excludes that dispatch and all combine
+    work, so this is a diagnostic local-kernel comparison rather than a
+    replacement execution path.
+    """
+    from vllm.model_executor.layers.fused_moe.modular_kernel import ExpertTokensMetadata
+
+    assert state.recv_hidden is not None and state.recv_ids is not None
+    assert state.recv_weights is not None and state.recv_counts is not None
+    state.dispatch_event.current_stream_wait()
+    offset = rank * spec.local_num_experts
+    global_ids = torch.where(
+        state.recv_ids == -1,
+        spec.global_num_experts - 1 if offset == 0 else 0,
+        state.recv_ids + offset,
+    )
+    meta = ExpertTokensMetadata.make_from_list(
+        state.recv_counts, device=state.recv_hidden.device
+    )
+    stream = torch.cuda.Stream()
+
+    def one() -> float:
+        start = torch.cuda.Event(enable_timing=True)
+        end = torch.cuda.Event(enable_timing=True)
+        with torch.cuda.stream(stream):
+            start.record(stream)
+            original_experts(
+                kernel, spec.in_dtype, state.recv_hidden, None, spec.w1, spec.w2,
+                state.recv_weights, global_ids, spec.activation,
+                spec.global_num_experts, spec.local_num_experts, spec.expert_map,
+                spec.apply_router_weight_on_input, meta,
+            )
+            end.record(stream)
+        end.synchronize()
+        return float(start.elapsed_time(end))
+
+    for _ in range(max(1, warmups)):
+        one()
+    return _stats([one() for _ in range(max(1, iterations))])
+
+
 def _load() -> tuple[list[dict[str, Any]], dict[str, Any]]:
     global _CASES, _CAPTURE
     if _CASES is None:
@@ -111,6 +161,18 @@ def _run_cases(kernel: Any, original_experts: Any, spec: ExpertSpec,
             "serial", groups, routes, capture, kernel, original_experts,
             buffer, spec, rank, warmups, iterations,
         )
+        local_expert_stats = None
+        if os.environ.get("FLASHVEP_LOCAL_EXPERT_COMPARE", "0") == "1":
+            # Build the exact receive layout once, then time only the local
+            # Triton expert function.  This intentionally does not feed the
+            # result back into the stock request.
+            local_states, _ = _states_from_groups(groups, routes, capture, device)
+            local_records: list[Any] = []
+            _dispatch(0, local_states[0], buffer, buffer.get_comm_stream(), spec, local_records)
+            local_expert_stats = _local_expert_stats(
+                local_states[0], kernel, original_experts, spec, rank,
+                warmups=max(2, min(warmups, 5)), iterations=iterations,
+            )
         observations.append({
             "case_id": case["case_id"], "request_id": case["request_id"],
             "category": case["category"], "modality": case["modality"],
@@ -123,6 +185,7 @@ def _run_cases(kernel: Any, original_experts: Any, spec: ExpertSpec,
             "dispatch_stats": _stats([float(v) for v in timing["dispatch_ms"]]),
             "expert_stats": _stats([float(v) for v in timing["expert_ms"]]),
             "combine_stats": _stats([float(v) for v in timing["combine_ms"]]),
+            "local_expert_stats": local_expert_stats,
             "correctness": {"passed": True, "output_shape": list(output.shape)},
             "route_identity": True, "token_partition_identity": True,
             "activation_provenance": "validated BF16 layer-24 capture rows",

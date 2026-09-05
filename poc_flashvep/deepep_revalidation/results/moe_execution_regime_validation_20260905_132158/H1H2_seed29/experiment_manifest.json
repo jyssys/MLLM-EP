@@ -1,0 +1,45 @@
+{
+  "experiment": "H1_H2_execution_regime_factorial_grid",
+  "M_values": [
+    128,
+    256,
+    512,
+    1024
+  ],
+  "fanout_values": [
+    1,
+    2,
+    4
+  ],
+  "active_experts_per_rank": [
+    8,
+    16,
+    32
+  ],
+  "top_k": 8,
+  "global_experts": 128,
+  "ep": 4,
+  "layer": 24,
+  "random_seed": 29,
+  "case_order": "deterministically shuffled",
+  "invariants": [
+    "M within matched slice",
+    "top_k",
+    "total_assignments",
+    "rank_assignments",
+    "activation"
+  ],
+  "changed_factors": [
+    "destination EP ranks per token",
+    "active local experts per rank"
+  ],
+  "model_activation": "validated BF16 Qwen3-VL layer-24 capture rows",
+  "placement": "expert_id // 32",
+  "physical_gpus": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "warning": "synthetic route-shape diagnostic; real-route transfer is analyzed separately"
+}
