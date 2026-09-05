@@ -1,0 +1,11 @@
+{
+  "intervention": "torch.cuda.synchronize before FusedMoE.apply",
+  "diagnostic_only": true,
+  "anchor": "decode_M1",
+  "baseline": {"n": 71424, "p50_ms": 1.23584, "p90_ms": 1.945792, "p99_ms": 2.409225, "max_ms": 1944.237183, "gt10_ms": 17, "gt20_ms": 10},
+  "synchronized": {"n": 44352, "p50_ms": 0.954384, "p90_ms": 1.057789, "p99_ms": 2.094429, "max_ms": 14.739104, "gt10_ms": 6, "gt20_ms": 0},
+  "gt10_rate_reduction_pct": 43.2,
+  "gt20_count_reduction_pct": 100.0,
+  "p99_reduction_pct": 13.1,
+  "interpretation": "Draining outstanding work reduces extreme dispatch tails; not a production recommendation because large-prefill shapes are not uniformly improved."
+}

@@ -96,7 +96,9 @@ def _worker(dp_rank: int, args, barrier):
     waves = []
     for wave in range(args.waves):
         local_n = max(1, args.concurrency // 2)
-        if wave % 4 == 0: slots = [2] * local_n
+        if args.fixed_slot is not None:
+            slots = [args.fixed_slot] * local_n
+        elif wave % 4 == 0: slots = [2] * local_n
         elif wave % 4 == 1: slots = [0, 1][:local_n]
         elif wave % 4 == 2: slots = [3, 2, 1, 0][:local_n]
         else: slots = [1, 3, 2, 0][:local_n]
@@ -118,6 +120,8 @@ def main():
     ap.add_argument("--concurrency", type=int, default=8); ap.add_argument("--waves", type=int, default=12)
     ap.add_argument("--warmups", type=int, default=3); ap.add_argument("--max-tokens", type=int, default=1)
     ap.add_argument("--max-batched-tokens", type=int, default=8192); ap.add_argument("--regime", default="mixed_online")
+    ap.add_argument("--fixed-slot", type=int, default=None,
+                    help="diagnostic fixed-shape request template index; no scheduler/routing change")
     ap.add_argument("--backend", default="deepep_high_throughput",
                     choices=["deepep_high_throughput", "deepep_low_latency"],
                     help="validated DeepEP all2all backend; no scheduler semantics change")

@@ -1,0 +1,18 @@
+{
+  "final_status": "ROOT_CAUSE_FOUND",
+  "timing_pipeline": "VALID_WITH_LIMITATIONS",
+  "fixed_shape_tail": "REAL",
+  "anchor_decode_M1": {"samples": 71424, "p50_ms": 1.23584, "p90_ms": 1.945792, "p99_ms": 2.409225, "max_ms": 1944.237183, "cv_pct": 714.55},
+  "anchor_prefill_M284": {"samples": 384, "p50_ms": 1.796688, "p90_ms": 3.353805, "p99_ms": 3.470572, "max_ms": 3.5456, "cv_pct": 41.38},
+  "first_divergence": "DEEPEP_DISPATCH",
+  "cross_rank_pattern": "often both TP ranks of one DP group; some global all-rank events",
+  "fixed_route_replay": "stable; no giant tail in isolated 100 or controlled 100x4 measurements",
+  "intervention": "torch.cuda.synchronize before MoE",
+  "intervention_effect": {"decode_gt10_rate_reduction_pct": 43.2, "decode_gt20_count_reduction_pct": 100.0, "decode_p99_reduction_pct": 13.1},
+  "root_cause": "outstanding asynchronous DeepEP communication/peer-notification work on the communication stream, exposed at the next dispatch previous_event dependency",
+  "moe_specific": true,
+  "ep_specific": true,
+  "mllm_specific": false,
+  "production_method_implemented": false,
+  "notes": "The synchronization intervention is diagnostic and shape-dependent; it is not claimed as an optimization. Native scheduler id and separate host-wait counter were unavailable in stock V1 hook."
+}
