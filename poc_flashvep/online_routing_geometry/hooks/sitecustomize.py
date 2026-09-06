@@ -24,7 +24,27 @@ if os.environ.get("FLASHVEP_ONLINE_TRACE_DIR"):
     _INSTALLED = False
     _TLS = threading.local()
     _STAGE_PATCHED = False
+    _EVENT_PATCHED = False
     _INVOCATION = 0
+    _LAST_DISPATCH_MS = {}
+
+    def _float_env(name: str, default: float | None = None) -> float | None:
+        try:
+            value = os.environ.get(name)
+            return default if value in (None, "") else float(value)
+        except Exception:
+            return default
+
+    def _oracle_ids() -> set[int]:
+        raw = os.environ.get("FLASHVEP_ORACLE_SYNC_INVOCATIONS", "")
+        out = set()
+        for item in raw.split(","):
+            try:
+                if item.strip():
+                    out.add(int(item.strip()))
+            except ValueError:
+                continue
+        return out
 
     def _rank_info() -> tuple[int, int, int]:
         try:
@@ -76,6 +96,51 @@ if os.environ.get("FLASHVEP_ONLINE_TRACE_DIR"):
             end.record(stream)
             ctx["stage_events"].append((name, start, end, int(stream.cuda_stream), t0))
 
+    def _install_event_wait_wrapper() -> None:
+        """Observe DeepEP EventOverlap waits without changing their semantics.
+
+        EventHandle has no non-blocking ``query`` API in the installed DeepEP
+        build.  We therefore record CUDA events around the existing
+        ``current_stream_wait`` enqueue and resolve them only after the stock
+        MoE call.  This measures the closest observable downstream dependency
+        wait while preserving the original stream/event ordering.
+        """
+        global _EVENT_PATCHED
+        if _EVENT_PATCHED:
+            return
+        try:
+            from deep_ep import utils
+            original_wait = utils.EventOverlap.current_stream_wait
+            if getattr(original_wait, "_flashvep_wait_wrapper", False):
+                _EVENT_PATCHED = True
+                return
+
+            @functools.wraps(original_wait)
+            def wrapped_wait(self, *args, **kwargs):
+                ctx = getattr(_TLS, "moe_ctx", None)
+                if ctx is None or not torch.cuda.is_available():
+                    return original_wait(self, *args, **kwargs)
+                stream = torch.cuda.current_stream()
+                start = torch.cuda.Event(enable_timing=True)
+                end = torch.cuda.Event(enable_timing=True)
+                start.record(stream)
+                try:
+                    return original_wait(self, *args, **kwargs)
+                finally:
+                    end.record(stream)
+                    ctx.setdefault("wait_events", []).append(
+                        (start, end, int(stream.cuda_stream), time.perf_counter_ns()))
+
+            wrapped_wait._flashvep_wait_wrapper = True
+            utils.EventOverlap.current_stream_wait = wrapped_wait
+            _EVENT_PATCHED = True
+        except Exception as exc:
+            try:
+                Path(os.environ["FLASHVEP_ONLINE_TRACE_DIR"], "event_wait_wrapper_error.txt").write_text(
+                    repr(exc), encoding="utf-8")
+            except Exception:
+                pass
+
     def _install_stage_wrappers() -> None:
         """Patch only local observer boundaries; stock backend calls unchanged."""
         global _STAGE_PATCHED
@@ -93,6 +158,33 @@ if os.environ.get("FLASHVEP_ONLINE_TRACE_DIR"):
                     continue
                 @functools.wraps(original)
                 def wrapped(self, *args, __orig=original, __label=label, **kwargs):
+                    ctx = getattr(_TLS, "moe_ctx", None)
+                    previous_event = kwargs.get("previous_event")
+                    if ctx is not None:
+                        ctx.setdefault("previous_events", []).append({
+                            "stage": __label,
+                            "present": bool(previous_event is not None),
+                            "event_handle_present": bool(
+                                getattr(previous_event, "event", None) is not None),
+                            "ready_query": "UNAVAILABLE_DEEPEP_EVENT_HANDLE",
+                        })
+                    # Narrow diagnostic intervention: drain only the DeepEP
+                    # communication stream before stock dispatch.  The stream
+                    # and all event dependencies are otherwise untouched.
+                    if __label == "deepep_dispatch" and getattr(_TLS, "comm_drain_requested", False):
+                        t0 = time.perf_counter_ns()
+                        try:
+                            comm = self.get_comm_stream()
+                            if ctx is not None:
+                                ctx["comm_stream_id"] = int(comm.cuda_stream)
+                            comm.synchronize()
+                            elapsed = (time.perf_counter_ns() - t0) / 1e6
+                            if ctx is not None:
+                                ctx["comm_drain_wall_ms"] = ctx.get("comm_drain_wall_ms", 0.0) + elapsed
+                                ctx["intervention_applied"] = True
+                        except Exception as exc:
+                            if ctx is not None:
+                                ctx["intervention_error"] = repr(exc)
                     return _ctx_stage(__label, lambda: __orig(self, *args, **kwargs))
                 wrapped._flashvep_stage_wrapper = True
                 setattr(buf_cls, method, wrapped)
@@ -192,6 +284,7 @@ if os.environ.get("FLASHVEP_ONLINE_TRACE_DIR"):
         original_unquantized_apply = UnquantizedFusedMoEMethod.apply
 
         _install_stage_wrappers()
+        _install_event_wait_wrapper()
 
         # Expert stage is separated from dispatch/combine by instrumenting the
         # modular kernel's expert call.  The wrapped function only records
@@ -213,24 +306,50 @@ if os.environ.get("FLASHVEP_ONLINE_TRACE_DIR"):
                 pass
 
         def apply(self, layer, x, topk_weights, topk_ids, shared_experts_input):
-            global _INVOCATION
+            global _INVOCATION, _LAST_DISPATCH_MS
             _INVOCATION += 1
             local_invocation_id = _INVOCATION
             ids = topk_ids.detach().to("cpu").numpy()
             dp_rank, ep_rank, ep_size = _rank_info()
             phase = "decode" if ids.shape[0] <= 1 else "prefill"
+            policy = os.environ.get("FLASHVEP_POLICY", "stock").strip().lower()
+            threshold = _float_env("FLASHVEP_SIMPLE_PREV_DISPATCH_THRESHOLD_MS")
+            prev_key = (dp_rank, ep_rank)
+            prev_dispatch_ms = _LAST_DISPATCH_MS.get(prev_key)
+            oracle_hit = local_invocation_id in _oracle_ids()
+            simple_hit = (policy in {"online_simple", "simple", "p3"}
+                          and threshold is not None
+                          and prev_dispatch_ms is not None
+                          and prev_dispatch_ms >= threshold)
+            comm_drain_requested = (
+                os.environ.get("FLASHVEP_COMM_STREAM_SYNC") == "1"
+                or oracle_hit and os.environ.get("FLASHVEP_ORACLE_INTERVENTION", "comm_stream") == "comm_stream"
+                or simple_hit)
+            global_sync = os.environ.get("FLASHVEP_SYNC_BEFORE_MOE") == "1"
+            if oracle_hit and os.environ.get("FLASHVEP_ORACLE_INTERVENTION", "comm_stream") == "global":
+                global_sync = True
             event_start = torch.cuda.Event(enable_timing=True)
             event_end = torch.cuda.Event(enable_timing=True)
             # Diagnostic-only intervention: expose any outstanding work before
             # entering MoE.  This never runs in the baseline unless explicitly
             # requested by the experiment environment.
-            if os.environ.get("FLASHVEP_SYNC_BEFORE_MOE") == "1":
+            if global_sync:
                 torch.cuda.synchronize()
             event_start.record(torch.cuda.current_stream())
             t0 = time.perf_counter_ns()
             t1 = t0
-            ctx = {"stage_events": []}
+            ctx = {"stage_events": [], "wait_events": [], "previous_events": [],
+                   "intervention_policy": policy,
+                   "intervention_requested": bool(comm_drain_requested or global_sync),
+                   "intervention_kind": ("global_sync" if global_sync
+                                         else "comm_stream_drain" if comm_drain_requested
+                                         else "none"),
+                   "oracle_hit": bool(oracle_hit),
+                   "simple_hit": bool(simple_hit),
+                   "prev_dispatch_ms": prev_dispatch_ms,
+                   "previous_event_ready": "UNAVAILABLE_DEEPEP_EVENT_HANDLE"}
             _TLS.moe_ctx = ctx
+            _TLS.comm_drain_requested = comm_drain_requested
             original = (original_modular_apply
                         if isinstance(self, FusedMoEModularMethod)
                         else original_unquantized_apply)
@@ -241,6 +360,7 @@ if os.environ.get("FLASHVEP_ONLINE_TRACE_DIR"):
                 t1 = time.perf_counter_ns()
             finally:
                 _TLS.moe_ctx = None
+                _TLS.comm_drain_requested = False
             try:
                 cuda_ms = float(event_start.elapsed_time(event_end))
             except Exception:
@@ -266,7 +386,43 @@ if os.environ.get("FLASHVEP_ONLINE_TRACE_DIR"):
                 stages.append({"stage": name, "cuda_ms": stage_cuda,
                                "wall_ms": (time.perf_counter_ns() - stage_t0) / 1e6,
                                "stream_id": stream_id})
+            wait_values = []
+            for start, end, stream_id, wait_t0 in ctx.get("wait_events", []):
+                try:
+                    end.synchronize()
+                    wait_values.append(float(start.elapsed_time(end)))
+                except Exception:
+                    continue
+            if wait_values:
+                stages.append({"stage": "deepep_event_wait",
+                               "cuda_ms": float(sum(wait_values)),
+                               "wait_max_ms": float(max(wait_values)),
+                               "wait_count": len(wait_values),
+                               "wall_ms": float(sum(wait_values)),
+                               "stream_id": int(ctx.get("comm_stream_id", 0))})
             record["stage_records"] = stages
+            record.update({
+                "previous_event_present": bool(any(z.get("present") for z in ctx.get("previous_events", []))),
+                "previous_event_count": int(sum(bool(z.get("present")) for z in ctx.get("previous_events", []))),
+                "previous_event_ready": ctx.get("previous_event_ready"),
+                "previous_event_records": ctx.get("previous_events", []),
+                "event_wait_count": len(wait_values),
+                "event_wait_cuda_ms": float(sum(wait_values)) if wait_values else 0.0,
+                "event_wait_max_ms": float(max(wait_values)) if wait_values else 0.0,
+                "comm_stream_id": ctx.get("comm_stream_id"),
+                "comm_drain_wall_ms": float(ctx.get("comm_drain_wall_ms", 0.0)),
+                "intervention_policy": ctx.get("intervention_policy"),
+                "intervention_requested": bool(ctx.get("intervention_requested")),
+                "intervention_applied": bool(ctx.get("intervention_applied", global_sync)),
+                "intervention_kind": ctx.get("intervention_kind"),
+                "oracle_hit": bool(ctx.get("oracle_hit")),
+                "simple_hit": bool(ctx.get("simple_hit")),
+                "prev_dispatch_ms": ctx.get("prev_dispatch_ms"),
+            })
+            dispatch_values = [z.get("cuda_ms") for z in stages
+                               if z.get("stage") == "deepep_dispatch" and z.get("cuda_ms") is not None]
+            if dispatch_values:
+                _LAST_DISPATCH_MS[prev_key] = float(dispatch_values[-1])
             _append(record, ids)
             return out
         # In vLLM 0.20 an unquantized DeepEP layer normally retains
