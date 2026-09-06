@@ -1,0 +1,43 @@
+{
+  "experiment": "autonomous_moe_ep_night_discovery",
+  "status": "SEARCH_SPACE_EXHAUSTED_NO_GO",
+  "date": "2026-09-07",
+  "repository": "/home/esjung/MLLM-EP-github",
+  "branch": "flashvep/autonomous-moe-ep-night-discovery",
+  "cuda_visible_devices": "1,2,3,4",
+  "model": "Qwen3-VL-30B-A3B-Instruct",
+  "checkpoint_snapshot": "9c4b90e1e4ba969fd3b5378b57d966d725f1b86c",
+  "topology": {"tensor_parallel": 2, "data_parallel": 2, "expert_parallel": 4, "pipeline_parallel": 1},
+  "runtime": {
+    "vllm": "0.20.0+cu129",
+    "torch": "2.11.0+cu129",
+    "deepep": "1.2.1+73b6ea4",
+    "backend": "deepep_high_throughput",
+    "dtype": "bfloat16",
+    "eager": true,
+    "dbo": false,
+    "prefix_cache": false,
+    "async_scheduling": true
+  },
+  "model_config": {"moe_layers": 48, "routed_experts": 128, "top_k": 8, "hidden_size": 2048, "expert_intermediate_size": 768},
+  "source_discovery_passes": 3,
+  "hypotheses_catalogued": 49,
+  "fresh_live_hypotheses": ["H33", "H38", "H43", "H45", "H46", "H48"],
+  "fresh_v7": {
+    "successful_requests": 21456,
+    "logical_sampled_steps": 59789,
+    "logical_sampled_layer_rows": 298945,
+    "blocks": ["H38", "H43", "H33", "H45", "H46", "H48"],
+    "wall_seconds": 3600,
+    "gpu_hours": 4.0
+  },
+  "cumulative_live_seconds_excluding_invalid": 18241.93,
+  "cumulative_four_gpu_hours": 20.2689,
+  "analysis": {
+    "online_parser": "analysis/hypothesis_effects.csv",
+    "diagnostics": "analysis/fresh_diagnostics.json",
+    "plots": "plots/",
+    "trace_primary": "live_v7/",
+    "known_caveat": "deferred observer H01 measured approximately 3.27 percent E2E overhead versus no-hook; all small effects are interpreted conservatively"
+  }
+}

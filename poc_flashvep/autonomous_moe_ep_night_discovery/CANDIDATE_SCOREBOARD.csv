@@ -1,0 +1,49 @@
+id,name,status,direct_perfect_e2e_pct,feasible_e2e_pct,controlled_effect_pct,repetitions,causal_clarity,generality,novelty_risk,trivial_fix,notes
+H01,observer-induced serialization,TESTED_CAUTION,3.27,NA,3.27,70,MEDIUM,measurement,LOW,buffered observer,Deferred nonblocking observation retained regime but added a measured ~3.27% E2E tax.
+H02,event versus route-copy observer tax,UNTESTED,NA,NA,NA,0,UNKNOWN,measurement,LOW,buffering,Not promoted after H01 caution.
+H03,cross-DP work partition,NO_GO,0.04,NA,0.04,~100,MEDIUM,EP-serving,MEDIUM,none,Balanced versus skewed equal-work control was null.
+H04,cross-DP phase mismatch,NO_GO,-0.86,NA,-0.86,~100,MEDIUM,EP-serving,MEDIUM,none,Matched phase control was null and sign was not stable.
+H05,idle DP participation,NO_GO,-1.82,NA,-1.82,~100,WEAK,EP-serving,MEDIUM,none,Long randomized run collapsed early local signal.
+H06,completion churn wave makespan,HOLD,1.44,NA,91.14,~100,MEDIUM,serving,MEDIUM,API semantics,Wave critical path changed strongly but request median did not.
+H07,within versus cross DP heterogeneity,NO_GO,0.15,NA,0.17,~100,MEDIUM,EP-serving,MEDIUM,none,No stable direct request effect.
+H08,request order,NO_GO,0.2,NA,0.0,~100,WEAK,serving,MEDIUM,none,Order effect remained noise-level.
+H09,chunk residue,NO_GO,0.0,NA,0.0,~300,WEAK,serving,HIGH,none,Common state transition moved both variants together.
+H10,few long versus many short packing,NO_GO,0,NA,0,~100,MEDIUM,serving,MEDIUM,packing,Request composition changed wave but not a robust MoE effect.
+H11,mixed phase collective serialization,NO_GO,1.5,NA,3.6,~100,WEAK,EP-serving,HIGH,phase separation,Weak request-level effect.
+H12,bursty arrival state,HOLD,4,NA,4,~100,WEAK,serving,HIGH,arrival pacing,H25 did not replicate the effect.
+H14,context history regime,NO_GO,0,NA,0,~100,WEAK,serving,HIGH,none,Common latency expansion not treatment-specific.
+H15,vision predecessor overhead,NO_GO,1,NA,1,~100,MEDIUM,MLLM,HIGH,front-end,Vision adds front-end cost but no MoE execution opportunity.
+H16,layer attention-to-MoE dependency,NO_GO,NA,NA,correlation only,72592,WEAK,generic,HIGH,none,Layer correlations lacked causal E2E intervention.
+H17,host expert metadata serialization,HOLD,NA,NA,0.11ms typical,287219,MEDIUM,MoE-runtime,MEDIUM,allocation reuse,Frequent but tiny metadata path; outliers require targeted study.
+H18,async finalize slack,UNTESTED,NA,NA,NA,0,UNKNOWN,MoE-EP,HIGH,none,No safe intervention implemented.
+H19,token order packing,UNTESTED,NA,NA,NA,0,UNKNOWN,MoE-runtime,MEDIUM,none,Not promoted in this resumed run.
+H20,CPU DP rendezvous,NO_GO,NA,NA,0,~10000,WEAK,EP-serving,MEDIUM,backend choice,Async-off and NCCL-forced controls were null.
+H21,graph padding,UNTESTED,NA,NA,NA,0,UNKNOWN,EP-serving,HIGH,config,Not run under eager validated path.
+H22,KV pressure interaction,UNTESTED,NA,NA,NA,0,UNKNOWN,serving,HIGH,cache sizing,Not run.
+H23,image count scheduling,NO_GO,0.3,NA,0.3,~100,MEDIUM,MLLM,HIGH,none,One versus two image request medians were equal.
+H24,attention/MoE whole-GPU co-tail,HOLD,NA,NA,14.2x enrichment,79764,MEDIUM,generic-runtime,HIGH,none,"14.2x co-tail enrichment suggests generic resource event, not EP-only method."
+H25,host launch cadence,NO_GO,1,NA,1,~100,WEAK,serving,HIGH,arrival pacing,Dense versus paced run did not give robust benefit.
+H26,shape transition setup,NO_GO,0,NA,0,7,WEAK,kernel-runtime,HIGH,shape warmup,No stable transition effect in diagnostics.
+H27,decode age,NO_GO,0,NA,-0.16,5,WEAK,serving,HIGH,none,No age-dependent penalty.
+H28,request turnover,NO_GO,0,NA,wave-only,~100,WEAK,serving,HIGH,API semantics,Turnover changed wave completion but not request median.
+H29,DP physical placement,UNTESTED,NA,NA,NA,0,UNKNOWN,EP-serving,MEDIUM,placement,Not run.
+H30,instrumentation storage cadence,UNTESTED,NA,NA,NA,0,UNKNOWN,measurement,LOW,buffering,No separate no-hook storage sweep.
+H31,async scheduler control,NO_GO,-1.83,NA,-1.90,~260,MEDIUM,serving,MEDIUM,config,Async-off retained stable A/B; no prior wave divergence.
+H32,DP NCCL rendezvous backend,NO_GO,-0.03,NA,-0.01,~391,MEDIUM,EP-serving,MEDIUM,config,Forced NCCL DP path was supported and paired-null.
+H33,per-layer metadata allocation copy,NO_GO,NA,NA,1.73,216,MEDIUM,MoE-runtime,MEDIUM,allocation reuse,"Fresh v7 request median +1.73%; A/B output budgets differ, so no metadata-only causal claim."
+H34,async combine copy,UNTESTED,NA,NA,NA,0,UNKNOWN,MoE-EP,HIGH,none,No intervention.
+H35,process-group progress,UNTESTED,NA,NA,NA,0,UNKNOWN,EP-serving,HIGH,affinity,No separate OS-affinity control.
+H36,idle dummy participation,NO_GO,-0.25,NA,-0.26,260,MEDIUM,EP-serving,MEDIUM,none,Corrected fresh worker recorded dummy RPCs but no useful-request latency effect.
+H37,one-DP output churn,NO_GO,0.07,NA,87.9,~260,MEDIUM,serving,HIGH,API semantics,Wave/request divergence did not survive request-level metric.
+H38,metadata step recurrence,NO_GO,NA,NA,wave/request confounded,625,WEAK,MoE-runtime,HIGH,allocation reuse,Fresh v7 repeats output-length confound (A=1 vs B=16); not a metadata causal effect.
+H39,phase kernel regime,NO_GO,NA,NA,<2,~10000,WEAK,kernel-runtime,HIGH,shape warmup,No stable phase-specific kernel opportunity.
+H40,whole-GPU co-tail,HOLD,NA,NA,14.2x enrichment,79764,MEDIUM,generic-runtime,HIGH,none,Attention/MoE tails co-occur; generic explanation stronger.
+H41,response semantics,NO_GO,0,NA,wave-only,~260,MEDIUM,serving,HIGH,API semantics,Server step traces and request medians disagree with wave signal.
+H42,queue-residence attribution,UNTESTED,NA,NA,NA,0,UNKNOWN,serving,HIGH,none,Not separately instrumented.
+H43,pinned versus unpinned DP,NO_GO,-0.04,NA,-0.03,~320,MEDIUM,serving,MEDIUM,config,No pinned-DP artifact.
+H44,prompt reuse state,UNTESTED,NA,NA,NA,0,UNKNOWN,serving,HIGH,cache,Not run.
+H45,common regime transition repeat,NO_GO,-0.12,NA,-0.17,~1123,WEAK,serving,HIGH,none,Fresh v7 variants moved together; request median null.
+H46,turnover repeat,NO_GO,-2.30,NA,89.62,~100,WEAK,serving,HIGH,API semantics,Fresh v7 repeats wave-only completion spread; request median slightly favors B.
+H47,completion spread repeat,NO_GO,-0.23,NA,86.9,~119,WEAK,serving,HIGH,API semantics,Fresh repeat confirmed wave/request mismatch.
+H48,mixed phase repeat,NO_GO,-0.29,NA,-0.52,~53,WEAK,serving,HIGH,phase separation,Fresh v7 common high-latency regime; request median null.
+H49,async-off rendezvous residual,NO_GO,-1.83,NA,-1.90,~260,WEAK,EP-serving,HIGH,config,Alias of H31 retained for rethink accounting.
