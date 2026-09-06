@@ -39,10 +39,12 @@ def _prompt(model: str, modality: str, text_tokens: int, image_size: int, fill: 
 
 
 def _worker(dp_rank: int, args, barrier):
+    context_file = str(Path(args.out) / f"active_context.dp{dp_rank}.json")
     os.environ.update({"VLLM_DP_RANK": str(dp_rank), "VLLM_DP_RANK_LOCAL": str(dp_rank),
                        "VLLM_DP_SIZE": "2", "VLLM_DP_MASTER_IP": "127.0.0.1",
                        "VLLM_DP_MASTER_PORT": str(args.port),
-                       "FLASHVEP_ONLINE_CONTEXT": args.regime})
+                       "FLASHVEP_ONLINE_CONTEXT": args.regime,
+                       "FLASHVEP_ACTIVE_CONTEXT_FILE": context_file})
     # Multiprocessing start methods can initialize the interpreter before the
     # environment is populated by the parent.  Install the local observer
     # explicitly as a defensive second path; this still only monkey-patches
@@ -104,12 +106,43 @@ def _worker(dp_rank: int, args, barrier):
         else: slots = [1, 3, 2, 0][:local_n]
         prompts = [copy.deepcopy(templates[i]) for i in slots]
         barrier.wait(600)
+        # The hook observes these values inside GPUModelRunner.execute_model.
+        # They provide a request/step join key without changing scheduler or
+        # model semantics.  IDs in this bounded driver are stable only within
+        # this run and are never used to alter routing.
+        request_labels = [f"dp{dp_rank}_wave{wave}_req{i}" for i in range(local_n)]
+        os.environ["FLASHVEP_ACTIVE_WAVE"] = str(wave)
+        os.environ["FLASHVEP_ACTIVE_REQUEST_LABELS"] = ",".join(request_labels)
+        Path(context_file).write_text(json.dumps({"wave": wave, "request_labels": request_labels}), encoding="utf-8")
         t0 = time.perf_counter_ns()
         outs = llm.generate(prompts, sampling, use_tqdm=False)
         t1 = time.perf_counter_ns()
+        request_metrics = []
+        for i, out in enumerate(outs):
+            m = getattr(out, "metrics", None)
+            request_metrics.append({
+                "request_label": request_labels[i] if i < len(request_labels) else None,
+                "vllm_request_id": getattr(out, "request_id", None),
+                "prompt_tokens": len(out.prompt_token_ids or []),
+                "output_tokens": len(out.outputs[0].token_ids) if out.outputs else 0,
+                "arrival_time": getattr(m, "arrival_time", None) if m else None,
+                "queued_ts": getattr(m, "queued_ts", None) if m else None,
+                "scheduled_ts": getattr(m, "scheduled_ts", None) if m else None,
+                "first_token_ts": getattr(m, "first_token_ts", None) if m else None,
+                "last_token_ts": getattr(m, "last_token_ts", None) if m else None,
+                "first_token_latency": getattr(m, "first_token_latency", None) if m else None,
+            })
         waves.append({"wave": wave, "local_requests": local_n, "wall_ms": (t1-t0)/1e6,
                       "prompt_tokens": [len(o.prompt_token_ids) for o in outs],
-                      "outputs": [[int(x) for x in o.outputs[0].token_ids] for o in outs]})
+                      "outputs": [[int(x) for x in o.outputs[0].token_ids] for o in outs],
+                      "request_labels": request_labels, "request_metrics": request_metrics,
+                      "t0_ns": t0, "t1_ns": t1})
+        os.environ.pop("FLASHVEP_ACTIVE_REQUEST_LABELS", None)
+        os.environ.pop("FLASHVEP_ACTIVE_WAVE", None)
+        try:
+            Path(context_file).unlink()
+        except FileNotFoundError:
+            pass
         barrier.wait(600)
     Path(args.out, f"waves.dp{dp_rank}.json").write_text(json.dumps(waves, indent=2), encoding="utf-8")
 

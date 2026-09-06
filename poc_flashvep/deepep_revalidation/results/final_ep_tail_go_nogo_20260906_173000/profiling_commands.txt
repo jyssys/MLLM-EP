@@ -1,0 +1,5 @@
+CUDA_VISIBLE_DEVICES=1,2,3,4 PYTHONPATH=/home/esjung/MLLM-EP-github/poc_flashvep/online_routing_geometry/hooks:$PYTHONPATH FLASHVEP_ONLINE_TRACE_DIR=<result>/direct_stock_run4 VLLM_DBO_COMM_SMS=20 /home/esjung/.venvs/flashvep-deepep-v020/bin/python -u poc_flashvep/online_routing_geometry/run_online.py --model <Qwen3-VL-snapshot> --out <result>/direct_stock_run4 --concurrency 8 --waves 12 --warmups 2 --max-tokens 4 --max-batched-tokens 4096 --regime final_direct_stock4 --backend deepep_high_throughput
+
+CUDA_VISIBLE_DEVICES=1,2,3,4 ... --backend deepep_low_latency  # bounded attempt; failed at NVSHMEM queue-depth assertion
+
+python poc_flashvep/final_ep_tail_go_nogo/analyze_final_gate.py --run <result>/direct_stock_run4 --out <result>/analysis_direct_run4

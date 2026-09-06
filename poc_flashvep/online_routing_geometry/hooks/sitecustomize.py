@@ -26,6 +26,7 @@ if os.environ.get("FLASHVEP_ONLINE_TRACE_DIR"):
     _STAGE_PATCHED = False
     _EVENT_PATCHED = False
     _INVOCATION = 0
+    _EXECUTION_STEP = 0
     _LAST_DISPATCH_MS = {}
 
     def _float_env(name: str, default: float | None = None) -> float | None:
@@ -211,6 +212,61 @@ if os.environ.get("FLASHVEP_ONLINE_TRACE_DIR"):
         match = re.search(r"(?:layers|h)\.(\d+)", text)
         return int(match.group(1)) if match else -1
 
+    def _install_request_context_wrapper() -> None:
+        """Attach the actual V1 scheduled request set to each MoE call.
+
+        This is measurement-only.  ``SchedulerOutput.num_scheduled_tokens``
+        is the authoritative worker-side request set; we do not infer request
+        identity from flattened token positions.  That distinction is kept in
+        the output so an offline report cannot accidentally claim exact
+        per-request MoE attribution.
+        """
+        global _EXECUTION_STEP
+        try:
+            from vllm.v1.worker.gpu_model_runner import GPUModelRunner
+            original_execute = GPUModelRunner.execute_model
+            if getattr(original_execute, "_flashvep_request_wrapper", False):
+                return
+
+            @functools.wraps(original_execute)
+            def wrapped_execute(self, scheduler_output, *args, **kwargs):
+                global _EXECUTION_STEP
+                _EXECUTION_STEP += 1
+                old = getattr(_TLS, "execution_context", None)
+                reqs = []
+                try:
+                    reqs = list(getattr(scheduler_output, "num_scheduled_tokens", {}).keys())
+                except Exception:
+                    pass
+                file_wave = None
+                file_labels = []
+                try:
+                    context_path = os.environ.get("FLASHVEP_ACTIVE_CONTEXT_FILE")
+                    if context_path:
+                        with open(context_path, encoding="utf-8") as fh:
+                            context = json.load(fh)
+                        file_wave = context.get("wave")
+                        file_labels = list(context.get("request_labels", []))
+                except Exception:
+                    pass
+                _TLS.execution_context = {
+                    "scheduler_step_id": _EXECUTION_STEP,
+                    "scheduled_request_ids": [str(x) for x in reqs],
+                    "active_wave": os.environ.get("FLASHVEP_ACTIVE_WAVE") if os.environ.get("FLASHVEP_ACTIVE_WAVE") is not None else file_wave,
+                    "active_request_labels": [x for x in os.environ.get("FLASHVEP_ACTIVE_REQUEST_LABELS", "").split(",") if x] or file_labels,
+                }
+                try:
+                    return original_execute(self, scheduler_output, *args, **kwargs)
+                finally:
+                    _TLS.execution_context = old
+
+            wrapped_execute._flashvep_request_wrapper = True
+            GPUModelRunner.execute_model = wrapped_execute
+        except Exception as exc:
+            try:
+                Path(os.environ["FLASHVEP_ONLINE_TRACE_DIR"], "request_context_wrapper_error.txt").write_text(repr(exc), encoding="utf-8")
+            except Exception:
+                pass
     def _route_features(ids: np.ndarray, ep_size: int) -> dict:
         if ids.ndim != 2 or ids.shape[0] == 0:
             return {"M": int(ids.shape[0]) if ids.ndim else 0, "top_k": 0}
@@ -285,6 +341,7 @@ if os.environ.get("FLASHVEP_ONLINE_TRACE_DIR"):
 
         _install_stage_wrappers()
         _install_event_wait_wrapper()
+        _install_request_context_wrapper()
 
         # Expert stage is separated from dispatch/combine by instrumenting the
         # modular kernel's expert call.  The wrapped function only records
@@ -348,6 +405,7 @@ if os.environ.get("FLASHVEP_ONLINE_TRACE_DIR"):
                    "simple_hit": bool(simple_hit),
                    "prev_dispatch_ms": prev_dispatch_ms,
                    "previous_event_ready": "UNAVAILABLE_DEEPEP_EVENT_HANDLE"}
+            exec_ctx = getattr(_TLS, "execution_context", {}) or {}
             _TLS.moe_ctx = ctx
             _TLS.comm_drain_requested = comm_drain_requested
             original = (original_modular_apply
@@ -374,6 +432,10 @@ if os.environ.get("FLASHVEP_ONLINE_TRACE_DIR"):
                 "scheduler_iteration_source": "local_moe_invocation_proxy",
                 "route_id": f"{os.environ.get('FLASHVEP_ONLINE_CONTEXT','unknown')}_dp{dp_rank}_i{local_invocation_id}_l{int(getattr(_TLS, 'layer', _layer_id(layer)))}",
                 "request_context": os.environ.get("FLASHVEP_ONLINE_CONTEXT", "unknown"),
+                "scheduler_step_id": exec_ctx.get("scheduler_step_id"),
+                "scheduled_request_ids": exec_ctx.get("scheduled_request_ids", []),
+                "active_wave": exec_ctx.get("active_wave"),
+                "active_request_labels": exec_ctx.get("active_request_labels", []),
             }
             record.update(_route_features(ids, ep_size))
             stages = []
