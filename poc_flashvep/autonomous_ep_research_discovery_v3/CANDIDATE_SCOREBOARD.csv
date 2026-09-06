@@ -1,0 +1,13 @@
+candidate,effect_strength,robustness,causal_clarity,novelty_potential,systems_importance,implementability,headroom_status,decision,notes
+C1_concurrency_phase_geometry,3,2,1,2,4,3,LOW,CLOSED,"c2/c4/c8/c16 and repeats show load/state variance; latency gain is a throughput trade-off"
+C2_modality_phase_mix,2,2,1,2,3,3,LOW,CLOSED,"vision-hi expert share 42.2% vs text 31.0%; matched warmup removes transition and E2E includes encoder"
+D2_expert_dispatch_composition,2,2,1,2,3,2,LOW,CLOSED,"stage shares move across regimes; no direct E2E oracle or causal perturbation"
+H1_layer_heterogeneity,1,1,1,2,2,3,LOW,CLOSED,"fresh layer p50 ratios only 1.18x prefill / 1.25x decode and low mass"
+J1_cache_state,1,1,0,2,2,2,UNKNOWN,CLOSED,"transition replication normal; cache/DVFS state remains a diagnostic confound"
+K1_scheduler_bubble,3,2,1,2,4,3,LOW,CLOSED,"request latency varies 286-970ms while normal T_MoE ~1.2-1.4ms; reducing concurrency trades throughput"
+L1_stage_residual_cluster,2,2,1,2,3,2,LOW,CLOSED,"90,240-row residual cluster is high-M/high-active-expert; fanout adds no held-out signal"
+B1_overlap_slack,1,1,0,2,3,2,LOW,CLOSED,"event wait share 3-16%; prior wait-aware tail bound remains 1.09% request mass"
+F1_sender_alignment,1,1,0,1,2,2,LOW,CLOSED,"fanout/geometry null; no new direct signal"
+A1_fixed_shape_tail,1,5,5,1,3,2,LOW,CLOSED,"prior direct request-level cap 1.09%"
+C1b_token_budget_regime,4,4,4,1,4,5,HIGH,TRIVIAL_ENGINEERING,"fresh same-M control: MBT 8192->4096 raises T_MoE p50 1.155->2.133 ms and E2E p50 901->1278 ms; static scheduler knob"
+C1c_multimodal_shape_transition_state,5,1,2,2,3,3,UNKNOWN,CLOSED,"one transition run 2.395 vs 1.204 ms, but telemetry-tagged replication 1.20 ms; vision-only/text-only controls null; likely runtime/DVFS/cache state, not robust paper signal"

@@ -1,0 +1,13 @@
+Backend feasibility probe: `deepep_low_latency`
+
+Status: FAILED BEFORE SERVING (no latency samples collected).
+
+Observed assertion in local DeepEP/vLLM stack:
+
+```
+assert self.nvshmem_qp_depth >= (num_max_dispatch_tokens_per_rank + 1) * 2
+```
+
+The same assertion occurred in the first attempt and retry.  The full
+unmodified launcher log remains beside this compact summary for audit; the
+assertion was not bypassed with an unsafe patch.

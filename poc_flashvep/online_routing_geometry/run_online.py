@@ -65,12 +65,16 @@ def _worker(dp_rank: int, args, barrier):
         "/home/esjung/anaconda3/lib/python3.14/site-packages/skimage/data/coffee.png",
         "/home/esjung/anaconda3/lib/python3.14/site-packages/skimage/data/rocket.jpg",
     ]
-    templates = [
-        _prompt(model, "text", 220, 448, "blue"),
-        _prompt(model, "text", 560, 448, "red"),
-        _prompt(model, "vision", 180, 448, "green", real_images[0]),
-        _prompt(model, "vision", 320, 896, "yellow", real_images[1]),
-    ]
+    # The Qwen3-VL primary uses the two vision templates below.  For the
+    # optional dense Qwen3 check, the same driver remains text-only; keeping
+    # this fallback local avoids introducing a second serving harness.
+    templates = [_prompt(model, "text", 220, 448, "blue"),
+                 _prompt(model, "text", 560, 448, "red")]
+    try:
+        templates += [_prompt(model, "vision", 180, 448, "green", real_images[0]),
+                      _prompt(model, "vision", 320, 896, "yellow", real_images[1])]
+    except Exception:
+        templates += [copy.deepcopy(templates[0]), copy.deepcopy(templates[1])]
     llm = LLM(model=model, dtype="bfloat16", tensor_parallel_size=2,
               enable_expert_parallel=True, expert_placement_strategy="linear",
               all2all_backend=args.backend, enable_dbo=False,
@@ -93,12 +97,19 @@ def _worker(dp_rank: int, args, barrier):
     # Global warmup: same shape, then varied online waves.  Each wave goes
     # through the normal V1 request queue and is intentionally not replay.
     for _ in range(args.warmups):
-        prompts = [copy.deepcopy(templates[2])]
+        # The original driver always warmed with a vision template.  Allow a
+        # measured run to precondition the same request shape as its target;
+        # this is a diagnostic control for shape-transition state, not a
+        # serving-policy change.
+        prompts = [copy.deepcopy(templates[args.warmup_slot])]
         llm.generate(prompts, sampling, use_tqdm=False)
     waves = []
     for wave in range(args.waves):
         local_n = max(1, args.concurrency // 2)
-        if args.fixed_slot is not None:
+        if args.alternate_slots is not None:
+            slot = args.alternate_slots[wave % len(args.alternate_slots)]
+            slots = [slot] * local_n
+        elif args.fixed_slot is not None:
             slots = [args.fixed_slot] * local_n
         elif wave % 4 == 0: slots = [2] * local_n
         elif wave % 4 == 1: slots = [0, 1][:local_n]
@@ -152,13 +163,24 @@ def main():
     ap.add_argument("--model", required=True); ap.add_argument("--out", required=True)
     ap.add_argument("--concurrency", type=int, default=8); ap.add_argument("--waves", type=int, default=12)
     ap.add_argument("--warmups", type=int, default=3); ap.add_argument("--max-tokens", type=int, default=1)
+    ap.add_argument("--warmup-slot", type=int, default=2, choices=[0, 1, 2, 3],
+                    help="template index for shape-matched warmup (diagnostic only)")
     ap.add_argument("--max-batched-tokens", type=int, default=8192); ap.add_argument("--regime", default="mixed_online")
     ap.add_argument("--fixed-slot", type=int, default=None,
                     help="diagnostic fixed-shape request template index; no scheduler/routing change")
+    ap.add_argument("--alternate-slots", default=None,
+                    help="diagnostic comma-separated template slots to alternate by wave (e.g. 0,3)")
     ap.add_argument("--backend", default="deepep_high_throughput",
                     choices=["deepep_high_throughput", "deepep_low_latency"],
                     help="validated DeepEP all2all backend; no scheduler semantics change")
     args = ap.parse_args(); args.port = _port()
+    if args.alternate_slots is not None:
+        try:
+            args.alternate_slots = [int(x) for x in args.alternate_slots.split(",") if x.strip()]
+            if not args.alternate_slots or any(x not in (0, 1, 2, 3) for x in args.alternate_slots):
+                raise ValueError
+        except ValueError:
+            ap.error("--alternate-slots must be a non-empty comma-separated list from {0,1,2,3}")
     ctx = mp.get_context("spawn"); barrier = ctx.Barrier(2)
     ps = [ctx.Process(target=_worker, args=(r, args, barrier)) for r in range(2)]
     for p in ps: p.start()

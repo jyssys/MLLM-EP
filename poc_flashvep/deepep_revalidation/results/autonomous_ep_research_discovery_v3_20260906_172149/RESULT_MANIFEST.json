@@ -1,0 +1,39 @@
+{
+  "sprint": "autonomous_ep_research_discovery_v3",
+  "model": "Qwen3-VL-30B-A3B-Instruct",
+  "model_snapshot": "9c4b90e1e4ba969fd3b5378b57d966d725f1b86c",
+  "runtime": "vLLM 0.20.0 V1; BF16; eager; DBO off; prefix cache off",
+  "topology": "TP2/DP2/EP4/PP1",
+  "backend": "deepep_high_throughput (DeepEPHTPrepareAndFinalize)",
+  "visible_devices": "1,2,3,4",
+  "physical_gpus": [1, 2, 3, 4],
+  "communication_sms": 20,
+  "fresh_live_traces": [
+    "live_mixed_c2", "live_mixed_c4", "live_mixed_c8", "live_mixed_c8_mbt4096", "live_high_c16", "live_long_text_c8",
+    "live_text_c4", "live_text_c8", "live_text_c8_rep2",
+    "live_text_c8_rep3_partial", "live_text_c16", "live_vision_hi_c8",
+    "live_text_c8_telemetry", "live_text_c8_warmup_text", "live_text_to_vision_c8",
+    "live_alternating_text_vision_c8", "live_alternating_text_shapes_c8",
+    "live_vision_hi_c8_warmup_hi", "live_alternating_vision_shapes_c8",
+    "live_text_c8_warmup_text_long", "live_text_to_vision_c8_telemetry",
+    "live_qwen3_dense_c8", "live_qwen3_dense_c8_rep2"
+  ],
+  "diagnostic_failed_traces": [
+    "live_text_c2 (aborted/hung after partial data)",
+    "live_text_c8_rep3 (aborted/hung after partial data)",
+    "live_text_c8_rankcv (deadlocked before measured waves)",
+    "live_text_c4_decode (aborted during warmup)",
+    "live_deepep_ll_text_c4 (nvshmem_qp_depth assertion)",
+    "live_deepep_ll_text_c4_retry (nvshmem_qp_depth assertion)"
+  ],
+  "analysis_policy": "rank rows collapsed by DP/local invocation/layer/phase using max same-DP span; warmup excluded with active_wave",
+  "closed_directions": ["fanout incremental signal", "fixed-shape tail method", "communication-SM adaptive knob"],
+  "raw_data": "kept under this result directory; compact summaries are in discovery_atlas/",
+  "primary_atlas": {
+    "completed_qwen3_vl_traces": 20,
+    "logical_rows": 90240,
+    "warmup_excluded": true,
+    "aborted_text_c2_excluded": true,
+    "dense_qwen3_controls_excluded": true
+  }
+}

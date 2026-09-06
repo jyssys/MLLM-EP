@@ -295,6 +295,10 @@ if os.environ.get("FLASHVEP_ONLINE_TRACE_DIR"):
             "expert_hist": ecounts.tolist(),
             "rank_loads": rcounts.tolist(),
             "rank_max_mean": float(rcounts.max() / rcounts.mean()) if rcounts.mean() else 0.0,
+            # Keep the coefficient of variation alongside max/mean.  Earlier
+            # traces omitted this field, which silently turned rank-load
+            # controls into a constant zero feature in downstream models.
+            "rank_cv": float(rcounts.std() / rcounts.mean()) if rcounts.mean() else 0.0,
             "expert_max_mean": float(ecounts.max() / active.mean()) if active.size else 0.0,
             "expert_cv": cv_e, "expert_hhi": hhi, "expert_entropy": ent,
             "fanout_mean": float(fanout.mean()),
