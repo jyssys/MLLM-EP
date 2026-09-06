@@ -15,7 +15,8 @@ from typing import Any
 from poc_flashvep.cross_modal_routing_imprint.capture import MODEL, _prepare
 from poc_flashvep.prerouter_visual_signal.run_capture import _base_suite
 
-LAYERS = [4, 8, 12, 20, 24, 28, 36, 40, 44, 47]
+LAYERS = [int(value) for value in os.environ.get(
+    "FLASHVEP_FUNCTIONAL_LAYERS", "4,8,12,20,24,28,36,40,44,47").split(",") if value]
 
 
 def _json(path: Path, value: Any) -> None:
@@ -31,12 +32,13 @@ def _port() -> int:
 def _suite() -> list[dict[str, Any]]:
     base = _base_suite()
     selected = []
+    sample_limit = int(os.environ.get("FLASHVEP_FUNCTIONAL_SAMPLE_LIMIT", "24"))
     for category in ("natural", "fine_grained", "chart_document"):
         selected.extend(sorted((row for row in base if row["category"] == category),
-                               key=lambda row: row["sample_id"])[:8])
-    if len(selected) != 24:
-        raise AssertionError(len(selected))
-    return selected
+                               key=lambda row: row["sample_id"])[:max(1, sample_limit // 3)])
+    if len(selected) < sample_limit:
+        selected.extend(base[len(selected):sample_limit])
+    return selected[:sample_limit]
 
 
 def _generate(llm: Any, prompts: list[dict[str, Any]], sampling: Any,
@@ -70,6 +72,13 @@ def _run_rank(rank: int, port: int, args: argparse.Namespace,
             "FLASHVEP_CONFIGURED_ALL2ALL_BACKEND": "deepep_high_throughput",
             "FLASHVEP_CONFIGURED_DBO": "false",
         })
+        # The parent capture process cannot rely on sitecustomize because the
+        # control path is created per DP worker.  Install the existing local
+        # diagnostic hook explicitly before importing vLLM in each worker.
+        from poc_flashvep.deepep_revalidation.backend_probe import install_backend_probe
+        from poc_flashvep.visual_expert_functional_redundancy.instrumentation import install
+        install_backend_probe()
+        install()
         from vllm import LLM, SamplingParams
         llm = LLM(
             model=args.model_path, dtype="bfloat16", tensor_parallel_size=2,
@@ -122,7 +131,7 @@ def main() -> None:
     policy = {
         "layers": LAYERS, "regions": {"early": [4, 8, 12], "middle": [20, 24, 28],
                                        "late": [36, 40, 44, 47]},
-        "samples_per_category": 8, "fixed_edge": 448,
+        "samples_per_category": len(_suite()) // 3, "fixed_edge": 448,
         "fixed_prompt": "Describe the image briefly.", "hash_sample_fraction": 0.25,
         "functional_k_threshold": {"cosine": 0.99, "relative_l2": 0.05},
         "m_values": [1, 2, 3, 4, 6, 8], "router_mass_threshold": 0.95,
