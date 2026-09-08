@@ -1,0 +1,143 @@
+{
+  "status": "PASS",
+  "metadata_equivalence": "ALL6_M_SHAPES_ALL4_GPUS_EXACT",
+  "measured_observations": 1440,
+  "reps_per_gpu_shape_implementation": 30,
+  "calls_per_observation": 48,
+  "independent_cuda_contexts": 4,
+  "distributed_moe_execution": false,
+  "costs": [
+    {
+      "M": 1,
+      "implementation": "broadcast_membership",
+      "cuda_ms_p50": 0.9710239768028259,
+      "wall_ms_p50": 1.0395420249551535,
+      "cuda_ms_p90": 1.011225652694702,
+      "observations": 120
+    },
+    {
+      "M": 1,
+      "implementation": "isin",
+      "cuda_ms_p50": 9.111968040466309,
+      "wall_ms_p50": 9.222275344654918,
+      "cuda_ms_p90": 9.435609340667725,
+      "observations": 120
+    },
+    {
+      "M": 4,
+      "implementation": "broadcast_membership",
+      "cuda_ms_p50": 1.2006880044937134,
+      "wall_ms_p50": 1.272530062124133,
+      "cuda_ms_p90": 1.2500736117362976,
+      "observations": 120
+    },
+    {
+      "M": 4,
+      "implementation": "isin",
+      "cuda_ms_p50": 11.374383926391602,
+      "wall_ms_p50": 11.469012824818492,
+      "cuda_ms_p90": 11.87242250442505,
+      "observations": 120
+    },
+    {
+      "M": 16,
+      "implementation": "broadcast_membership",
+      "cuda_ms_p50": 1.202735960483551,
+      "wall_ms_p50": 1.274891197681427,
+      "cuda_ms_p90": 1.25108482837677,
+      "observations": 120
+    },
+    {
+      "M": 16,
+      "implementation": "isin",
+      "cuda_ms_p50": 11.343279838562012,
+      "wall_ms_p50": 11.437236331403255,
+      "cuda_ms_p90": 11.85705280303955,
+      "observations": 120
+    },
+    {
+      "M": 128,
+      "implementation": "broadcast_membership",
+      "cuda_ms_p50": 1.184656023979187,
+      "wall_ms_p50": 1.2490316294133663,
+      "cuda_ms_p90": 1.2345215797424316,
+      "observations": 120
+    },
+    {
+      "M": 128,
+      "implementation": "isin",
+      "cuda_ms_p50": 1.6523680090904236,
+      "wall_ms_p50": 1.7201732844114304,
+      "cuda_ms_p90": 1.7186464309692382,
+      "observations": 120
+    },
+    {
+      "M": 512,
+      "implementation": "broadcast_membership",
+      "cuda_ms_p50": 1.1878399848937988,
+      "wall_ms_p50": 1.2485615443438292,
+      "cuda_ms_p90": 1.2314848423004152,
+      "observations": 120
+    },
+    {
+      "M": 512,
+      "implementation": "isin",
+      "cuda_ms_p50": 1.6539040207862854,
+      "wall_ms_p50": 1.7144924495369196,
+      "cuda_ms_p90": 1.7570751786231995,
+      "observations": 120
+    },
+    {
+      "M": 2048,
+      "implementation": "broadcast_membership",
+      "cuda_ms_p50": 1.192736029624939,
+      "wall_ms_p50": 1.255722250789404,
+      "cuda_ms_p90": 1.2399008393287658,
+      "observations": 120
+    },
+    {
+      "M": 2048,
+      "implementation": "isin",
+      "cuda_ms_p50": 1.6549919843673706,
+      "wall_ms_p50": 1.7151066567748785,
+      "cuda_ms_p90": 1.7375903725624084,
+      "observations": 120
+    }
+  ],
+  "representative_profiler_api_counts": {
+    "isin": [
+      {
+        "key": "aten::_unique",
+        "count": 2,
+        "cpu_time_total_us": 2746.366,
+        "device_time_total_us": 48.58300000000099
+      },
+      {
+        "key": "cudaStreamSynchronize",
+        "count": 3,
+        "cpu_time_total_us": 20.563000000000102,
+        "device_time_total_us": 0
+      },
+      {
+        "key": "cudaDeviceSynchronize",
+        "count": 1,
+        "cpu_time_total_us": 5.859999999999673,
+        "device_time_total_us": 0
+      }
+    ],
+    "broadcast_membership": [
+      {
+        "key": "cudaDeviceSynchronize",
+        "count": 1,
+        "cpu_time_total_us": 9.361999999999625,
+        "device_time_total_us": 0
+      }
+    ]
+  },
+  "caveats": [
+    "cudaDeviceSynchronize occurs in both profiler captures and is not attributed to isin.",
+    "GPU events span host enqueue/unique synchronization as well as kernels.",
+    "Standalone metadata cost is not an additive estimate of serving speedup.",
+    "Broadcast membership is an equivalence/control ingredient, not a new method."
+  ]
+}

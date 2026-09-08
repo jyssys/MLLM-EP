@@ -1,0 +1,36 @@
+{
+  "scope": "PROFILED_NATIVE_TEXT_PREFILL_DIAGNOSTIC_NOT_REQUEST_E2E",
+  "mapping": "same process and device; CPU launch correlation id to innermost NVTX stage",
+  "observations": 24,
+  "coupled_executions": 6,
+  "median_by_policy": {
+    "libra": {
+      "profiled_host_span_ms": 275.14084049999997,
+      "gpu_activity_union_ms": 163.552792,
+      "no_observed_gpu_activity_ms": 115.5004385,
+      "largest_activity_gap_ms": 1.6588685,
+      "expert_kernel_union_ms": 61.561997,
+      "memcpy_union_ms": 24.175084499999997,
+      "nccl_kernel_union_ms": 57.6050175,
+      "copy_expert_overlap_ms": 4.4759835,
+      "nccl_expert_overlap_ms": 6.1908294999999995
+    },
+    "vanilla": {
+      "profiled_host_span_ms": 115.572266,
+      "gpu_activity_union_ms": 105.464507,
+      "no_observed_gpu_activity_ms": 9.847256000000002,
+      "largest_activity_gap_ms": 1.505924,
+      "expert_kernel_union_ms": 52.620844500000004,
+      "memcpy_union_ms": 1.181314,
+      "nccl_kernel_union_ms": 31.882178500000002,
+      "copy_expert_overlap_ms": 0.0,
+      "nccl_expert_overlap_ms": 0.0
+    }
+  },
+  "caveats": [
+    "Profiled CPU/control overhead may be substantial; use unprofiled runs for speed.",
+    "No-activity intervals are not automatically causally attributable to CPU planning.",
+    "Copy/communication overlap is time overlap,not measured throughput or SM efficiency.",
+    "No cross-device CUDA-event timestamp subtraction or summed rank latency."
+  ]
+}
