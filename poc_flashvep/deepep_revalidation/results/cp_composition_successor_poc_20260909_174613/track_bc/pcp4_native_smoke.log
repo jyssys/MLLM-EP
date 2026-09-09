@@ -1,0 +1,54 @@
+INFO 09-09 18:15:01 [utils.py:233] non-default args: {'trust_remote_code': True, 'dtype': 'bfloat16', 'max_model_len': 8192, 'prefill_context_parallel_size': 4, 'enable_prefix_caching': False, 'kv_cache_memory_bytes': 2147483648, 'max_num_batched_tokens': 8192, 'max_num_seqs': 8, 'disable_log_stats': True, 'enforce_eager': True, 'enable_flashinfer_autotune': False, 'model': '/home/esjung/.cache/huggingface/hub/models--deepseek-ai--DeepSeek-V2-Lite-Chat/snapshots/85864749cd611b4353ce1decdb286193298f64c7'}
+INFO 09-09 18:15:01 [model.py:555] Resolved architecture: DeepseekV2ForCausalLM
+INFO 09-09 18:15:01 [model.py:1680] Using max model len 8192
+INFO 09-09 18:15:01 [scheduler.py:239] Chunked prefill is enabled with max_num_batched_tokens=8192.
+INFO 09-09 18:15:01 [vllm.py:840] Asynchronous scheduling is enabled.
+WARNING 09-09 18:15:01 [vllm.py:896] Enforce eager set, disabling torch.compile and CUDAGraphs. This is equivalent to setting -cc.mode=none -cc.cudagraph_mode=none
+WARNING 09-09 18:15:01 [vllm.py:914] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+INFO 09-09 18:15:01 [kernel.py:205] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'])
+INFO 09-09 18:15:02 [vllm.py:1089] Cudagraph is disabled under eager mode
+INFO 09-09 18:15:02 [compilation.py:303] Enabled custom fusions: norm_quant, act_quant
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "/home/esjung/anaconda3/envs/flashvep-poc/lib/python3.12/multiprocessing/spawn.py", line 122, in spawn_main
+    exitcode = _main(fd, parent_sentinel)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/anaconda3/envs/flashvep-poc/lib/python3.12/multiprocessing/spawn.py", line 131, in _main
+    prepare(preparation_data)
+  File "/home/esjung/anaconda3/envs/flashvep-poc/lib/python3.12/multiprocessing/spawn.py", line 246, in prepare
+    _fixup_main_from_path(data['init_main_from_path'])
+  File "/home/esjung/anaconda3/envs/flashvep-poc/lib/python3.12/multiprocessing/spawn.py", line 297, in _fixup_main_from_path
+    main_content = runpy.run_path(main_path,
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen runpy>", line 286, in run_path
+  File "<frozen runpy>", line 254, in _get_code_from_file
+FileNotFoundError: [Errno 2] No such file or directory: '/home/esjung/MLLM-EP-github/<stdin>'
+Traceback (most recent call last):
+  File "<stdin>", line 5, in <module>
+  File "/home/esjung/anaconda3/envs/flashvep-poc/lib/python3.12/site-packages/vllm/entrypoints/llm.py", line 381, in __init__
+    self.llm_engine = LLMEngine.from_engine_args(
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/anaconda3/envs/flashvep-poc/lib/python3.12/site-packages/vllm/v1/engine/llm_engine.py", line 170, in from_engine_args
+    return cls(
+           ^^^^
+  File "/home/esjung/anaconda3/envs/flashvep-poc/lib/python3.12/site-packages/vllm/v1/engine/llm_engine.py", line 104, in __init__
+    self.engine_core = EngineCoreClient.make_client(
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/anaconda3/envs/flashvep-poc/lib/python3.12/site-packages/vllm/v1/engine/core_client.py", line 101, in make_client
+    return SyncMPClient(vllm_config, executor_class, log_stats)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/anaconda3/envs/flashvep-poc/lib/python3.12/site-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/anaconda3/envs/flashvep-poc/lib/python3.12/site-packages/vllm/v1/engine/core_client.py", line 723, in __init__
+    super().__init__(
+  File "/home/esjung/anaconda3/envs/flashvep-poc/lib/python3.12/site-packages/vllm/v1/engine/core_client.py", line 535, in __init__
+    with launch_core_engines(
+         ^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/anaconda3/envs/flashvep-poc/lib/python3.12/contextlib.py", line 144, in __exit__
+    next(self.gen)
+  File "/home/esjung/anaconda3/envs/flashvep-poc/lib/python3.12/site-packages/vllm/v1/engine/utils.py", line 1119, in launch_core_engines
+    wait_for_engine_startup(
+  File "/home/esjung/anaconda3/envs/flashvep-poc/lib/python3.12/site-packages/vllm/v1/engine/utils.py", line 1178, in wait_for_engine_startup
+    raise RuntimeError(
+RuntimeError: Engine core initialization failed. See root cause above. Failed core proc(s): {'EngineCore': 1}

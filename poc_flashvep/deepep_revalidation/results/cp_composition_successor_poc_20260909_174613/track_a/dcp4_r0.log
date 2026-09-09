@@ -1,0 +1,91 @@
+INFO 09-09 18:07:12 [utils.py:233] non-default args: {'trust_remote_code': True, 'dtype': 'bfloat16', 'max_model_len': 8192, 'tensor_parallel_size': 4, 'decode_context_parallel_size': 4, 'enable_prefix_caching': False, 'gpu_memory_utilization': 0.86, 'kv_cache_memory_bytes': 4294967296, 'max_num_batched_tokens': 8192, 'max_num_seqs': 16, 'enforce_eager': True, 'enable_flashinfer_autotune': False, 'model': '/home/esjung/.cache/huggingface/hub/models--deepseek-ai--DeepSeek-V2-Lite-Chat/snapshots/85864749cd611b4353ce1decdb286193298f64c7'}
+INFO 09-09 18:07:12 [model.py:555] Resolved architecture: DeepseekV2ForCausalLM
+INFO 09-09 18:07:12 [model.py:1680] Using max model len 8192
+INFO 09-09 18:07:12 [scheduler.py:239] Chunked prefill is enabled with max_num_batched_tokens=8192.
+INFO 09-09 18:07:12 [vllm.py:840] Asynchronous scheduling is enabled.
+WARNING 09-09 18:07:12 [vllm.py:896] Enforce eager set, disabling torch.compile and CUDAGraphs. This is equivalent to setting -cc.mode=none -cc.cudagraph_mode=none
+WARNING 09-09 18:07:12 [vllm.py:914] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+INFO 09-09 18:07:12 [kernel.py:205] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'])
+INFO 09-09 18:07:13 [vllm.py:1089] Cudagraph is disabled under eager mode
+<frozen importlib._bootstrap_external>:1301: FutureWarning: The cuda.cudart module is deprecated and will be removed in a future release, please switch to use the cuda.bindings.runtime module instead.
+<frozen importlib._bootstrap_external>:1301: FutureWarning: The cuda.nvrtc module is deprecated and will be removed in a future release, please switch to use the cuda.bindings.nvrtc module instead.
+INFO 09-09 18:07:16 [compilation.py:303] Enabled custom fusions: norm_quant, act_quant, allreduce_rms
+(EngineCore pid=862180) INFO 09-09 18:07:24 [core.py:109] Initializing a V1 LLM engine (v0.20.0) with config: model='/home/esjung/.cache/huggingface/hub/models--deepseek-ai--DeepSeek-V2-Lite-Chat/snapshots/85864749cd611b4353ce1decdb286193298f64c7', speculative_config=None, tokenizer='/home/esjung/.cache/huggingface/hub/models--deepseek-ai--DeepSeek-V2-Lite-Chat/snapshots/85864749cd611b4353ce1decdb286193298f64c7', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, tokenizer_revision=None, trust_remote_code=True, dtype=torch.bfloat16, max_seq_len=8192, download_dir=None, load_format=auto, tensor_parallel_size=4, pipeline_parallel_size=1, data_parallel_size=1, decode_context_parallel_size=4, dcp_comm_backend=ag_rs, disable_custom_all_reduce=False, quantization=None, quantization_config=None, enforce_eager=True, enable_return_routed_experts=False, kv_cache_dtype=auto, device_config=cuda, structured_outputs_config=StructuredOutputsConfig(backend='auto', disable_any_whitespace=False, disable_additional_properties=False, reasoning_parser='', reasoning_parser_plugin='', enable_in_reasoning=False), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None, kv_cache_metrics=False, kv_cache_metrics_sample=0.01, cudagraph_metrics=False, enable_layerwise_nvtx_tracing=False, enable_mfu_metrics=False, enable_mm_processor_stats=False, enable_logging_iteration_details=False), seed=0, served_model_name=/home/esjung/.cache/huggingface/hub/models--deepseek-ai--DeepSeek-V2-Lite-Chat/snapshots/85864749cd611b4353ce1decdb286193298f64c7, enable_prefix_caching=False, enable_chunked_prefill=True, pooler_config=None, compilation_config={'mode': <CompilationMode.NONE: 0>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', 'custom_ops': ['all'], 'ir_enable_torch_wrap': False, 'splitting_ops': [], 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'compile_sizes': [], 'compile_ranges_endpoints': [512, 8192], 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'size_asserts': False, 'alignment_asserts': False, 'scalar_asserts': False, 'combo_kernels': True, 'benchmark_combo_kernel': True}, 'inductor_passes': {}, 'cudagraph_mode': <CUDAGraphMode.NONE: 0>, 'cudagraph_num_of_warmups': 0, 'cudagraph_capture_sizes': [], 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': False, 'pass_config': {'fuse_norm_quant': True, 'fuse_act_quant': True, 'fuse_attn_quant': False, 'enable_sp': False, 'fuse_gemm_comms': False, 'fuse_allreduce_rms': True}, 'max_cudagraph_capture_size': 0, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': False, 'static_all_moe_layers': []}, kernel_config=KernelConfig(ir_op_priority=IrOpPriorityConfig(rms_norm=['vllm_c', 'native']), enable_flashinfer_autotune=False, moe_backend='auto')
+(EngineCore pid=862180) INFO 09-09 18:07:24 [multiproc_executor.py:139] DP group leader: node_rank=0, node_rank_within_dp=0, master_addr=127.0.0.1, mq_connect_ip=192.168.0.2 (local), world_size=4, local_world_size=4
+INFO 09-09 18:07:30 [nixl_utils.py:20] Setting UCX_RCACHE_MAX_UNRELEASED to '1024' to avoid a rare memory leak in UCX when using NIXL.
+WARNING 09-09 18:07:30 [nixl_utils.py:34] NIXL is not available
+WARNING 09-09 18:07:30 [nixl_utils.py:44] NIXL agent config is not available
+(Worker pid=862285) INFO 09-09 18:07:31 [parallel_state.py:1402] world_size=4 rank=2 local_rank=2 distributed_init_method=tcp://127.0.0.1:52895 backend=nccl
+INFO 09-09 18:07:31 [nixl_utils.py:20] Setting UCX_RCACHE_MAX_UNRELEASED to '1024' to avoid a rare memory leak in UCX when using NIXL.
+WARNING 09-09 18:07:31 [nixl_utils.py:34] NIXL is not available
+WARNING 09-09 18:07:31 [nixl_utils.py:44] NIXL agent config is not available
+INFO 09-09 18:07:32 [nixl_utils.py:20] Setting UCX_RCACHE_MAX_UNRELEASED to '1024' to avoid a rare memory leak in UCX when using NIXL.
+WARNING 09-09 18:07:32 [nixl_utils.py:34] NIXL is not available
+WARNING 09-09 18:07:32 [nixl_utils.py:44] NIXL agent config is not available
+INFO 09-09 18:07:32 [nixl_utils.py:20] Setting UCX_RCACHE_MAX_UNRELEASED to '1024' to avoid a rare memory leak in UCX when using NIXL.
+WARNING 09-09 18:07:32 [nixl_utils.py:34] NIXL is not available
+WARNING 09-09 18:07:32 [nixl_utils.py:44] NIXL agent config is not available
+(Worker pid=862286) INFO 09-09 18:07:32 [parallel_state.py:1402] world_size=4 rank=3 local_rank=3 distributed_init_method=tcp://127.0.0.1:52895 backend=nccl
+(Worker pid=862283) INFO 09-09 18:07:33 [parallel_state.py:1402] world_size=4 rank=0 local_rank=0 distributed_init_method=tcp://127.0.0.1:52895 backend=nccl
+(Worker pid=862284) INFO 09-09 18:07:33 [parallel_state.py:1402] world_size=4 rank=1 local_rank=1 distributed_init_method=tcp://127.0.0.1:52895 backend=nccl
+(Worker pid=862285) <frozen importlib._bootstrap_external>:1301: FutureWarning: The cuda.cudart module is deprecated and will be removed in a future release, please switch to use the cuda.bindings.runtime module instead.
+(Worker pid=862285) <frozen importlib._bootstrap_external>:1301: FutureWarning: The cuda.nvrtc module is deprecated and will be removed in a future release, please switch to use the cuda.bindings.nvrtc module instead.
+(Worker pid=862284) <frozen importlib._bootstrap_external>:1301: FutureWarning: The cuda.cudart module is deprecated and will be removed in a future release, please switch to use the cuda.bindings.runtime module instead.
+(Worker pid=862284) <frozen importlib._bootstrap_external>:1301: FutureWarning: The cuda.nvrtc module is deprecated and will be removed in a future release, please switch to use the cuda.bindings.nvrtc module instead.
+(Worker pid=862283) <frozen importlib._bootstrap_external>:1301: FutureWarning: The cuda.cudart module is deprecated and will be removed in a future release, please switch to use the cuda.bindings.runtime module instead.
+(Worker pid=862283) <frozen importlib._bootstrap_external>:1301: FutureWarning: The cuda.nvrtc module is deprecated and will be removed in a future release, please switch to use the cuda.bindings.nvrtc module instead.
+(Worker pid=862283) INFO 09-09 18:07:34 [pynccl.py:111] vLLM is using nccl==2.28.9
+(Worker pid=862286) <frozen importlib._bootstrap_external>:1301: FutureWarning: The cuda.cudart module is deprecated and will be removed in a future release, please switch to use the cuda.bindings.runtime module instead.
+(Worker pid=862286) <frozen importlib._bootstrap_external>:1301: FutureWarning: The cuda.nvrtc module is deprecated and will be removed in a future release, please switch to use the cuda.bindings.nvrtc module instead.
+(Worker pid=862283) INFO 09-09 18:07:38 [parallel_state.py:1715] rank 0 in world size 4 is assigned as DP rank 0, PP rank 0, PCP rank 0, TP rank 0, EP rank 0, EPLB rank N/A
+(Worker_TP0_DCP0 pid=862283) INFO 09-09 18:07:38 [gpu_model_runner.py:4781] Starting to load model /home/esjung/.cache/huggingface/hub/models--deepseek-ai--DeepSeek-V2-Lite-Chat/snapshots/85864749cd611b4353ce1decdb286193298f64c7...
+(Worker_TP0_DCP0 pid=862283) INFO 09-09 18:07:39 [cuda.py:368] Using FLASH_ATTN_MLA attention backend out of potential backends: ['FLASH_ATTN_MLA', 'FLASHMLA', 'TRITON_MLA'].
+(Worker_TP0_DCP0 pid=862283) INFO 09-09 18:07:39 [mla_attention.py:2267] Using FlashAttention prefill for MLA
+(Worker_TP0_DCP0 pid=862283) INFO 09-09 18:07:39 [deep_gemm.py:113] DeepGEMM E8M0 enabled on current platform.
+(Worker_TP0_DCP0 pid=862283) INFO 09-09 18:07:39 [unquantized.py:286] Using FlashInfer CUTLASS Unquantized MoE backend out of potential backends: ['FlashInfer TRTLLM', 'FlashInfer CUTLASS', 'TRITON', 'BATCHED_TRITON'].
+(Worker_TP0_DCP0 pid=862283) INFO 09-09 18:07:39 [weight_utils.py:904] Filesystem type for checkpoints: EXT4. Checkpoint size: 29.26 GiB. Available RAM: 1706.20 GiB.
+(Worker_TP0_DCP0 pid=862283) INFO 09-09 18:07:39 [weight_utils.py:927] Auto-prefetch is disabled because the filesystem (EXT4) is not a recognized network FS (NFS/Lustre). If you want to force prefetching, start vLLM with --safetensors-load-strategy=prefetch.
+(Worker_TP0_DCP0 pid=862283) Loading safetensors checkpoint shards:   0% Completed | 0/4 [00:00<?, ?it/s]
+(Worker_TP0_DCP0 pid=862283) Loading safetensors checkpoint shards:  25% Completed | 1/4 [00:00<00:01,  1.55it/s]
+(Worker_TP0_DCP0 pid=862283) Loading safetensors checkpoint shards:  50% Completed | 2/4 [00:01<00:01,  1.40it/s]
+(Worker_TP0_DCP0 pid=862283) Loading safetensors checkpoint shards:  75% Completed | 3/4 [00:02<00:00,  1.36it/s]
+(Worker_TP0_DCP0 pid=862283) Loading safetensors checkpoint shards: 100% Completed | 4/4 [00:02<00:00,  1.52it/s]
+(Worker_TP0_DCP0 pid=862283) Loading safetensors checkpoint shards: 100% Completed | 4/4 [00:02<00:00,  1.48it/s]
+(Worker_TP0_DCP0 pid=862283) 
+(Worker_TP0_DCP0 pid=862283) INFO 09-09 18:07:42 [default_loader.py:384] Loading weights took 2.79 seconds
+(Worker_TP0_DCP0 pid=862283) INFO 09-09 18:07:42 [unquantized.py:343] Using MoEPrepareAndFinalizeNoDPEPModular
+(Worker_TP0_DCP0 pid=862283) INFO 09-09 18:07:42 [gpu_model_runner.py:4883] Model loading took 7.53 GiB memory and 3.060811 seconds
+(Worker_TP3_DCP3 pid=862286) INFO 09-09 18:07:45 [gpu_worker.py:361] Initial free memory 76.64 GiB, reserved 4.0 GiB memory for KV Cache as specified by kv_cache_memory_bytes config and skipped memory profiling. This does not respect the gpu_memory_utilization config. Only use kv_cache_memory_bytes config when you want manual control of KV cache memory size. If OOM'ed, check the difference of initial free memory between the current run and the previous run where kv_cache_memory_bytes is suggested and update it correspondingly.
+(Worker_TP1_DCP1 pid=862284) INFO 09-09 18:07:45 [gpu_worker.py:361] Initial free memory 76.64 GiB, reserved 4.0 GiB memory for KV Cache as specified by kv_cache_memory_bytes config and skipped memory profiling. This does not respect the gpu_memory_utilization config. Only use kv_cache_memory_bytes config when you want manual control of KV cache memory size. If OOM'ed, check the difference of initial free memory between the current run and the previous run where kv_cache_memory_bytes is suggested and update it correspondingly.
+(Worker_TP0_DCP0 pid=862283) INFO 09-09 18:07:45 [gpu_worker.py:361] Initial free memory 76.64 GiB, reserved 4.0 GiB memory for KV Cache as specified by kv_cache_memory_bytes config and skipped memory profiling. This does not respect the gpu_memory_utilization config. Only use kv_cache_memory_bytes config when you want manual control of KV cache memory size. If OOM'ed, check the difference of initial free memory between the current run and the previous run where kv_cache_memory_bytes is suggested and update it correspondingly.
+(Worker_TP2_DCP2 pid=862285) INFO 09-09 18:07:45 [gpu_worker.py:361] Initial free memory 76.64 GiB, reserved 4.0 GiB memory for KV Cache as specified by kv_cache_memory_bytes config and skipped memory profiling. This does not respect the gpu_memory_utilization config. Only use kv_cache_memory_bytes config when you want manual control of KV cache memory size. If OOM'ed, check the difference of initial free memory between the current run and the previous run where kv_cache_memory_bytes is suggested and update it correspondingly.
+(EngineCore pid=862180) INFO 09-09 18:07:45 [kv_cache_utils.py:1703] Multiplying the GPU KV cache size by the cp_world_size 4 (pcp_world_size 1 * dcp_world_size 4).
+(EngineCore pid=862180) INFO 09-09 18:07:45 [kv_cache_utils.py:1711] GPU KV cache size: 552,320 tokens
+(EngineCore pid=862180) INFO 09-09 18:07:45 [kv_cache_utils.py:1716] Maximum concurrency for 8,192 tokens per request: 67.42x
+(EngineCore pid=862180) INFO 09-09 18:07:45 [kv_cache_utils.py:1703] Multiplying the GPU KV cache size by the cp_world_size 4 (pcp_world_size 1 * dcp_world_size 4).
+(EngineCore pid=862180) INFO 09-09 18:07:45 [kv_cache_utils.py:1703] Multiplying the GPU KV cache size by the cp_world_size 4 (pcp_world_size 1 * dcp_world_size 4).
+(EngineCore pid=862180) INFO 09-09 18:07:45 [kv_cache_utils.py:1703] Multiplying the GPU KV cache size by the cp_world_size 4 (pcp_world_size 1 * dcp_world_size 4).
+(Worker_TP2_DCP2 pid=862285) INFO 09-09 18:07:46 [kernel_warmup.py:44] Skipping FlashInfer autotune because it is disabled.
+(Worker_TP0_DCP0 pid=862283) INFO 09-09 18:07:46 [kernel_warmup.py:44] Skipping FlashInfer autotune because it is disabled.
+(Worker_TP3_DCP3 pid=862286) INFO 09-09 18:07:46 [kernel_warmup.py:44] Skipping FlashInfer autotune because it is disabled.
+(Worker_TP1_DCP1 pid=862284) INFO 09-09 18:07:46 [kernel_warmup.py:44] Skipping FlashInfer autotune because it is disabled.
+(EngineCore pid=862180) INFO 09-09 18:07:46 [core.py:306] init engine (profile, create kv cache, warmup model) took 3.23 s
+(EngineCore pid=862180) INFO 09-09 18:07:47 [nixl_utils.py:20] Setting UCX_RCACHE_MAX_UNRELEASED to '1024' to avoid a rare memory leak in UCX when using NIXL.
+(EngineCore pid=862180) WARNING 09-09 18:07:47 [nixl_utils.py:34] NIXL is not available
+(EngineCore pid=862180) WARNING 09-09 18:07:47 [nixl_utils.py:44] NIXL agent config is not available
+(EngineCore pid=862180) INFO 09-09 18:07:47 [vllm.py:840] Asynchronous scheduling is enabled.
+(EngineCore pid=862180) WARNING 09-09 18:07:47 [vllm.py:896] Enforce eager set, disabling torch.compile and CUDAGraphs. This is equivalent to setting -cc.mode=none -cc.cudagraph_mode=none
+(EngineCore pid=862180) WARNING 09-09 18:07:47 [vllm.py:914] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(EngineCore pid=862180) INFO 09-09 18:07:47 [kernel.py:205] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'])
+(EngineCore pid=862180) INFO 09-09 18:07:47 [vllm.py:1089] Cudagraph is disabled under eager mode
+(EngineCore pid=862180) <frozen importlib._bootstrap_external>:1301: FutureWarning: The cuda.cudart module is deprecated and will be removed in a future release, please switch to use the cuda.bindings.runtime module instead.
+(EngineCore pid=862180) <frozen importlib._bootstrap_external>:1301: FutureWarning: The cuda.nvrtc module is deprecated and will be removed in a future release, please switch to use the cuda.bindings.nvrtc module instead.
+(EngineCore pid=862180) INFO 09-09 18:07:48 [compilation.py:303] Enabled custom fusions: norm_quant, act_quant, allreduce_rms
+INFO 09-09 18:08:00 [loggers.py:271] Engine 000: Avg prompt throughput: 422.4 tokens/s, Avg generation throughput: 34.4 tokens/s, Running: 8 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.7%, Prefix cache hit rate: 0.0%
+(EngineCore pid=862180) INFO 09-09 18:08:02 [core.py:1238] Shutdown initiated (timeout=0)
+(EngineCore pid=862180) INFO 09-09 18:08:02 [core.py:1261] Shutdown complete
+(Worker_TP1_DCP1 pid=862284) INFO 09-09 18:08:02 [multiproc_executor.py:872] WorkerProc shutting down.
+(Worker_TP2_DCP2 pid=862285) INFO 09-09 18:08:02 [multiproc_executor.py:872] WorkerProc shutting down.
+(Worker_TP3_DCP3 pid=862286) INFO 09-09 18:08:02 [multiproc_executor.py:872] WorkerProc shutting down.
+(Worker_TP0_DCP0 pid=862283) INFO 09-09 18:08:02 [multiproc_executor.py:775] Parent process exited, terminating worker queues
+(Worker_TP0_DCP0 pid=862283) INFO 09-09 18:08:02 [multiproc_executor.py:872] WorkerProc shutting down.

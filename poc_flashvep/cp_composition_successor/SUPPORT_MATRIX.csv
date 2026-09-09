@@ -1,0 +1,5 @@
+model,checkpoint_cached,moe,mllm,attention,q_heads,kv_heads,valid_tp,valid_pcp,valid_dcp,ep_off,available_speculator,pcp_backend,dcp_backend,cuda_graph,current_blocker
+Qwen3-VL-30B-A3B-Instruct,yes,yes,yes,GQA,32,4,"1/2/4",1,1,yes,"ngram/suffix; draft support model-dependent",none,"GQA DCP backend only when TP>KV heads",supported without CP,"4 GPUs cannot satisfy TP>4 KV heads; current PCP rejects multimodal"
+Qwen3-30B-A3B,yes,yes,no,GQA,32,4,"1/2/4",1,1,yes,"ngram/suffix; draft model-dependent",none,"GQA DCP backend only when TP>KV heads",supported without CP,"4 GPUs cannot satisfy TP>4 KV heads"
+DeepSeek-V2-Lite-Chat,yes,yes,no,MLA,16,MLA,"1/2/4","1/2/4","1/2/4",yes,"ngram/suffix","FlashAttention MLA / current PCP manager","FlashAttention MLA or FlashInfer MLA",piecewise/backend-dependent,"v0.26 cu129 runs PCP and DCP; PCP4+DCP4 stalls in model warmup on this environment"
+Qwen1.5-MoE-A2.7B,yes,yes,no,MHA,16,16,"1/2/4",1,1,yes,"ngram/suffix",none,none,supported without CP,"DCP requires TP>16 and is impossible on 4 GPUs"
