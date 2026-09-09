@@ -1,0 +1,37 @@
+diff --git a/nanovllm/engine/model_runner.py b/nanovllm/engine/model_runner.py
+index f41324c..065784d 100644
+--- a/nanovllm/engine/model_runner.py
++++ b/nanovllm/engine/model_runner.py
+@@ -21,6 +21,7 @@
+ # SOFTWARE.
+ 
+ import gc
++import os
+ import pickle
+ import numpy as np
+ import torch
+@@ -88,6 +89,10 @@ class ModelRunner:
+         gc.collect()
+         gc.freeze()
+ 
++        if os.environ.get("SUCCESSOR_LP_TRACE"):
++            from mechanism_probe import install
++            install(self)
++
+         if self.world_size > 1:
+             if rank == 0:
+                 try:
+diff --git a/nanovllm/entrypoints/api_server.py b/nanovllm/entrypoints/api_server.py
+index df886a0..374a7aa 100644
+--- a/nanovllm/entrypoints/api_server.py
++++ b/nanovllm/entrypoints/api_server.py
+@@ -52,7 +52,8 @@ async def generate(request: Request) -> Response:
+     stream = request_dict.pop("stream", False)
+     model = request_dict.pop("model", None)
+     sampling_params = SamplingParams(**request_dict)
+-    request_id = random_uuid()
++    # Optional benchmark identity only; scheduling and sampling are unchanged.
++    request_id = request.headers.get("X-Successor-Request-ID") or random_uuid()
+ 
+     assert engine is not None
+     results_generator = engine.generate(request_id, prompt, sampling_params)

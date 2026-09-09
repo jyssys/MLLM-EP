@@ -1,0 +1,78 @@
+{
+  "scope": "native_layered_existing_group_choices_only_correctness_pending",
+  "policies": [
+    "layered16",
+    "layered4"
+  ],
+  "median_cost_by_workload": {
+    "heterogeneous_bursty": {
+      "layered16": 4.047814265495011,
+      "layered4": 3.314350042880202
+    },
+    "heterogeneous_steady": {
+      "layered16": 2.3904579903464764,
+      "layered4": 2.3142892443186915
+    }
+  },
+  "envelopes": [
+    {
+      "weighting": "observed_request_mix",
+      "best_static": "layered4",
+      "best_static_mean_e2e_s": 2.814319643599447,
+      "per_regime_oracle_e2e_s": 2.814319643599447,
+      "oracle_gain_pct": 0.0,
+      "per_regime_choices": {
+        "heterogeneous_bursty": "layered4",
+        "heterogeneous_steady": "layered4"
+      }
+    },
+    {
+      "weighting": "equal_workload_weight",
+      "best_static": "layered4",
+      "best_static_mean_e2e_s": 2.814319643599447,
+      "per_regime_oracle_e2e_s": 2.814319643599447,
+      "oracle_gain_pct": 0.0,
+      "per_regime_choices": {
+        "heterogeneous_bursty": "layered4",
+        "heterogeneous_steady": "layered4"
+      }
+    }
+  ],
+  "bursty_trivial_fix": [],
+  "leave_one_restart_out": [
+    {
+      "held_out_block": "0",
+      "trained_static": "layered4",
+      "trained_per_regime": {
+        "heterogeneous_bursty": "layered4",
+        "heterogeneous_steady": "layered4"
+      },
+      "held_out_reduction_pct": 0.0
+    },
+    {
+      "held_out_block": "1",
+      "trained_static": "layered4",
+      "trained_per_regime": {
+        "heterogeneous_bursty": "layered4",
+        "heterogeneous_steady": "layered4"
+      },
+      "held_out_reduction_pct": 0.0
+    },
+    {
+      "held_out_block": "2",
+      "trained_static": "layered4",
+      "trained_per_regime": {
+        "heterogeneous_bursty": "layered4",
+        "heterogeneous_steady": "layered4"
+      },
+      "held_out_reduction_pct": 0.0
+    }
+  ],
+  "limitations": [
+    "in-sample oracle and leave-one-restart-out knob selection, not new-workload validation",
+    "does not bound untested chunk/partition or MoE/MLLM successors",
+    "zero switching/restart cost assumed at workload boundary",
+    "long continuation correctness still under investigation",
+    "not SLO capacity goodput or per-invocation oracle"
+  ]
+}

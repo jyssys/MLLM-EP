@@ -1,0 +1,80 @@
+{
+  "scope": "dense_existing_policies_only_correctness_validation_pending",
+  "policies": [
+    "alp",
+    "alp_rebalance",
+    "greedy",
+    "pp_only"
+  ],
+  "median_cost_by_workload": {
+    "fastpp_official_azure_conv_192": {
+      "alp": 9.920227233616364,
+      "alp_rebalance": 9.769590183335822,
+      "greedy": 9.351175865029896,
+      "pp_only": 10.739418737779488
+    },
+    "heterogeneous_bursty": {
+      "alp": 8.70927001994763,
+      "alp_rebalance": 8.950162462696122,
+      "greedy": 8.101312826591311,
+      "pp_only": 7.906662305690891
+    },
+    "heterogeneous_steady": {
+      "alp": 7.025031854088108,
+      "alp_rebalance": 6.931855308357626,
+      "greedy": 6.711939480407939,
+      "pp_only": 9.136920638236916
+    },
+    "short_high_concurrency": {
+      "alp": 8.956696713605197,
+      "alp_rebalance": 9.0094885331373,
+      "greedy": 8.478885372577679,
+      "pp_only": 8.464097651128213
+    }
+  },
+  "envelopes": [
+    {
+      "weighting": "observed_request_mix",
+      "best_static": "greedy",
+      "best_static_mean_e2e_s": 8.559563984476846,
+      "per_regime_oracle_e2e_s": 8.538420811495161,
+      "oracle_gain_pct": 0.24701226627931172,
+      "per_regime_choices": {
+        "fastpp_official_azure_conv_192": "greedy",
+        "heterogeneous_bursty": "pp_only",
+        "heterogeneous_steady": "greedy",
+        "short_high_concurrency": "pp_only"
+      }
+    },
+    {
+      "weighting": "equal_workload_weight",
+      "best_static": "greedy",
+      "best_static_mean_e2e_s": 8.160828386151707,
+      "per_regime_oracle_e2e_s": 8.108468825564234,
+      "oracle_gain_pct": 0.6415961482087118,
+      "per_regime_choices": {
+        "fastpp_official_azure_conv_192": "greedy",
+        "heterogeneous_bursty": "pp_only",
+        "heterogeneous_steady": "greedy",
+        "short_high_concurrency": "pp_only"
+      }
+    }
+  ],
+  "bursty_trivial_fix": [
+    {
+      "block": "0",
+      "greedy_recovery_of_alp_excess_pct": 70.92019638785686
+    },
+    {
+      "block": "2",
+      "greedy_recovery_of_alp_excess_pct": 89.66158069934941
+    }
+  ],
+  "limitations": [
+    "three-restart in-sample diagnostic; no held-out policy selection",
+    "does not bound untested chunk/partition or MoE/MLLM successors",
+    "zero switching/restart cost assumed at workload boundary",
+    "long continuation correctness still under investigation",
+    "not SLO capacity goodput or per-invocation oracle"
+  ]
+}

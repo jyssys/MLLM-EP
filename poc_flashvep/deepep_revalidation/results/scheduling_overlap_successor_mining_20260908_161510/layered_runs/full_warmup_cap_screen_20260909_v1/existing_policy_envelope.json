@@ -1,0 +1,84 @@
+{
+  "scope": "native_Layered_four_existing_knobs_full_workload_warmup_not_all_partitions",
+  "policies": [
+    "chunk2048",
+    "layered12",
+    "layered24",
+    "layered4"
+  ],
+  "median_cost_by_workload": {
+    "heterogeneous_bursty": {
+      "chunk2048": 3.429372970461069,
+      "layered12": 3.6710940225457307,
+      "layered24": 4.6232702435130095,
+      "layered4": 3.239378933678381
+    },
+    "heterogeneous_steady": {
+      "chunk2048": 2.230205721629318,
+      "layered12": 2.285255988856079,
+      "layered24": 2.9118066524582296,
+      "layered4": 2.266374829050619
+    }
+  },
+  "envelopes": [
+    {
+      "weighting": "observed_request_mix",
+      "best_static": "layered4",
+      "best_static_mean_e2e_s": 2.7528768813645,
+      "per_regime_oracle_e2e_s": 2.7347923276538495,
+      "oracle_gain_pct": 0.6569328920255524,
+      "per_regime_choices": {
+        "heterogeneous_bursty": "layered4",
+        "heterogeneous_steady": "chunk2048"
+      }
+    },
+    {
+      "weighting": "equal_workload_weight",
+      "best_static": "layered4",
+      "best_static_mean_e2e_s": 2.7528768813645,
+      "per_regime_oracle_e2e_s": 2.7347923276538495,
+      "oracle_gain_pct": 0.6569328920255524,
+      "per_regime_choices": {
+        "heterogeneous_bursty": "layered4",
+        "heterogeneous_steady": "chunk2048"
+      }
+    }
+  ],
+  "bursty_trivial_fix": [],
+  "leave_one_restart_out": [
+    {
+      "held_out_block": "0",
+      "trained_static": "layered4",
+      "trained_per_regime": {
+        "heterogeneous_bursty": "layered4",
+        "heterogeneous_steady": "layered4"
+      },
+      "held_out_reduction_pct": 0.0
+    },
+    {
+      "held_out_block": "1",
+      "trained_static": "layered4",
+      "trained_per_regime": {
+        "heterogeneous_bursty": "layered4",
+        "heterogeneous_steady": "layered4"
+      },
+      "held_out_reduction_pct": 0.0
+    },
+    {
+      "held_out_block": "2",
+      "trained_static": "chunk2048",
+      "trained_per_regime": {
+        "heterogeneous_bursty": "chunk2048",
+        "heterogeneous_steady": "chunk2048"
+      },
+      "held_out_reduction_pct": 0.0
+    }
+  ],
+  "limitations": [
+    "in-sample oracle and leave-one-restart-out knob selection, not new-workload validation",
+    "does not bound untested chunk/partition or MoE/MLLM successors",
+    "zero switching/restart cost assumed at workload boundary",
+    "long continuation correctness still under investigation",
+    "not SLO capacity goodput or per-invocation oracle"
+  ]
+}

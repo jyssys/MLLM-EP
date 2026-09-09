@@ -1,0 +1,20 @@
+diff --git a/python/sglang/srt/managers/scheduler.py b/python/sglang/srt/managers/scheduler.py
+index cca8c29..6c4737f 100644
+--- a/python/sglang/srt/managers/scheduler.py
++++ b/python/sglang/srt/managers/scheduler.py
+@@ -2206,6 +2206,9 @@ def run_scheduler_process(
+ 
+     try:
+         scheduler = Scheduler(server_args, port_args, gpu_id, tp_rank, pp_rank, dp_rank)
++        if os.environ.get("SUCCESSOR_FASTPP_TRACE"):
++            from mechanism_probe import install
++            install(scheduler)
+         pipe_writer.send(
+             {"status": "ready", "max_total_num_tokens": scheduler.max_total_num_tokens}
+         )
+@@ -2217,4 +2220,3 @@ def run_scheduler_process(
+         traceback = get_exception_traceback()
+         logger.error(f"Scheduler hit an exception: {traceback}")
+         parent_process.send_signal(signal.SIGQUIT)
+-
+

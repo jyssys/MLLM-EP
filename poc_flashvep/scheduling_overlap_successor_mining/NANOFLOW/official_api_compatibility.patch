@@ -1,0 +1,58 @@
+diff --git a/nanoflow/models/qwen2_moe/qwen2_moe_ep.py b/nanoflow/models/qwen2_moe/qwen2_moe_ep.py
+index 908a205..6b48c4c 100644
+--- a/nanoflow/models/qwen2_moe/qwen2_moe_ep.py
++++ b/nanoflow/models/qwen2_moe/qwen2_moe_ep.py
+@@ -85,6 +85,7 @@ class Pipeline(BasePipeline):
+     def init_external_data(self) -> None:
+         print("Initializing external data...")
+         self.kv_pool = DistKVPool(
++            0,
+             self.num_layers,
+             self.num_kv_heads,
+             self.head_dim,
+@@ -469,12 +470,12 @@ class Pipeline(BasePipeline):
+     def config_algorithm(self) -> None:
+         print("Configuring algorithms...")
+         params = {
+-            "use_cuda_graph": self.is_cuda_graph_enabled,
++            "use_cuda_graph": self.cuda_graph_enabled,
+         }
+ 
+         self.gen_embedding.config_tag("cuda", params)
+ 
+-        if self.is_auto_search_enabled:
++        if self.auto_search_enabled:
+             super().config_algorithm_auto_search(params)
+         else:
+             self.layerNormAttn.config_tag("cuda", params)
+@@ -514,8 +515,8 @@ class Pipeline(BasePipeline):
+             cumsum_input,
+             input_req_idx,
+             decode_batch_size,
+-            use_cuda_graph=(not self.plan_cuda_graph)
+-            and self.is_cuda_graph_enabled,
++            cuda_graph_enabled=(not self.plan_cuda_graph)
++            and self.cuda_graph_enabled,
+         )
+         self.global_input.outputs["tokens"].tensor.copy_(input_tensor)
+         self.ropeAppend.update(cumsum_input, decode_batch_size)
+diff --git a/nanoflow/operations/activation/silu.py b/nanoflow/operations/activation/silu.py
+index a9e276e..6e8b30f 100644
+--- a/nanoflow/operations/activation/silu.py
++++ b/nanoflow/operations/activation/silu.py
+@@ -76,7 +76,7 @@ class Activation(Operations):
+         return self
+     
+     def copy_nano(self, index):
+-        new_op = Activation(self.name, self.device, nano_idx=index)
++        new_op = Activation(self.name, self.device, act_fn=self.act_fn, nano_idx=index)
+         new_op.set_category(self.category)
+         new_op.expand_layer(self.layer_list)
+         new_op.setShape(self.N, self.tp_rank, self.tp_size)
+@@ -116,4 +116,4 @@ class Activation_Layer(Operation_Layer):
+         super().__init__(layer, base_op)
+     
+     def run(self):
+-        self.parent.run()
+\ No newline at end of file
++        self.parent.run()

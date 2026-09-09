@@ -1,0 +1,100 @@
+{
+  "scope": "native_Qwen3_PP4_full_workload_warmup_existing_five_knobs_only",
+  "policies": [
+    "alp",
+    "greedy",
+    "pp_chunk128",
+    "pp_chunk512",
+    "pp_only"
+  ],
+  "median_cost_by_workload": {
+    "heterogeneous_bursty": {
+      "alp": 8.341311140044127,
+      "greedy": 7.762300589306203,
+      "pp_chunk128": 10.229224552895175,
+      "pp_chunk512": 9.791502638729677,
+      "pp_only": 6.883776815811871
+    },
+    "heterogeneous_steady": {
+      "alp": 8.539404018811183,
+      "greedy": 7.637472963232237,
+      "pp_chunk128": 7.851149319981535,
+      "pp_chunk512": 7.623280525973921,
+      "pp_only": 7.005720281983183
+    }
+  },
+  "envelopes": [
+    {
+      "weighting": "observed_request_mix",
+      "best_static": "pp_only",
+      "best_static_mean_e2e_s": 6.944748548897526,
+      "per_regime_oracle_e2e_s": 6.944748548897526,
+      "oracle_gain_pct": 0.0,
+      "per_regime_choices": {
+        "heterogeneous_bursty": "pp_only",
+        "heterogeneous_steady": "pp_only"
+      }
+    },
+    {
+      "weighting": "equal_workload_weight",
+      "best_static": "pp_only",
+      "best_static_mean_e2e_s": 6.944748548897527,
+      "per_regime_oracle_e2e_s": 6.944748548897527,
+      "oracle_gain_pct": 0.0,
+      "per_regime_choices": {
+        "heterogeneous_bursty": "pp_only",
+        "heterogeneous_steady": "pp_only"
+      }
+    }
+  ],
+  "bursty_trivial_fix": [
+    {
+      "block": "0",
+      "greedy_recovery_of_alp_excess_pct": 94.9707605761655
+    },
+    {
+      "block": "1",
+      "greedy_recovery_of_alp_excess_pct": 18.12327148053978
+    },
+    {
+      "block": "2",
+      "greedy_recovery_of_alp_excess_pct": 82.77300004638957
+    }
+  ],
+  "leave_one_restart_out": [
+    {
+      "held_out_block": "0",
+      "trained_static": "pp_only",
+      "trained_per_regime": {
+        "heterogeneous_bursty": "pp_only",
+        "heterogeneous_steady": "pp_only"
+      },
+      "held_out_reduction_pct": 0.0
+    },
+    {
+      "held_out_block": "1",
+      "trained_static": "pp_only",
+      "trained_per_regime": {
+        "heterogeneous_bursty": "pp_only",
+        "heterogeneous_steady": "pp_only"
+      },
+      "held_out_reduction_pct": 0.0
+    },
+    {
+      "held_out_block": "2",
+      "trained_static": "pp_only",
+      "trained_per_regime": {
+        "heterogeneous_bursty": "pp_only",
+        "heterogeneous_steady": "pp_only"
+      },
+      "held_out_reduction_pct": 0.0
+    }
+  ],
+  "limitations": [
+    "in-sample oracle and leave-one-restart-out knob selection, not new-workload validation",
+    "does not bound untested chunk/partition or MoE/MLLM successors",
+    "zero switching/restart cost assumed at workload boundary",
+    "long continuation correctness still under investigation",
+    "not SLO capacity goodput or per-invocation oracle"
+  ]
+}

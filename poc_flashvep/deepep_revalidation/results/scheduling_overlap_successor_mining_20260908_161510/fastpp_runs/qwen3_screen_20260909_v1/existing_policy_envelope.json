@@ -1,0 +1,106 @@
+{
+  "scope": "native_qwen3_pp4_existing_policy_screen_large_restart_variance",
+  "policies": [
+    "alp",
+    "greedy",
+    "pp_only"
+  ],
+  "median_cost_by_workload": {
+    "fastpp_official_azure_conv_192": {
+      "alp": 11.740688523755429,
+      "greedy": 10.592339050252727,
+      "pp_only": 17.971599993567605
+    },
+    "heterogeneous_bursty": {
+      "alp": 8.42784180723053,
+      "greedy": 9.237124192567231,
+      "pp_only": 10.694279786606785
+    },
+    "heterogeneous_steady": {
+      "alp": 8.216330481285695,
+      "greedy": 7.191044744598912,
+      "pp_only": 11.716373830335215
+    },
+    "short_high_concurrency": {
+      "alp": 8.668218503883509,
+      "greedy": 7.407401858964477,
+      "pp_only": 11.760442758955833
+    }
+  },
+  "envelopes": [
+    {
+      "weighting": "observed_request_mix",
+      "best_static": "greedy",
+      "best_static_mean_e2e_s": 8.268588698027889,
+      "per_regime_oracle_e2e_s": 8.220031754907687,
+      "oracle_gain_pct": 0.5872458395685287,
+      "per_regime_choices": {
+        "fastpp_official_azure_conv_192": "greedy",
+        "heterogeneous_bursty": "alp",
+        "heterogeneous_steady": "greedy",
+        "short_high_concurrency": "greedy"
+      }
+    },
+    {
+      "weighting": "equal_workload_weight",
+      "best_static": "greedy",
+      "best_static_mean_e2e_s": 8.606977461595836,
+      "per_regime_oracle_e2e_s": 8.40465686526166,
+      "oracle_gain_pct": 2.3506579079232592,
+      "per_regime_choices": {
+        "fastpp_official_azure_conv_192": "greedy",
+        "heterogeneous_bursty": "alp",
+        "heterogeneous_steady": "greedy",
+        "short_high_concurrency": "greedy"
+      }
+    }
+  ],
+  "bursty_trivial_fix": [
+    {
+      "block": "0",
+      "greedy_recovery_of_alp_excess_pct": -62.468392240999286
+    }
+  ],
+  "leave_one_restart_out": [
+    {
+      "held_out_block": "0",
+      "trained_static": "greedy",
+      "trained_per_regime": {
+        "fastpp_official_azure_conv_192": "greedy",
+        "heterogeneous_bursty": "alp",
+        "heterogeneous_steady": "greedy",
+        "short_high_concurrency": "greedy"
+      },
+      "held_out_reduction_pct": 0.6455663250243826
+    },
+    {
+      "held_out_block": "1",
+      "trained_static": "greedy",
+      "trained_per_regime": {
+        "fastpp_official_azure_conv_192": "greedy",
+        "heterogeneous_bursty": "alp",
+        "heterogeneous_steady": "greedy",
+        "short_high_concurrency": "greedy"
+      },
+      "held_out_reduction_pct": -0.750145822604531
+    },
+    {
+      "held_out_block": "2",
+      "trained_static": "greedy",
+      "trained_per_regime": {
+        "fastpp_official_azure_conv_192": "greedy",
+        "heterogeneous_bursty": "greedy",
+        "heterogeneous_steady": "greedy",
+        "short_high_concurrency": "greedy"
+      },
+      "held_out_reduction_pct": 0.0
+    }
+  ],
+  "limitations": [
+    "in-sample oracle and leave-one-restart-out knob selection, not new-workload validation",
+    "does not bound untested chunk/partition or MoE/MLLM successors",
+    "zero switching/restart cost assumed at workload boundary",
+    "long continuation correctness still under investigation",
+    "not SLO capacity goodput or per-invocation oracle"
+  ]
+}

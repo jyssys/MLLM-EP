@@ -1,0 +1,35 @@
+diff --git a/python/sglang/srt/configs/model_config.py b/python/sglang/srt/configs/model_config.py
+index 6c0bb2f..9bf66ef 100644
+--- a/python/sglang/srt/configs/model_config.py
++++ b/python/sglang/srt/configs/model_config.py
+@@ -14,6 +14,7 @@
+ 
+ import json
+ import logging
++import os
+ from enum import IntEnum, auto
+ from typing import List, Optional, Union
+ 
+@@ -195,6 +196,22 @@ class ModelConfig:
+         """Returns the number of hidden layers per GPU."""
+         total_num_hidden_layers = self.num_hidden_layers
+ 
++        # Match make_layers' existing explicit vLLM partition. Otherwise a
++        # >12-layer Qwen stage aliases distinct layers in the 12-slot KV pool.
++        # This opt-in compatibility path leaves the official default unchanged.
++        if os.environ.get("VLLM_PP_LAYER_PARTITION") is not None:
++            from vllm.distributed import get_pp_group
++            from vllm.distributed.utils import get_pp_indices
++
++            group = get_pp_group()
++            if group.world_size != pipeline_parallel_size:
++                raise ValueError("PP group and requested KV partition disagree")
++            start, end = get_pp_indices(total_num_hidden_layers,
++                                        group.rank_in_group, pipeline_parallel_size)
++            if end <= start:
++                raise ValueError("Empty PP stage is unsupported by this KV pool")
++            return end - start
++
+         return max(1, total_num_hidden_layers // pipeline_parallel_size)
+ 
+     # adapted from https://github.com/vllm-project/vllm/blob/v0.6.4.post1/vllm/config.py
