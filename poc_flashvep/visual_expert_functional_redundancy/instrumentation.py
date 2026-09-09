@@ -44,6 +44,8 @@ def _fingerprints(tensor: torch.Tensor) -> list[str]:
 
 
 def _selected(fingerprints: list[str]) -> np.ndarray:
+    if os.environ.get("FLASHVEP_FUNCTIONAL_SAMPLE_ALL", "0") == "1":
+        return np.ones(len(fingerprints), dtype=bool)
     # Preregistered deterministic 25% sample, identical on every EP rank.
     return np.asarray([int(value[:2], 16) < 64 for value in fingerprints], dtype=bool)
 
