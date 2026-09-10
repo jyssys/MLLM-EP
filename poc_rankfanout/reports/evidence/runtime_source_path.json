@@ -1,0 +1,45 @@
+{
+  "repository": {
+    "path": "/home/esjung/MLLM-EP-rankfanout",
+    "branch": "flashvep/rank-fanout-ep-communication-poc",
+    "head": "e228b44cec1f5ffa32953e52540086423f84f33f",
+    "origin_head": "e228b44cec1f5ffa32953e52540086423f84f33f"
+  },
+  "runtime": {
+    "python": "3.12.13",
+    "torch": "2.11.0+cu129",
+    "torch_cuda": "12.9",
+    "vllm_version": "0.20.0",
+    "vllm_path": "/home/esjung/anaconda3/envs/flashvep-poc/lib/python3.12/site-packages/vllm/__init__.py",
+    "deep_ep": {
+      "path": "/home/esjung/.venvs/flashvep-deepep-v020/lib/python3.12/site-packages/deep_ep/__init__.py",
+      "distribution_version": "1.2.1+73b6ea4",
+      "sm90_compiled": true
+    },
+    "nccl_python_package": "2.28.9",
+    "cuda_visible_devices": "4,5,6,7"
+  },
+  "source_files": {
+    "/home/esjung/anaconda3/envs/flashvep-poc/lib/python3.12/site-packages/vllm/distributed/device_communicators/all2all.py": {
+      "sha256": "be2d27a885014ad2bd76d744ef5e04d0d7d6bb9393e26f508440dc03ce7ec62a",
+      "size": 26414
+    },
+    "/home/esjung/anaconda3/envs/flashvep-poc/lib/python3.12/site-packages/vllm/model_executor/layers/fused_moe/prepare_finalize/deepep_ht.py": {
+      "sha256": "31fa37b3782e7525056e70f30ae74a8b4929893ddbf2aa42d3a5b2b12657bfc1",
+      "size": 15916
+    },
+    "/home/esjung/anaconda3/envs/flashvep-poc/lib/python3.12/site-packages/vllm/model_executor/layers/fused_moe/prepare_finalize/naive_dp_ep.py": {
+      "sha256": "32f0e8d0f0df19bc59dec5f1828c12898ea4f126a246e15adcbd810a9f9f859b",
+      "size": 8408
+    }
+  },
+  "source_contract": {
+    "agrs_dispatch_calls_all_gatherv": true,
+    "agrs_combine_calls_reduce_scatterv": true,
+    "deepep_prepare_calls_do_dispatch": true,
+    "deepep_do_dispatch_calls_layout": true,
+    "deepep_do_dispatch_calls_buffer_dispatch": true,
+    "deepep_finalize_path_present": true,
+    "deep_ep_num_sms_default": 20
+  }
+}

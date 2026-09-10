@@ -1,0 +1,45 @@
+{
+  "repository": {
+    "source_repository": "jyssys/MLLM-EP",
+    "source_head": "e228b44cec1f5ffa32953e52540086423f84f33f",
+    "source_subject": "flashvep: add offline wavefront quick PoC",
+    "worktree": "/home/esjung/MLLM-EP-rankfanout",
+    "branch": "flashvep/rank-fanout-ep-communication-poc"
+  },
+  "model": {
+    "name": "Qwen3-VL-30B-A3B-Instruct",
+    "snapshot": "/home/esjung/.cache/huggingface/hub/models--Qwen--Qwen3-VL-30B-A3B-Instruct/snapshots/9c4b90e1e4ba969fd3b5378b57d966d725f1b86c",
+    "dtype": "bfloat16",
+    "experts": 128,
+    "top_k": 8
+  },
+  "runtime": {
+    "vllm": "0.20.0+cu129",
+    "torch": "2.11.0+cu129",
+    "cuda": "12.9",
+    "nccl_python_package": "2.28.9",
+    "deep_ep_distribution": "1.2.1+73b6ea4",
+    "driver": "570.211.01",
+    "topology": "TP2/DP2/effective-EP4",
+    "expert_placement": "linear, 32 experts per EP rank",
+    "moe_backend": "TritonExperts",
+    "dbo": false,
+    "eplb": false,
+    "enforce_eager": true
+  },
+  "gpus": [
+    {"physical_index": 4, "uuid": "GPU-6076e2f2-5b63-3761-5586-56ceb7df8139", "model": "NVIDIA H100 80GB HBM3"},
+    {"physical_index": 5, "uuid": "GPU-a1a1cfcf-93a1-3544-9a5e-e58144b68730", "model": "NVIDIA H100 80GB HBM3"},
+    {"physical_index": 6, "uuid": "GPU-e3f3998e-0f1a-e94a-b97c-4abb0e8c2c28", "model": "NVIDIA H100 80GB HBM3"},
+    {"physical_index": 7, "uuid": "GPU-4cc26b88-19fc-1988-f9e0-17858aa7a99b", "model": "NVIDIA H100 80GB HBM3"}
+  ],
+  "gpu_links": "NV18 between every measured GPU pair",
+  "cuda_visible_devices": "4,5,6,7",
+  "excluded": [
+    "CPU/GPU expert offload",
+    "EPLB",
+    "expert replication or weight movement",
+    "token merging",
+    "dynamic backend switching"
+  ]
+}
