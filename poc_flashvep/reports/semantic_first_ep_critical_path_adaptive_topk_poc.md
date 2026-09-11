@@ -2,7 +2,9 @@
 
 ## Executive decision
 
-**Final status: NO-GO for a distinct EP-critical-path paper direction.**
+**Original EP4 final status: NO-GO for a distinct EP-critical-path paper
+direction. Post-hoc recovery status: HOLD for one bounded real-EP8 validation;
+see the recovery addendum linked at the end.**
 
 Semantic-first visual expert reduction is real: a calibration-aggregate full
 K=1..8 schedule removed 27.15% of held-out visual expert assignments while
@@ -219,3 +221,15 @@ rank load.
 
 Detailed tables and all 14 required figures are under
 `poc_semantic_first_topk/results/final_analysis/`.
+
+## Post-hoc recovery addendum (2026-09-11)
+
+The earlier `31/32` refinement result was token-sequence identity, not task
+accuracy. Official-style benchmark rescoring gives stock 25/32 and refined
+30% 26/32, with zero negative accuracy flips. An exact offline load oracle
+also finds that EP-aware incremental max-rank reduction grows substantially at
+virtual EP8, rather than remaining near 3%. These results do not overturn the
+prior-art/triviality concerns or establish EP8 latency, but they do justify one
+bounded real EP8 validation before permanently closing the scale-dependent
+variant. Full definitions and evidence boundaries are in
+`poc_flashvep/reports/semantic_first_ep_recovery_checks.md`.
