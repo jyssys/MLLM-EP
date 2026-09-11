@@ -1,0 +1,41 @@
+diff --git a/python/dinfer/model/modeling_fused_olmoe.py b/python/dinfer/model/modeling_fused_olmoe.py
+index e63171c..5b07fa9 100644
+--- a/python/dinfer/model/modeling_fused_olmoe.py
++++ b/python/dinfer/model/modeling_fused_olmoe.py
+@@ -43,19 +43,12 @@ from collections import OrderedDict
+ from pathlib import Path
+ import json
+ from safetensors.torch import load_file
+-import vllm.distributed as vllm_distributed
+-
+-def torch_all_reduce(tensor):
+-    torch.distributed.all_reduce(tensor)
+-    return tensor
+-vllm_distributed.tensor_model_parallel_all_reduce = torch_all_reduce
+-
+-
+ from vllm.distributed import (divide, get_tensor_model_parallel_rank,
+                               get_tensor_model_parallel_world_size,
+                               split_tensor_along_last_dim,
+                               tensor_model_parallel_all_gather,
+                               tensor_model_parallel_all_reduce)
++from vllm.distributed.parallel_state import get_ep_group
+ 
+ 
+ from .configuration_olmoe import OlmoeConfig
+@@ -1129,8 +1122,13 @@ class FusedOlmoeForCausalLM(OlmoePreTrainedModel):
+                     new_key = re.sub(pattern, replacement, key)
+                     break
+             if new_key.endswith('w13_weight') or new_key.endswith('w2_weight'):
+-                ep_rank = get_tensor_model_parallel_rank()
+-                ep_size = get_tensor_model_parallel_world_size()
++                # Expert ownership follows vLLM's EP group.  The original
++                # dInfer code used the TP group, which is equivalent for the
++                # stock TP4/DP1 launch but loads all experts into every rank
++                # for the dispatch-capable TP1/DP4/EP4 layout.
++                ep_group = get_ep_group()
++                ep_rank = ep_group.rank_in_group
++                ep_size = ep_group.world_size
+                 size = divide(value.shape[0], ep_size)
+                 new_state_dict[new_key] = value[ep_rank*size:(ep_rank+1)*size]
+             else:
