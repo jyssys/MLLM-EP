@@ -1,0 +1,67 @@
+{
+  "stage_a": {
+    "restart_speedups_x": [
+      2.334769977250213,
+      1.7136573364647314,
+      1.8318896104707998
+    ],
+    "median_speedup_x": 1.8318896104707998,
+    "r1_speedup_x": 2.334769977250213,
+    "trace_nfe_reduction_pct": 41.666666666666664,
+    "trace_active_expert_event_reduction_pct": 50.79962073324904,
+    "trace_assignment_change_pct": 11.5,
+    "observer_tax_baseline_pct": 36.688454102477344,
+    "observer_tax_team_pct": 12.219548879579744
+  },
+  "stage_b": {
+    "reference_restart_speedups_x": [
+      1.289049962618381,
+      1.2672649622668433,
+      1.5509985617751365
+    ],
+    "reference_median_speedup_x": 1.289049962618381,
+    "warm_speedup_x": 1.5509985617751365,
+    "fused_speedup_x": 1.1792428967927702,
+    "python_team_s": 7.751230371184647,
+    "fused_team_s": 3.3377171009778976,
+    "fused_vs_python_team_reduction_pct": 56.939518745489394,
+    "layer_correctness": [
+      {
+        "backend": "python_reference",
+        "layer": 0,
+        "rows": 32,
+        "output_cosine": 0.9999999403953552,
+        "output_rel_l2": 0.0005049555911682546,
+        "output_max_abs": 0.000244140625,
+        "router_logits_max_abs": 0.0
+      },
+      {
+        "backend": "vllm_fused",
+        "layer": 0,
+        "rows": 32,
+        "output_cosine": 1.0,
+        "output_rel_l2": 0.0005526478635147214,
+        "output_max_abs": 0.000244140625,
+        "router_logits_max_abs": 0.0
+      }
+    ]
+  },
+  "stage_c": {
+    "fused_clean_request_ms": 3337.7171009778976,
+    "fused_trace_request_ms": 3254.9455668777227,
+    "trace_vs_clean_pct": -2.479884651575903,
+    "route_duplicate_pct": 51.0008386299435,
+    "exact_input_duplicate_pct": 0.02951756709039548,
+    "near_input_1pct_pct": 1.134081479519774,
+    "near_input_5pct_pct": 3.6717646539548023,
+    "dominant_stage": "attention",
+    "dominant_stage_share_pct": 30.44223204509347,
+    "moe_stage_share_pct": 40.83796511228206
+  },
+  "decision": {
+    "label": "POSITIVE-CONTROL-ONLY",
+    "best_independent_candidate": "perfect early speculative-branch commitment",
+    "best_independent_perfect_oracle_e2e_pct": 6.283164105026412,
+    "ep4_validation_justified": false
+  }
+}
