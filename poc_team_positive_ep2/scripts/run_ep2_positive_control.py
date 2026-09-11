@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Semantics-preserving two-rank expert-parallel SDAR/TEAM diagnostic.
+"""Semantics-preserving EP2/EP4 expert-parallel SDAR/TEAM diagnostic.
 
 The released SDAR model stores all experts in a Python ``ModuleList``.  This
 runner leaves the released decoder untouched and replaces only the physical
@@ -43,11 +43,19 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 from run_positive_control import load_official_generator, stop_ids, tokenize
 
 
-EXPECTED_VISIBLE = "6,7"
-EXPECTED_UUIDS = (
-    "GPU-e3f3998e-0f1a-e94a-b97c-4abb0e8c2c28",
-    "GPU-4cc26b88-19fc-1988-f9e0-17858aa7a99b",
-)
+EXPECTED_VISIBLE_BY_WORLD = {2: "0,1", 4: "0,1,2,3"}
+EXPECTED_UUIDS_BY_WORLD = {
+    2: (
+        "f217c8a0-1142-20f4-d84b-af29f3a47a0d",
+        "a77f3471-67d4-20b0-9fab-e502d4de5adb",
+    ),
+    4: (
+        "f217c8a0-1142-20f4-d84b-af29f3a47a0d",
+        "a77f3471-67d4-20b0-9fab-e502d4de5adb",
+        "24200107-8a7f-de46-1bc8-b81f8d3af13e",
+        "17488c15-2d4c-5d9e-d503-29b0d959a8a8",
+    ),
+}
 
 
 def free_port() -> int:
@@ -112,11 +120,11 @@ class ModuleEventRecorder:
         self.pairs.clear()
 
 
-class EP2Runtime:
-    def __init__(self, rank: int, instrument: bool, local_expert_backend: str,
+class EPRuntime:
+    def __init__(self, rank: int, world: int, instrument: bool, local_expert_backend: str,
                  analyze_branch_duplicates: bool):
         self.rank = rank
-        self.world = 2
+        self.world = world
         self.instrument = instrument
         self.local_expert_backend = local_expert_backend
         self.analyze_branch_duplicates = analyze_branch_duplicates
@@ -297,8 +305,10 @@ class EP2Runtime:
 
         dist.broadcast(send_counts, src=0)
         counts = [int(x) for x in send_counts.cpu().tolist()]
-        input_splits = counts if rank == 0 else [0, 0]
-        output_splits = [counts[rank], 0]
+        zero_splits = [0] * self.world
+        input_splits = counts if rank == 0 else zero_splits
+        output_splits = list(zero_splits)
+        output_splits[0] = counts[rank]
         recv_rows = counts[rank]
         recv_hidden = torch.empty((recv_rows, hidden_dim), dtype=flat.dtype, device=device)
         recv_expert = torch.empty((recv_rows,), dtype=torch.long, device=device)
@@ -349,8 +359,9 @@ class EP2Runtime:
             expert_end.record()
             combine_start, combine_end = self.event_pair()
 
-        reverse_input = [recv_rows, 0]
-        reverse_output = counts if rank == 0 else [0, 0]
+        reverse_input = list(zero_splits)
+        reverse_input[0] = recv_rows
+        reverse_output = counts if rank == 0 else zero_splits
         returned = torch.empty(
             (sum(counts) if rank == 0 else 0, hidden_dim),
             dtype=flat.dtype, device=device,
@@ -375,9 +386,14 @@ class EP2Runtime:
             "computed_rows": int(compute_mask.sum().item()),
             "assignments": int(sum(counts)),
             "local_assignments": int(counts[rank]),
-            "remote_assignments_from_source": int(counts[1]),
+            "remote_assignments_from_source": int(sum(counts[1:])),
+            "destination_rank_fanout": int(sum(count > 0 for count in counts)),
+            "remote_destination_rank_fanout": int(sum(count > 0 for count in counts[1:])),
+            "rank_assignment_counts": counts,
             "dispatch_bytes_hidden": int(sum(counts) * hidden_dim * flat.element_size()),
             "combine_bytes_hidden": int(sum(counts) * hidden_dim * flat.element_size()),
+            "remote_dispatch_bytes_hidden": int(sum(counts[1:]) * hidden_dim * flat.element_size()),
+            "remote_combine_bytes_hidden": int(sum(counts[1:]) * hidden_dim * flat.element_size()),
             "active_local_experts": int(torch.unique(recv_expert).numel()),
             "cross_branch_same_position_route_duplicates": route_duplicate_assignments,
             "cross_branch_exact_input_duplicates": exact_duplicate_assignments,
@@ -418,7 +434,7 @@ class EP2Runtime:
 def run_rank(rank: int, port: int, args) -> None:
     torch.cuda.set_device(rank)
     dist.init_process_group(
-        "nccl", init_method=f"tcp://127.0.0.1:{port}", rank=rank, world_size=2,
+        "nccl", init_method=f"tcp://127.0.0.1:{port}", rank=rank, world_size=args.world_size,
         device_id=torch.device(f"cuda:{rank}"),
     )
     random.seed(args.seed)
@@ -462,8 +478,8 @@ def run_rank(rank: int, port: int, args) -> None:
                 validation_reference = validation_reference.detach().clone()
                 validation_reference_logits = validation_reference_logits.detach().clone()
         dist.barrier()
-    runtime = EP2Runtime(
-        rank, args.instrument, args.local_expert_backend,
+    runtime = EPRuntime(
+        rank, args.world_size, args.instrument, args.local_expert_backend,
         args.analyze_branch_duplicates,
     )
     ownership = runtime.install(model)
@@ -505,11 +521,11 @@ def run_rank(rank: int, port: int, args) -> None:
         payload = {
             "mode": args.mode,
             "rank": rank,
-            "physical_gpu": 6 + rank,
+            "physical_gpu": rank,
             "cuda_visible_devices": os.environ.get("CUDA_VISIBLE_DEVICES"),
             "backend": "torch.distributed.nccl_all_to_all_single_reference",
             "local_expert_backend": args.local_expert_backend,
-            "topology": {"tp": 1, "dp": 1, "ep": 2},
+            "topology": {"tp": 1, "dp": 1, "ep": args.world_size},
             "ownership": ownership,
             "memory_after_shard_bytes": memory_after_shard,
             "layer_validation": layer_validation,
@@ -584,11 +600,11 @@ def run_rank(rank: int, port: int, args) -> None:
     payload = {
         "mode": args.mode,
         "rank": rank,
-        "physical_gpu": 6 + rank,
+        "physical_gpu": rank,
         "cuda_visible_devices": os.environ.get("CUDA_VISIBLE_DEVICES"),
         "backend": "torch.distributed.nccl_all_to_all_single_reference",
         "local_expert_backend": args.local_expert_backend,
-        "topology": {"tp": 1, "dp": 1, "ep": 2},
+        "topology": {"tp": 1, "dp": 1, "ep": args.world_size},
         "ownership": ownership,
         "memory_after_shard_bytes": memory_after_shard,
         "wrapper": wrapper,
@@ -634,14 +650,23 @@ def main() -> None:
     parser.add_argument("--validate-layer", action="store_true")
     parser.add_argument("--validation-rows", type=int, default=32)
     parser.add_argument("--validation-only", action="store_true")
+    parser.add_argument("--world-size", type=int, choices=[2, 4], default=2)
     args = parser.parse_args()
     if args.validation_only and not args.validate_layer:
         raise SystemExit("--validation-only requires --validate-layer")
-    if os.environ.get("CUDA_VISIBLE_DEVICES") != EXPECTED_VISIBLE:
-        raise SystemExit(f"CUDA_VISIBLE_DEVICES must be exactly {EXPECTED_VISIBLE}")
-    if torch.cuda.device_count() != 2:
-        raise SystemExit(f"expected two visible GPUs, got {torch.cuda.device_count()}")
-    mp.spawn(run_rank, args=(free_port(), args), nprocs=2, join=True)
+    expected_visible = EXPECTED_VISIBLE_BY_WORLD[args.world_size]
+    if os.environ.get("CUDA_VISIBLE_DEVICES") != expected_visible:
+        raise SystemExit(f"CUDA_VISIBLE_DEVICES must be exactly {expected_visible}")
+    if torch.cuda.device_count() != args.world_size:
+        raise SystemExit(
+            f"expected {args.world_size} visible GPUs, got {torch.cuda.device_count()}"
+        )
+    actual_uuids = tuple(
+        str(torch.cuda.get_device_properties(i).uuid) for i in range(args.world_size)
+    )
+    if actual_uuids != EXPECTED_UUIDS_BY_WORLD[args.world_size]:
+        raise SystemExit(f"unexpected physical GPU mapping: {actual_uuids}")
+    mp.spawn(run_rank, args=(free_port(), args), nprocs=args.world_size, join=True)
 
 
 if __name__ == "__main__":

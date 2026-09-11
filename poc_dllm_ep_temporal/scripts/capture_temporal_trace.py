@@ -25,7 +25,7 @@ import torch.distributed as dist
 import torch.multiprocessing as mp
 
 
-EXPECTED_VISIBLE = "4,5,6,7"
+EXPECTED_VISIBLE = "0,1,2,3"
 
 
 def free_port():
