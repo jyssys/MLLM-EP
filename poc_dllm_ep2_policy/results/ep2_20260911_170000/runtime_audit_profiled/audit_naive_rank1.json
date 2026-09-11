@@ -1,0 +1,270 @@
+{
+  "rank": 1,
+  "physical_gpu": 7,
+  "backend": "naive",
+  "manager_class": "NaiveAll2AllManager",
+  "backend_path": {
+    "manager_class": "NaiveAll2AllManager",
+    "quant_method": "UnquantizedFusedMoEMethod",
+    "modular": false
+  },
+  "tp_size": 1,
+  "dp_size": 2,
+  "ep_size": 2,
+  "ep_rank": 1,
+  "num_experts": 64,
+  "local_expert_count": 32,
+  "local_expert_ids": [
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53,
+    54,
+    55,
+    56,
+    57,
+    58,
+    59,
+    60,
+    61,
+    62,
+    63
+  ],
+  "local_expert_weight_bytes": 402653184,
+  "one_expert_weight_bytes": 12582912,
+  "expert_map_sha256": "8ea70320b9e914d2642c93d0babacb317c69da6eae001b83f02f5620cab28b00",
+  "audit_tokens_per_dispatcher": 32,
+  "stage_ms": {
+    "dispatch": 0.7500479817390442,
+    "expert": 0.7667520046234131,
+    "combine": 0.17337599396705627
+  },
+  "moe_ms": 2.290623903274536,
+  "wall_ms": 46.944793313741684,
+  "cross_rank_output_max_abs": 0.0,
+  "cross_rank_output_rel_l2": 0.0,
+  "profiler_events": [
+    {
+      "key": "ep2_audit_moe",
+      "device_total_us": 2031.8850000000002,
+      "cpu_total_us": 0.0,
+      "count": 1
+    },
+    {
+      "key": "ep2_audit_moe",
+      "device_total_us": 164.82599999999638,
+      "cpu_total_us": 2935.571,
+      "count": 1
+    },
+    {
+      "key": "vllm::inplace_fused_experts",
+      "device_total_us": 114.36299999999846,
+      "cpu_total_us": 589.1140000000005,
+      "count": 1
+    },
+    {
+      "key": "fused_moe_kernel",
+      "device_total_us": 86.46000000000004,
+      "cpu_total_us": 0.0,
+      "count": 2
+    },
+    {
+      "key": "c10d::broadcast_",
+      "device_total_us": 20.3199999999988,
+      "cpu_total_us": 335.34800000000087,
+      "count": 4
+    },
+    {
+      "key": "record_param_comms",
+      "device_total_us": 20.3199999999988,
+      "cpu_total_us": 249.88700000000154,
+      "count": 4
+    },
+    {
+      "key": "ncclDevKernel_Broadcast_RING_LL(ncclDevKernelArgsStorage<4096ul>)",
+      "device_total_us": 20.3199999999988,
+      "cpu_total_us": 0.0,
+      "count": 4
+    },
+    {
+      "key": "nccl:broadcast",
+      "device_total_us": 20.3199999999988,
+      "cpu_total_us": 0.0,
+      "count": 4
+    },
+    {
+      "key": "_moe_C::moe_align_block_size",
+      "device_total_us": 12.510999999999513,
+      "cpu_total_us": 19.3149999999996,
+      "count": 1
+    },
+    {
+      "key": "void vllm::moe::moe_align_block_size_small_batch_expert_kernel<int>(int const*, int*, int*, int*, int, int, unsigned long, int)",
+      "device_total_us": 12.510999999999513,
+      "cpu_total_us": 0.0,
+      "count": 1
+    },
+    {
+      "key": "aten::copy_",
+      "device_total_us": 10.655999999999949,
+      "cpu_total_us": 175.2720000000004,
+      "count": 6
+    },
+    {
+      "key": "aten::linear",
+      "device_total_us": 9.086999999999534,
+      "cpu_total_us": 150.65499999999975,
+      "count": 1
+    },
+    {
+      "key": "aten::matmul",
+      "device_total_us": 9.086999999999534,
+      "cpu_total_us": 120.0920000000001,
+      "count": 1
+    },
+    {
+      "key": "aten::mm",
+      "device_total_us": 9.086999999999534,
+      "cpu_total_us": 115.34700000000021,
+      "count": 1
+    },
+    {
+      "key": "vllm::all_reduce",
+      "device_total_us": 8.608000000000175,
+      "cpu_total_us": 103.78200000000015,
+      "count": 1
+    },
+    {
+      "key": "ncclDevKernel_AllReduce_Sum_bf16_RING_LL(ncclDevKernelArgsStorage<4096ul>)",
+      "device_total_us": 8.608000000000175,
+      "cpu_total_us": 0.0,
+      "count": 1
+    },
+    {
+      "key": "aten::to",
+      "device_total_us": 7.488000000000284,
+      "cpu_total_us": 181.72000000000105,
+      "count": 6
+    },
+    {
+      "key": "aten::_to_copy",
+      "device_total_us": 7.488000000000284,
+      "cpu_total_us": 168.2559999999994,
+      "count": 4
+    },
+    {
+      "key": "_moe_C::moe_sum",
+      "device_total_us": 6.623999999999796,
+      "cpu_total_us": 45.0659999999998,
+      "count": 1
+    },
+    {
+      "key": "aten::sum",
+      "device_total_us": 6.623999999999796,
+      "cpu_total_us": 30.13299999999981,
+      "count": 1
+    },
+    {
+      "key": "void at::native::reduce_kernel<128, 4, at::native::ReduceOp<c10::BFloat16, at::native::func_wrapper_t<c10::BFloat16, at::native::sum_functor<c10::BFloat16, float, c10::BFloat16>::operator()(at::TensorIterator&)::{lambda(float, float)#1}>, unsigned int, c10::BFloat16, 4, 4> >(at::native::ReduceOp<c10::BFloat16, at::native::func_wrapper_t<c10::BFloat16, at::native::sum_functor<c10::BFloat16, float, c10::BFloat16>::operator()(at::TensorIterator&)::{lambda(float, float)#1}>, unsigned int, c10::BFloat16, 4, 4>)",
+      "device_total_us": 6.623999999999796,
+      "cpu_total_us": 0.0,
+      "count": 1
+    },
+    {
+      "key": "void cutlass::Kernel2<cutlass_80_simt_sgemm_64x64_8x5_tn_align1>(cutlass_80_simt_sgemm_64x64_8x5_tn_align1::Params)",
+      "device_total_us": 6.20699999999988,
+      "cpu_total_us": 0.0,
+      "count": 1
+    },
+    {
+      "key": "aten::index",
+      "device_total_us": 4.607999999999265,
+      "cpu_total_us": 101.02799999999934,
+      "count": 1
+    },
+    {
+      "key": "_C::silu_and_mul",
+      "device_total_us": 4.1599999999998545,
+      "cpu_total_us": 15.493000000000393,
+      "count": 1
+    },
+    {
+      "key": "void vllm::act_and_mul_kernel<c10::BFloat16, &(c10::BFloat16 vllm::silu_kernel<c10::BFloat16>(c10::BFloat16 const&)), true>(c10::BFloat16*, c10::BFloat16 const*, int)",
+      "device_total_us": 4.1599999999998545,
+      "cpu_total_us": 0.0,
+      "count": 1
+    },
+    {
+      "key": "void at::native::unrolled_elementwise_kernel<at::native::direct_copy_kernel_cuda(at::TensorIteratorBase&)::{lambda()#3}::operator()() const::{lambda()#7}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>, 4, TrivialOffsetCalculator<1, unsigned int>, TrivialOffsetCalculator<1, unsigned int>, at::native::memory::LoadWithCast<1>, at::native::memory::StoreWithCast<1> >(int, at::native::direct_copy_kernel_cuda(at::TensorIteratorBase&)::{lambda()#3}::operator()() const::{lambda()#7}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>, TrivialOffsetCalculator<1, unsigned int>, TrivialOffsetCalculator<1, unsigned int>, at::native::memory::LoadWithCast<1>, at::native::memory::StoreWithCast<1>)",
+      "device_total_us": 4.128000000000156,
+      "cpu_total_us": 0.0,
+      "count": 1
+    },
+    {
+      "key": "_moe_C::topk_softmax",
+      "device_total_us": 3.519999999999527,
+      "cpu_total_us": 24.756000000000313,
+      "count": 1
+    },
+    {
+      "key": "void vllm::moe::topkGatingSoftmax<4, 64, 4, 16, 32, int>(float const*, bool const*, float*, int, int*, int*, int, int, int)",
+      "device_total_us": 3.519999999999527,
+      "cpu_total_us": 0.0,
+      "count": 1
+    },
+    {
+      "key": "Memcpy DtoD (Device -> Device)",
+      "device_total_us": 3.1679999999996653,
+      "cpu_total_us": 0.0,
+      "count": 2
+    },
+    {
+      "key": "void cublasLt::splitKreduce_kernel<32, 16, int, float, float, float, float, false, float, float, float, true, false, false>(cublasLt::cublasSplitKParams<float>, float const*, float const*, float*, float*, float const*, float const*, float const*, float const*, float*, void*, long, float*, int*, float*, float*, float const*, float const*, float const*, float const*, float const*)",
+      "device_total_us": 2.8799999999996544,
+      "cpu_total_us": 0.0,
+      "count": 1
+    },
+    {
+      "key": "void at::native::index_elementwise_kernel<128, 4, at::native::gpu_index_kernel<at::native::index_kernel_impl<at::native::OpaqueType<4> >(at::TensorIteratorBase&, c10::ArrayRef<long>, c10::ArrayRef<long>)::{lambda(char*, char const*, long)#1}>(at::TensorIteratorBase&, c10::ArrayRef<long>, c10::ArrayRef<long>, at::native::index_kernel_impl<at::native::OpaqueType<4> >(at::TensorIteratorBase&, c10::ArrayRef<long>, c10::ArrayRef<long>)::{lambda(char*, char const*, long)#1} const&, bool)::{lambda(int)#1}>(long, at::native::gpu_index_kernel<at::native::index_kernel_impl<at::native::OpaqueType<4> >(at::TensorIteratorBase&, c10::ArrayRef<long>, c10::ArrayRef<long>)::{lambda(char*, char const*, long)#1}>(at::TensorIteratorBase&, c10::ArrayRef<long>, c10::ArrayRef<long>, at::native::index_kernel_impl<at::native::OpaqueType<4> >(at::TensorIteratorBase&, c10::ArrayRef<long>, c10::ArrayRef<long>)::{lambda(char*, char const*, long)#1} const&, bool)::{lambda(int)#1})",
+      "device_total_us": 2.8799999999991996,
+      "cpu_total_us": 0.0,
+      "count": 1
+    },
+    {
+      "key": "void at::native::unrolled_elementwise_kernel<at::native::direct_copy_kernel_cuda(at::TensorIteratorBase&)::{lambda()#3}::operator()() const::{lambda()#4}::operator()() const::{lambda(long)#1}, std::array<char*, 2ul>, 4, TrivialOffsetCalculator<1, unsigned int>, TrivialOffsetCalculator<1, unsigned int>, at::native::memory::LoadWithCast<1>, at::native::memory::StoreWithCast<1> >(int, at::native::direct_copy_kernel_cuda(at::TensorIteratorBase&)::{lambda()#3}::operator()() const::{lambda()#4}::operator()() const::{lambda(long)#1}, std::array<char*, 2ul>, TrivialOffsetCalculator<1, unsigned int>, TrivialOffsetCalculator<1, unsigned int>, at::native::memory::LoadWithCast<1>, at::native::memory::StoreWithCast<1>)",
+      "device_total_us": 1.7280000000000655,
+      "cpu_total_us": 0.0,
+      "count": 1
+    },
+    {
+      "key": "void at::native::vectorized_elementwise_kernel<8, at::native::bfloat16_copy_kernel_cuda(at::TensorIteratorBase&)::{lambda(float)#1}, std::array<char*, 2ul> >(int, at::native::bfloat16_copy_kernel_cuda(at::TensorIteratorBase&)::{lambda(float)#1}, std::array<char*, 2ul>)",
+      "device_total_us": 1.6320000000000618,
+      "cpu_total_us": 0.0,
+      "count": 1
+    },
+    {
+      "key": "nccl:broadcast",
+      "device_total_us": 0.0,
+      "cpu_total_us": 195.77700000000095,
+      "count": 4
+    }
+  ]
+}
