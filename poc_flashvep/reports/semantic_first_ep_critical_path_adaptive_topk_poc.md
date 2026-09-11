@@ -38,7 +38,8 @@ create the missing novelty or headroom and was therefore not implemented.
   `9c4b90e1e4ba969fd3b5378b57d966d725f1b86c`.
 - Physical GPUs: only 4,5,6,7; four H100 80GB HBM3; all-to-all NV18.
 - Replay: four NCCL ranks, EP4, DeepEP high-throughput, `num_sms=20`,
-  FusedMoE/Triton experts, one M=8192 invocation.
+  FusedMoE/Triton experts, one large invocation (primary exact-budget M=8177;
+  selector/layer controls M=8192).
 - Quality: full Qwen model with eager experts; the mask changes outputs but
   still computes all eight experts, so timing is never used as speed evidence.
 - Clean predecessor regime used for Amdahl mapping: TTFT 384.937 ms and

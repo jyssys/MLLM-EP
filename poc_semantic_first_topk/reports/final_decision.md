@@ -31,7 +31,7 @@ The new physical-rank refinement produces a causal load/latency effect, but
 not a material independent request-level opportunity.  Almost all headline
 gain belongs to generic semantic expert skipping, which has both a trivial
 fixed-K control and direct prior-art collisions.  The remaining EP-specific
-2.5-point best representative projection is optimistic and layer-local.
+2.59-point best representative projection is optimistic and layer-local.
 
 ## Recommendation
 

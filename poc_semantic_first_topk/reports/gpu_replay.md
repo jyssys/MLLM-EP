@@ -6,8 +6,9 @@
   weights, and real expert weights.
 - Physical GPUs 4,5,6,7 only; four NCCL ranks; DeepEP high-throughput;
   `num_sms=20`.
-- M=8192 repeated from the captured route, one large dispatch/expert/combine
-  invocation, 5 policy warmups, 30 randomized/interleaved repetitions.
+- Primary M=8177 is exactly 37 copies of a 221-token route; selector/layer
+  controls use M=8192.  Each uses one large dispatch/expert/combine invocation,
+  5 policy warmups, and 30 randomized/interleaved repetitions.
 - Rank-critical same-device CUDA event time is reduced across ranks.
 - Three images at layer 24 are the primary robustness set; camera layers
   4/24/44 provide the layer control.
