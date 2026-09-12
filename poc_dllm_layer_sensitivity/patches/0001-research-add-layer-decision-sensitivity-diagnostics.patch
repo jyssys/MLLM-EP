@@ -1,0 +1,543 @@
+From 8c9561f5badf185b0ddcf38fc4753e3b2a49af88 Mon Sep 17 00:00:00 2001
+From: Codex <codex@openai.com>
+Date: Sun, 13 Sep 2026 05:44:54 +0900
+Subject: [PATCH] research: add layer decision sensitivity diagnostics
+
+---
+ benchmarks/benchmark_dataset_sglang.py        |  84 +++++++-
+ python/dinfer/decoding/generate_uniform.py    |  91 +++++++++
+ .../model/modeling_llada2_moe_sglang.py       | 193 +++++++++++++++++-
+ 3 files changed, 363 insertions(+), 5 deletions(-)
+
+diff --git a/benchmarks/benchmark_dataset_sglang.py b/benchmarks/benchmark_dataset_sglang.py
+index 6146665..2abf4cb 100644
+--- a/benchmarks/benchmark_dataset_sglang.py
++++ b/benchmarks/benchmark_dataset_sglang.py
+@@ -8,6 +8,7 @@ import time
+ import tqdm
+ import json
+ import random
++import socket
+ 
+ from sglang.srt.server_args import ServerArgs
+ from sglang.srt.layers.moe import initialize_moe_config
+@@ -225,6 +226,21 @@ def main(world_size, rank, gpu_id, args):
+     os.environ["LLADA_REQUEST_ID"] = "warmup"
+     dllm.generate(input_ids, gen_length=args.gen_len, block_length=args.block_length)
+     batch_size = args.batch_size
++    if args.intervention_plan:
++        with open(args.intervention_plan) as policy_file:
++            sensitivity_policies = json.load(policy_file)
++        if not isinstance(sensitivity_policies, list) or not sensitivity_policies:
++            raise ValueError("--intervention_plan must contain a non-empty JSON list")
++    else:
++        sensitivity_policies = [
++            {
++                "name": "baseline",
++                "mode": "none",
++                "layers": "",
++                "phases": "early,middle,late",
++                "waves": "",
++            }
++        ]
+     
+ 
+     input_lengths = [inp.size(-1) for inp in all_input_ids]
+@@ -233,7 +249,24 @@ def main(world_size, rank, gpu_id, args):
+     sorted_input_ids = [all_input_ids[i] for i in sorted_indices]
+     sorted_padded_gen_lens = [padded_gen_lens[i] for i in sorted_indices]
+ 
+-    for wi in range(1):
++    for wi, sensitivity_policy in enumerate(sensitivity_policies):
++        policy_name = str(sensitivity_policy.get("name", f"policy_{wi}"))
++        os.environ["LLADA_SENSITIVITY_POLICY"] = policy_name
++        os.environ["LLADA_INTERVENTION_MODE"] = str(
++            sensitivity_policy.get("mode", "none")
++        )
++        os.environ["LLADA_INTERVENTION_LAYERS"] = str(
++            sensitivity_policy.get("layers", "")
++        )
++        os.environ["LLADA_INTERVENTION_PHASES"] = str(
++            sensitivity_policy.get("phases", "early,middle,late")
++        )
++        os.environ["LLADA_INTERVENTION_WAVES"] = str(
++            sensitivity_policy.get("waves", "")
++        )
++        os.environ["LLADA_SENSITIVITY_CAPTURE_PHASES"] = str(
++            sensitivity_policy.get("capture_phases", sensitivity_policy.get("phases", "early,middle,late"))
++        )
+         outputs = []
+         total_forward = 0
+         if rank==0:
+@@ -261,7 +294,7 @@ def main(world_size, rank, gpu_id, args):
+             input_ids = batch_input_ids
+             inner_start = time.time()
+             prev_forwards = dllm.num_forwards
+-            os.environ["LLADA_REQUEST_ID"] = f"measured_{i}"
++            os.environ["LLADA_REQUEST_ID"] = f"measured_{policy_name}_{i}"
+             out = dllm.generate(input_ids, gen_length=min_padded_length, block_length=block_length)
+             nfe = dllm.num_forwards - prev_forwards
+             inner_stop = time.time()
+@@ -295,6 +328,43 @@ def main(world_size, rank, gpu_id, args):
+         total_token = total_token
+ 
+         stop = time.time()
++        if args.intervention_plan and rank == 0:
++            policy_rows = []
++            for sorted_position, output_tokens in enumerate(outputs):
++                original_index = sorted_indices[sorted_position]
++                prompt_length = int(all_input_ids[original_index].shape[1])
++                token_ids = output_tokens[0].detach().cpu().tolist()
++                policy_rows.append(
++                    {
++                        "original_index": int(original_index),
++                        "token_ids": token_ids,
++                        "answer": tokenizer.decode(
++                            token_ids[prompt_length:], skip_special_tokens=True
++                        ),
++                        "generated_length": int(token_numbers[sorted_position]),
++                    }
++                )
++            safe_policy_name = "".join(
++                character if character.isalnum() or character in "-_." else "_"
++                for character in policy_name
++            )
++            with open(
++                os.path.join(args.output_dir, f"policy_{safe_policy_name}.json"), "w"
++            ) as policy_output:
++                json.dump(
++                    {
++                        "policy": sensitivity_policy,
++                        "dataset": dataset_name,
++                        "elapsed_seconds": stop - start,
++                        "model_seconds": total_time,
++                        "nfe": total_forward,
++                        "generated_tokens": total_token,
++                        "rows": policy_rows,
++                    },
++                    policy_output,
++                )
++        if args.intervention_plan:
++            torch.distributed.barrier()
+ 
+ 
+     original_order_outputs = [None] * len(all_input_ids)
+@@ -371,13 +441,19 @@ if __name__ == '__main__':
+     parser.add_argument('--use_quant', action='store_true')
+     parser.add_argument('--prefilling_limit', type=int, default=128)
+     parser.add_argument('--init_only', action='store_true')
++    parser.add_argument('--intervention_plan', type=str, default='')
+     parser.add_argument('--config', type=int, default=0)
+     parser.add_argument('--use_naive_batching', action='store_true')
+ 
+ 
+     args = parser.parse_args()
+-    port = random.randint(40000, 60000)
+-    args.port = str(port)
++    # Ask the OS for an unused local port instead of guessing. The socket is
++    # released immediately before child spawn; this removes the repeatable
++    # collision seen on this shared research host while retaining the existing
++    # multiprocessing rendezvous design.
++    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as port_socket:
++        port_socket.bind(("127.0.0.1", 0))
++        args.port = str(port_socket.getsockname()[1])
+     if args.batch_size==1:
+         args.use_naive_batching = True
+     if args.use_naive_batching:
+diff --git a/python/dinfer/decoding/generate_uniform.py b/python/dinfer/decoding/generate_uniform.py
+index d7edd63..4f5125a 100644
+--- a/python/dinfer/decoding/generate_uniform.py
++++ b/python/dinfer/decoding/generate_uniform.py
+@@ -3,6 +3,8 @@ import numpy as np
+ import logging
+ import json
+ import os
++import re
++from pathlib import Path
+ 
+ from transformers.models.layoutlmv2.modeling_layoutlmv2 import relative_position_bucket
+ 
+@@ -1109,13 +1111,20 @@ class BlockDiffusionLLM(DiffusionLLM):
+         denoise_trace_iteration = 0
+         wave_trace = os.environ.get("LLADA_WAVE_TRACE") == "1"
+         discovery_trace = os.environ.get("LLADA_DISCOVERY_TRACE") == "1"
++        sensitivity_capture_dir = os.environ.get("LLADA_SENSITIVITY_CAPTURE_DIR")
++        sensitivity_decision_trace = bool(sensitivity_capture_dir)
+         logical_trace = (
+             os.environ.get("LLADA_DENOISE_TRACE") == "1"
+             or wave_trace
+             or discovery_trace
++            or sensitivity_decision_trace
+             or bool(os.environ.get("LLADA_EP_SHAPE_TRACE_DIR"))
+         )
+         block_refinement_iterations = {}
++        captured_sensitivity_phases = set()
++        os.environ["LLADA_CURRENT_REFINEMENT_PHASE"] = "prefill"
++        os.environ["LLADA_CURRENT_REFINEMENT_WAVE"] = "-1"
++        os.environ["LLADA_CURRENT_LIVE_RATIO"] = "nan"
+ 
+         # Prepare block_mask and position IDs
+         block_mask = torch.tril(torch.ones(attn_mask_num_blocks, attn_mask_num_blocks, device=device, dtype=torch.bool))
+@@ -1193,6 +1202,20 @@ class BlockDiffusionLLM(DiffusionLLM):
+                 decoding_pos_ids = torch.arange(block_length, device=device, dtype=torch.long).repeat(decoding_seq_ids.shape[0], 1)
+                 decoding_pos_ids = decoding_pos_ids + decoding_start[decoding_seq_ids].unsqueeze(1)
+ 
++                live_ratio = float(
++                    remaining_before.sum().item()
++                    / max(int(remaining_before.numel()) * block_length, 1)
++                )
++                if live_ratio > (2.0 / 3.0):
++                    refinement_phase = "early"
++                elif live_ratio > (1.0 / 3.0):
++                    refinement_phase = "middle"
++                else:
++                    refinement_phase = "late"
++                os.environ["LLADA_CURRENT_REFINEMENT_PHASE"] = refinement_phase
++                os.environ["LLADA_CURRENT_REFINEMENT_WAVE"] = str(denoise_trace_iteration)
++                os.environ["LLADA_CURRENT_LIVE_RATIO"] = repr(live_ratio)
++
+                 # Trace-only logical identity for aligning source-token routes
+                 # across refinement iterations. Environment state is process
+                 # local; all four ranks execute the same deterministic loop.
+@@ -1255,6 +1278,71 @@ class BlockDiffusionLLM(DiffusionLLM):
+                         decoding_x.data, decoding_start[decoding_seq_ids], block_length
+                     )
+                     remaining_after = (updated_block.data == mask_id).sum(dim=1)
++                    capture_phases = {
++                        item.strip()
++                        for item in os.environ.get(
++                            "LLADA_SENSITIVITY_CAPTURE_PHASES", "early,middle,late"
++                        ).split(",")
++                        if item.strip()
++                    }
++                    if (
++                        sensitivity_decision_trace
++                        and torch.distributed.get_rank() == 0
++                        and refinement_phase in capture_phases
++                        and refinement_phase not in captured_sensitivity_phases
++                    ):
++                        flat_live = mask_before.flatten().nonzero(as_tuple=True)[0]
++                        sample_indices = flat_live[: min(16, flat_live.numel())]
++                        flat_logits = logits.reshape(-1, logits.shape[-1])
++                        flat_top2 = torch.topk(flat_logits.float(), k=2, dim=-1)
++                        policy_name = re.sub(
++                            r"[^A-Za-z0-9_.-]+",
++                            "_",
++                            os.environ.get("LLADA_SENSITIVITY_POLICY", "baseline"),
++                        )
++                        capture_path = Path(sensitivity_capture_dir)
++                        capture_path.mkdir(parents=True, exist_ok=True)
++                        torch.save(
++                            {
++                                "request_id": os.environ.get("LLADA_REQUEST_ID", "unknown"),
++                                "policy": policy_name,
++                                "mode": os.environ.get("LLADA_INTERVENTION_MODE", "none"),
++                                "layers": os.environ.get("LLADA_INTERVENTION_LAYERS", ""),
++                                "phase": refinement_phase,
++                                "wave": int(denoise_trace_iteration),
++                                "live_ratio": live_ratio,
++                                "sequence_ids": decoding_seq_ids.detach().cpu(),
++                                "block_starts": decoding_start[decoding_seq_ids].detach().cpu(),
++                                "mask_before": mask_before.detach().cpu(),
++                                "remaining_before": remaining_before.detach().cpu(),
++                                "remaining_after": remaining_after.detach().cpu(),
++                                "accepted_mask": (
++                                    mask_before & (updated_block.data != mask_id)
++                                ).detach().cpu(),
++                                "updated_tokens": updated_block.data.detach().cpu(),
++                                "top1_tokens": flat_top2.indices[:, 0]
++                                .view_as(mask_before)
++                                .detach()
++                                .cpu(),
++                                "top1_logits": flat_top2.values[:, 0]
++                                .view_as(mask_before)
++                                .detach()
++                                .cpu(),
++                                "top2_logits": flat_top2.values[:, 1]
++                                .view_as(mask_before)
++                                .detach()
++                                .cpu(),
++                                "sample_flat_indices": sample_indices.detach().cpu(),
++                                "sampled_logits": flat_logits.index_select(
++                                    0, sample_indices
++                                )
++                                .to(torch.bfloat16)
++                                .detach()
++                                .cpu(),
++                            },
++                            capture_path / f"{policy_name}_{refinement_phase}.pt",
++                        )
++                        captured_sensitivity_phases.add(refinement_phase)
+                     if torch.distributed.get_rank() == 0:
+                         print(
+                             "[LLADA_DENOISE]"
+@@ -1262,6 +1350,9 @@ class BlockDiffusionLLM(DiffusionLLM):
+                                 {
+                                     "request_id": os.environ.get("LLADA_REQUEST_ID", "unknown"),
+                                     "iteration": denoise_trace_iteration,
++                                    "policy": os.environ.get("LLADA_SENSITIVITY_POLICY", "baseline"),
++                                    "phase": refinement_phase,
++                                    "live_ratio": live_ratio,
+                                     "sequence_ids": [int(value) for value in decoding_seq_ids.cpu().tolist()],
+                                     "block_starts": [int(value) for value in decoding_start[decoding_seq_ids].cpu().tolist()],
+                                     "block_iterations": block_iterations,
+diff --git a/python/dinfer/model/modeling_llada2_moe_sglang.py b/python/dinfer/model/modeling_llada2_moe_sglang.py
+index 950a651..4265cb9 100755
+--- a/python/dinfer/model/modeling_llada2_moe_sglang.py
++++ b/python/dinfer/model/modeling_llada2_moe_sglang.py
+@@ -43,6 +43,47 @@ def torch_all_reduce(tensor):
+ sglang_distributed.tensor_model_parallel_all_reduce = torch_all_reduce
+ import numpy as np
+ 
++
++def _parse_int_set(value: str):
++    """Parse a comma-separated set of integers used by diagnostic controls."""
++    return {int(item) for item in value.split(",") if item.strip()}
++
++
++def _sensitivity_intervention_active(layer_id: int, *modes: str) -> bool:
++    """Return whether the current measured refinement wave is intervened on.
++
++    This is intentionally environment-driven: dInfer's manual multi-process
++    runner executes every rank deterministically, and the benchmark can change
++    one policy between complete generation runs without reconstructing the
++    100B model. Prefill and warmup are always excluded.
++    """
++    mode = os.environ.get("LLADA_INTERVENTION_MODE", "none")
++    if modes and mode not in modes:
++        return False
++    if mode == "none" or os.environ.get("LLADA_REQUEST_ID", "").startswith("warmup"):
++        return False
++    phase = os.environ.get("LLADA_CURRENT_REFINEMENT_PHASE", "prefill")
++    if phase == "prefill":
++        return False
++    layers = _parse_int_set(os.environ.get("LLADA_INTERVENTION_LAYERS", ""))
++    if layers and layer_id not in layers:
++        return False
++    phases = {
++        item.strip()
++        for item in os.environ.get(
++            "LLADA_INTERVENTION_PHASES", "early,middle,late"
++        ).split(",")
++        if item.strip()
++    }
++    if phases and phase not in phases:
++        return False
++    waves_raw = os.environ.get("LLADA_INTERVENTION_WAVES", "")
++    if waves_raw:
++        wave = int(os.environ.get("LLADA_CURRENT_REFINEMENT_WAVE", "-1"))
++        if wave not in _parse_int_set(waves_raw):
++            return False
++    return True
++
+ def torch_all_gather(input_: torch.Tensor) -> torch.Tensor:
+     # trace_stack = traceback.format_stack()
+     # for i, frame in enumerate(trace_stack):
+@@ -839,11 +880,87 @@ class LLaDA2SparseMoeBlock(nn.Module):
+         if trace_events:
+             trace_events[4].record()
+ 
++        # local_output is now the exact routed contribution in source-row
++        # order for this rank. Keep routed/shared components separate only in
++        # observer/intervention runs; the clean path still performs one final
++        # all-gather exactly as the validated EP4 substrate does.
++        local_routed = local_output
+         if self.num_shared_experts > 0:
+             local_shared = self.shared_experts(local_hidden)
+-            local_output = local_output + local_shared
+         else:
+             local_shared = torch.zeros_like(local_output)
++
++        sensitivity_trace = bool(os.environ.get("LLADA_LAYER_SENSITIVITY_TRACE_DIR"))
++        if sensitivity_trace:
++            component_squares = torch.stack(
++                [
++                    local_routed.float().square().sum(),
++                    local_shared.float().square().sum(),
++                    (local_routed.float() + local_shared.float()).square().sum(),
++                ]
++            )
++            dist.all_reduce(
++                component_squares,
++                op=dist.ReduceOp.SUM,
++                group=parallel_state.get_tp_group().device_group,
++            )
++            self._sensitivity_component_norms = {
++                "routed_output_norm": float(component_squares[0].sqrt().item()),
++                "shared_output_norm": float(component_squares[1].sqrt().item()),
++                "moe_output_norm": float(component_squares[2].sqrt().item()),
++            }
++
++        if _sensitivity_intervention_active(
++            self.layer_id, "routed_bypass", "stale_routed", "routed_only"
++        ):
++            mode = os.environ["LLADA_INTERVENTION_MODE"]
++            if mode == "routed_bypass":
++                local_routed = torch.zeros_like(local_routed)
++            elif mode == "routed_only":
++                local_shared = torch.zeros_like(local_shared)
++            elif mode == "stale_routed":
++                request_id = os.environ.get("LLADA_REQUEST_ID", "unknown")
++                if getattr(self, "_stale_cache_request_id", None) != request_id:
++                    self._stale_cache_request_id = request_id
++                    self._stale_routed_by_key = {}
++                sequence_ids = json.loads(os.environ.get("LLADA_TRACE_SEQ_IDS", "[]"))
++                block_starts = json.loads(os.environ.get("LLADA_TRACE_BLOCK_STARTS", "[]"))
++                row_keys = [
++                    (int(sequence_id), int(block_start), int(position))
++                    for sequence_id, block_start in zip(sequence_ids, block_starts)
++                    for position in range(original_shape[1])
++                ]
++                local_keys = row_keys[
++                    ep_rank * rows_per_rank : (ep_rank + 1) * rows_per_rank
++                ]
++                previous_by_key = self._stale_routed_by_key
++                stale = local_routed.clone()
++                for row_index, key in enumerate(local_keys):
++                    if key in previous_by_key:
++                        stale[row_index].copy_(previous_by_key[key])
++                local_routed = stale
++
++        # Cache the exact current routed result, not the stale result that may
++        # have replaced it for this diagnostic forward.
++        if os.environ.get("LLADA_INTERVENTION_MODE") == "stale_routed":
++            request_id = os.environ.get("LLADA_REQUEST_ID", "unknown")
++            if getattr(self, "_stale_cache_request_id", None) != request_id:
++                self._stale_cache_request_id = request_id
++                self._stale_routed_by_key = {}
++            sequence_ids = json.loads(os.environ.get("LLADA_TRACE_SEQ_IDS", "[]"))
++            block_starts = json.loads(os.environ.get("LLADA_TRACE_BLOCK_STARTS", "[]"))
++            row_keys = [
++                (int(sequence_id), int(block_start), int(position))
++                for sequence_id, block_start in zip(sequence_ids, block_starts)
++                for position in range(original_shape[1])
++            ]
++            local_keys = row_keys[
++                ep_rank * rows_per_rank : (ep_rank + 1) * rows_per_rank
++            ]
++            for row_index, key in enumerate(local_keys):
++                self._stale_routed_by_key[key] = local_output[row_index].detach().clone()
++
++        local_output = local_routed + local_shared
+         if trace_events:
+             trace_events[5].record()
+ 
+@@ -1004,6 +1121,10 @@ class LLaDA2SparseMoeBlock(nn.Module):
+                 "layer": int(self.layer_id),
+                 "invocation": int(self._ep_shape_trace_invocation),
+                 "request_id": os.environ.get("LLADA_REQUEST_ID", "unknown"),
++                "policy": os.environ.get("LLADA_SENSITIVITY_POLICY", "baseline"),
++                "wave": int(os.environ.get("LLADA_CURRENT_REFINEMENT_WAVE", "-1")),
++                "phase": os.environ.get("LLADA_CURRENT_REFINEMENT_PHASE", "unknown"),
++                "live_ratio": float(os.environ.get("LLADA_CURRENT_LIVE_RATIO", "nan")),
+                 "sequence_ids": json.loads(os.environ.get("LLADA_TRACE_SEQ_IDS", "[]")),
+                 "block_starts": json.loads(os.environ.get("LLADA_TRACE_BLOCK_STARTS", "[]")),
+                 "remaining_before": json.loads(os.environ.get("LLADA_TRACE_REMAINING_BEFORE", "[]")),
+@@ -1391,6 +1512,19 @@ class LLaDA2Block(nn.Module):
+         attention_mask: Optional[torch.Tensor]=None,
+     ) -> torch.Tensor:
+         bsz, q_len, h = hidden_states.size()
++        sensitivity_trace_dir = os.environ.get("LLADA_LAYER_SENSITIVITY_TRACE_DIR")
++        sensitivity_trace = bool(sensitivity_trace_dir) and not os.environ.get(
++            "LLADA_REQUEST_ID", ""
++        ).startswith("warmup")
++        layer_input_full = None
++        if sensitivity_trace or _sensitivity_intervention_active(
++            self.layer_id, "layer_bypass"
++        ):
++            layer_input_full = (
++                hidden_states.detach().clone()
++                if residual is None
++                else (hidden_states + residual).detach()
++            )
+         block_trace_dir = os.environ.get("LLADA_BLOCK_TRACE_DIR")
+         block_trace_layers_raw = os.environ.get("LLADA_BLOCK_TRACE_LAYERS")
+         if block_trace_dir and block_trace_layers_raw:
+@@ -1431,6 +1565,7 @@ class LLaDA2Block(nn.Module):
+             residual=residual,
+             forward_batch=None,
+         )
++        middle_residual = residual.detach().clone() if sensitivity_trace else None
+         if block_events:
+             block_events[3].record()
+         # if self.tp_size>1:
+@@ -1441,6 +1576,7 @@ class LLaDA2Block(nn.Module):
+         # residual = hidden_states
+         # hidden_states = self.post_attention_layernorm(hidden_states)
+         hidden_states = self.mlp(hidden_states, False)
++        moe_update = hidden_states.detach().clone() if sensitivity_trace else None
+         if block_events:
+             block_events[4].record()
+ 
+@@ -1450,6 +1586,57 @@ class LLaDA2Block(nn.Module):
+             residual=residual,
+             forward_batch=None,
+         )
++        if _sensitivity_intervention_active(self.layer_id, "layer_bypass"):
++            # A layer is represented by (new update, accumulated residual).
++            # Returning (0, input) makes the next layer, or final model norm,
++            # observe exactly the current layer's input representation.
++            hidden_states = torch.zeros_like(layer_input_full)
++            residual = layer_input_full
++
++        if sensitivity_trace:
++            layer_output_full = hidden_states + residual
++            attention_update = middle_residual - layer_input_full
++            total_update = layer_output_full - layer_input_full
++
++            def _norm(value):
++                return float(value.float().norm().item())
++
++            input_norm = _norm(layer_input_full)
++            total_norm = _norm(total_update)
++            metrics = {
++                "rank": int(dist.get_rank()),
++                "request_id": os.environ.get("LLADA_REQUEST_ID", "unknown"),
++                "policy": os.environ.get("LLADA_SENSITIVITY_POLICY", "baseline"),
++                "wave": int(os.environ.get("LLADA_CURRENT_REFINEMENT_WAVE", "-1")),
++                "phase": os.environ.get("LLADA_CURRENT_REFINEMENT_PHASE", "unknown"),
++                "live_ratio": float(os.environ.get("LLADA_CURRENT_LIVE_RATIO", "nan")),
++                "layer": int(self.layer_id),
++                "batch": int(bsz),
++                "q_len": int(q_len),
++                "input_hidden_norm": input_norm,
++                "output_hidden_norm": _norm(layer_output_full),
++                "residual_update_norm": total_norm,
++                "relative_l2_update": total_norm / max(input_norm, 1e-12),
++                "output_cosine": float(
++                    F.cosine_similarity(
++                        layer_input_full.float().flatten(),
++                        layer_output_full.float().flatten(),
++                        dim=0,
++                    ).item()
++                ),
++                "attention_update_norm": _norm(attention_update),
++                "moe_update_norm": _norm(moe_update),
++                "moe_to_total_update_norm_ratio": _norm(moe_update)
++                / max(total_norm, 1e-12),
++                **getattr(self.mlp, "_sensitivity_component_norms", {}),
++            }
++            # Dense representations are replicated after TP reductions. The
++            # routed/shared component norms above were explicitly reduced.
++            if dist.get_rank() == 0:
++                trace_path = Path(sensitivity_trace_dir)
++                trace_path.mkdir(parents=True, exist_ok=True)
++                with (trace_path / "layer_stability_rank0.jsonl").open("a") as f:
++                    f.write(json.dumps(metrics) + "\n")
+         if block_events:
+             block_events[5].record()
+             block_events[5].synchronize()
+@@ -1461,6 +1648,10 @@ class LLaDA2Block(nn.Module):
+                 "layer": int(self.layer_id),
+                 "invocation": int(self._block_trace_invocation),
+                 "request_id": os.environ.get("LLADA_REQUEST_ID", "unknown"),
++                "policy": os.environ.get("LLADA_SENSITIVITY_POLICY", "baseline"),
++                "wave": int(os.environ.get("LLADA_CURRENT_REFINEMENT_WAVE", "-1")),
++                "phase": os.environ.get("LLADA_CURRENT_REFINEMENT_PHASE", "unknown"),
++                "live_ratio": float(os.environ.get("LLADA_CURRENT_LIVE_RATIO", "nan")),
+                 "sequence_ids": json.loads(os.environ.get("LLADA_TRACE_SEQ_IDS", "[]")),
+                 "block_starts": json.loads(os.environ.get("LLADA_TRACE_BLOCK_STARTS", "[]")),
+                 "remaining_before": json.loads(os.environ.get("LLADA_TRACE_REMAINING_BEFORE", "[]")),
+-- 
+2.34.1
+
