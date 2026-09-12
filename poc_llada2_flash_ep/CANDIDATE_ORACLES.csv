@@ -1,0 +1,11 @@
+candidate,regime,measured_source,perfect_e2e_pct,feasible_e2e_pct,throughput_pct,quality_risk,novelty_risk,implementation_complexity,status
+A_denoising_expert_work_packing,EP4 submitted=16 physical-M about 256-512,observer-heavy micro8 vs micro16 expert stage,1.8,1.8,,none if exact packing,high: generic grouped-GEMM batching,medium,KILL_HEADROOM_LT5
+B_refinement_microbatch_coalescing,EP4 submitted=16 default mini4 to best static mini8,clean wall time,47.357,47.357,90.018,none,direct collision: existing dInfer mini_batch_size,none,TRIVIAL_EXISTING_KNOB_NOT_RESEARCH
+C_block_scoped_replication,EP4 micro8,lag1 branch overlap + DeepEP payload sweep,14.332,2.993,,none for exact weights,high: predictive expert replication,high,KILL_FEASIBLE_LT5
+D_denoising_load_shaping,EP4 micro8,perfect proportional rank-balance lower bound,5.338,5.338,,routing changes unless replication,high: EPLB/load-aware routing,medium-high,KILL_HEADROOM_LT8
+E_phase_adaptive_topology,TP4 vs dense-TP4+routed-EP4,clean crossover but incompatible resident layouts,0.0,0.0,,none,medium-high: dynamic TP/EP,very high; dual layout does not fit,KILL_NO_FEASIBLE_SWITCH_CONTRACT
+F_fresh_work_compaction,EP4 micro8 all denoising phases,physical/live rows; full routed pipeline oracle,24.997,0.0,,exact liveness required,direct collision with Epoch Expert Atlas/Liveness/FreshLane,high,EXCLUDED_PRIOR_ART_COLLISION
+G_route_dispatch_plan_reuse,EP4 batch2 gen128,lag1 exact route-set agreement,5.376,1.565,,stale plan if route changes,high: metadata caching/prefetch,medium,KILL_FEASIBLE_LT5
+H_attention_EP_communication_overlap,EP4 micro8,"zero-contention min(attention,dispatch+combine) bound",19.291,0.0,,none if cross-request,direct collision with generic DeepEP/TBO serving overlap,high,EXCLUDED_PRIOR_ART_AND_NO_LIVE_CAUSAL_POC
+I_J_request_locality_support_grouping,EP4 temporal trace,rank-load stability but no independent wait-free request oracle,0.0,0.0,,none,high: affinity batching/scheduling,medium,NOT_ACTIVATED_BY_BOTTLENECK
+K_phase_precision_adaptation,not run,no quality-valid FP8 path in bounded substrate,0.0,0.0,,unmeasured/high,high: phase mixed precision,medium,NOT_ACTIVATED_NO_QUALITY_VALID_PATH

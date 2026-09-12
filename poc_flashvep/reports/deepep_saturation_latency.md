@@ -45,4 +45,3 @@ The fixed gate found no repeatable ≥5% matched effect (or the required matched
 ### Limitations
 
 DeepEP collectives were replayed with exact route IDs/layouts and deterministic random BF16 payloads, not live Qwen3 hidden states. The collective call is synchronous (`async_finish=False`) and no expert GEMM is included. If a required matched regime had insufficient artifact rows, it is explicitly marked unavailable rather than synthesized.
-

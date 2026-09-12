@@ -292,4 +292,3 @@ policy, or any method based on the first A32 positive run.
 kernel-launch boundary, H21 natural-route proximity to a fast band, H22
 expert-versus-combine phase separation, and H23 global-warmup/order
 confounding.  These are queued as bounded follow-ups, not claims.
-

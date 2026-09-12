@@ -117,4 +117,3 @@ same-expert or spatial output surrogate does not create a safe low-work prefix.
 This closes the current speculative-overlap branch before any scheduler,
 kernel, or Kimi implementation.  The artifacts distinguish observed live
 expert-output evidence from unmeasured propagation/E2E behavior.
-
