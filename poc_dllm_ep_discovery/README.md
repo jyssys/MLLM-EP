@@ -16,3 +16,4 @@ only 2.85--3.31% clean request E2E and the post-compaction residual only
 - Final decision: `reports/final_decision.md`
 - Reproduce analysis: `python scripts/analyze_discovery.py && python scripts/build_supplemental_analysis.py`
 - Validate invariants: `python tests/check_analysis_invariants.py`
+- Runtime instrumentation: `patches/0001-instrument-LLaDA2-EP4-refinement-discovery-traces.patch`
