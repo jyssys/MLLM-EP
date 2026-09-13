@@ -1,0 +1,80 @@
+{
+    "id": 0,
+    "question": "from typing import List\n\n\ndef has_close_elements(numbers: List[float], threshold: float) -> bool:\n    \"\"\" Check if in given list of numbers, are any two numbers closer to each other than\n    given threshold.\n    >>> has_close_elements([1.0, 2.0, 3.0], 0.5)\n    False\n    >>> has_close_elements([1.0, 2.8, 3.0, 4.0, 5.0, 2.0], 0.3)\n    True\n    \"\"\"\n",
+    "prompt": "<role>SYSTEM</role>detailed thinking off<|role_end|><role>HUMAN</role>from typing import List\n\n\ndef has_close_elements(numbers: List[float], threshold: float) -> bool:\n    \"\"\" Check if in given list of numbers, are any two numbers closer to each other than\n    given threshold.\n    >>> has_close_elements([1.0, 2.0, 3.0], 0.5)\n    False\n    >>> has_close_elements([1.0, 2.8, 3.0, 4.0, 5.0, 2.0], 0.3)\n    True\n    \"\"\"\n<|role_end|><role>ASSISTANT</role>",
+    "answer": "Looking at this problem, I need to check if any two numbers in the list are closer to each other than the given threshold.\n\nLet me analyze the examples:\n- `[1.0, 2.0, 3.0]` with threshold `0.5`: The minimum distance between any two numbers is 1.0, which is greater than 0.5, so return `False`\n- `[1.0, 2.8, 3.0, 4.0, 5.0, 2.0]` with threshold `0.3`: The numbers 2.8 and 3.0 are 0.2 apart, which is less than 0.3, so return `True`\n\nHere's my solution:\n\n```python\nfrom typing import List\n\n\ndef has_close_elements(numbers: List[float], threshold: float) -> bool:\n    \"\"\" Check if in given list of numbers, are any two numbers closer to each other than\n    given threshold.\n    >>> has_close_elements([1.0, 2.0, 3.0],",
+    "generated_length": 239,
+    "tpf": 1.8106060606060606,
+    "tps": 165.08950052653643,
+    "fps": 11.856264455659852
+}
+{
+    "id": 1,
+    "question": "from typing import List\n\n\ndef separate_paren_groups(paren_string: str) -> List[str]:\n    \"\"\" Input to this function is a string containing multiple groups of nested parentheses. Your goal is to\n    separate those group into separate strings and return the list of those.\n    Separate groups are balanced (each open brace is properly closed) and not nested within each other\n    Ignore any spaces in the input string.\n    >>> separate_paren_groups('( ) (( )) (( )( ))')\n    ['()', '(())', '(()())']\n    \"\"\"\n",
+    "prompt": "<role>SYSTEM</role>detailed thinking off<|role_end|><role>HUMAN</role>from typing import List\n\n\ndef separate_paren_groups(paren_string: str) -> List[str]:\n    \"\"\" Input to this function is a string containing multiple groups of nested parentheses. Your goal is to\n    separate those group into separate strings and return the list of those.\n    Separate groups are balanced (each open brace is properly closed) and not nested within each other\n    Ignore any spaces in the input string.\n    >>> separate_paren_groups('( ) (( )) (( )( ))')\n    ['()', '(())', '(()())']\n    \"\"\"\n<|role_end|><role>ASSISTANT</role>",
+    "answer": "Looking at this problem, I need to:\n\n1. Remove spaces from the input string\n2. Separate balanced parentheses groups that are not nested within each other\n3. Return each group as a separate string\n\nThe key insight is that groups are separated when we have a balanced set of parentheses (equal number of opening and closing) that aren't nested within a larger group.\n\nLet me trace through the example:\n- Input: `( ) (( )) (( )( ))`\n- After removing spaces: `()((()))(()()))`\n- I need to identify where one balanced group ends and another begins\n\nI'll use a counter to track the balance of parentheses:\n- Increment for '('\n- Decrement for ')'\n- When the counter reaches 0, I've completed a balanced group\n\n```python\ndef separate_paren_groups(paren_string: str) -> List[str]:\n    \"\"\" Input to this function is a string containing multiple groups of nested parentheses. Your goal is to\n    separate those group into separate strings and return the list of those.\n    Separate groups are balanced (each open brace is properly closed) and not nested within each other\n    Ignore",
+    "generated_length": 246,
+    "tpf": 1.8106060606060606,
+    "tps": 165.08950052653643,
+    "fps": 11.856264455659852
+}
+{
+    "id": 2,
+    "question": "\n\ndef truncate_number(number: float) -> float:\n    \"\"\" Given a positive floating point number, it can be decomposed into\n    and integer part (largest integer smaller than given number) and decimals\n    (leftover part always smaller than 1).\n\n    Return the decimal part of the number.\n    >>> truncate_number(3.5)\n    0.5\n    \"\"\"\n",
+    "prompt": "<role>SYSTEM</role>detailed thinking off<|role_end|><role>HUMAN</role>\n\ndef truncate_number(number: float) -> float:\n    \"\"\" Given a positive floating point number, it can be decomposed into\n    and integer part (largest integer smaller than given number) and decimals\n    (leftover part always smaller than 1).\n\n    Return the decimal part of the number.\n    >>> truncate_number(3.5)\n    0.5\n    \"\"\"\n<|role_end|><role>ASSISTANT</role>",
+    "answer": "Here's the implementation of the `truncate_number` function that returns the decimal part of a positive floating-point number:\n\n```python\ndef truncate_number(number: float) -> float:\n    \"\"\" Given a positive floating point number, it can be decomposed into\n    an integer part (largest integer smaller than given number) and decimals\n    (leftover part always smaller than 1).\n\n    Return the decimal part of the number.\n    >>> truncate_number(3.5)\n    0.5\n    \"\"\"\n    return number - int(number)\n```\n\nThis function works by:\n1. Converting the number to an integer using `int()`, which truncates the decimal part (e.g., `int(3.5)` gives `3`)\n2. Subtracting the integer part from the original number to get just the decimal portion\n3. Returning the result as a float\n\nFor example:\n- `truncate_number(3.5)` returns `0.5`\n- `truncate_number(7.8)` returns `0.8`\n- `truncate_number(4.0)` returns `0.0`\n\nThe function handles positive floating-point numbers as specified in the docstring.",
+    "generated_length": 266,
+    "tpf": 1.8106060606060606,
+    "tps": 165.08950052653643,
+    "fps": 11.856264455659852
+}
+{
+    "id": 3,
+    "question": "from typing import List\n\n\ndef below_zero(operations: List[int]) -> bool:\n    \"\"\" You're given a list of deposit and withdrawal operations on a bank account that starts with\n    zero balance. Your task is to detect if at any point the balance of account fallls below zero, and\n    at that point function should return True. Otherwise it should return False.\n    >>> below_zero([1, 2, 3])\n    False\n    >>> below_zero([1, 2, -4, 5])\n    True\n    \"\"\"\n",
+    "prompt": "<role>SYSTEM</role>detailed thinking off<|role_end|><role>HUMAN</role>from typing import List\n\n\ndef below_zero(operations: List[int]) -> bool:\n    \"\"\" You're given a list of deposit and withdrawal operations on a bank account that starts with\n    zero balance. Your task is to detect if at any point the balance of account fallls below zero, and\n    at that point function should return True. Otherwise it should return False.\n    >>> below_zero([1, 2, 3])\n    False\n    >>> below_zero([1, 2, -4, 5])\n    True\n    \"\"\"\n<|role_end|><role>ASSISTANT</role>",
+    "answer": "Looking at this problem, I need to track the running balance as I process each operation, and check if the balance ever goes below zero.\n\nLet me trace through the examples:\n- `[1, 2, 3]`: balance goes 0\u21921\u21923\u21926, never below zero \u2192 False\n- `[1, 2, -4, 5]`: balance goes 0\u21921\u21923\u2192-1\u21924, goes below zero at the third operation \u2192 True\n\nHere's the solution:\n\n```python\ndef below_zero(operations: List[int]) -> bool:\n    \"\"\" You're given a list of deposit and withdrawal operations on a bank account that starts with\n    zero balance. Your task is to detect if at any point the balance of account falls below zero, and\n    at that point function should return True. Otherwise it should return False.\n    >>> below_zero([1, 2, 3])\n    False\n    >>> below_zero([1, 2, -4, 5])\n    True\n    \"\"\"\n    balance = 0\n    for operation in operations:\n        balance += operation\n       ",
+    "generated_length": 246,
+    "tpf": 1.8106060606060606,
+    "tps": 165.08950052653643,
+    "fps": 11.856264455659852
+}
+{
+    "id": 4,
+    "question": "from typing import List\n\n\ndef mean_absolute_deviation(numbers: List[float]) -> float:\n    \"\"\" For a given list of input numbers, calculate Mean Absolute Deviation\n    around the mean of this dataset.\n    Mean Absolute Deviation is the average absolute difference between each\n    element and a centerpoint (mean in this case):\n    MAD = average | x - x_mean |\n    >>> mean_absolute_deviation([1.0, 2.0, 3.0, 4.0])\n    1.0\n    \"\"\"\n",
+    "prompt": "<role>SYSTEM</role>detailed thinking off<|role_end|><role>HUMAN</role>from typing import List\n\n\ndef mean_absolute_deviation(numbers: List[float]) -> float:\n    \"\"\" For a given list of input numbers, calculate Mean Absolute Deviation\n    around the mean of this dataset.\n    Mean Absolute Deviation is the average absolute difference between each\n    element and a centerpoint (mean in this case):\n    MAD = average | x - x_mean |\n    >>> mean_absolute_deviation([1.0, 2.0, 3.0, 4.0])\n    1.0\n    \"\"\"\n<|role_end|><role>ASSISTANT</role>",
+    "answer": "```python\ndef mean_absolute_deviation(numbers: List[float]) -> float:\n    \"\"\" For a given list of input numbers, calculate Mean Absolute Deviation\n    around the mean of this dataset.\n    Mean Absolute Deviation is the average absolute difference between each\n    element and a centerpoint (mean in this case):\n    MAD = average | x - x_mean |\n    >>> mean_absolute_deviation([1.0, 2.0, 3.0, 4.0])\n    1.0\n    \"\"\"\n    if not numbers:\n        return 0.0\n    \n    mean = sum(numbers) / len(numbers)\n    absolute_deviations = [abs(x - mean) for x in numbers]\n    return sum(absolute_deviations) / len(numbers)\n```",
+    "generated_length": 180,
+    "tpf": 1.8106060606060606,
+    "tps": 165.08950052653643,
+    "fps": 11.856264455659852
+}
+{
+    "id": 5,
+    "question": "from typing import List\n\n\ndef intersperse(numbers: List[int], delimeter: int) -> List[int]:\n    \"\"\" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'\n    >>> intersperse([], 4)\n    []\n    >>> intersperse([1, 2, 3], 4)\n    [1, 4, 2, 4, 3]\n    \"\"\"\n",
+    "prompt": "<role>SYSTEM</role>detailed thinking off<|role_end|><role>HUMAN</role>from typing import List\n\n\ndef intersperse(numbers: List[int], delimeter: int) -> List[int]:\n    \"\"\" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'\n    >>> intersperse([], 4)\n    []\n    >>> intersperse([1, 2, 3], 4)\n    [1, 4, 2, 4, 3]\n    \"\"\"\n<|role_end|><role>ASSISTANT</role>",
+    "answer": "Looking at this problem, I need to insert a delimiter between every two consecutive elements of the input list.\n\nLet me trace through the examples:\n- `intersperse([], 4)` should return `[]` (empty list)\n- `intersperse([1, 2, 3], 4)` should return `[1, 4, 2, 4, 3]`\n\nThe pattern is: take the first element, then for each subsequent element, add the delimiter followed by the element.\n\nHere's my solution:\n\n```python\nfrom typing import List\n\n\ndef intersperse(numbers: List[int], delimeter: int) -> List[int]:\n    \"\"\" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'\n    >>> intersperse([], 4)\n    []\n    >>> intersperse([1, 2, 3], 4)\n    [1, 4, 2, 4, 3]\n    \"\"\"\n    if not numbers:\n        return []\n    \n    result = [numbers[0]]  # Start with the first element\n    \n    for i in range(1, len(numbers)):\n        result.append(delimeter",
+    "generated_length": 267,
+    "tpf": 1.8106060606060606,
+    "tps": 165.08950052653643,
+    "fps": 11.856264455659852
+}
+{
+    "id": 6,
+    "question": "from typing import List\n\n\ndef parse_nested_parens(paren_string: str) -> List[int]:\n    \"\"\" Input to this function is a string represented multiple groups for nested parentheses separated by spaces.\n    For each of the group, output the deepest level of nesting of parentheses.\n    E.g. (()()) has maximum two levels of nesting while ((())) has three.\n\n    >>> parse_nested_parens('(()()) ((())) () ((())()())')\n    [2, 3, 1, 3]\n    \"\"\"\n",
+    "prompt": "<role>SYSTEM</role>detailed thinking off<|role_end|><role>HUMAN</role>from typing import List\n\n\ndef parse_nested_parens(paren_string: str) -> List[int]:\n    \"\"\" Input to this function is a string represented multiple groups for nested parentheses separated by spaces.\n    For each of the group, output the deepest level of nesting of parentheses.\n    E.g. (()()) has maximum two levels of nesting while ((())) has three.\n\n    >>> parse_nested_parens('(()()) ((())) () ((())()())')\n    [2, 3, 1, 3]\n    \"\"\"\n<|role_end|><role>ASSISTANT</role>",
+    "answer": "Looking at this problem, I need to:\n\n1. Split the input string by spaces to get individual groups\n2. For each group, track the current nesting level as I scan through the characters\n3. Keep track of the maximum nesting level reached in each group\n4. Return a list of the maximum levels\n\nLet me trace through the example:\n- `(()())`: goes 1\u21922\u21921\u21922\u21921\u21920, max = 2\n- `((()))`: goes 1\u21922\u21923\u21922\u21921\u21920, max = 3  \n- `()`: goes 1\u21920, max = 1\n- `((())()())`: goes 1\u21922\u21923\u21922\u21921\u21922\u21921\u21922\u21921\u21920, max = 3\n\n```python\ndef parse_nested_parens(paren_string: str) -> List[int]:\n    \"\"\" Input to this function is a string represented multiple groups for nested parentheses separated by spaces.\n    For each of the group, output the deepest level of nesting of parentheses.\n    E.g. (()()) has maximum two levels of nesting while",
+    "generated_length": 246,
+    "tpf": 1.8106060606060606,
+    "tps": 165.08950052653643,
+    "fps": 11.856264455659852
+}
+{
+    "id": 7,
+    "question": "from typing import List\n\n\ndef filter_by_substring(strings: List[str], substring: str) -> List[str]:\n    \"\"\" Filter an input list of strings only for ones that contain given substring\n    >>> filter_by_substring([], 'a')\n    []\n    >>> filter_by_substring(['abc', 'bacd', 'cde', 'array'], 'a')\n    ['abc', 'bacd', 'array']\n    \"\"\"\n",
+    "prompt": "<role>SYSTEM</role>detailed thinking off<|role_end|><role>HUMAN</role>from typing import List\n\n\ndef filter_by_substring(strings: List[str], substring: str) -> List[str]:\n    \"\"\" Filter an input list of strings only for ones that contain given substring\n    >>> filter_by_substring([], 'a')\n    []\n    >>> filter_by_substring(['abc', 'bacd', 'cde', 'array'], 'a')\n    ['abc', 'bacd', 'array']\n    \"\"\"\n<|role_end|><role>ASSISTANT</role>",
+    "answer": "```python\ndef filter_by_substring(strings: List[str], substring: str) -> List[str]:\n    \"\"\" Filter an input list of strings only for ones that contain given substring\n    >>> filter_by_substring([], 'a')\n    []\n    >>> filter_by_substring(['abc', 'bacd', 'cde', 'array'], 'a')\n    ['abc', 'bacd', 'array']\n    \"\"\"\n    return [s for s in strings if substring in s]\n```\n\nThe function uses a list comprehension to filter the input list, keeping only those strings that contain the specified substring. The `in` operator checks if the substring exists within each string.",
+    "generated_length": 148,
+    "tpf": 1.8106060606060606,
+    "tps": 165.08950052653643,
+    "fps": 11.856264455659852
+}

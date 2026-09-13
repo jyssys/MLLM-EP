@@ -1,0 +1,371 @@
+diff --git a/benchmarks/benchmark_dataset_sglang.py b/benchmarks/benchmark_dataset_sglang.py
+index 7bc05cd..8364065 100644
+--- a/benchmarks/benchmark_dataset_sglang.py
++++ b/benchmarks/benchmark_dataset_sglang.py
+@@ -22,12 +22,18 @@ os.environ['TOKENIZERS_PARALLELISM'] = 'false'
+ # os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
+ 
+ 
+-bucket_size = 32
+ used_buckets = []
+ 
+-def get_bucket_length(length):
+-    #bucket_length = bucket_size*((length+bucket_size-1)//bucket_size)
+-    bucket_length = bucket_size*(length//bucket_size)
++def get_bucket_length(length, block_length):
++    """Return the legacy floor-aligned length for the requested block size.
++
++    The original benchmark fixed this alignment to 32 even when the caller
++    requested another diffusion block length.  That silently changed the
++    effective generation extent and could make a variable-block experiment
++    exercise a different terminal partial block.  Preserve the benchmark's
++    floor-alignment semantics, but align to the block length under test.
++    """
++    bucket_length = block_length * (length // block_length)
+     if bucket_length not in used_buckets:
+         used_buckets.append(bucket_length)
+     return bucket_length
+@@ -64,7 +70,22 @@ def cal_bucket_len(args, all_input_ids):
+         input_ids = all_input_ids[i]
+         if input_ids.shape[1] > max_prompt_length:
+             max_prompt_length = input_ids.shape[1]
+-        padded_length = get_bucket_length(input_ids.shape[1]+gen_len)
++        if args.target_total_length:
++            if args.target_total_length < input_ids.shape[1]:
++                raise ValueError(
++                    "target_total_length must cover every prompt: "
++                    f"target={args.target_total_length}, prompt={input_ids.shape[1]}"
++                )
++            if args.target_total_length % args.block_length:
++                raise ValueError(
++                    "target_total_length must be divisible by block_length: "
++                    f"target={args.target_total_length}, block={args.block_length}"
++                )
++            padded_length = args.target_total_length
++        else:
++            padded_length = get_bucket_length(
++                input_ids.shape[1] + gen_len, args.block_length
++            )
+         padded_gen_lens.append(padded_length - input_ids.shape[1])
+     return padded_gen_lens
+ 
+@@ -240,7 +261,11 @@ def main(world_size, rank, gpu_id, args):
+             else:
+                 dllm = BlockWiseDiffusionLLM(model, decoder, BlockIteratorFactory(start_block_align=True), cache_factory=cache_factory, early_stop=True, use_shift=args.use_shift)
+     else:
+-        dllm = BlockDiffusionLLM(model, decoder, BlockIteratorFactory(start_block_align=True, use_block_diffusion=True), cache_factory=cache_factory, early_stop=True, maximum_unroll=1, expected_tpf=15, backend='sglang', mini_batch_size=args.mini_batch_size, prefilling_limit=args.prefilling_limit, use_naive_batching=args.use_naive_batching)
++        # Diagnostic-only effort control.  Keeping this opt-in preserves the
++        # stock serving semantics while allowing block-size comparisons to
++        # run to the same absolute endpoint without EOS early termination.
++        early_stop = os.environ.get("LLADA_DISABLE_EARLY_STOP", "0") != "1"
++        dllm = BlockDiffusionLLM(model, decoder, BlockIteratorFactory(start_block_align=True, use_block_diffusion=True), cache_factory=cache_factory, early_stop=early_stop, maximum_unroll=1, expected_tpf=15, backend='sglang', mini_batch_size=args.mini_batch_size, prefilling_limit=args.prefilling_limit, use_naive_batching=args.use_naive_batching)
+     # warmup for decoding algorithms
+     input_ids = torch.randint(0, 100000, (args.mini_batch_size, 64), dtype=torch.long, device=device)
+     os.environ["LLADA_REQUEST_ID"] = "warmup"
+@@ -303,6 +328,14 @@ def main(world_size, rank, gpu_id, args):
+         os.environ["LLADA_ASYNC_PHASES"] = str(
+             sensitivity_policy.get("async_phases", "early,middle,late")
+         )
++        # A block schedule is a comma-separated sequence of positive block
++        # widths.  The generator advances it only when an open block is fully
++        # decoded; it never resizes an in-flight block.  Empty preserves the
++        # stock fixed-block path bit-for-bit.
++        raw_block_schedule = sensitivity_policy.get("block_schedule", "")
++        if isinstance(raw_block_schedule, (list, tuple)):
++            raw_block_schedule = ",".join(str(value) for value in raw_block_schedule)
++        os.environ["LLADA_BLOCK_SCHEDULE"] = str(raw_block_schedule)
+         outputs = []
+         total_forward = 0
+         if rank==0:
+@@ -315,6 +348,8 @@ def main(world_size, rank, gpu_id, args):
+         fpss = []
+         total_token = 0
+         token_numbers = []
++        batch_model_seconds = []
++        batch_nfes = []
+         total_time = 0
+         for i in iterator:   
+             input_ids = sorted_input_ids[i:i+batch_size]
+@@ -342,6 +377,11 @@ def main(world_size, rank, gpu_id, args):
+             sample_time = inner_stop - inner_start
+             for j in range(input_ids.shape[0]):
+                 outputs.append(out[j].unsqueeze(0))
++                # Exact per-request latency is available when batch_size=1.
++                # For larger batches this is deliberately labelled as the
++                # enclosing physical-batch wall time, not independent latency.
++                batch_model_seconds.append(sample_time)
++                batch_nfes.append(nfe)
+             total_forward += nfe
+             total_time += sample_time
+             batch_token_number = 0
+@@ -383,6 +423,11 @@ def main(world_size, rank, gpu_id, args):
+                             token_ids[prompt_length:], skip_special_tokens=True
+                         ),
+                         "generated_length": int(token_numbers[sorted_position]),
++                        "physical_batch_model_seconds": float(
++                            batch_model_seconds[sorted_position]
++                        ),
++                        "physical_batch_nfe": int(batch_nfes[sorted_position]),
++                        "physical_batch_size": int(batch_size),
+                     }
+                 )
+             safe_policy_name = "".join(
+@@ -458,6 +503,14 @@ if __name__ == '__main__':
+     parser.add_argument('--gpu', type=str, default='0,1,2,3')
+     parser.add_argument('--batch_size', type=int, default=1)
+     parser.add_argument('--gen_len', type=int, default=1024)
++    parser.add_argument(
++        '--target_total_length', type=int, default=0,
++        help=(
++            'Optional exact padded prompt+generation extent. This is useful '
++            'for block-size studies because legacy --gen_len floor-aligns '
++            'each prompt to the tested block size.'
++        ),
++    )
+     parser.add_argument('--prefix_look', type=int, default=0)
+     parser.add_argument('--after_look', type=int, default=0)
+     parser.add_argument('--block_length', type=int, default=64)
+@@ -627,10 +680,12 @@ if __name__ == '__main__':
+         args.parallel_decoding = 'threshold'
+         args.prefix_look = 0
+         args.after_look = 0
+-        args.threshold = 0.9
++        # Preserve the explicit CLI threshold.  The parser default remains
++        # 0.9, so stock config-42 behavior is unchanged while controlled
++        # decoder-effort and quality-calibration runs are no longer silently
++        # collapsed to the same operating point.
+         args.warmup_times = 0
+         args.use_bd=True
+-        args.block_length=32
+     elif args.config == 43:
+         args.cache = 'prefix'
+         args.parallel_decoding = 'threshold'
+diff --git a/python/dinfer/decoding/generate_uniform.py b/python/dinfer/decoding/generate_uniform.py
+index 3a70e73..56e9b35 100644
+--- a/python/dinfer/decoding/generate_uniform.py
++++ b/python/dinfer/decoding/generate_uniform.py
+@@ -1101,8 +1101,24 @@ class BlockDiffusionLLM(DiffusionLLM):
+         mask_id = self.decoder.mask_id
+         batch_size = prompt.shape[0]
+         prompt_length = prompt.shape[1]
+-        num_blocks = (prompt_length + gen_length + block_length - 1) // block_length
+-        total_length = num_blocks * block_length
++        schedule_raw = os.environ.get("LLADA_BLOCK_SCHEDULE", "").strip()
++        schedule_barrier = (
++            os.environ.get("LLADA_BLOCK_SCHEDULE_BARRIER", "0") == "1"
++        )
++        block_schedule = []
++        if schedule_raw:
++            block_schedule = [
++                int(value.strip()) for value in schedule_raw.split(",") if value.strip()
++            ]
++            if not block_schedule or any(value <= 0 for value in block_schedule):
++                raise ValueError(f"invalid LLADA_BLOCK_SCHEDULE={schedule_raw!r}")
++            # The schedule harness supplies an exact common total extent.  A
++            # mixed schedule cannot be rounded using any one of its members.
++            total_length = prompt_length + gen_length
++            block_length = block_schedule[0]
++        else:
++            num_blocks = (prompt_length + gen_length + block_length - 1) // block_length
++            total_length = num_blocks * block_length
+         new_gen_length = total_length-prompt_length
+         
+         mask_length = (max(self.cache_factory.max_length, prompt_length + gen_length)+block_length-1)//block_length*block_length
+@@ -1140,6 +1156,26 @@ class BlockDiffusionLLM(DiffusionLLM):
+         non_mask_number = (prompt != mask_id).sum(dim=-1)
+         decoding_start = ((non_mask_number) // block_length) * block_length
+         decoding_start = decoding_start.clip(0, prefilling_limit)
++        schedule_index = torch.zeros(batch_size, dtype=torch.long, device=device)
++
++        def current_scheduled_widths():
++            if not block_schedule:
++                return torch.full_like(decoding_start, block_length)
++            schedule_tensor = torch.tensor(
++                block_schedule, dtype=torch.long, device=device
++            )
++            planned = schedule_tensor[schedule_index % len(block_schedule)]
++            remaining = (total_length - decoding_start).clamp(min=0)
++            return torch.minimum(planned, remaining)
++
++        current_block_lengths = current_scheduled_widths()
++        # Optional exact offline-batch control: sequences that finish the
++        # current scheduled block wait until every still-active sequence has
++        # reached the same boundary.  The next B is then advanced globally.
++        # This avoids width-fragmented waves without resizing an open block.
++        schedule_waiting = torch.zeros(
++            batch_size, dtype=torch.bool, device=device
++        )
+ 
+         prefilling_lengths = decoding_start.clip(0, prefilling_limit)
+ 
+@@ -1179,17 +1215,52 @@ class BlockDiffusionLLM(DiffusionLLM):
+         #   we first select sequences and build batch for forward pass.
+         #   Then logits are used to update sequences, and sequences with finished blocks update the KV cache.
+         #   Completed sequences (generated EOS) are marked to exit early if enabled.
+-        decoding_flag = (decoding_start+block_length)<=total_length
++        decoding_flag = decoding_start < total_length
+         
+         while torch.any(decoding_flag):
++            if (
++                block_schedule
++                and schedule_barrier
++                and torch.all(schedule_waiting[decoding_flag])
++            ):
++                active_ids = decoding_flag.nonzero(as_tuple=True)[0]
++                schedule_index[active_ids] += 1
++                refreshed = current_scheduled_widths()
++                current_block_lengths[active_ids] = refreshed[active_ids]
++                schedule_waiting[active_ids] = False
+             # Dynamically adjust cache size based on the earliest decoding position
+-            current_cache_length = max(128, align_exp2(min(decoding_start[decoding_flag])+block_length))
+-            current_cache_flag = decoding_flag & ((decoding_start+block_length)<=current_cache_length)
++            decoding_ends = decoding_start + current_block_lengths
++            cache_progress_flag = decoding_flag & (~schedule_waiting)
++            if not torch.any(cache_progress_flag):
++                raise RuntimeError(
++                    "block-schedule barrier has no sequence able to make progress"
++                )
++            current_cache_length = max(
++                128, align_exp2(min(decoding_ends[cache_progress_flag]))
++            )
++            current_cache_flag = (
++                decoding_flag
++                & (decoding_ends <= current_cache_length)
++                & (~schedule_waiting)
++            )
+             while torch.any(current_cache_flag):
+                 # Select sequences that can be processed in this mini-batch and build batch
+-                decoding_seq_ids = select_decoding_batch_sequences(x, current_cache_flag, mask_id, mini_batch_size)
++                first_eligible = int(
++                    current_cache_flag.nonzero(as_tuple=True)[0][0].item()
++                )
++                wave_block_length = int(current_block_lengths[first_eligible].item())
++                same_width_flag = current_cache_flag & (
++                    current_block_lengths == wave_block_length
++                )
++                decoding_seq_ids = select_decoding_batch_sequences(
++                    x, same_width_flag, mask_id, mini_batch_size
++                )
+                 decoding_x = x.select_seqs(decoding_seq_ids)
+-                decoding_block = gather_blocks(decoding_x.data, decoding_start[decoding_seq_ids], block_length)
++                decoding_block = gather_blocks(
++                    decoding_x.data,
++                    decoding_start[decoding_seq_ids],
++                    wave_block_length,
++                )
+                 mask_before = decoding_block.data == mask_id
+                 remaining_before = mask_before.sum(dim=1)
+                 block_iterations = []
+@@ -1201,12 +1272,14 @@ class BlockDiffusionLLM(DiffusionLLM):
+                         int(block_refinement_iterations.get((int(sequence_id), int(block_start)), 0))
+                     )
+                 decoding_past_key_values = self.past_key_values[:, :, decoding_seq_ids, :, :current_cache_length]
+-                decoding_pos_ids = torch.arange(block_length, device=device, dtype=torch.long).repeat(decoding_seq_ids.shape[0], 1)
++                decoding_pos_ids = torch.arange(
++                    wave_block_length, device=device, dtype=torch.long
++                ).repeat(decoding_seq_ids.shape[0], 1)
+                 decoding_pos_ids = decoding_pos_ids + decoding_start[decoding_seq_ids].unsqueeze(1)
+ 
+                 live_ratio = float(
+                     remaining_before.sum().item()
+-                    / max(int(remaining_before.numel()) * block_length, 1)
++                    / max(int(remaining_before.numel()) * wave_block_length, 1)
+                 )
+                 if live_ratio > (2.0 / 3.0):
+                     refinement_phase = "early"
+@@ -1274,10 +1347,17 @@ class BlockDiffusionLLM(DiffusionLLM):
+                             "margin_mean": float(live_margin.mean().item()),
+                             "margin_p50": float(torch.quantile(live_margin, 0.5).item()),
+                         }
+-                self.decoder.batch_decode(logits, decoding_start[decoding_seq_ids], decoding_x, block_length)
++                self.decoder.batch_decode(
++                    logits,
++                    decoding_start[decoding_seq_ids],
++                    decoding_x,
++                    wave_block_length,
++                )
+                 if logical_trace:
+                     updated_block = gather_blocks(
+-                        decoding_x.data, decoding_start[decoding_seq_ids], block_length
++                        decoding_x.data,
++                        decoding_start[decoding_seq_ids],
++                        wave_block_length,
+                     )
+                     remaining_after = (updated_block.data == mask_id).sum(dim=1)
+                     capture_phases = {
+@@ -1365,7 +1445,16 @@ class BlockDiffusionLLM(DiffusionLLM):
+                                     "token_confidence": confidence_values,
+                                     "confidence_margin": confidence_margins,
+                                     "confidence_summary": confidence_summary,
+-                                    "physical_rows": int(len(decoding_seq_ids) * block_length),
++                                    "block_length": int(wave_block_length),
++                                    "schedule_index": [
++                                        int(value)
++                                        for value in schedule_index[
++                                            decoding_seq_ids
++                                        ].cpu().tolist()
++                                    ],
++                                    "physical_rows": int(
++                                        len(decoding_seq_ids) * wave_block_length
++                                    ),
+                                     "model_forward_ms": model_forward_ms,
+                                 },
+                                 separators=(",", ":"),
+@@ -1383,11 +1472,27 @@ class BlockDiffusionLLM(DiffusionLLM):
+                 # Update KV cache
+                 inner_shape = output.past_key_values[0].shape
+                 decoding_kv = torch.stack(output.past_key_values, dim=0).reshape(num_layers, 2, *inner_shape)[:, :, :block_finished.shape[0]]
+-                block_idx_matrix = decoding_start[decoding_seq_ids[block_finished]].unsqueeze(1) + torch.arange(block_length, device=device)
++                block_idx_matrix = decoding_start[
++                    decoding_seq_ids[block_finished]
++                ].unsqueeze(1) + torch.arange(wave_block_length, device=device)
+                 self.past_key_values[:, :, decoding_seq_ids[block_finished].unsqueeze(1), :, block_idx_matrix.long()] = \
+-                    decoding_kv.permute(2, 4, 0, 1, 3, 5)[block_finished, current_cache_length-block_length:current_cache_length]
++                    decoding_kv.permute(2, 4, 0, 1, 3, 5)[
++                        block_finished,
++                        current_cache_length-wave_block_length:current_cache_length,
++                    ]
+                 # Update decoding start positions
+-                decoding_start[decoding_seq_ids] += block_finished.long()*block_length
++                finished_seq_ids = decoding_seq_ids[block_finished]
++                decoding_start[decoding_seq_ids] += (
++                    block_finished.long() * wave_block_length
++                )
++                if block_schedule and finished_seq_ids.numel() and not schedule_barrier:
++                    schedule_index[finished_seq_ids] += 1
++                    refreshed = current_scheduled_widths()
++                    current_block_lengths[finished_seq_ids] = refreshed[
++                        finished_seq_ids
++                    ]
++                elif block_schedule and finished_seq_ids.numel():
++                    schedule_waiting[finished_seq_ids] = True
+                 x[decoding_seq_ids] = decoding_x.data
+ 
+                 # Check for EOS and early stop if enabled
+@@ -1401,8 +1506,24 @@ class BlockDiffusionLLM(DiffusionLLM):
+ 
+                 # Update control flags
+                 self.diff_iteration.num_forwards +=1
+-                decoding_flag = decoding_flag & ((decoding_start+block_length)<=total_length)
+-                current_cache_flag = decoding_flag & ((decoding_start+block_length)<=current_cache_length)
++                decoding_flag = decoding_flag & (decoding_start < total_length)
++                if (
++                    block_schedule
++                    and schedule_barrier
++                    and torch.any(decoding_flag)
++                    and torch.all(schedule_waiting[decoding_flag])
++                ):
++                    active_ids = decoding_flag.nonzero(as_tuple=True)[0]
++                    schedule_index[active_ids] += 1
++                    refreshed = current_scheduled_widths()
++                    current_block_lengths[active_ids] = refreshed[active_ids]
++                    schedule_waiting[active_ids] = False
++                decoding_ends = decoding_start + current_block_lengths
++                current_cache_flag = (
++                    decoding_flag
++                    & (decoding_ends <= current_cache_length)
++                    & (~schedule_waiting)
++                )
+                 
+         logger.info(f'The number of diffusion iterations: {self.num_forwards}')
+         return x.get_generated_tokens()
