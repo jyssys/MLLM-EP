@@ -1,0 +1,15 @@
+operation_a,operation_b,classification,reason,source_evidence,live_test_required,status
+router,dispatch,STRICT_DEPENDENCY,dispatch layout consumes exact top-k IDs,dInfer forward_deepep,NO,CONFIRMED
+remote_dispatch,owner_expert,STRICT_DEPENDENCY,owner expert consumes received hidden rows,dInfer forward_deepep,NO,CONFIRMED
+remote_dispatch,local_source_expert,INDEPENDENT,local routes and source hidden are known after routing,tensor algebra,YES,PROBE
+routed_dispatch,shared_expert,INDEPENDENT,both consume local_hidden and join only at add,dInfer forward_deepep,YES,PROBE
+dispatch_wave_i_plus_1,expert_wave_i,INDEPENDENT,distinct complete waves and handles,DeepEP Buffer API,YES,PROBE
+expert_wave_i,combine_wave_i_minus_1,INDEPENDENT,distinct complete waves and tensors,DeepEP Buffer API,YES,PROBE
+expert_output_tile,combine_same_wave,PARTIAL_DEPENDENCY,completed rows are legal but current fused output is whole-invocation,StreamEP and DeepEP LL-SBO,NO,PRIOR_ART_COLLISION
+request_a_dispatch,request_b_attention,INDEPENDENT,independent requests and tensors,layer DAG,YES,PROBE
+request_a_combine,request_b_attention,INDEPENDENT,independent requests and tensors,layer DAG,YES,PROBE
+request_a_dispatch,request_b_expert,INDEPENDENT,independent complete waves,layer DAG,YES,PROBE
+request_a_combine,request_b_expert,INDEPENDENT,independent complete waves,layer DAG,YES,PROBE
+routed_plus_shared,next_dense_layer,STRICT_DEPENDENCY,next layer consumes exact sum,model block source,NO,CONFIRMED
+local_source_outputs,remote_combined_outputs,INDEPENDENT_UNTIL_ADD,exact contributions sum in source order,tensor algebra,YES,PROBE
+layer_final_all_gather,next_dense_layer,STRICT_DEPENDENCY,current dense TP4 contract needs replicated token matrix,model block source,NO,CONFIRMED

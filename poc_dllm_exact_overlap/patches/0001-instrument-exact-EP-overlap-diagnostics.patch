@@ -1,0 +1,923 @@
+From d5b8e66074ce6367ab8a66b3c2b85bc8c3e272e9 Mon Sep 17 00:00:00 2001
+From: Codex <codex@openai.com>
+Date: Sun, 13 Sep 2026 14:32:04 +0900
+Subject: [PATCH] instrument exact EP overlap diagnostics
+
+---
+ benchmarks/benchmark_dataset_sglang.py        |   5 +
+ python/dinfer/model/exact_overlap_probe.py    | 830 ++++++++++++++++++
+ .../model/modeling_llada2_moe_sglang.py       |  30 +
+ 3 files changed, 865 insertions(+)
+ create mode 100644 python/dinfer/model/exact_overlap_probe.py
+
+diff --git a/benchmarks/benchmark_dataset_sglang.py b/benchmarks/benchmark_dataset_sglang.py
+index 2abf4cb..6ed70a0 100644
+--- a/benchmarks/benchmark_dataset_sglang.py
++++ b/benchmarks/benchmark_dataset_sglang.py
+@@ -295,7 +295,12 @@ def main(world_size, rank, gpu_id, args):
+             inner_start = time.time()
+             prev_forwards = dllm.num_forwards
+             os.environ["LLADA_REQUEST_ID"] = f"measured_{policy_name}_{i}"
++            nsys_capture = os.environ.get("LLADA_NSYS_CAPTURE") == "1"
++            if nsys_capture:
++                torch.cuda.cudart().cudaProfilerStart()
+             out = dllm.generate(input_ids, gen_length=min_padded_length, block_length=block_length)
++            if nsys_capture:
++                torch.cuda.cudart().cudaProfilerStop()
+             nfe = dllm.num_forwards - prev_forwards
+             inner_stop = time.time()
+             sample_time = inner_stop - inner_start
+diff --git a/python/dinfer/model/exact_overlap_probe.py b/python/dinfer/model/exact_overlap_probe.py
+new file mode 100644
+index 0000000..77b1eb9
+--- /dev/null
++++ b/python/dinfer/model/exact_overlap_probe.py
+@@ -0,0 +1,830 @@
++"""Exact, read-only overlap probes for the LLaDA2 DeepEP path.
++
++The probe replays complete captured operation units after the production layer
++has finished.  It never changes the model output.  DeepEP communication uses
++the runtime's own buffer/configuration and expert computation uses the resident
++BF16 fused-expert weights.  Results are diagnostic only and are written per
++rank so cross-rank absolute CUDA timestamps are never subtracted.
++"""
++
++from __future__ import annotations
++
++import json
++import os
++import random
++import statistics
++from dataclasses import dataclass
++from pathlib import Path
++from typing import Any, Callable
++
++import torch
++import torch.distributed as dist
++
++
++_RAN = False
++_PHASE_CAPTURES: dict[int, tuple[torch.Tensor, torch.Tensor, torch.Tensor]] = {}
++
++
++@dataclass
++class _State:
++    hidden: torch.Tensor
++    ids: torch.Tensor
++    weights: torch.Tensor
++    recv_hidden: torch.Tensor | None = None
++    recv_ids: torch.Tensor | None = None
++    recv_weights: torch.Tensor | None = None
++    recv_counts: Any = None
++    handle: Any = None
++    dispatch_event: Any = None
++    expert_output: torch.Tensor | None = None
++    expert_event: Any = None
++    combined: torch.Tensor | None = None
++    combine_event: Any = None
++
++
++def _event() -> torch.cuda.Event:
++    return torch.cuda.Event(enable_timing=True)
++
++
++def _sync() -> None:
++    dist.barrier()
++    torch.cuda.synchronize()
++
++
++def _elapsed(start: torch.cuda.Event, end: torch.cuda.Event) -> float:
++    return float(start.elapsed_time(end))
++
++
++def _stats(values: list[float]) -> dict[str, float]:
++    ordered = sorted(float(v) for v in values)
++    return {
++        "n": len(ordered),
++        "median": float(statistics.median(ordered)),
++        "p10": float(ordered[max(0, int(0.1 * (len(ordered) - 1)))]),
++        "p90": float(ordered[min(len(ordered) - 1, int(0.9 * (len(ordered) - 1)))]),
++        "mean": float(statistics.fmean(ordered)),
++    }
++
++
++def _correctness(reference: torch.Tensor, candidate: torch.Tensor) -> dict[str, float]:
++    ref = reference.float().flatten()
++    cand = candidate.float().flatten()
++    denom = max(float(ref.norm().item()), 1e-12)
++    return {
++        "cosine": float(torch.nn.functional.cosine_similarity(ref, cand, dim=0).item()),
++        "rel_l2": float((cand - ref).norm().item() / denom),
++        "max_abs": float((cand - ref).abs().max().item()),
++    }
++
++
++def _fresh(capture: tuple[torch.Tensor, torch.Tensor, torch.Tensor]) -> _State:
++    hidden, ids, weights = capture
++    return _State(hidden.clone(), ids.clone().to(torch.int64), weights.clone())
++
++
++def _normal(moe: Any) -> Any:
++    return moe.deepep_dispatcher._normal_dispatcher
++
++
++def _buffer(moe: Any) -> Any:
++    return _normal(moe)._get_buffer()
++
++
++def _dispatch_async(moe: Any, state: _State) -> None:
++    from deep_ep import Buffer
++
++    normal = _normal(moe)
++    previous = Buffer.capture()
++    (
++        state.recv_hidden,
++        state.recv_ids,
++        state.recv_weights,
++        state.recv_counts,
++        state.dispatch_event,
++    ) = normal._dispatch_core(state.hidden, state.ids, state.weights, previous)
++    state.handle = normal.handle
++    # The public wrapper stores one handle, but the DeepEP Buffer handle is an
++    # independent value.  Keeping it in State permits two-wave diagnostic
++    # replay without using the wrapper state machine.
++    normal.handle = None
++
++
++def _wait_event(event: Any) -> None:
++    event.current_stream_wait()
++
++
++def _owner_expert(moe: Any, state: _State, stream: torch.cuda.Stream) -> None:
++    from deep_ep import Buffer
++    from sglang.srt.layers.moe.topk import StandardTopKOutput
++
++    assert state.recv_hidden is not None and state.recv_ids is not None
++    assert state.recv_weights is not None
++    with torch.cuda.stream(stream):
++        state.dispatch_event.current_stream_wait()
++        local_topk = StandardTopKOutput(
++            state.recv_weights,
++            state.recv_ids,
++            torch.empty(0, device=state.recv_hidden.device),
++        )
++        dispatched = moe.experts.dispatcher.dispatch(
++            hidden_states=state.recv_hidden, topk_output=local_topk
++        )
++        applied = moe.experts.quant_method.apply(
++            layer=moe.experts, dispatch_output=dispatched
++        )
++        state.expert_output = moe.experts.dispatcher.combine(applied)
++        state.expert_event = Buffer.capture()
++
++
++def _local_expert(
++    moe: Any, capture: tuple[torch.Tensor, torch.Tensor, torch.Tensor],
++    stream: torch.cuda.Stream,
++) -> tuple[torch.Tensor, torch.cuda.Event]:
++    from sglang.srt.layers.moe.topk import StandardTopKOutput
++
++    hidden, ids, weights = capture
++    rank = dist.get_rank()
++    local_n = moe.num_experts // moe.ep_size
++    owner = torch.div(ids.long(), local_n, rounding_mode="floor")
++    local_ids = torch.where(owner == rank, ids.long() - rank * local_n, -1)
++    with torch.cuda.stream(stream):
++        local_topk = StandardTopKOutput(
++            weights, local_ids, torch.empty(0, device=hidden.device)
++        )
++        dispatched = moe.experts.dispatcher.dispatch(
++            hidden_states=hidden, topk_output=local_topk
++        )
++        applied = moe.experts.quant_method.apply(
++            layer=moe.experts, dispatch_output=dispatched
++        )
++        output = moe.experts.dispatcher.combine(applied)
++        done = _event()
++        done.record(stream)
++    return output, done
++
++
++def _remote_capture(
++    moe: Any, capture: tuple[torch.Tensor, torch.Tensor, torch.Tensor]
++) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
++    hidden, ids, weights = capture
++    rank = dist.get_rank()
++    local_n = moe.num_experts // moe.ep_size
++    owner = torch.div(ids.long(), local_n, rounding_mode="floor")
++    return hidden, torch.where(owner == rank, -1, ids.long()), weights
++
++
++def _combine_async(moe: Any, state: _State) -> None:
++    from deep_ep import Buffer
++    from sglang.srt.layers.moe.token_dispatcher.deepep import DeepEPConfig
++
++    assert state.expert_output is not None
++    with torch.cuda.stream(_buffer(moe).get_comm_stream()):
++        state.expert_event.current_stream_wait()
++    state.combined, _, state.combine_event = _buffer(moe).combine(
++        state.expert_output,
++        state.handle,
++        async_finish=True,
++        previous_event=Buffer.capture(),
++        allocate_on_comm_stream=True,
++        config=(
++            DeepEPConfig.get_instance().normal_combine_config
++            or __import__("deep_ep").Buffer.get_combine_config(dist.get_world_size())
++        ),
++    )
++
++
++def _cleanup_dispatch(moe: Any, state: _State) -> None:
++    from deep_ep import Buffer
++    from sglang.srt.layers.moe.token_dispatcher.deepep import DeepEPConfig
++
++    assert state.recv_hidden is not None
++    state.dispatch_event.current_stream_wait()
++    _, _, event = _buffer(moe).combine(
++        state.recv_hidden,
++        state.handle,
++        async_finish=True,
++        previous_event=Buffer.capture(),
++        allocate_on_comm_stream=True,
++        config=(
++            DeepEPConfig.get_instance().normal_combine_config
++            or __import__("deep_ep").Buffer.get_combine_config(dist.get_world_size())
++        ),
++    )
++    event.current_stream_wait()
++    torch.cuda.synchronize()
++
++
++def _cleanup_expert(moe: Any, state: _State) -> None:
++    _combine_async(moe, state)
++    state.combine_event.current_stream_wait()
++    torch.cuda.synchronize()
++
++
++def _measure_callable(fn: Callable[[], torch.Tensor | None]) -> tuple[float, torch.Tensor | None]:
++    _sync()
++    start, end = _event(), _event()
++    start.record()
++    output = fn()
++    end.record()
++    end.synchronize()
++    return _elapsed(start, end), output
++
++
++def _measure_dispatch(moe: Any, capture: tuple[torch.Tensor, torch.Tensor, torch.Tensor]) -> tuple[float, _State]:
++    _sync()
++    state = _fresh(capture)
++    origin, end = _event(), _event()
++    origin.record()
++    _dispatch_async(moe, state)
++    state.dispatch_event.current_stream_wait()
++    end.record()
++    end.synchronize()
++    value = _elapsed(origin, end)
++    _cleanup_dispatch(moe, state)
++    return value, state
++
++
++def _measure_expert(moe: Any, capture: tuple[torch.Tensor, torch.Tensor, torch.Tensor], stream: torch.cuda.Stream) -> tuple[float, torch.Tensor]:
++    state = _fresh(capture)
++    _dispatch_async(moe, state)
++    state.dispatch_event.current_stream_wait()
++    torch.cuda.synchronize()
++    start, end = _event(), _event()
++    with torch.cuda.stream(stream):
++        start.record(stream)
++    _owner_expert(moe, state, stream)
++    with torch.cuda.stream(stream):
++        end.record(stream)
++    end.synchronize()
++    output = state.expert_output.detach().clone()
++    _cleanup_expert(moe, state)
++    return _elapsed(start, end), output
++
++
++def _measure_combine(moe: Any, capture: tuple[torch.Tensor, torch.Tensor, torch.Tensor], stream: torch.cuda.Stream) -> tuple[float, torch.Tensor]:
++    state = _fresh(capture)
++    _dispatch_async(moe, state)
++    state.dispatch_event.current_stream_wait()
++    _owner_expert(moe, state, stream)
++    state.expert_event.current_stream_wait()
++    torch.cuda.synchronize()
++    start, end = _event(), _event()
++    start.record()
++    _combine_async(moe, state)
++    state.combine_event.current_stream_wait()
++    end.record()
++    end.synchronize()
++    return _elapsed(start, end), state.combined.detach().clone()
++
++
++def _concurrent_simple(
++    moe: Any,
++    capture: tuple[torch.Tensor, torch.Tensor, torch.Tensor],
++    compute: Callable[[torch.cuda.Stream], torch.Tensor],
++    stage: str,
++    compute_stream: torch.cuda.Stream,
++) -> tuple[float, float, float, torch.Tensor, torch.Tensor | None]:
++    """Run dispatch/combine beside one independent full compute unit."""
++    _sync()
++    default = torch.cuda.current_stream()
++    origin, joined = _event(), _event()
++    origin.record(default)
++    state = _fresh(capture)
++    if stage == "dispatch":
++        _dispatch_async(moe, state)
++        stage_event = state.dispatch_event
++    elif stage == "combine":
++        _dispatch_async(moe, state)
++        state.dispatch_event.current_stream_wait()
++        _owner_expert(moe, state, compute_stream)
++        state.expert_event.current_stream_wait()
++        torch.cuda.synchronize()
++        origin.record(default)
++        _combine_async(moe, state)
++        stage_event = state.combine_event
++    else:
++        raise ValueError(stage)
++    compute_start, compute_end = _event(), _event()
++    with torch.cuda.stream(compute_stream):
++        compute_stream.wait_event(origin)
++        compute_start.record(compute_stream)
++        compute_output = compute(compute_stream)
++        compute_end.record(compute_stream)
++    stage_event.current_stream_wait()
++    default.wait_event(compute_end)
++    joined.record(default)
++    joined.synchronize()
++    stage_ms = _elapsed(origin, joined)  # overwritten offline with isolated stage
++    wall_ms = _elapsed(origin, joined)
++    compute_ms = _elapsed(compute_start, compute_end)
++    comm_output = None if stage == "dispatch" else state.combined.detach().clone()
++    if stage == "dispatch":
++        _cleanup_dispatch(moe, state)
++    return wall_ms, stage_ms, compute_ms, compute_output.detach().clone(), comm_output
++
++
++def _shared_callable(moe: Any, hidden: torch.Tensor) -> Callable[[torch.cuda.Stream], torch.Tensor]:
++    def run(_: torch.cuda.Stream) -> torch.Tensor:
++        return moe.shared_experts(hidden)
++    return run
++
++
++def _attention_callable(
++    attention: Any,
++    positions: torch.Tensor,
++    hidden: torch.Tensor,
++    past_key_values: Any,
++    replace_position: Any,
++    use_cache: Any,
++    attention_mask: Any,
++) -> Callable[[torch.cuda.Stream], torch.Tensor]:
++    def run(_: torch.cuda.Stream) -> torch.Tensor:
++        output, _ = attention(
++            positions=positions,
++            hidden_states=hidden,
++            past_key_values=past_key_values,
++            replace_position=replace_position,
++            use_cache=use_cache,
++            attention_mask=attention_mask,
++        )
++        return output
++    return run
++
++
++def _measure_compute_only(compute: Callable[[torch.cuda.Stream], torch.Tensor], stream: torch.cuda.Stream) -> tuple[float, torch.Tensor]:
++    _sync()
++    start, end = _event(), _event()
++    with torch.cuda.stream(stream):
++        start.record(stream)
++        output = compute(stream)
++        end.record(stream)
++    end.synchronize()
++    return _elapsed(start, end), output.detach().clone()
++
++
++def _run_simple_pair(
++    name: str,
++    moe: Any,
++    capture: tuple[torch.Tensor, torch.Tensor, torch.Tensor],
++    compute: Callable[[torch.cuda.Stream], torch.Tensor],
++    stage: str,
++    stream: torch.cuda.Stream,
++    warmups: int,
++    reps: int,
++) -> list[dict[str, Any]]:
++    rows: list[dict[str, Any]] = []
++    compute_reference = None
++    for iteration in range(warmups + reps):
++        order = ["a", "b", "concurrent"]
++        # Every rank must execute DeepEP collectives in the same order.
++        random.Random(1709 + iteration * 31).shuffle(order)
++        values: dict[str, Any] = {}
++        for item in order:
++            if item == "a":
++                if stage == "dispatch":
++                    values["a_ms"], _ = _measure_dispatch(moe, capture)
++                else:
++                    values["a_ms"], values["a_output"] = _measure_combine(moe, capture, stream)
++            elif item == "b":
++                values["b_ms"], values["b_output"] = _measure_compute_only(compute, stream)
++                if compute_reference is None:
++                    compute_reference = values["b_output"]
++            else:
++                result = _concurrent_simple(moe, capture, compute, stage, stream)
++                values["wall_ms"], _, values["b_concurrent_ms"], values["b_concurrent_output"], values["a_concurrent_output"] = result
++        if iteration >= warmups:
++            tx, ty, wall = float(values["a_ms"]), float(values["b_ms"]), float(values["wall_ms"])
++            row = {
++                "pair": name,
++                "iteration": iteration - warmups,
++                "a_ms": tx,
++                "b_ms": ty,
++                "serial_ms": tx + ty,
++                "concurrent_ms": wall,
++                "real_saving_ms": tx + ty - wall,
++                "eta": (tx + ty - wall) / max(min(tx, ty), 1e-9),
++                "a_slowdown": None,
++                "b_slowdown": float(values["b_concurrent_ms"]) / max(ty, 1e-9),
++                **{f"compute_{k}": v for k, v in _correctness(compute_reference, values["b_concurrent_output"]).items()},
++            }
++            if stage == "combine" and values.get("a_output") is not None:
++                row.update({f"comm_{k}": v for k, v in _correctness(values["a_output"], values["a_concurrent_output"]).items()})
++            rows.append(row)
++    return rows
++
++
++def _run_pipeline_pairs(
++    moe: Any,
++    capture: tuple[torch.Tensor, torch.Tensor, torch.Tensor],
++    stream: torch.cuda.Stream,
++    warmups: int,
++    reps: int,
++) -> list[dict[str, Any]]:
++    rows: list[dict[str, Any]] = []
++    for pair in ("dispatch_next__expert_current", "expert_current__combine_previous"):
++        for iteration in range(warmups + reps):
++            if pair == "dispatch_next__expert_current":
++                expert_ms, expert_ref = _measure_expert(moe, capture, stream)
++                dispatch_ms, _ = _measure_dispatch(moe, capture)
++                # Independent complete waves, never token fragments.  Prepare
++                # current expert input only after isolated measurements so its
++                # DeepEP handle/buffer lifetime cannot be disturbed.
++                first, second = _fresh(capture), _fresh(capture)
++                _dispatch_async(moe, first)
++                first.dispatch_event.current_stream_wait()
++                torch.cuda.synchronize()
++                _sync()
++                origin, done = _event(), _event()
++                origin.record()
++                _dispatch_async(moe, second)
++                _owner_expert(moe, first, stream)
++                second.dispatch_event.current_stream_wait()
++                first.expert_event.current_stream_wait()
++                done.record()
++                done.synchronize()
++                wall = _elapsed(origin, done)
++                expert_out = first.expert_output.detach().clone()
++                _cleanup_expert(moe, first)
++                _cleanup_dispatch(moe, second)
++                corr = _correctness(expert_ref, expert_out)
++                a_ms, b_ms = dispatch_ms, expert_ms
++            else:
++                combine_ms, combine_ref = _measure_combine(moe, capture, stream)
++                expert_ms, expert_ref = _measure_expert(moe, capture, stream)
++                first, second = _fresh(capture), _fresh(capture)
++                _dispatch_async(moe, first)
++                first.dispatch_event.current_stream_wait()
++                _owner_expert(moe, first, stream)
++                first.expert_event.current_stream_wait()
++                _dispatch_async(moe, second)
++                second.dispatch_event.current_stream_wait()
++                torch.cuda.synchronize()
++                _sync()
++                origin, done = _event(), _event()
++                origin.record()
++                _combine_async(moe, first)
++                _owner_expert(moe, second, stream)
++                first.combine_event.current_stream_wait()
++                second.expert_event.current_stream_wait()
++                done.record()
++                done.synchronize()
++                wall = _elapsed(origin, done)
++                combine_out = first.combined.detach().clone()
++                expert_out = second.expert_output.detach().clone()
++                _cleanup_expert(moe, second)
++                corr = _correctness(expert_ref, expert_out)
++                corr.update({f"combine_{k}": v for k, v in _correctness(combine_ref, combine_out).items()})
++                a_ms, b_ms = combine_ms, expert_ms
++            if iteration >= warmups:
++                rows.append({
++                    "pair": pair,
++                    "iteration": iteration - warmups,
++                    "a_ms": a_ms,
++                    "b_ms": b_ms,
++                    "serial_ms": a_ms + b_ms,
++                    "concurrent_ms": wall,
++                    "real_saving_ms": a_ms + b_ms - wall,
++                    "eta": (a_ms + b_ms - wall) / max(min(a_ms, b_ms), 1e-9),
++                    **{f"compute_{k}": v for k, v in corr.items()},
++                })
++    for iteration in range(warmups + reps):
++        dispatch_ms, _ = _measure_dispatch(moe, capture)
++        expert_ms, expert_ref = _measure_expert(moe, capture, stream)
++        combine_ms, combine_ref = _measure_combine(moe, capture, stream)
++        previous, current, following = _fresh(capture), _fresh(capture), _fresh(capture)
++        _dispatch_async(moe, previous)
++        previous.dispatch_event.current_stream_wait()
++        _owner_expert(moe, previous, stream)
++        previous.expert_event.current_stream_wait()
++        _dispatch_async(moe, current)
++        current.dispatch_event.current_stream_wait()
++        torch.cuda.synchronize()
++        _sync()
++        origin, done = _event(), _event()
++        origin.record()
++        # DeepEP has one communication stream, so previous combine and next
++        # dispatch retain launch order while both overlap current expert work.
++        _combine_async(moe, previous)
++        _dispatch_async(moe, following)
++        _owner_expert(moe, current, stream)
++        previous.combine_event.current_stream_wait()
++        following.dispatch_event.current_stream_wait()
++        current.expert_event.current_stream_wait()
++        done.record()
++        done.synchronize()
++        wall = _elapsed(origin, done)
++        current_output = current.expert_output.detach().clone()
++        previous_output = previous.combined.detach().clone()
++        _cleanup_expert(moe, current)
++        _cleanup_dispatch(moe, following)
++        if iteration >= warmups:
++            corr = _correctness(expert_ref, current_output)
++            corr.update(
++                {
++                    f"combine_{key}": value
++                    for key, value in _correctness(combine_ref, previous_output).items()
++                }
++            )
++            serial = dispatch_ms + expert_ms + combine_ms
++            rows.append({
++                "pair": "dispatch_next__expert_current__combine_previous",
++                "iteration": iteration - warmups,
++                "a_ms": dispatch_ms + combine_ms,
++                "b_ms": expert_ms,
++                "serial_ms": serial,
++                "concurrent_ms": wall,
++                "real_saving_ms": serial - wall,
++                "eta": (serial - wall) / max(min(dispatch_ms + combine_ms, expert_ms), 1e-9),
++                **{f"compute_{key}": value for key, value in corr.items()},
++            })
++    return rows
++
++
++def _run_cross_phase_pairs(
++    moe: Any,
++    captures: dict[int, tuple[torch.Tensor, torch.Tensor, torch.Tensor]],
++    stream: torch.cuda.Stream,
++    warmups: int,
++    reps: int,
++) -> list[dict[str, Any]]:
++    """Replay communication from one real phase beside expert work from another.
++
++    Every operation is a complete captured wave.  Communication and expert work
++    use distinct tensors/DeepEP handles, so this tests hardware complementarity
++    without changing routing, expert computation, or model output.
++    """
++    rows: list[dict[str, Any]] = []
++    waves = sorted(captures)
++    for comm_wave in waves:
++        for expert_wave in waves:
++            if comm_wave == expert_wave:
++                continue
++            comm_capture = captures[comm_wave]
++            expert_capture = captures[expert_wave]
++            for stage in ("dispatch", "combine"):
++                for iteration in range(warmups + reps):
++                    if stage == "dispatch":
++                        comm_ms, _ = _measure_dispatch(moe, comm_capture)
++                    else:
++                        comm_ms, comm_reference = _measure_combine(
++                            moe, comm_capture, stream
++                        )
++                    expert_ms, expert_reference = _measure_expert(
++                        moe, expert_capture, stream
++                    )
++
++                    comm_state = _fresh(comm_capture)
++                    expert_state = _fresh(expert_capture)
++                    if stage == "combine":
++                        _dispatch_async(moe, comm_state)
++                        comm_state.dispatch_event.current_stream_wait()
++                        _owner_expert(moe, comm_state, stream)
++                        comm_state.expert_event.current_stream_wait()
++                    _dispatch_async(moe, expert_state)
++                    expert_state.dispatch_event.current_stream_wait()
++                    torch.cuda.synchronize()
++
++                    _sync()
++                    origin, done = _event(), _event()
++                    origin.record()
++                    if stage == "dispatch":
++                        _dispatch_async(moe, comm_state)
++                        comm_event = comm_state.dispatch_event
++                    else:
++                        _combine_async(moe, comm_state)
++                        comm_event = comm_state.combine_event
++                    _owner_expert(moe, expert_state, stream)
++                    comm_event.current_stream_wait()
++                    expert_state.expert_event.current_stream_wait()
++                    done.record()
++                    done.synchronize()
++                    wall = _elapsed(origin, done)
++                    expert_output = expert_state.expert_output.detach().clone()
++                    comm_output = (
++                        None
++                        if stage == "dispatch"
++                        else comm_state.combined.detach().clone()
++                    )
++                    _cleanup_expert(moe, expert_state)
++                    if stage == "dispatch":
++                        _cleanup_dispatch(moe, comm_state)
++
++                    if iteration >= warmups:
++                        row = {
++                            "pair": (
++                                f"{stage}_wave{comm_wave}__"
++                                f"expert_wave{expert_wave}"
++                            ),
++                            "comm_wave": comm_wave,
++                            "expert_wave": expert_wave,
++                            "iteration": iteration - warmups,
++                            "a_ms": comm_ms,
++                            "b_ms": expert_ms,
++                            "serial_ms": comm_ms + expert_ms,
++                            "concurrent_ms": wall,
++                            "real_saving_ms": comm_ms + expert_ms - wall,
++                            "eta": (comm_ms + expert_ms - wall)
++                            / max(min(comm_ms, expert_ms), 1e-9),
++                            **{
++                                f"compute_{key}": value
++                                for key, value in _correctness(
++                                    expert_reference, expert_output
++                                ).items()
++                            },
++                        }
++                        if stage == "combine":
++                            row.update(
++                                {
++                                    f"comm_{key}": value
++                                    for key, value in _correctness(
++                                        comm_reference, comm_output
++                                    ).items()
++                                }
++                            )
++                        rows.append(row)
++    return rows
++
++
++def _run_local_remote_pair(
++    moe: Any,
++    capture: tuple[torch.Tensor, torch.Tensor, torch.Tensor],
++    stream: torch.cuda.Stream,
++    warmups: int,
++    reps: int,
++) -> list[dict[str, Any]]:
++    rows: list[dict[str, Any]] = []
++    remote = _remote_capture(moe, capture)
++    reference = None
++    for iteration in range(warmups + reps):
++        order = ["remote", "local", "concurrent"]
++        random.Random(2917 + iteration * 43).shuffle(order)
++        values: dict[str, Any] = {}
++        for item in order:
++            if item == "remote":
++                values["remote_ms"], _ = _measure_dispatch(moe, remote)
++            elif item == "local":
++                _sync()
++                start, end = _event(), _event()
++                with torch.cuda.stream(stream):
++                    start.record(stream)
++                    output, local_done = _local_expert(moe, capture, stream)
++                    end.record(stream)
++                local_done.synchronize()
++                values["local_ms"] = _elapsed(start, end)
++                values["local_output"] = output.detach().clone()
++                if reference is None:
++                    reference = values["local_output"]
++            else:
++                _sync()
++                state = _fresh(remote)
++                origin, joined = _event(), _event()
++                origin.record()
++                _dispatch_async(moe, state)
++                with torch.cuda.stream(stream):
++                    stream.wait_event(origin)
++                    local_start, local_end = _event(), _event()
++                    local_start.record(stream)
++                    output, local_done = _local_expert(moe, capture, stream)
++                    local_end.record(stream)
++                state.dispatch_event.current_stream_wait()
++                torch.cuda.current_stream().wait_event(local_done)
++                joined.record()
++                joined.synchronize()
++                values["wall_ms"] = _elapsed(origin, joined)
++                values["local_concurrent_ms"] = _elapsed(local_start, local_end)
++                values["concurrent_output"] = output.detach().clone()
++                _cleanup_dispatch(moe, state)
++        if iteration >= warmups:
++            tx = float(values["remote_ms"])
++            ty = float(values["local_ms"])
++            wall = float(values["wall_ms"])
++            rows.append({
++                "pair": "remote_dispatch__local_expert",
++                "iteration": iteration - warmups,
++                "a_ms": tx,
++                "b_ms": ty,
++                "serial_ms": tx + ty,
++                "concurrent_ms": wall,
++                "real_saving_ms": tx + ty - wall,
++                "eta": (tx + ty - wall) / max(min(tx, ty), 1e-9),
++                "b_slowdown": float(values["local_concurrent_ms"]) / max(ty, 1e-9),
++                **{
++                    f"compute_{key}": value
++                    for key, value in _correctness(reference, values["concurrent_output"]).items()
++                },
++            })
++    return rows
++
++
++def run_once(
++    moe: Any,
++    attention: Any,
++    positions: torch.Tensor,
++    attention_hidden: torch.Tensor,
++    past_key_values: Any,
++    replace_position: Any,
++    use_cache: Any,
++    attention_mask: Any,
++) -> None:
++    global _RAN
++    phase_waves_raw = os.environ.get("LLADA_EXACT_OVERLAP_PHASE_WAVES")
++    current_wave = int(os.environ.get("LLADA_CURRENT_REFINEMENT_WAVE", "-1"))
++    request_id = os.environ.get("LLADA_REQUEST_ID", "")
++    capture = getattr(moe, "_exact_overlap_capture", None)
++    if phase_waves_raw:
++        phase_waves = sorted(
++            int(value) for value in phase_waves_raw.split(",") if value.strip()
++        )
++        if request_id.startswith("warmup") or current_wave not in phase_waves:
++            return
++        if capture is None:
++            return
++        _PHASE_CAPTURES[current_wave] = tuple(value.detach().clone() for value in capture)
++        if current_wave != phase_waves[-1] or _RAN:
++            return
++        _RAN = True
++        out_dir = Path(os.environ["LLADA_EXACT_OVERLAP_DIR"])
++        out_dir.mkdir(parents=True, exist_ok=True)
++        warmups = int(os.environ.get("LLADA_EXACT_OVERLAP_WARMUPS", "5"))
++        reps = int(os.environ.get("LLADA_EXACT_OVERLAP_REPS", "30"))
++        stream = torch.cuda.Stream(priority=0)
++        rows = _run_cross_phase_pairs(
++            moe, _PHASE_CAPTURES, stream, warmups, reps
++        )
++        payload = {
++            "rank": dist.get_rank(),
++            "visible_devices": os.environ.get("CUDA_VISIBLE_DEVICES"),
++            "request_id": request_id,
++            "waves": phase_waves,
++            "layer": int(getattr(moe, "layer_id", -1)),
++            "rows_per_source_rank": {
++                str(wave): int(_PHASE_CAPTURES[wave][0].shape[0])
++                for wave in phase_waves
++            },
++            "topk": int(capture[1].shape[1]),
++            "warmups": warmups,
++            "repetitions": reps,
++            "rows": rows,
++            "timing_boundary": (
++                "same-rank CUDA events; cross-rank critical max computed offline"
++            ),
++            "semantics": (
++                "cross-phase diagnostic replay after production layer; "
++                "final model output unchanged"
++            ),
++        }
++        (out_dir / f"phase_pair_rank{dist.get_rank()}.json").write_text(
++            json.dumps(payload, indent=2) + "\n", encoding="utf-8"
++        )
++        _sync()
++        return
++    if _RAN:
++        return
++    target_wave = int(os.environ.get("LLADA_EXACT_OVERLAP_WAVE", "0"))
++    if request_id.startswith("warmup") or current_wave != target_wave:
++        return
++    if capture is None:
++        return
++    _RAN = True
++    out_dir = Path(os.environ["LLADA_EXACT_OVERLAP_DIR"])
++    out_dir.mkdir(parents=True, exist_ok=True)
++    warmups = int(os.environ.get("LLADA_EXACT_OVERLAP_WARMUPS", "5"))
++    reps = int(os.environ.get("LLADA_EXACT_OVERLAP_REPS", "30"))
++    stream = torch.cuda.Stream(priority=0)
++    shared = _shared_callable(moe, capture[0])
++    attention_fn = _attention_callable(
++        attention, positions, attention_hidden, past_key_values,
++        replace_position, use_cache, attention_mask,
++    )
++    rows: list[dict[str, Any]] = []
++    rows.extend(_run_simple_pair("dispatch__shared", moe, capture, shared, "dispatch", stream, warmups, reps))
++    rows.extend(_run_simple_pair("combine__shared", moe, capture, shared, "combine", stream, warmups, reps))
++    rows.extend(_run_simple_pair("dispatch__attention", moe, capture, attention_fn, "dispatch", stream, warmups, reps))
++    rows.extend(_run_simple_pair("combine__attention", moe, capture, attention_fn, "combine", stream, warmups, reps))
++    rows.extend(_run_local_remote_pair(moe, capture, stream, warmups, reps))
++    rows.extend(_run_pipeline_pairs(moe, capture, stream, warmups, reps))
++    payload = {
++        "rank": dist.get_rank(),
++        "visible_devices": os.environ.get("CUDA_VISIBLE_DEVICES"),
++        "request_id": request_id,
++        "wave": current_wave,
++        "layer": int(getattr(moe, "layer_id", -1)),
++        "rows_per_source_rank": int(capture[0].shape[0]),
++        "topk": int(capture[1].shape[1]),
++        "warmups": warmups,
++        "repetitions": reps,
++        "rows": rows,
++        "summary": {
++            pair: {
++                field: _stats([float(row[field]) for row in rows if row["pair"] == pair])
++                for field in ("a_ms", "b_ms", "serial_ms", "concurrent_ms", "real_saving_ms", "eta")
++            }
++            for pair in sorted({row["pair"] for row in rows})
++        },
++        "timing_boundary": "same-rank CUDA events; cross-rank critical max computed offline",
++        "semantics": "diagnostic replay after production layer; final model output unchanged",
++    }
++    (out_dir / f"pairwise_rank{dist.get_rank()}.json").write_text(
++        json.dumps(payload, indent=2) + "\n", encoding="utf-8"
++    )
++    _sync()
+diff --git a/python/dinfer/model/modeling_llada2_moe_sglang.py b/python/dinfer/model/modeling_llada2_moe_sglang.py
+index 4265cb9..8031e1d 100755
+--- a/python/dinfer/model/modeling_llada2_moe_sglang.py
++++ b/python/dinfer/model/modeling_llada2_moe_sglang.py
+@@ -759,6 +759,16 @@ class LLaDA2SparseMoeBlock(nn.Module):
+             # No EPLB metadata is initialized in dInfer's manual runner.
+             expert_location_dispatch_info=None,
+         )
++        if (
++            os.environ.get("LLADA_EXACT_OVERLAP_DIR")
++            and self.layer_id
++            == int(os.environ.get("LLADA_EXACT_OVERLAP_LAYER", "16"))
++        ):
++            self._exact_overlap_capture = (
++                local_hidden.detach().clone(),
++                topk_output.topk_ids.detach().clone(),
++                topk_output.topk_weights.detach().clone(),
++            )
+         if trace_events:
+             # Keep router timing free of shape-trace work.  Shape collection
+             # and stage timing run in separate observer-heavy passes.
+@@ -1542,6 +1552,13 @@ class LLaDA2Block(nn.Module):
+             residual=residual,
+             forward_batch=None,
+         )
++        exact_overlap_attention_hidden = None
++        if (
++            os.environ.get("LLADA_EXACT_OVERLAP_DIR")
++            and self.layer_id
++            == int(os.environ.get("LLADA_EXACT_OVERLAP_LAYER", "16"))
++        ):
++            exact_overlap_attention_hidden = hidden_states.detach().clone()
+         if block_events:
+             block_events[1].record()
+         # # residual = hidden_states
+@@ -1586,6 +1603,19 @@ class LLaDA2Block(nn.Module):
+             residual=residual,
+             forward_batch=None,
+         )
++        if exact_overlap_attention_hidden is not None:
++            from dinfer.model.exact_overlap_probe import run_once
++
++            run_once(
++                moe=self.mlp,
++                attention=self.attention,
++                positions=positions,
++                attention_hidden=exact_overlap_attention_hidden,
++                past_key_values=past_key_values,
++                replace_position=replace_position,
++                use_cache=use_cache,
++                attention_mask=attention_mask,
++            )
+         if _sensitivity_intervention_active(self.layer_id, "layer_bypass"):
+             # A layer is represented by (new update, accumulated residual).
+             # Returning (0, input) makes the next layer, or final model norm,
+-- 
+2.34.1
+
