@@ -1,0 +1,731 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Codex <codex@openai.com>
+Date: Sun, 13 Sep 2026 21:36:44 +0900
+Subject: [PATCH] instrument temporal communication and async PP diagnostics
+
+---
+ benchmarks/benchmark_dataset_sglang.py        |  48 +-
+ python/dinfer/decoding/generate_uniform.py    |   2 +
+ .../model/modeling_llada2_moe_sglang.py       | 550 ++++++++++++++++++
+ 3 files changed, 596 insertions(+), 4 deletions(-)
+
+diff --git a/benchmarks/benchmark_dataset_sglang.py b/benchmarks/benchmark_dataset_sglang.py
+index 6ed70a0..7bc05cd 100644
+--- a/benchmarks/benchmark_dataset_sglang.py
++++ b/benchmarks/benchmark_dataset_sglang.py
+@@ -109,7 +109,7 @@ def main(world_size, rank, gpu_id, args):
+     os.environ['MASTER_ADDR'] = 'localhost'
+     os.environ['MASTER_PORT'] = args.port
+     distributed.init_distributed_environment(world_size, rank, 'env://', rank, 'nccl')
+-    distributed.initialize_model_parallel(args.tp_size, args.ep_size, 1, backend='nccl')
++    distributed.initialize_model_parallel(args.tp_size, args.ep_size, args.pp_size, backend='nccl')
+     print("[Loading model]")
+ 
+     from sglang.srt.layers.dp_attention import initialize_dp_attention
+@@ -125,7 +125,7 @@ def main(world_size, rank, gpu_id, args):
+             tp_size=args.tp_size,
+             ep_size=args.ep_size,
+             dp_size=1,
+-            pp_size=1,
++            pp_size=args.pp_size,
+             moe_a2a_backend=args.moe_a2a_backend,
+             deepep_mode=args.deepep_mode,
+         )
+@@ -137,7 +137,7 @@ def main(world_size, rank, gpu_id, args):
+             tp_size=args.tp_size,
+             ep_size=args.ep_size,
+             dp_size=1,
+-            pp_size=1,
++            pp_size=args.pp_size,
+             moe_a2a_backend=args.moe_a2a_backend,
+             deepep_mode=args.deepep_mode,
+         )
+@@ -171,6 +171,26 @@ def main(world_size, rank, gpu_id, args):
+     
+     model = model.to(device)
+     model.after_processing()    # if model is quantized, use quant_method.process_weights_after_loading
++    if args.load_only:
++        load_audit = {
++            "global_rank": rank,
++            "physical_gpu": int(os.environ.get("CUDA_VISIBLE_DEVICES", "").split(",")[gpu_id]),
++            "tp_size": args.tp_size,
++            "ep_size": args.ep_size,
++            "pp_size": args.pp_size,
++            "pp_rank": int(model.pp_group.rank_in_group),
++            "pp_ranks": list(model.pp_group.ranks),
++            "start_layer": int(model.start_layer),
++            "end_layer": int(model.end_layer),
++            "loaded_sparse_layers": sorted(model.routed_experts_weights_of_layer),
++            "memory_allocated_mib": torch.cuda.memory_allocated(device) / 2**20,
++            "memory_reserved_mib": torch.cuda.memory_reserved(device) / 2**20,
++        }
++        with open(os.path.join(args.output_dir, f"load_audit_rank{rank}.json"), "w") as handle:
++            json.dump(load_audit, handle, indent=2)
++        torch.distributed.barrier()
++        torch.distributed.destroy_process_group()
++        return
+     input_lengths = [inp.size(-1) for inp in all_input_ids]
+     max_length = max(input_lengths)+args.gen_len
+     aligned_lengths = np.unique([max(args.block_length, min(length//args.block_length*args.block_length, args.prefilling_limit)) for length in input_lengths])
+@@ -267,6 +287,22 @@ def main(world_size, rank, gpu_id, args):
+         os.environ["LLADA_SENSITIVITY_CAPTURE_PHASES"] = str(
+             sensitivity_policy.get("capture_phases", sensitivity_policy.get("phases", "early,middle,late"))
+         )
++        # Boundary-staleness policies reuse the same multi-policy harness so
++        # multiple quality points can be tested after one 100B model load.
++        # Empty defaults are essential: policies must not leak into the next
++        # member of the plan.
++        os.environ["LLADA_ASYNC_BOUNDARY_LAYERS"] = str(
++            sensitivity_policy.get("async_boundaries", "")
++        )
++        os.environ["LLADA_ASYNC_WARMUP"] = str(
++            sensitivity_policy.get("async_warmup", 0)
++        )
++        os.environ["LLADA_ASYNC_PERIOD"] = str(
++            sensitivity_policy.get("async_period", 0)
++        )
++        os.environ["LLADA_ASYNC_PHASES"] = str(
++            sensitivity_policy.get("async_phases", "early,middle,late")
++        )
+         outputs = []
+         total_forward = 0
+         if rank==0:
+@@ -439,6 +475,7 @@ if __name__ == '__main__':
+     parser.add_argument('--use_bd', action='store_true')
+     parser.add_argument('--model_type', type=str, default='mini')
+     parser.add_argument('--ep_size', type=int, default=1)
++    parser.add_argument('--pp_size', type=int, default=1)
+     parser.add_argument('--moe_a2a_backend', choices=['none', 'deepep'], default='none')
+     parser.add_argument('--deepep_mode', choices=['normal', 'low_latency'], default='normal')
+     parser.add_argument('--enable_cuda_graph', action='store_true')
+@@ -446,6 +483,7 @@ if __name__ == '__main__':
+     parser.add_argument('--use_quant', action='store_true')
+     parser.add_argument('--prefilling_limit', type=int, default=128)
+     parser.add_argument('--init_only', action='store_true')
++    parser.add_argument('--load_only', action='store_true')
+     parser.add_argument('--intervention_plan', type=str, default='')
+     parser.add_argument('--config', type=int, default=0)
+     parser.add_argument('--use_naive_batching', action='store_true')
+@@ -637,7 +675,9 @@ if __name__ == '__main__':
+     print(args)
+ 
+     gpus = [int(gpu) for gpu in args.gpu.split(',')]
+-    args.tp_size = len(gpus)
++    if len(gpus) % args.pp_size:
++        raise ValueError("visible world size must be divisible by pp_size")
++    args.tp_size = len(gpus) // args.pp_size
+     args.use_tp = args.tp_size > 1
+     args.port_offset = gpus[0]
+     
+diff --git a/python/dinfer/decoding/generate_uniform.py b/python/dinfer/decoding/generate_uniform.py
+index 4f5125a..3a70e73 100644
+--- a/python/dinfer/decoding/generate_uniform.py
++++ b/python/dinfer/decoding/generate_uniform.py
+@@ -1118,6 +1118,8 @@ class BlockDiffusionLLM(DiffusionLLM):
+             or wave_trace
+             or discovery_trace
+             or sensitivity_decision_trace
++            or bool(os.environ.get("LLADA_TEMPORAL_COMM_TRACE_DIR"))
++            or bool(os.environ.get("LLADA_PP_BOUNDARY_TRACE_DIR"))
+             or bool(os.environ.get("LLADA_EP_SHAPE_TRACE_DIR"))
+         )
+         block_refinement_iterations = {}
+diff --git a/python/dinfer/model/modeling_llada2_moe_sglang.py b/python/dinfer/model/modeling_llada2_moe_sglang.py
+index 8031e1d..83c007c 100755
+--- a/python/dinfer/model/modeling_llada2_moe_sglang.py
++++ b/python/dinfer/model/modeling_llada2_moe_sglang.py
+@@ -701,6 +701,294 @@ class LLaDA2SparseMoeBlock(nn.Module):
+         # print('moe output', final_hidden_states.shape)
+         return final_hidden_states.view(bsz, num_tokens, hidden_size)
+ 
++    @torch.compiler.disable
++    def _trace_temporal_dispatch_hidden(
++        self,
++        full_hidden: torch.Tensor,
++        local_hidden: torch.Tensor,
++        topk_ids: torch.Tensor,
++        ep_rank: int,
++        rows_per_rank: int,
++        original_q_len: int,
++    ) -> None:
++        """Trace cacheable, destination-qualified temporal activation deltas.
++
++        This observer runs only in an explicitly enabled trace pass.  It keeps
++        the most recent four appearances of each logical source row on the
++        source rank, then asks whether the *current* routed destination would
++        already hold a valid previous activation.  The resulting JSONL is an
++        oracle/quality diagnostic; it never changes the dispatched tensor.
++        """
++        trace_dir = os.environ.get("LLADA_TEMPORAL_COMM_TRACE_DIR")
++        if not trace_dir:
++            return
++        layers = _parse_int_set(
++            os.environ.get("LLADA_TEMPORAL_COMM_TRACE_LAYERS", "1,8,16,24,31")
++        )
++        if self.layer_id not in layers:
++            return
++        request_id = os.environ.get("LLADA_REQUEST_ID", "unknown")
++        if request_id.startswith("warmup"):
++            return
++
++        sequence_ids = json.loads(os.environ.get("LLADA_TRACE_SEQ_IDS", "[]"))
++        block_starts = json.loads(os.environ.get("LLADA_TRACE_BLOCK_STARTS", "[]"))
++        block_iterations = json.loads(
++            os.environ.get("LLADA_TRACE_BLOCK_ITERATIONS", "[]")
++        )
++        if not sequence_ids or len(sequence_ids) != len(block_starts):
++            return
++
++        row_keys = [
++            (int(sequence_id), int(block_start), int(position))
++            for sequence_id, block_start in zip(sequence_ids, block_starts)
++            for position in range(original_q_len)
++        ]
++        if len(row_keys) != int(full_hidden.shape[0]):
++            return
++
++        # Source-row ownership can move when the ready set shrinks/reorders.
++        # The dense hidden is replicated before the manual EP row split, so
++        # gather global route IDs and keep one logical cache history on rank 0
++        # rather than silently treating source-rank migration as a cache miss.
++        global_topk_ids = torch.empty(
++            (full_hidden.shape[0], topk_ids.shape[1]),
++            dtype=topk_ids.dtype,
++            device=topk_ids.device,
++        )
++        dist.all_gather_into_tensor(
++            global_topk_ids,
++            topk_ids.contiguous(),
++            group=parallel_state.get_tp_group().device_group,
++        )
++        if ep_rank != 0:
++            return
++
++        owner = torch.div(
++            global_topk_ids.long(), self.num_experts // self.ep_size,
++            rounding_mode="floor",
++        )
++        hidden_f = full_hidden.detach().float()
++        ids_cpu = global_topk_ids.detach().cpu().tolist()
++        owner_cpu = owner.detach().cpu().tolist()
++        history = getattr(self, "_temporal_comm_history", {})
++        if getattr(self, "_temporal_comm_request_id", None) != request_id:
++            history = {}
++            self._temporal_comm_request_id = request_id
++
++        record = {
++            "rank": int(ep_rank),
++            "layer": int(self.layer_id),
++            "request_id": request_id,
++            "wave": int(os.environ.get("LLADA_CURRENT_REFINEMENT_WAVE", "-1")),
++            "phase": os.environ.get("LLADA_CURRENT_REFINEMENT_PHASE", "unknown"),
++            "live_ratio": float(os.environ.get("LLADA_CURRENT_LIVE_RATIO", "nan")),
++            "source_rows": int(full_hidden.shape[0]),
++            "hidden_size": int(full_hidden.shape[1]),
++            "block_iterations": [int(value) for value in block_iterations],
++            "lags": {},
++        }
++
++        eps = 1e-12
++        for lag in (1, 2, 4):
++            current_indices = []
++            previous_tensors = []
++            current_destination_count = 0
++            cache_hit_destinations = 0
++            refresh_destinations = 0
++            current_remote_destinations = 0
++            cache_hit_remote_destinations = 0
++            refresh_remote_destinations = 0
++            same_expert_destinations = 0
++            same_rank_different_expert_destinations = 0
++            same_expert_remote_destinations = 0
++            same_rank_different_expert_remote_destinations = 0
++            changed_destination_rows = 0
++            for row_index, key in enumerate(row_keys):
++                entries = history.get(key, [])
++                current_destinations = set(int(value) for value in owner_cpu[row_index])
++                source_rank = min(row_index // rows_per_rank, self.ep_size - 1)
++                current_remote = {
++                    destination
++                    for destination in current_destinations
++                    if destination != source_rank
++                }
++                current_destination_count += len(current_destinations)
++                current_remote_destinations += len(current_remote)
++                if len(entries) < lag:
++                    refresh_destinations += len(current_destinations)
++                    refresh_remote_destinations += len(current_remote)
++                    continue
++                previous_hidden, previous_ids, previous_destinations = entries[-lag]
++                current_indices.append(row_index)
++                previous_tensors.append(previous_hidden)
++                previous_id_set = set(int(value) for value in previous_ids)
++                intersection = current_destinations & previous_destinations
++                cache_hit_destinations += len(intersection)
++                refresh_destinations += len(current_destinations - previous_destinations)
++                cache_hit_remote_destinations += len(
++                    current_remote & previous_destinations
++                )
++                refresh_remote_destinations += len(
++                    current_remote - previous_destinations
++                )
++                if current_destinations - previous_destinations:
++                    changed_destination_rows += 1
++                for destination in intersection:
++                    current_on_rank = {
++                        int(expert)
++                        for expert, rank in zip(ids_cpu[row_index], owner_cpu[row_index])
++                        if int(rank) == destination
++                    }
++                    if current_on_rank & previous_id_set:
++                        same_expert_destinations += 1
++                        if destination != source_rank:
++                            same_expert_remote_destinations += 1
++                    else:
++                        same_rank_different_expert_destinations += 1
++                        if destination != source_rank:
++                            same_rank_different_expert_remote_destinations += 1
++
++            lag_record = {
++                "matched_rows": len(current_indices),
++                "current_destinations": current_destination_count,
++                "cache_hit_destinations": cache_hit_destinations,
++                "refresh_destinations": refresh_destinations,
++                "current_remote_destinations": current_remote_destinations,
++                "cache_hit_remote_destinations": cache_hit_remote_destinations,
++                "refresh_remote_destinations": refresh_remote_destinations,
++                "cache_hit_fraction": (
++                    cache_hit_destinations / current_destination_count
++                    if current_destination_count else 0.0
++                ),
++                "remote_cache_hit_fraction": (
++                    cache_hit_remote_destinations / current_remote_destinations
++                    if current_remote_destinations else 0.0
++                ),
++                "same_expert_destinations": same_expert_destinations,
++                "same_rank_different_expert_destinations": (
++                    same_rank_different_expert_destinations
++                ),
++                "same_expert_remote_destinations": same_expert_remote_destinations,
++                "same_rank_different_expert_remote_destinations": (
++                    same_rank_different_expert_remote_destinations
++                ),
++                "changed_destination_rows": changed_destination_rows,
++            }
++            if current_indices:
++                index_tensor = torch.tensor(
++                    current_indices, dtype=torch.long, device=full_hidden.device
++                )
++                current = hidden_f.index_select(0, index_tensor)
++                previous = torch.stack(previous_tensors).to(
++                    device=current.device, dtype=torch.float32
++                )
++                delta = current - previous
++                previous_norm = previous.norm(dim=-1).clamp_min(eps)
++                relative = delta.norm(dim=-1) / previous_norm
++                cosine = F.cosine_similarity(current, previous, dim=-1)
++                absolute = delta.abs()
++                hidden_absolute = current.abs().clamp_min(eps)
++
++                # Quantization diagnostics use reconstruction at the receiver.
++                fp8_delta = delta.to(torch.float8_e4m3fn).float()
++                int8_scale = absolute.amax(dim=-1, keepdim=True).clamp_min(eps) / 127.0
++                int8_delta = (
++                    torch.clamp(torch.round(delta / int8_scale), -127, 127)
++                    * int8_scale
++                )
++                int4_scale = absolute.amax(dim=-1, keepdim=True).clamp_min(eps) / 7.0
++                int4_delta = (
++                    torch.clamp(torch.round(delta / int4_scale), -7, 7)
++                    * int4_scale
++                )
++
++                def reconstruction_error(quantized_delta):
++                    reconstructed = previous + quantized_delta
++                    error = (reconstructed - current).norm(dim=-1) / current.norm(
++                        dim=-1
++                    ).clamp_min(eps)
++                    return {
++                        "rel_l2_mean": float(error.mean().item()),
++                        "rel_l2_p50": float(torch.quantile(error, 0.5).item()),
++                        "rel_l2_p90": float(torch.quantile(error, 0.9).item()),
++                        "cosine_mean": float(
++                            F.cosine_similarity(reconstructed, current, dim=-1)
++                            .mean()
++                            .item()
++                        ),
++                    }
++
++                # A 256-symbol empirical entropy is only a proxy for an
++                # entropy-coded INT8 payload; no codec saving is assumed.
++                q8 = torch.clamp(torch.round(delta / int8_scale), -127, 127).to(
++                    torch.int16
++                )
++                sample = q8.flatten()[: min(q8.numel(), 262144)] + 127
++                histogram = torch.bincount(sample, minlength=255).float()
++                probabilities = histogram[histogram > 0] / histogram.sum().clamp_min(1)
++                int8_entropy_bits = float(
++                    (-(probabilities * torch.log2(probabilities))).sum().item()
++                )
++
++                delta_energy = delta.square()
++                p90_threshold = torch.quantile(absolute, 0.9, dim=-1, keepdim=True)
++                p99_threshold = torch.quantile(absolute, 0.99, dim=-1, keepdim=True)
++                total_energy = delta_energy.sum(dim=-1).clamp_min(eps)
++                lag_record.update(
++                    {
++                        "hidden_cosine_mean": float(cosine.mean().item()),
++                        "hidden_cosine_p50": float(torch.quantile(cosine, 0.5).item()),
++                        "hidden_rel_l2_mean": float(relative.mean().item()),
++                        "hidden_rel_l2_p50": float(torch.quantile(relative, 0.5).item()),
++                        "delta_to_hidden_abs_mean": float(
++                            (absolute / hidden_absolute).mean().item()
++                        ),
++                        "delta_abs_p50": float(torch.quantile(absolute, 0.5).item()),
++                        "delta_abs_p90": float(torch.quantile(absolute, 0.9).item()),
++                        "delta_abs_p99": float(torch.quantile(absolute, 0.99).item()),
++                        "delta_lt_1e_3_fraction": float((absolute < 1e-3).float().mean().item()),
++                        "delta_lt_1e_2_fraction": float((absolute < 1e-2).float().mean().item()),
++                        "delta_lt_5e_2_fraction": float((absolute < 5e-2).float().mean().item()),
++                        "delta_lt_1e_1_fraction": float((absolute < 1e-1).float().mean().item()),
++                        "delta_top10_energy_fraction": float(
++                            (
++                                (delta_energy * (absolute >= p90_threshold)).sum(dim=-1)
++                                / total_energy
++                            ).mean().item()
++                        ),
++                        "delta_top1_energy_fraction": float(
++                            (
++                                (delta_energy * (absolute >= p99_threshold)).sum(dim=-1)
++                                / total_energy
++                            ).mean().item()
++                        ),
++                        "int8_symbol_entropy_bits": int8_entropy_bits,
++                        "fp8": reconstruction_error(fp8_delta),
++                        "int8": reconstruction_error(int8_delta),
++                        "int4": reconstruction_error(int4_delta),
++                    }
++                )
++            record["lags"][str(lag)] = lag_record
++
++        current_detached = hidden_f.detach().clone()
++        for row_index, key in enumerate(row_keys):
++            entries = history.setdefault(key, [])
++            entries.append(
++                (
++                    current_detached[row_index],
++                    tuple(int(value) for value in ids_cpu[row_index]),
++                    set(int(value) for value in owner_cpu[row_index]),
++                )
++            )
++            del entries[:-4]
++        self._temporal_comm_history = history
++
++        path = Path(trace_dir)
++        path.mkdir(parents=True, exist_ok=True)
++        with (path / f"temporal_comm_rank{ep_rank}.jsonl").open("a") as output:
++            output.write(json.dumps(record, separators=(",", ":")) + "\n")
++
+     def forward_deepep(
+         self, hidden_states: torch.Tensor, forward_batch: ForwardBatch
+     ) -> torch.Tensor:
+@@ -759,6 +1047,14 @@ class LLaDA2SparseMoeBlock(nn.Module):
+             # No EPLB metadata is initialized in dInfer's manual runner.
+             expert_location_dispatch_info=None,
+         )
++        self._trace_temporal_dispatch_hidden(
++            full_hidden=flat_hidden,
++            local_hidden=local_hidden,
++            topk_ids=topk_output.topk_ids,
++            ep_rank=ep_rank,
++            rows_per_rank=rows_per_rank,
++            original_q_len=int(original_shape[1]),
++        )
+         if (
+             os.environ.get("LLADA_EXACT_OVERLAP_DIR")
+             and self.layer_id
+@@ -1511,6 +1807,249 @@ class LLaDA2Block(nn.Module):
+             config.num_experts is not None and layer_id >= config.first_k_dense_replace
+         )
+ 
++    @torch.compiler.disable
++    def _temporal_boundary_diagnostic(
++        self,
++        hidden_states: torch.Tensor,
++        residual: Optional[torch.Tensor],
++    ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
++        """Trace and optionally apply lag-1 state at a PP boundary.
++
++        The intervention is a sequential quality emulator for an asynchronous
++        pipeline.  It does not claim a live PP speedup: each layer still runs
++        on the validated TP4+EP4 substrate.  Caches are keyed by logical
++        request/block/position and preserve the decomposed `(hidden,residual)`
++        contract crossing the next layer.
++        """
++        trace_dir = os.environ.get("LLADA_PP_BOUNDARY_TRACE_DIR")
++        trace_layers = _parse_int_set(
++            os.environ.get("LLADA_PP_BOUNDARY_TRACE_LAYERS", "7,15,23,31")
++        )
++        async_layers = _parse_int_set(
++            os.environ.get("LLADA_ASYNC_BOUNDARY_LAYERS", "")
++        )
++        should_trace = bool(trace_dir) and self.layer_id in trace_layers
++        should_intervene = self.layer_id in async_layers
++        request_id = os.environ.get("LLADA_REQUEST_ID", "unknown")
++        if (
++            (not should_trace and not should_intervene)
++            or request_id.startswith("warmup")
++            or os.environ.get("LLADA_CURRENT_REFINEMENT_PHASE", "prefill")
++            == "prefill"
++        ):
++            return hidden_states, residual
++
++        sequence_ids = json.loads(os.environ.get("LLADA_TRACE_SEQ_IDS", "[]"))
++        block_starts = json.loads(os.environ.get("LLADA_TRACE_BLOCK_STARTS", "[]"))
++        mask_before = json.loads(os.environ.get("LLADA_TRACE_MASK_BEFORE", "[]"))
++        if not sequence_ids or len(sequence_ids) != len(block_starts):
++            return hidden_states, residual
++        q_len = int(hidden_states.shape[1])
++        row_keys = [
++            (int(sequence_id), int(block_start), int(position))
++            for sequence_id, block_start in zip(sequence_ids, block_starts)
++            for position in range(q_len)
++        ]
++        flat_hidden = hidden_states.reshape(-1, hidden_states.shape[-1])
++        flat_residual = (
++            None
++            if residual is None
++            else residual.reshape(-1, residual.shape[-1])
++        )
++        if len(row_keys) != flat_hidden.shape[0]:
++            return hidden_states, residual
++
++        if getattr(self, "_boundary_cache_request_id", None) != request_id:
++            self._boundary_cache_request_id = request_id
++            self._boundary_slot_by_key = {}
++            self._boundary_cache_hidden = None
++            self._boundary_cache_residual = None
++            self._boundary_seen = {}
++        slot_by_key = self._boundary_slot_by_key
++        seen = self._boundary_seen
++        # The bounded 32-request pools can traverse several output blocks, so
++        # logical keys exceed the largest simultaneously-ready wave.
++        capacity = max(8192, len(row_keys) * 2)
++        if self._boundary_cache_hidden is None:
++            self._boundary_cache_hidden = torch.empty(
++                capacity,
++                flat_hidden.shape[-1],
++                dtype=flat_hidden.dtype,
++                device=flat_hidden.device,
++            )
++            if flat_residual is not None:
++                self._boundary_cache_residual = torch.empty_like(
++                    self._boundary_cache_hidden
++                )
++        elif flat_residual is not None and self._boundary_cache_residual is None:
++            self._boundary_cache_residual = torch.empty_like(
++                self._boundary_cache_hidden
++            )
++        cache_hidden = self._boundary_cache_hidden
++        cache_residual = self._boundary_cache_residual
++        slots = []
++        matched_indices = []
++        for row_index, key in enumerate(row_keys):
++            if key in slot_by_key:
++                matched_indices.append(row_index)
++            else:
++                slot = len(slot_by_key)
++                if slot >= cache_hidden.shape[0]:
++                    raise RuntimeError(
++                        "PP boundary cache capacity exceeded: "
++                        f"slot={slot}, capacity={cache_hidden.shape[0]}"
++                    )
++                slot_by_key[key] = slot
++            slots.append(slot_by_key[key])
++        slot_tensor = torch.tensor(slots, dtype=torch.long, device=flat_hidden.device)
++        current_combined = (
++            flat_hidden
++            if flat_residual is None
++            else flat_hidden + flat_residual
++        )
++
++        if should_trace and dist.get_rank() == 0:
++            record = {
++                "layer": int(self.layer_id),
++                "boundary": int(self.layer_id + 1),
++                "request_id": request_id,
++                "wave": int(os.environ.get("LLADA_CURRENT_REFINEMENT_WAVE", "-1")),
++                "phase": os.environ.get("LLADA_CURRENT_REFINEMENT_PHASE", "unknown"),
++                "live_ratio": float(os.environ.get("LLADA_CURRENT_LIVE_RATIO", "nan")),
++                "rows": int(flat_hidden.shape[0]),
++                "matched_rows": len(matched_indices),
++            }
++            if matched_indices:
++                indices = torch.tensor(
++                    matched_indices, dtype=torch.long, device=flat_hidden.device
++                )
++                matched_slots = slot_tensor.index_select(0, indices)
++                previous_combined = cache_hidden.index_select(0, matched_slots)
++                if cache_residual is not None:
++                    previous_combined = previous_combined + cache_residual.index_select(
++                        0, matched_slots
++                    )
++                previous_combined = previous_combined.float()
++                current_matched = current_combined.index_select(0, indices).float()
++                delta = current_matched - previous_combined
++                relative = delta.norm(dim=-1) / previous_combined.norm(
++                    dim=-1
++                ).clamp_min(1e-12)
++                cosine = F.cosine_similarity(
++                    current_matched, previous_combined, dim=-1
++                )
++                flat_mask = [bool(value) for row in mask_before for value in row]
++                live = torch.tensor(
++                    [flat_mask[index] for index in matched_indices],
++                    dtype=torch.bool,
++                    device=flat_hidden.device,
++                )
++                record.update(
++                    {
++                        "cosine_mean": float(cosine.mean().item()),
++                        "cosine_p50": float(torch.quantile(cosine, 0.5).item()),
++                        "rel_l2_mean": float(relative.mean().item()),
++                        "rel_l2_p50": float(torch.quantile(relative, 0.5).item()),
++                        "rel_l2_p90": float(torch.quantile(relative, 0.9).item()),
++                        "live_rows": int(live.sum().item()),
++                        "live_cosine_mean": float(cosine[live].mean().item())
++                        if live.any()
++                        else None,
++                        "live_rel_l2_mean": float(relative[live].mean().item())
++                        if live.any()
++                        else None,
++                    }
++                )
++            path = Path(trace_dir)
++            path.mkdir(parents=True, exist_ok=True)
++            with (path / "pp_boundary_rank0.jsonl").open("a") as output:
++                output.write(json.dumps(record, separators=(",", ":")) + "\n")
++
++        stale_indices = []
++        stale_slots = []
++        if should_intervene:
++            allowed_phases = {
++                item.strip()
++                for item in os.environ.get(
++                    "LLADA_ASYNC_PHASES", "early,middle,late"
++                ).split(",")
++                if item.strip()
++            }
++            phase = os.environ.get("LLADA_CURRENT_REFINEMENT_PHASE", "unknown")
++            warmup = int(os.environ.get("LLADA_ASYNC_WARMUP", "0"))
++            period = int(os.environ.get("LLADA_ASYNC_PERIOD", "0"))
++            output_hidden = flat_hidden.clone()
++            output_residual = None if flat_residual is None else flat_residual.clone()
++            for row_index, key in enumerate(row_keys):
++                occurrence = int(seen.get(key, 0))
++                use_stale = (
++                    occurrence > 0
++                    and phase in allowed_phases
++                    and occurrence >= warmup
++                    and (period <= 0 or (occurrence - warmup) % period != 0)
++                )
++                if use_stale:
++                    stale_indices.append(row_index)
++                    stale_slots.append(slots[row_index])
++            if stale_indices:
++                indices = torch.tensor(
++                    stale_indices, dtype=torch.long, device=flat_hidden.device
++                )
++                previous_slots = torch.tensor(
++                    stale_slots, dtype=torch.long, device=flat_hidden.device
++                )
++                output_hidden.index_copy_(
++                    0, indices, cache_hidden.index_select(0, previous_slots)
++                )
++                if output_residual is not None and cache_residual is not None:
++                    output_residual.index_copy_(
++                        0, indices, cache_residual.index_select(0, previous_slots)
++                    )
++            policy_trace_dir = os.environ.get("LLADA_ASYNC_POLICY_TRACE_DIR")
++            if policy_trace_dir and dist.get_rank() == 0:
++                policy_trace_path = Path(policy_trace_dir)
++                policy_trace_path.mkdir(parents=True, exist_ok=True)
++                with (policy_trace_path / "async_policy_scope_rank0.jsonl").open(
++                    "a"
++                ) as output:
++                    output.write(
++                        json.dumps(
++                            {
++                                "policy": os.environ.get(
++                                    "LLADA_SENSITIVITY_POLICY", "unknown"
++                                ),
++                                "layer": int(self.layer_id),
++                                "boundary": int(self.layer_id + 1),
++                                "wave": int(
++                                    os.environ.get(
++                                        "LLADA_CURRENT_REFINEMENT_WAVE", "-1"
++                                    )
++                                ),
++                                "phase": phase,
++                                "rows": len(row_keys),
++                                "stale_rows": len(stale_indices),
++                            },
++                            separators=(",", ":"),
++                        )
++                        + "\n"
++                    )
++            hidden_states = output_hidden.view_as(hidden_states)
++            residual = (
++                None
++                if output_residual is None
++                else output_residual.view_as(residual)
++            )
++
++        # Publish the exact freshly-computed producer state only after any
++        # stale consumer rows have been gathered. Fixed slot buffers avoid
++        # retaining one full wave allocation for every completed row.
++        cache_hidden.index_copy_(0, slot_tensor, flat_hidden.detach())
++        if flat_residual is not None and cache_residual is not None:
++            cache_residual.index_copy_(0, slot_tensor, flat_residual.detach())
++        for key in row_keys:
++            seen[key] = int(seen.get(key, 0)) + 1
++        return hidden_states, residual
++
+     def forward(
+         self,
+         positions: torch.Tensor,
+@@ -1603,6 +2142,9 @@ class LLaDA2Block(nn.Module):
+             residual=residual,
+             forward_batch=None,
+         )
++        hidden_states, residual = self._temporal_boundary_diagnostic(
++            hidden_states, residual
++        )
+         if exact_overlap_attention_hidden is not None:
+             from dinfer.model.exact_overlap_probe import run_once
+ 
+@@ -2110,6 +2652,12 @@ class LLaDA2SGLangLM(nn.Module):
+                 new_state_dict[key] = value
+ 
+         for layer_id in tqdm.trange(num_layers):
++            # Pipeline-parallel ranks materialize only their local layer
++            # interval; make_layers represents every other layer with a
++            # PPMissingLayer placeholder.  Expert fusion metadata must not be
++            # written through those placeholders.
++            if isinstance(self.model.layers[layer_id], PPMissingLayer):
++                continue
+             w13_weight = []
+             w2_weight = []
+             w13_input_scale = []
+@@ -2256,6 +2804,8 @@ class LLaDA2SGLangLM(nn.Module):
+                 new_state_dict[key] = value
+ 
+         for layer_id in tqdm.trange(num_layers):
++            if isinstance(self.model.layers[layer_id], PPMissingLayer):
++                continue
+             w13_weight = []
+             w2_weight = []
+             if f"model.layers.{layer_id}.mlp.w1" in state_dict.keys():
+-- 
+2.34.1
+

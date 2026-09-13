@@ -15,7 +15,9 @@ import torch.distributed as dist
 import torch.multiprocessing as mp
 
 
-EXPECTED_VISIBLE = "0,1,2,3"
+# This isolated task worktree is authorized for physical GPUs 4--7 only.
+# They are exposed to workers as logical cuda:0--3.
+EXPECTED_VISIBLE = "4,5,6,7"
 
 
 def free_port() -> int:
