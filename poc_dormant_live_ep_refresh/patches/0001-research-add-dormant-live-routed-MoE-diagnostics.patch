@@ -1,0 +1,347 @@
+From 2fe1d595f10c023fe874859a0532a3041a336486 Mon Sep 17 00:00:00 2001
+From: Codex <codex@openai.com>
+Date: Mon, 14 Sep 2026 16:26:40 +0900
+Subject: [PATCH] research: add dormant-live routed MoE diagnostics
+
+---
+ benchmarks/benchmark_dataset_sglang.py        |  12 +
+ python/dinfer/decoding/generate_uniform.py    |  10 +
+ .../model/modeling_llada2_moe_sglang.py       | 256 +++++++++++++++++-
+ 3 files changed, 277 insertions(+), 1 deletion(-)
+
+diff --git a/benchmarks/benchmark_dataset_sglang.py b/benchmarks/benchmark_dataset_sglang.py
+index 2abf4cb..43d6c53 100644
+--- a/benchmarks/benchmark_dataset_sglang.py
++++ b/benchmarks/benchmark_dataset_sglang.py
+@@ -264,6 +264,18 @@ def main(world_size, rank, gpu_id, args):
+         os.environ["LLADA_INTERVENTION_WAVES"] = str(
+             sensitivity_policy.get("waves", "")
+         )
++        os.environ["LLADA_DORMANT_ACCEPTANCE_PLAN"] = str(
++            sensitivity_policy.get("acceptance_plan", "")
++        )
++        os.environ["LLADA_DORMANT_HORIZON"] = str(
++            sensitivity_policy.get("horizon", 0)
++        )
++        os.environ["LLADA_DORMANT_REFRESH_PERIOD"] = str(
++            sensitivity_policy.get("period", 1)
++        )
++        os.environ["LLADA_DORMANT_ROUTE_TRIGGER"] = str(
++            int(bool(sensitivity_policy.get("route_trigger", False)))
++        )
+         os.environ["LLADA_SENSITIVITY_CAPTURE_PHASES"] = str(
+             sensitivity_policy.get("capture_phases", sensitivity_policy.get("phases", "early,middle,late"))
+         )
+diff --git a/python/dinfer/decoding/generate_uniform.py b/python/dinfer/decoding/generate_uniform.py
+index 4f5125a..61e1ca3 100644
+--- a/python/dinfer/decoding/generate_uniform.py
++++ b/python/dinfer/decoding/generate_uniform.py
+@@ -1360,6 +1360,16 @@ class BlockDiffusionLLM(DiffusionLLM):
+                                     "remaining_after": [int(value) for value in remaining_after.cpu().tolist()],
+                                     "accepted": [int(value) for value in (remaining_before - remaining_after).cpu().tolist()],
+                                     "mask_before": [[int(value) for value in row] for row in mask_before.cpu().tolist()],
++                                    "accepted_mask": [
++                                        [int(value) for value in row]
++                                        for row in (
++                                            mask_before & (updated_block.data != mask_id)
++                                        ).cpu().tolist()
++                                    ],
++                                    "updated_tokens": [
++                                        [int(value) for value in row]
++                                        for row in updated_block.data.cpu().tolist()
++                                    ],
+                                     "token_confidence": confidence_values,
+                                     "confidence_margin": confidence_margins,
+                                     "confidence_summary": confidence_summary,
+diff --git a/python/dinfer/model/modeling_llada2_moe_sglang.py b/python/dinfer/model/modeling_llada2_moe_sglang.py
+index 4265cb9..6191886 100755
+--- a/python/dinfer/model/modeling_llada2_moe_sglang.py
++++ b/python/dinfer/model/modeling_llada2_moe_sglang.py
+@@ -890,6 +890,62 @@ class LLaDA2SparseMoeBlock(nn.Module):
+         else:
+             local_shared = torch.zeros_like(local_output)
+ 
++        # Optional per-logical-row temporal diagnostics.  These are kept out
++        # of the clean timing path and only enabled in observer-heavy census
++        # runs.  The routed contribution is recorded before any causal policy
++        # replacement, so the stability atlas always describes the native
++        # baseline computation.
++        dormant_hidden_cosine = dormant_hidden_rel_l2 = None
++        dormant_routed_cosine = dormant_routed_rel_l2 = None
++        if shape_trace and os.environ.get("LLADA_DORMANT_DETAIL_TRACE") == "1":
++            sequence_ids = json.loads(os.environ.get("LLADA_TRACE_SEQ_IDS", "[]"))
++            block_starts = json.loads(os.environ.get("LLADA_TRACE_BLOCK_STARTS", "[]"))
++            row_keys = [
++                (int(sequence_id), int(block_start), int(position))
++                for sequence_id, block_start in zip(sequence_ids, block_starts)
++                for position in range(original_shape[1])
++            ]
++            local_keys = row_keys[
++                ep_rank * rows_per_rank : (ep_rank + 1) * rows_per_rank
++            ]
++            previous_by_key = getattr(self, "_dormant_detail_previous_by_key", {})
++            dormant_hidden_cosine = []
++            dormant_hidden_rel_l2 = []
++            dormant_routed_cosine = []
++            dormant_routed_rel_l2 = []
++            current_hidden_f = local_hidden.detach().float()
++            current_routed_f = local_routed.detach().float()
++            for row_index, key in enumerate(local_keys):
++                previous = previous_by_key.get(key)
++                if previous is None:
++                    dormant_hidden_cosine.append(None)
++                    dormant_hidden_rel_l2.append(None)
++                    dormant_routed_cosine.append(None)
++                    dormant_routed_rel_l2.append(None)
++                else:
++                    previous_hidden, previous_routed = previous
++                    hidden_now = current_hidden_f[row_index]
++                    routed_now = current_routed_f[row_index]
++                    dormant_hidden_cosine.append(float(F.cosine_similarity(
++                        hidden_now, previous_hidden, dim=0
++                    ).item()))
++                    dormant_hidden_rel_l2.append(float((
++                        (hidden_now - previous_hidden).norm()
++                        / previous_hidden.norm().clamp_min(1e-12)
++                    ).item()))
++                    dormant_routed_cosine.append(float(F.cosine_similarity(
++                        routed_now, previous_routed, dim=0
++                    ).item()))
++                    dormant_routed_rel_l2.append(float((
++                        (routed_now - previous_routed).norm()
++                        / previous_routed.norm().clamp_min(1e-12)
++                    ).item()))
++                previous_by_key[key] = (
++                    current_hidden_f[row_index].clone(),
++                    current_routed_f[row_index].clone(),
++                )
++            self._dormant_detail_previous_by_key = previous_by_key
++
+         sensitivity_trace = bool(os.environ.get("LLADA_LAYER_SENSITIVITY_TRACE_DIR"))
+         if sensitivity_trace:
+             component_squares = torch.stack(
+@@ -910,8 +966,18 @@ class LLaDA2SparseMoeBlock(nn.Module):
+                 "moe_output_norm": float(component_squares[2].sqrt().item()),
+             }
+ 
++        dormant_modes = {
++            "dormant_stale",
++            "dormant_periodic",
++            "dormant_route_trigger",
++        }
++        dormant_mode = os.environ.get("LLADA_INTERVENTION_MODE", "none")
+         if _sensitivity_intervention_active(
+-            self.layer_id, "routed_bypass", "stale_routed", "routed_only"
++            self.layer_id,
++            "routed_bypass",
++            "stale_routed",
++            "routed_only",
++            *dormant_modes,
+         ):
+             mode = os.environ["LLADA_INTERVENTION_MODE"]
+             if mode == "routed_bypass":
+@@ -939,6 +1005,190 @@ class LLaDA2SparseMoeBlock(nn.Module):
+                     if key in previous_by_key:
+                         stale[row_index].copy_(previous_by_key[key])
+                 local_routed = stale
++            elif mode in dormant_modes:
++                # Causal diagnostic only: the exact routed path above is still
++                # executed, then selected dormant rows are replaced with a
++                # cached routed contribution.  This preserves fresh attention,
++                # dense/shared paths, and a fresh router while testing the
++                # trajectory effect of the proposed refresh policy.  It is not
++                # a latency-speedup implementation.
++                request_id = os.environ.get("LLADA_REQUEST_ID", "unknown")
++                if getattr(self, "_dormant_cache_request_id", None) != request_id:
++                    self._dormant_cache_request_id = request_id
++                    self._dormant_routed_by_key = {}
++                    self._dormant_route_by_key = {}
++                    self._dormant_refresh_iter_by_key = {}
++                    self._dormant_trace_invocation = 0
++
++                acceptance_path = os.environ.get("LLADA_DORMANT_ACCEPTANCE_PLAN", "")
++                if not acceptance_path:
++                    raise RuntimeError(
++                        f"{mode} requires LLADA_DORMANT_ACCEPTANCE_PLAN"
++                    )
++                if getattr(self, "_dormant_acceptance_path", None) != acceptance_path:
++                    with open(acceptance_path) as acceptance_file:
++                        loaded_plan = json.load(acceptance_file)
++                    self._dormant_acceptance_path = acceptance_path
++                    self._dormant_acceptance_by_key = loaded_plan.get(
++                        "acceptance_iteration_by_key", loaded_plan
++                    )
++
++                sequence_ids = json.loads(os.environ.get("LLADA_TRACE_SEQ_IDS", "[]"))
++                block_starts = json.loads(os.environ.get("LLADA_TRACE_BLOCK_STARTS", "[]"))
++                block_iterations = json.loads(
++                    os.environ.get("LLADA_TRACE_BLOCK_ITERATIONS", "[]")
++                )
++                mask_before = json.loads(os.environ.get("LLADA_TRACE_MASK_BEFORE", "[]"))
++                if not (
++                    len(sequence_ids)
++                    == len(block_starts)
++                    == len(block_iterations)
++                    == len(mask_before)
++                ):
++                    raise RuntimeError("incomplete logical row metadata for dormant policy")
++
++                global_rows = [
++                    (
++                        (int(sequence_id), int(block_start), int(position)),
++                        int(block_iteration),
++                        bool(mask_row[position]),
++                    )
++                    for sequence_id, block_start, block_iteration, mask_row in zip(
++                        sequence_ids, block_starts, block_iterations, mask_before
++                    )
++                    for position in range(original_shape[1])
++                ]
++                local_rows = global_rows[
++                    ep_rank * rows_per_rank : (ep_rank + 1) * rows_per_rank
++                ]
++                horizon = int(os.environ.get("LLADA_DORMANT_HORIZON", "0"))
++                period = max(
++                    int(os.environ.get("LLADA_DORMANT_REFRESH_PERIOD", "1")), 1
++                )
++                route_trigger = (
++                    os.environ.get("LLADA_DORMANT_ROUTE_TRIGGER", "0") == "1"
++                    or mode == "dormant_route_trigger"
++                )
++                current_routes = topk_output.topk_ids.detach()
++                current_weights = topk_output.topk_weights.detach()
++                current_owners = torch.div(
++                    current_routes.long(), self.num_experts // self.ep_size,
++                    rounding_mode="floor",
++                )
++                routed_after_policy = local_routed.clone()
++                dormant_rows = deferred_rows = route_changed_rows = 0
++                destination_changed_rows = missing_future_rows = 0
++                deferred_remote_assignments = deferred_remote_destinations = 0
++
++                for row_index, (key, block_iteration, is_masked) in enumerate(local_rows):
++                    plan_key = f"{key[0]}:{key[1]}:{key[2]}"
++                    future_accept = self._dormant_acceptance_by_key.get(plan_key)
++                    if future_accept is None:
++                        missing_future_rows += int(is_masked)
++                        is_dormant = False
++                    else:
++                        is_dormant = is_masked and (
++                            int(future_accept) - block_iteration > horizon
++                        )
++                    if not is_dormant:
++                        continue
++                    dormant_rows += 1
++
++                    cached_route = self._dormant_route_by_key.get(key)
++                    route_changed = False
++                    destination_changed = False
++                    if cached_route is not None:
++                        previous_ids, previous_owners, _ = cached_route
++                        current_id_set = torch.sort(current_routes[row_index]).values
++                        previous_id_set = torch.sort(previous_ids).values
++                        route_changed = not torch.equal(current_id_set, previous_id_set)
++                        current_owner_set = torch.unique(current_owners[row_index])
++                        previous_owner_set = torch.unique(previous_owners)
++                        destination_changed = not torch.equal(
++                            torch.sort(current_owner_set).values,
++                            torch.sort(previous_owner_set).values,
++                        )
++                    route_changed_rows += int(route_changed)
++                    destination_changed_rows += int(destination_changed)
++
++                    cached_output = self._dormant_routed_by_key.get(key)
++                    last_refresh = self._dormant_refresh_iter_by_key.get(key)
++                    refresh_due = (
++                        cached_output is None
++                        or last_refresh is None
++                        or block_iteration - int(last_refresh) >= period
++                    )
++                    if mode == "dormant_stale":
++                        defer = cached_output is not None
++                    elif mode == "dormant_periodic":
++                        defer = not refresh_due
++                    else:
++                        defer = (
++                            not refresh_due
++                            and not (route_changed or destination_changed)
++                        )
++                    if route_trigger and (route_changed or destination_changed):
++                        defer = False
++
++                    if defer:
++                        routed_after_policy[row_index].copy_(cached_output)
++                        deferred_rows += 1
++                        remote_assignments = int(
++                            (current_owners[row_index] != ep_rank).sum().item()
++                        )
++                        remote_destinations = int(
++                            torch.unique(
++                                current_owners[row_index][current_owners[row_index] != ep_rank]
++                            ).numel()
++                        )
++                        deferred_remote_assignments += remote_assignments
++                        deferred_remote_destinations += remote_destinations
++                    else:
++                        self._dormant_routed_by_key[key] = local_output[
++                            row_index
++                        ].detach().clone()
++                        self._dormant_route_by_key[key] = (
++                            current_routes[row_index].detach().clone(),
++                            current_owners[row_index].detach().clone(),
++                            current_weights[row_index].detach().clone(),
++                        )
++                        self._dormant_refresh_iter_by_key[key] = block_iteration
++
++                local_routed = routed_after_policy
++                dormant_trace_dir = os.environ.get(
++                    "LLADA_DORMANT_INTERVENTION_TRACE_DIR", ""
++                )
++                if dormant_trace_dir:
++                    trace_path = Path(dormant_trace_dir)
++                    trace_path.mkdir(parents=True, exist_ok=True)
++                    dormant_record = {
++                        "request_id": request_id,
++                        "policy": os.environ.get(
++                            "LLADA_SENSITIVITY_POLICY", "unknown"
++                        ),
++                        "mode": mode,
++                        "rank": int(ep_rank),
++                        "layer": int(self.layer_id),
++                        "invocation": int(self._dormant_trace_invocation),
++                        "phase": os.environ.get(
++                            "LLADA_CURRENT_REFINEMENT_PHASE", "unknown"
++                        ),
++                        "horizon": horizon,
++                        "period": period,
++                        "route_trigger": route_trigger,
++                        "physical_rows": int(rows_per_rank),
++                        "masked_rows": int(sum(row[2] for row in local_rows)),
++                        "dormant_rows": dormant_rows,
++                        "deferred_rows": deferred_rows,
++                        "route_changed_rows": route_changed_rows,
++                        "destination_changed_rows": destination_changed_rows,
++                        "missing_future_rows": missing_future_rows,
++                        "deferred_remote_assignments": deferred_remote_assignments,
++                        "deferred_remote_destinations": deferred_remote_destinations,
++                    }
++                    with (trace_path / f"dormant_rank{ep_rank}.jsonl").open("a") as f:
++                        f.write(json.dumps(dormant_record) + "\n")
++                    self._dormant_trace_invocation += 1
+ 
+         # Cache the exact current routed result, not the stale result that may
+         # have replaced it for this diagnostic forward.
+@@ -1163,6 +1413,10 @@ class LLaDA2SparseMoeBlock(nn.Module):
+                 "router_effective_support_local_source": shape_router_entropy.exp().cpu().tolist(),
+                 "top1_probability_local_source": shape_router_probs.max(dim=-1).values.cpu().tolist(),
+                 "topk_probability_mass_local_source": shape_topk_mass.cpu().tolist(),
++                "hidden_cosine_lag1_local_source": dormant_hidden_cosine,
++                "hidden_rel_l2_lag1_local_source": dormant_hidden_rel_l2,
++                "routed_output_cosine_lag1_local_source": dormant_routed_cosine,
++                "routed_output_rel_l2_lag1_local_source": dormant_routed_rel_l2,
+                 "topk_probability_gap_local_source": shape_topk_gap.cpu().tolist(),
+             }
+             shape_path = Path(shape_trace_dir)
+-- 
+2.34.1
+
