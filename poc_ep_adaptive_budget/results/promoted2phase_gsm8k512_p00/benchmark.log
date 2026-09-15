@@ -1,0 +1,52 @@
+INFO 09-15 17:26:03 [__init__.py:216] Automatically detected platform cuda.
+/home/esjung/.venvs/llada2-flash-sglang-053/lib/python3.11/site-packages/sglang/srt/environ.py:224: UserWarning: Environment variable SGL_ENABLE_JIT_DEEPGEMM is deprecated, please use SGLANG_ENABLE_JIT_DEEPGEMM
+  warnings.warn(
+WARNING:sglang.srt.layers.moe.utils:MOE_RUNNER_BACKEND is not initialized, the backend will be automatically selected
+Namespace(model_name='/home/esjung/models/LLaDA2.0-flash-744c3f8', dataset='/home/esjung/MLLM-EP-adaptive-budget/poc_ep_adaptive_budget/data/gsm8k_512.json', gpu='0,1,2,3', batch_size=32, gen_len=128, prefix_look=0, after_look=0, block_length=32, threshold=0.9, warmup_times=0, low_threshold=0.3, cont_weight=0, parallel_decoding='threshold', use_credit=False, exp_name='promoted2phase_gsm8k512_p00', cache='prefix', use_tp=False, output_dir='/home/esjung/MLLM-EP-adaptive-budget/poc_ep_adaptive_budget/results/promoted2phase_gsm8k512_p00/benchmark', use_shift=False, use_bd=True, model_type='flash', ep_size=4, moe_a2a_backend='deepep', deepep_mode='normal', enable_cuda_graph=False, mini_batch_size=32, use_quant=False, prefilling_limit=128, init_only=False, config=0, use_naive_batching=False, port='51956')
+INFO 09-15 17:26:11 [__init__.py:216] Automatically detected platform cuda.
+INFO 09-15 17:26:11 [__init__.py:216] Automatically detected platform cuda.
+INFO 09-15 17:26:12 [__init__.py:216] Automatically detected platform cuda.
+INFO 09-15 17:26:13 [__init__.py:216] Automatically detected platform cuda.
+INFO 09-15 17:26:13 [__init__.py:216] Automatically detected platform cuda.
+/home/esjung/.venvs/llada2-flash-sglang-053/lib/python3.11/site-packages/sglang/srt/environ.py:224: UserWarning: Environment variable SGL_ENABLE_JIT_DEEPGEMM is deprecated, please use SGLANG_ENABLE_JIT_DEEPGEMM
+  warnings.warn(
+/home/esjung/.venvs/llada2-flash-sglang-053/lib/python3.11/site-packages/sglang/srt/environ.py:224: UserWarning: Environment variable SGL_ENABLE_JIT_DEEPGEMM is deprecated, please use SGLANG_ENABLE_JIT_DEEPGEMM
+  warnings.warn(
+WARNING:sglang.srt.layers.moe.utils:MOE_RUNNER_BACKEND is not initialized, the backend will be automatically selected
+WARNING:sglang.srt.layers.moe.utils:MOE_RUNNER_BACKEND is not initialized, the backend will be automatically selected
+/home/esjung/.venvs/llada2-flash-sglang-053/lib/python3.11/site-packages/sglang/srt/environ.py:224: UserWarning: Environment variable SGL_ENABLE_JIT_DEEPGEMM is deprecated, please use SGLANG_ENABLE_JIT_DEEPGEMM
+  warnings.warn(
+WARNING:sglang.srt.layers.moe.utils:MOE_RUNNER_BACKEND is not initialized, the backend will be automatically selected
+Process Process-1:
+Traceback (most recent call last):
+  File "/home/esjung/anaconda3/envs/dinfer-ep-poc/lib/python3.11/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/home/esjung/anaconda3/envs/dinfer-ep-poc/lib/python3.11/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/esjung/anaconda3/envs/dinfer-ep-poc/lib/python3.11/site-packages/torch/utils/_contextlib.py", line 120, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/external/dinfer-llada2-flash-poc/benchmarks/benchmark_dataset_sglang.py", line 110, in main
+    distributed.init_distributed_environment(world_size, rank, 'env://', rank, 'nccl')
+  File "/home/esjung/.venvs/llada2-flash-sglang-053/lib/python3.11/site-packages/sglang/srt/distributed/parallel_state.py", line 1408, in init_distributed_environment
+    torch.distributed.init_process_group(
+  File "/home/esjung/anaconda3/envs/dinfer-ep-poc/lib/python3.11/site-packages/torch/distributed/c10d_logger.py", line 81, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/anaconda3/envs/dinfer-ep-poc/lib/python3.11/site-packages/torch/distributed/c10d_logger.py", line 95, in wrapper
+    func_return = func(*args, **kwargs)
+                  ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/anaconda3/envs/dinfer-ep-poc/lib/python3.11/site-packages/torch/distributed/distributed_c10d.py", line 1757, in init_process_group
+    store, rank, world_size = next(rendezvous_iterator)
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/anaconda3/envs/dinfer-ep-poc/lib/python3.11/site-packages/torch/distributed/rendezvous.py", line 278, in _env_rendezvous_handler
+    store = _create_c10d_store(
+            ^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/anaconda3/envs/dinfer-ep-poc/lib/python3.11/site-packages/torch/distributed/rendezvous.py", line 198, in _create_c10d_store
+    return TCPStore(
+           ^^^^^^^^^
+torch.distributed.DistNetworkError: The server socket has failed to listen on any local network address. port: 51956, useIpv6: false, code: -98, name: EADDRINUSE, message: address already in use
+started 4 0 0 Namespace(model_name='/home/esjung/models/LLaDA2.0-flash-744c3f8', dataset='/home/esjung/MLLM-EP-adaptive-budget/poc_ep_adaptive_budget/data/gsm8k_512.json', gpu='0,1,2,3', batch_size=32, gen_len=128, prefix_look=0, after_look=0, block_length=32, threshold=0.9, warmup_times=0, low_threshold=0.3, cont_weight=0, parallel_decoding='threshold', use_credit=False, exp_name='promoted2phase_gsm8k512_p00', cache='prefix', use_tp=True, output_dir='/home/esjung/MLLM-EP-adaptive-budget/poc_ep_adaptive_budget/results/promoted2phase_gsm8k512_p00/benchmark', use_shift=False, use_bd=True, model_type='flash', ep_size=4, moe_a2a_backend='deepep', deepep_mode='normal', enable_cuda_graph=False, mini_batch_size=32, use_quant=False, prefilling_limit=128, init_only=False, config=0, use_naive_batching=False, port='51956', tp_size=4, port_offset=0)
+/home/esjung/.venvs/llada2-flash-sglang-053/lib/python3.11/site-packages/sglang/srt/environ.py:224: UserWarning: Environment variable SGL_ENABLE_JIT_DEEPGEMM is deprecated, please use SGLANG_ENABLE_JIT_DEEPGEMM
+  warnings.warn(
+WARNING:sglang.srt.layers.moe.utils:MOE_RUNNER_BACKEND is not initialized, the backend will be automatically selected
