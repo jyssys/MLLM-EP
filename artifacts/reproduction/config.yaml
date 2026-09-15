@@ -1,0 +1,21 @@
+phase: 1_reference_quality_reproduction_only
+model: inclusionAI/LLaDA2.0-mini
+revision: dad945cac317da394b390f82c7b40691d8a881ed
+source: official_huggingface_model.generate
+tokenizer: same_revision_official_apply_chat_template
+dtype: bfloat16
+attention_backend: sdpa
+temperature: 0.0
+threshold: 0.95
+block_length: 32
+steps_max_per_block: 32
+early_stop: true
+generation_length_anchor: 512
+generation_length_staged_diagnostic: [512, 1024]
+generation_length_full_candidate: 2048
+generation_length_rationale: 'Two cap-512 false negatives resolved at 1024; three first-128 cases still capped at 1024. Official dInfer Mini benchmark example uses gen_len=2048. Final full setting remains contingent on fixed-sample memory/termination probes.'
+gsm8k_prompt_protocol: official_dinfer_mini_fourshot_yaml
+sample_seed: 20260915_plus_dataset_id
+gpu_visibility: '4,5,6,7'
+evaluation_topology: independent_single_gpu_workers_no_tp_no_ep
+note: 'Official card example uses steps=32. The spec YAML 64 is an anchor to verify, not a decoder claim; no optimization/threshold sweep is performed.'
