@@ -8,6 +8,12 @@ from virtual_ep.mapping import ExpertOwnership, SourcePartition
 from virtual_ep.schema import SCHEMA_VERSION, TraceBundle
 from virtual_ep.simulator import simulate_trace, write_predictions
 from virtual_ep.traffic import build_traffic
+from virtual_ep.discovery_trace import (
+    DISCOVERY_SCHEMA_VERSION,
+    DiscoveryTrace,
+    POSITION_CLASSES,
+    from_heavy_trace,
+)
 
 
 def make_trace():
@@ -105,4 +111,96 @@ def test_timing_output_requires_ep2_calibration_verdict(tmp_path):
         [timed],
         tmp_path / "valid",
         timing_verdict="EP2-CALIBRATED",
+    )
+
+
+def test_discovery_trace_round_trip(tmp_path):
+    n = 2
+    arrays = {
+        "request_id": np.asarray([0, 1], np.int32),
+        "block_id": np.zeros(n, np.int16),
+        "iteration_id": np.arange(n, dtype=np.int16),
+        "nfe": np.arange(n, dtype=np.int32),
+        "layer_id": np.ones(n, np.int16),
+        "prompt_tokens": np.full(n, 10, np.int32),
+        "physical_rows": np.full(n, 42, np.int32),
+        "masked_current_block": np.full(n, 32, np.int16),
+        "decoded_current_block": np.zeros(n, np.int16),
+        "newly_accepted_current_block": np.zeros(n, np.int16),
+        "accepted_this_iteration": np.ones(n, np.int16),
+        "remaining_mask_after": np.full(n, 31, np.int16),
+        "normalized_block_progress": np.zeros(n, np.float32),
+        "confidence_mean": np.ones(n, np.float32),
+        "confidence_min": np.ones(n, np.float32),
+        "confidence_max": np.ones(n, np.float32),
+        "terminated": np.zeros(n, bool),
+        "expert_counts_by_class": np.zeros(
+            (n, len(POSITION_CLASSES), 256), np.uint16
+        ),
+        "current_expert_ids": np.zeros((n, 32, 8), np.int16),
+    }
+    trace = DiscoveryTrace(
+        arrays,
+        {
+            "schema_version": DISCOVERY_SCHEMA_VERSION,
+            "model": "test",
+            "revision": "x",
+            "threshold": 0.95,
+            "block_length": 32,
+            "top_k": 8,
+            "hidden_size": 2048,
+        },
+    )
+    trace.validate()
+    path = tmp_path / "discovery.npz"
+    trace.save(path)
+    loaded = DiscoveryTrace.load(path)
+    np.testing.assert_array_equal(
+        loaded.arrays["request_id"], arrays["request_id"]
+    )
+
+
+def test_heavy_conversion_keeps_prompt_tail_out_of_decoded_state():
+    # The first physical generation block overlaps the unaligned prompt tail.
+    # Those prompt rows must remain PROMPT_PREFIX across every refinement.
+    physical = 4
+    iterations = 2
+    rows = {
+        "request_id": np.repeat(np.asarray([0, 0], np.int32), physical),
+        "block_id": np.zeros(physical * iterations, np.int16),
+        "iteration_id": np.repeat(np.arange(iterations, dtype=np.int16), physical),
+        "nfe": np.repeat(np.arange(iterations, dtype=np.int32), physical),
+        "layer_id": np.ones(physical * iterations, np.int16),
+        "token_position": np.tile(np.arange(physical, dtype=np.int32), iterations),
+        "source_partition_key": np.tile(np.arange(physical, dtype=np.int32), iterations),
+        "is_masked": np.asarray([False, False, False, True,
+                                 False, False, False, False]),
+        "expert_ids": np.zeros((physical * iterations, 8), np.int16),
+        "router_weights": np.full((physical * iterations, 8), 1 / 8, np.float32),
+    }
+    iteration_rows = {
+        "request_id": np.zeros(iterations, np.int32),
+        "block_id": np.zeros(iterations, np.int16),
+        "iteration_id": np.arange(iterations, dtype=np.int16),
+        "nfe": np.arange(iterations, dtype=np.int32),
+        "masked_before": np.asarray([1, 1], np.int16),
+        "accepted": np.asarray([0, 1], np.int16),
+        "masked_after": np.asarray([1, 0], np.int16),
+        "confidence_mean": np.ones(iterations, np.float32),
+        "confidence_min": np.ones(iterations, np.float32),
+        "confidence_max": np.ones(iterations, np.float32),
+        "terminated": np.asarray([False, True]),
+    }
+    heavy = TraceBundle(rows, iteration_rows, {
+        "schema_version": SCHEMA_VERSION,
+        "physical_row_semantics": "vanilla_full_rows",
+        "num_routed_experts": 256,
+        "hidden_size": 4,
+        "block_length": 2,
+        "top_k": 8,
+    })
+    converted = from_heavy_trace(heavy, {0: 3})
+    np.testing.assert_array_equal(
+        converted.arrays["current_position_class"],
+        np.asarray([[0, 2], [0, 3]], dtype=np.int8),
     )
