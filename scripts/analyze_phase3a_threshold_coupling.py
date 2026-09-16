@@ -211,7 +211,7 @@ def main() -> None:
             "ep4_remote_bytes",
             "ep4_mean_fanout",
         ]
-        writer = csv.DictWriter(stream, fieldnames=fieldnames)
+        writer = csv.DictWriter(stream, fieldnames=fieldnames, lineterminator="\n")
         writer.writeheader()
         for row in rows:
             writer.writerow(
