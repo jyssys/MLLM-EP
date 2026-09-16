@@ -1,0 +1,96 @@
+{
+  "phase": "phase_1_reference_quality_reproduction_only",
+  "verdict": "REPRODUCED",
+  "model": {
+    "name": "inclusionAI/LLaDA2.0-mini",
+    "revision": "dad945cac317da394b390f82c7b40691d8a881ed",
+    "dtype": "bfloat16",
+    "backend": "official_huggingface_model.generate",
+    "evaluation_topology": "independent_single_gpu_workers_no_tp_no_ep"
+  },
+  "decoding": {
+    "temperature": 0.0,
+    "threshold": 0.95,
+    "block_length": 32,
+    "steps_max_per_block": 32,
+    "early_stop": true,
+    "gsm8k_generation_length": 2048,
+    "humaneval_generation_length": 1024
+  },
+  "gsm8k": {
+    "n": 1319,
+    "correct": 1211,
+    "accuracy": 0.9181197877179682,
+    "wilson_95": [
+      0.9020805854049858,
+      0.931730596309351
+    ],
+    "official_card_accuracy": 0.9424,
+    "difference_percentage_points": -2.42802122820318,
+    "mean_nfe": 109.27975739196361,
+    "median_nfe": 70,
+    "mean_generation_tokens": 214.87338893100835,
+    "median_generation_tokens": 155,
+    "termination_counts": {
+      "EOS": 1292,
+      "GEN_LENGTH_CAP": 27,
+      "REMAINING_MASK": 0,
+      "EMPTY_OUTPUT": 0
+    },
+    "raw_parser_correct": 1211,
+    "automatic_termination_aware_correct": 1208,
+    "manual_parser_validation_n": 50,
+    "manual_visible_correct": 47,
+    "automatic_failure_categories": {
+      "MODEL_WRONG": 86,
+      "PARSER_WRONG": 2,
+      "TRUNCATED": 23,
+      "EMPTY_OUTPUT": 0,
+      "FORMAT_MISMATCH": 0,
+      "OTHER": 0
+    }
+  },
+  "humaneval": {
+    "n": 164,
+    "passed": 143,
+    "pass_at_1": 0.8719512195121951,
+    "wilson_95": [
+      0.8121751208705245,
+      0.9147013067845354
+    ],
+    "official_card_pass_at_1": 0.8659,
+    "difference_percentage_points": 0.6051219512195096,
+    "mean_nfe": 189.0121951219512,
+    "median_nfe": 146.0,
+    "syntax_failures": 9,
+    "sandbox_failures": 0,
+    "truncated": 18,
+    "empty_output": 0,
+    "failure_counts": {
+      "AssertionError": 11,
+      "SYNTAX_ERROR": 9,
+      "TypeError": 1
+    }
+  },
+  "old_baseline_audit": {
+    "gsm8k_accuracy": 0.1092,
+    "humaneval_pass_at_1": 0.0793,
+    "old_model": "LLaDA2.0-flash-100B",
+    "not_a_controlled_mini_baseline": true,
+    "outputs_within_two_tokens_of_effective_cap_fraction": 0.962,
+    "major_confounds": [
+      "different checkpoint",
+      "different generation implementation",
+      "different prompt protocol",
+      "different threshold",
+      "short effective generation budget",
+      "truncation-sensitive evaluator"
+    ]
+  },
+  "scope": {
+    "phase_2_started": false,
+    "threshold_sweep_performed": false,
+    "ep_optimization_performed": false,
+    "gpu_work_required_for_finalization": false
+  }
+}

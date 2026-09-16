@@ -22,7 +22,8 @@ def visible_final(text):
     patterns = (
         r"####\s*([-+]?\$?\d[\d,]*(?:\.\d+)?)",
         r"\\boxed\{\s*([-+]?\$?\d[\d,]*(?:\.\d+)?)\s*\}",
-        r"(?:final answer|the answer is|answer:)\s*[^\n\d-]*([-+]?\$?\d[\d,]*(?:\.\d+)?)",
+        r"(?:final answer|the answer is)\s*[^\n\d-]*([-+]?\$?\d[\d,]*(?:\.\d+)?)",
+        r"(?m)^[ \t]*Answer:[ \t]*([-+]?\$?\d[\d,]*(?:\.\d+)?)(?:[ \t]|[.!]|$)",
     )
     for pattern in patterns:
         matches = re.findall(pattern, text, flags=re.I)
@@ -59,12 +60,15 @@ def main():
         raise RuntimeError("duplicate sample IDs across captured workers")
     if not records:
         raise RuntimeError("no generated samples")
+    if ids != list(range(ids[0], ids[-1] + 1)):
+        raise RuntimeError("missing sample IDs across captured workers")
     if args.combined_output:
         args.combined_output.parent.mkdir(parents=True, exist_ok=True)
         args.combined_output.write_text("".join(json.dumps(row, ensure_ascii=False) + "\n" for row in records))
     task = records[0]["task"]
     if any(row["task"] != task for row in records):
         raise RuntimeError("mixed tasks")
+    records_by_id = {row["sample_id"]: row for row in records}
     classified = []
     manual = {}
     if args.manual_review:
@@ -117,6 +121,12 @@ def main():
         "median_generation_tokens": statistics.median(lengths),
         "termination_counts": {name: sum(row["termination_reason"] == name for row in records)
                                for name in ("EOS", "GEN_LENGTH_CAP", "REMAINING_MASK")},
+        "capped_raw_correct": sum(row["correct"] and row["termination_reason"] != "EOS"
+                                  for row in records) if task == "gsm8k" else None,
+        "automatic_termination_aware_correct": sum(row["category"] == "CORRECT" for row in classified)
+                                               if task == "gsm8k" else None,
+        "needs_manual_review_n": sum(row["needs_manual_review"] for row in classified)
+                                 if task == "gsm8k" else None,
         "parser_no_number": sum(row["parsed_answer"] is None for row in records),
         "numeric_equivalent_string_failures": sum(not row["correct"] and numeric_equal(row["parsed_answer"], row["ground_truth"]) for row in records) if task == "gsm8k" else None,
         "empty_output": sum(not row["postprocessed_generation"].strip() for row in records),
@@ -126,6 +136,10 @@ def main():
         "manual_reviewed_n": sum(row["manual_checked"] for row in classified),
         "manual_reviewed_correct": sum(row["manual_human_answer"] == row["ground_truth"]
                                        for row in classified if row["manual_checked"]),
+        "manual_raw_false_positive": sum(row["manual_checked"] and row["manual_human_answer"] != row["ground_truth"]
+                                         and records_by_id[row["sample_id"]]["correct"] for row in classified) if task == "gsm8k" else None,
+        "manual_raw_false_negative": sum(row["manual_checked"] and row["manual_human_answer"] == row["ground_truth"]
+                                         and not records_by_id[row["sample_id"]]["correct"] for row in classified) if task == "gsm8k" else None,
         "manual_parser_wrong": sum(row["manual_category"] == "PARSER_WRONG" for row in classified),
         "manual_truncated": sum(row["manual_category"] == "TRUNCATED" for row in classified),
         "manual_model_wrong": sum(row["manual_category"] == "MODEL_WRONG" for row in classified),

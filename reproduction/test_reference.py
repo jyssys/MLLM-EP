@@ -6,7 +6,7 @@ import torch
 
 from run_reference import normalize_generated_ids, parse_gsm8k
 from score_humaneval import candidate_from_output, sandbox_check
-from score_reference import numeric_equal
+from score_reference import numeric_equal, visible_final
 
 
 class ReferenceOutputTests(unittest.TestCase):
@@ -28,10 +28,32 @@ class ReferenceOutputTests(unittest.TestCase):
         self.assertTrue(numeric_equal("50.0", "50"))
         self.assertFalse(numeric_equal("5", "50"))
 
+    def test_visible_final_ignores_reasoning_number_after_answer_prefix(self):
+        self.assertIsNone(visible_final("Answer: Each year the tree has 7 lemons. Continue calculating."))
+        self.assertIsNone(visible_final("Answer:\n7 lemons grow the first year."))
+        self.assertEqual(visible_final("Answer: 18."), "18")
+
     def test_humaneval_complete_function_is_not_appended_twice(self):
         record = {"postprocessed_generation": "```python\ndef f(x):\n    return x + 1\n```",
                   "entry_point": "f", "original_prompt": "def f(x):\n    \"\"\"doc\"\"\"\n"}
         self.assertEqual(candidate_from_output(record), ("def f(x):\n    return x + 1", "complete-function"))
+
+    def test_humaneval_complete_function_keeps_prompt_imports(self):
+        record = {"postprocessed_generation": "```python\ndef f(xs: List[int]):\n    return len(xs)\n```",
+                  "entry_point": "f",
+                  "original_prompt": "from typing import List\n\n\ndef f(xs: List[int]):\n    \"\"\"doc\"\"\"\n",
+                  "test": "def check(candidate):\n    assert candidate([1, 2]) == 2"}
+        candidate, mode = candidate_from_output(record)
+        self.assertEqual(mode, "complete-function")
+        self.assertEqual(candidate, "from typing import List\n\n\ndef f(xs: List[int]):\n    return len(xs)")
+        self.assertTrue(sandbox_check(record)["passed"])
+
+    def test_humaneval_uses_solution_fence_not_first_example_fence(self):
+        record = {"postprocessed_generation": "Example:\n```python\nx = [1, 2]\n```\nSolution:\n```python\ndef f(x):\n    return x + 1\n```",
+                  "entry_point": "f", "original_prompt": "def f(x):\n    \"\"\"doc\"\"\"\n",
+                  "test": "def check(candidate):\n    assert candidate(2) == 3"}
+        self.assertEqual(candidate_from_output(record), ("def f(x):\n    return x + 1", "complete-function"))
+        self.assertTrue(sandbox_check(record)["passed"])
 
     def test_humaneval_untrusted_code_runs_in_sandbox(self):
         record = {"postprocessed_generation": "def f(x):\n    return x + 1",

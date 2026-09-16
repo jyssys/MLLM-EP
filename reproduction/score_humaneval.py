@@ -15,12 +15,26 @@ HERE = Path(__file__).resolve().parent
 
 def candidate_from_output(record):
     text = record["postprocessed_generation"].strip()
-    fence = re.search(r"```(?:python)?\s*\n(.*?)```", text, flags=re.I | re.S)
-    if fence:
-        text = fence.group(1).strip()
     entry = record["entry_point"]
-    if re.search(r"^\s*(?:async\s+)?def\s+" + re.escape(entry) + r"\s*\(", text, flags=re.M):
-        return text, "complete-function"
+    entry_pattern = r"^[ \t]*(?:async[ \t]+)?def[ \t]+" + re.escape(entry) + r"[ \t]*\("
+    fences = re.findall(r"```(?:python)?[ \t]*\n(.*?)```", text, flags=re.I | re.S)
+    solutions = [fence for fence in fences if re.search(entry_pattern, fence, flags=re.M)]
+    if solutions:
+        # Explanations can contain example fences before the actual solution.
+        # Select the final fenced implementation of the official entry point.
+        text = solutions[-1].strip()
+    elif fences:
+        text = fences[0].strip()
+    if re.search(entry_pattern, text, flags=re.M):
+        # A complete replacement still needs the official prompt's import /
+        # helper prelude. Do not append the original unfinished target function:
+        # that would define the entry point twice, while dropping the prelude
+        # causes false NameError failures for annotations such as List[int].
+        prompt = record["original_prompt"]
+        target = re.search(r"^[ \t]*(?:async[ \t]+)?def[ \t]+" + re.escape(entry) + r"[ \t]*\(",
+                           prompt, flags=re.M)
+        prelude = prompt[:target.start()] if target else ""
+        return prelude + text, "complete-function"
     return record["original_prompt"] + text, "prompt-continuation"
 
 
