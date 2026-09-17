@@ -54,32 +54,33 @@ def build_traffic(
         raise ValueError("ownership/source EP sizes differ")
     ep = ownership.ep_size
     sources = source_partition.ranks(ordered_row_keys)
-    owners = ownership.owner(expert_ids)
+    # Variable-k traces use -1/zero-weight right padding. An absent branch is
+    # neither expert zero nor communication; cost comes from the actual IDs.
+    valid = expert_ids >= 0
+    if expert_ids.size and expert_ids[valid].size and expert_ids[valid].max() >= ownership.num_experts:
+        raise ValueError("expert id outside ownership map")
+    owners = np.full_like(expert_ids, -1)
+    owners[valid] = ownership.owner(expert_ids[valid])
     assignment = np.zeros((ep, ep), dtype=np.int64)
     unique = np.zeros((ep, ep), dtype=np.int64)
     expert_hist = np.bincount(
-        expert_ids.reshape(-1), minlength=ownership.num_experts
+        expert_ids[valid], minlength=ownership.num_experts
     ).astype(np.int64)
-    np.add.at(
-        assignment,
-        (np.repeat(sources, expert_ids.shape[1]), owners.reshape(-1)),
-        1,
-    )
+    repeated_sources = np.repeat(sources, expert_ids.shape[1])
+    flat_valid = valid.reshape(-1)
+    np.add.at(assignment, (repeated_sources[flat_valid], owners.reshape(-1)[flat_valid]), 1)
     for destination in range(ep):
         tokens = np.any(owners == destination, axis=1)
         unique[:, destination] = np.bincount(
             sources[tokens], minlength=ep
         )
     if expert_ids.shape[0]:
-        sorted_owners = np.sort(owners, axis=1)
-        fanout = (
-            1 + np.count_nonzero(sorted_owners[:, 1:] != sorted_owners[:, :-1], axis=1)
-        ).astype(np.int16)
+        fanout = np.asarray([
+            len(np.unique(row[row >= 0])) for row in owners
+        ], dtype=np.int16)
     else:
         fanout = np.empty(0, dtype=np.int16)
-    rank_expert = np.bincount(
-        owners.reshape(-1), minlength=ep
-    ).astype(np.int64)
+    rank_expert = np.bincount(owners[valid], minlength=ep).astype(np.int64)
     remote_unique = int(unique.sum() - np.trace(unique))
     payload = remote_unique * hidden_size * element_bytes
     return TrafficSummary(

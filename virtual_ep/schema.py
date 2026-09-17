@@ -11,6 +11,7 @@ import numpy as np
 
 
 SCHEMA_VERSION = 1
+METHOD_SCHEMA_VERSION = 2
 
 
 def invocation_slices(rows: dict[str, np.ndarray]):
@@ -48,6 +49,16 @@ ROW_FIELDS = (
     "is_masked",
     "expert_ids",
     "router_weights",
+)
+
+METHOD_ROW_FIELDS = (
+    "semantic_state",
+    "execution_state",
+    "method",
+    "is_fresh_route",
+    "is_reused_route",
+    "reuse_source_refinement",
+    "freeze_age",
 )
 
 ITERATION_FIELDS = (
@@ -99,10 +110,17 @@ class TraceBundle:
         if expert_ids.ndim != 2 or weights.shape != expert_ids.shape:
             raise ValueError("expert_ids/router_weights must be matching [N, top_k] arrays")
         num_experts = int(self.metadata["num_routed_experts"])
-        if expert_ids.size and (expert_ids.min() < 0 or expert_ids.max() >= num_experts):
+        if expert_ids.size and (expert_ids.min() < -1 or expert_ids.max() >= num_experts):
             raise ValueError("expert id is outside configured routed-expert range")
-        if int(self.metadata.get("schema_version", -1)) != SCHEMA_VERSION:
+        if np.any((expert_ids == -1) & (weights != 0)):
+            raise ValueError("padded variable-k branches must have zero router weight")
+        schema_version = int(self.metadata.get("schema_version", -1))
+        if schema_version != SCHEMA_VERSION:
             raise ValueError("unsupported trace schema version")
+        if int(self.metadata.get("method_schema_version", 0)) >= METHOD_SCHEMA_VERSION:
+            missing_method = sorted(set(METHOD_ROW_FIELDS) - self.rows.keys())
+            if missing_method:
+                raise ValueError(f"method trace fields missing: {missing_method}")
         if self.metadata.get("physical_row_semantics") != "vanilla_full_rows":
             raise ValueError("baseline simulator requires vanilla_full_rows semantics")
 

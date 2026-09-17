@@ -166,7 +166,7 @@ def _select_train_heldout(cases: list[dict], maximum: int) -> list[dict]:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--trace", type=Path, required=True)
-    parser.add_argument("--ep", type=int, choices=(2, 4, 8), required=True)
+    parser.add_argument("--ep", type=int, choices=(1, 2, 4, 8), required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--maximum-cases", type=int, default=96)
     parser.add_argument("--warmup", type=int, default=5)

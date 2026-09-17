@@ -77,6 +77,17 @@ def test_assignment_and_unique_payload_are_distinct():
     assert traffic.logical_dispatch_bytes == 3 * 4 * 2
 
 
+def test_ep1_and_variable_k_padding_have_no_fake_work():
+    ownership = ExpertOwnership(8, 1)
+    routes = np.asarray([[0, 1, -1, -1], [2, -1, -1, -1]], dtype=np.int16)
+    traffic = build_traffic(routes, np.arange(2), ownership, SourcePartition(1), 4)
+    assert traffic.expert_assignments.sum() == 3
+    assert traffic.assignment_matrix.tolist() == [[3]]
+    assert traffic.remote_assignments == 0
+    assert traffic.logical_dispatch_bytes == 0
+    assert traffic.token_fanout.tolist() == [1, 1]
+
+
 def test_trace_roundtrip_and_structural_simulation(tmp_path):
     trace = make_trace()
     path = tmp_path / "trace.npz"

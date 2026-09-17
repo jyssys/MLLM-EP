@@ -23,7 +23,7 @@ BLOCK_LENGTH = 32
 NUM_EXPERTS = 256
 TOP_K = 8
 HIDDEN_SIZE = 2048
-ROUTED_EPS = (4, 8)
+ROUTED_EPS = (1, 4, 8)
 SUBSTRATES = ("s0", "s1", "s2")
 
 
@@ -155,6 +155,7 @@ class SelectiveDenseEmulator:
             "active": active.copy(), "forced": forced.copy(),
             "newly_decoded": self.newly_decoded.copy(), "full_masks": full_masks,
             "routes": np.full((layer_count, BLOCK_LENGTH, TOP_K), -1, dtype=np.int16),
+            "route_weights": np.zeros((layer_count, BLOCK_LENGTH, TOP_K), dtype=np.float16),
         }
         for substrate in SUBSTRATES:
             context[f"hist_{substrate}"] = np.zeros((layer_count, NUM_EXPERTS), dtype=np.uint16)
@@ -173,11 +174,13 @@ class SelectiveDenseEmulator:
             if context is None:
                 raise RuntimeError("router outside active refinement context")
             topk_ids = output[0].detach().reshape(-1, TOP_K).cpu().numpy().astype(np.int16)
+            topk_weight = output[1].detach().reshape(-1, TOP_K).cpu().numpy().astype(np.float16)
             physical = context["physical_rows"]
             if len(topk_ids) != physical:
                 raise RuntimeError("router row count mismatch")
             current_start = physical - BLOCK_LENGTH
             context["routes"][slot] = topk_ids[current_start:]
+            context["route_weights"][slot] = topk_weight[current_start:]
             for substrate in SUBSTRATES:
                 include = context["full_masks"][substrate]
                 ids = topk_ids[include]
@@ -497,6 +500,7 @@ def save_request_trace(path: Path, result: GenerationResult, metadata: dict[str,
     }
     payload.update({key: np.stack([row[key] for row in records]) for key in vectors})
     payload["routes"] = np.stack([row["routes"] for row in records])
+    payload["route_weights"] = np.stack([row["route_weights"] for row in records])
     for substrate in SUBSTRATES:
         payload[f"hist_{substrate}"] = np.stack([row[f"hist_{substrate}"] for row in records])
         for ep in ROUTED_EPS:

@@ -81,7 +81,9 @@ def simulate_trace(
         max_load = int(rank_load.max(initial=0))
         cv = float(rank_load.std() / mean_load) if mean_load else 0.0
         dispatch_ms = combine_ms = expert_ms = moe_ms = distance = None
-        if communication is not None:
+        if ep_size == 1:
+            dispatch_ms = combine_ms = 0.0
+        elif communication is not None:
             dispatch_ms = communication.dispatch.latency(outgoing_bytes, incoming_bytes)
             # Reverse combine carries the same token vectors with reversed
             # endpoint direction under the baseline protocol.
@@ -99,7 +101,7 @@ def simulate_trace(
                 distances.append(rank_distance)
             expert_ms = max(rank_times, default=0.0)
             distance = max(distances, default=0.0)
-            if communication is not None:
+            if ep_size == 1 or communication is not None:
                 moe_ms = critical_path_ms(
                     float(dispatch_ms),
                     rank_times,
@@ -166,7 +168,8 @@ def write_predictions(
         writer.writerows(rows)
     numeric = {
         "label": (
-            f"SIMULATED-EP{rows[0]['ep_size']}-EP2-CALIBRATED"
+            ("EP1-LOCAL-NO-EP-COMM" if rows[0]["ep_size"] == 1 else
+             f"SIMULATED-EP{rows[0]['ep_size']}-EP2-CALIBRATED")
             if has_timing
             else f"SIMULATED-EP{rows[0]['ep_size']}-STRUCTURAL-ONLY"
         ),

@@ -6,7 +6,7 @@ from dataclasses import dataclass
 import numpy as np
 
 
-SUPPORTED_EP = (2, 4, 8)
+SUPPORTED_EP = (1, 2, 4, 8)
 
 
 @dataclass(frozen=True)

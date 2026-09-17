@@ -21,6 +21,7 @@ from selective_refinement.policy import POLICIES, PolicyConfig
 
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument("--task", choices=("gsm8k", "humaneval"), default="gsm8k")
     parser.add_argument("--source", type=Path, required=True)
     parser.add_argument("--yaml", type=Path, required=True)
     parser.add_argument("--sample-ids", type=int, nargs="+", required=True)
@@ -63,7 +64,10 @@ def main():
             "id": int(row["sample_id"]),
             "question": row["raw_prompt"],
             "raw_prompt": row["raw_prompt"],
-            "answer": f"#### {row['ground_truth']}",
+            "answer": (f"#### {row['ground_truth']}"
+                       if row.get("ground_truth") is not None else None),
+            "test": row.get("test"), "entry_point": row.get("entry_point"),
+            "original_prompt": row.get("original_prompt", row["raw_prompt"]),
         } for row in captured]
     else:
         rows = samples("gsm8k", args.source, "dinfer-fourshot", args.yaml)
@@ -126,7 +130,8 @@ def main():
         generated_ids, returned_prompt = normalize_generated_ids(result.generated, input_ids)
         output = tokenizer.decode(generated_ids, skip_special_tokens=True)
         parsed, parser_rule = parse_gsm8k(output)
-        gold = row["answer"].split("####")[-1].strip().replace(",", "")
+        gold = (row["answer"].split("####")[-1].strip().replace(",", "")
+                if row.get("answer") is not None else None)
         active_updates = sum(int(np.count_nonzero(r["masked"] & r["active"]))
                              for r in result.records)
         masked_updates = sum(int(np.count_nonzero(r["masked"])) for r in result.records)
@@ -152,7 +157,8 @@ def main():
         }
         save_request_trace(target, result, metadata)
         record = {
-            "sample_id": request_id, "correct": parsed == gold,
+            "sample_id": request_id, "task": args.task,
+            "correct": (parsed == gold if gold is not None else None),
             "parsed_answer": parsed, "ground_truth": gold,
             "parser_rule": parser_rule, "output": output,
             "output_ids": generated_ids, "generation_tokens": len(generated_ids),
@@ -175,6 +181,12 @@ def main():
             "trace": str(target), "worker": args.worker,
             "physical_gpu": args.device_index, "policy": policy.__dict__,
             "semantics": args.semantics,
+            "postprocessed_generation": output,
+            "raw_generation": tokenizer.decode(generated_ids, skip_special_tokens=False),
+            "termination_reason": termination,
+            "remaining_mask_tokens": remaining_masks,
+            "original_prompt": row.get("original_prompt", raw_prompt),
+            "test": row.get("test"), "entry_point": row.get("entry_point"),
         }
         with generations_path.open("a") as stream:
             stream.write(json.dumps(record, ensure_ascii=False) + "\n")
