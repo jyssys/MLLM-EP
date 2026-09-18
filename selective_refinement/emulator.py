@@ -70,13 +70,16 @@ class GenerationResult:
     generated: torch.Tensor
     records: list[dict[str, Any]]
     drift: list[dict[str, Any]]
+    edge_stability: list[dict[str, Any]] | None = None
 
 
 class SelectiveDenseEmulator:
     """Per-request hook set for structural tracing and F0/F1 emulation."""
 
     def __init__(self, model, semantics: str, policy: PolicyConfig, request_id: int,
-                 capture_adjacent_hidden: bool = False):
+                 capture_adjacent_hidden: bool = False,
+                 capture_temporal_edges: bool = False,
+                 temporal_edge_layers: tuple[int, ...] = (1, 5, 10, 14, 19)):
         if semantics not in ("none", "f0", "f1"):
             raise ValueError("semantics must be none/f0/f1")
         self.model = model
@@ -84,6 +87,8 @@ class SelectiveDenseEmulator:
         self.policy = policy
         self.request_id = int(request_id)
         self.capture_adjacent_hidden = bool(capture_adjacent_hidden)
+        self.capture_temporal_edges = bool(capture_temporal_edges)
+        self.temporal_edge_layers = tuple(int(layer) for layer in temporal_edge_layers)
         self.routed_layers = [
             index for index, layer in enumerate(model.model.layers)
             if hasattr(layer.mlp, "gate")
@@ -91,6 +96,7 @@ class SelectiveDenseEmulator:
         self.route_slot = {layer: slot for slot, layer in enumerate(self.routed_layers)}
         self.records: list[dict[str, Any]] = []
         self.drift: list[dict[str, Any]] = []
+        self.edge_stability: list[dict[str, Any]] = []
         self._handles = []
         self._original_moe_infer = {}
         self._context: dict[str, Any] | None = None
@@ -99,6 +105,7 @@ class SelectiveDenseEmulator:
         self._f1_cache: dict[int, torch.Tensor] = {}
         self._previous_hidden: dict[int, torch.Tensor] = {}
         self._previous_hidden_mask: torch.Tensor | None = None
+        self._previous_edge_state: dict[int, dict[str, Any]] = {}
         self.previous_confidence: np.ndarray | None = None
         self.cached_confidence: np.ndarray | None = None
         self.previous_token_rank_load: dict[int, np.ndarray] = {}
@@ -113,6 +120,7 @@ class SelectiveDenseEmulator:
         self._f1_cache.clear()
         self._previous_hidden.clear()
         self._previous_hidden_mask = None
+        self._previous_edge_state.clear()
         self.previous_confidence = None
         self.cached_confidence = None
         self.previous_token_rank_load.clear()
@@ -223,7 +231,13 @@ class SelectiveDenseEmulator:
         def wrapped(_module_self, x, topk_ids, topk_weight):
             fresh = original(x, topk_ids, topk_weight)
             context = controller._context
-            if context is None or controller.semantics != "f0":
+            if context is None:
+                return fresh
+            if controller.capture_temporal_edges and layer_id in controller.temporal_edge_layers:
+                controller._capture_temporal_edge_branches(
+                    layer_id, _module_self, x, topk_ids, topk_weight, fresh
+                )
+            if controller.semantics != "f0":
                 return fresh
             seq = context["physical_rows"]
             current = fresh.view(1, seq, -1)[:, -BLOCK_LENGTH:, :][0]
@@ -247,6 +261,139 @@ class SelectiveDenseEmulator:
             return fresh
 
         return MethodType(wrapped, module)
+
+    @staticmethod
+    def _vector_metrics(current: torch.Tensor, previous: torch.Tensor):
+        current32, previous32 = current.float(), previous.float()
+        current_norm = current32.norm(dim=-1)
+        previous_norm = previous32.norm(dim=-1)
+        cosine = (current32 * previous32).sum(dim=-1) / (
+            current_norm * previous_norm
+        ).clamp_min(1e-12)
+        relative_l2 = (current32 - previous32).norm(dim=-1) / previous_norm.clamp_min(1e-12)
+        norm_ratio = current_norm / previous_norm.clamp_min(1e-12)
+        return (
+            cosine.detach().cpu().numpy(),
+            relative_l2.detach().cpu().numpy(),
+            norm_ratio.detach().cpu().numpy(),
+        )
+
+    @torch.no_grad()
+    def _capture_temporal_edge_branches(
+        self, layer_id: int, module, x: torch.Tensor, topk_ids: torch.Tensor,
+        topk_weight: torch.Tensor, fresh: torch.Tensor,
+    ):
+        """Capture exact adjacent expert-branch drift without changing outputs.
+
+        The production MoE result above is returned untouched.  Only five
+        selected routed layers re-execute the 32 current-block rows to expose
+        per-branch vectors for this bounded diagnostic trace.
+        """
+
+        context = self._context
+        assert context is not None
+        physical = int(context["physical_rows"])
+        if x.shape[0] != physical:
+            raise RuntimeError("temporal-edge row count mismatch")
+        current_x = x[-BLOCK_LENGTH:].detach()
+        current_ids = topk_ids[-BLOCK_LENGTH:].detach()
+        current_weight = topk_weight[-BLOCK_LENGTH:].detach()
+        current_mask_np = context["masked"].astype(bool, copy=False)
+        current_mask = torch.as_tensor(current_mask_np, device=x.device)
+        branch = torch.zeros(
+            (BLOCK_LENGTH, TOP_K, x.shape[-1]), dtype=x.dtype, device=x.device
+        )
+        if bool(current_mask.any()):
+            masked_ids = current_ids[current_mask]
+            for expert_id in torch.unique(masked_ids).tolist():
+                route = (current_ids == int(expert_id)) & current_mask[:, None]
+                position, slot = route.nonzero(as_tuple=True)
+                if position.numel():
+                    branch[position, slot] = module.experts[int(expert_id)](current_x[position])
+
+        previous = self._previous_edge_state.get(layer_id)
+        age = np.ones((BLOCK_LENGTH, TOP_K), dtype=np.int16)
+        if previous is not None:
+            previous_ids = previous["ids"]
+            previous_mask = previous["mask"]
+            pairs: list[tuple[int, int, int, int]] = []
+            for position in np.flatnonzero(current_mask_np & previous_mask):
+                prior = {int(expert): slot for slot, expert in enumerate(previous_ids[position])}
+                for current_slot, expert in enumerate(current_ids[position].tolist()):
+                    prior_slot = prior.get(int(expert))
+                    if prior_slot is not None:
+                        pairs.append((int(position), current_slot, prior_slot, int(expert)))
+                        age[position, current_slot] = int(previous["age"][position, prior_slot]) + 1
+            if pairs:
+                position = torch.as_tensor([pair[0] for pair in pairs], device=x.device)
+                current_slot = torch.as_tensor([pair[1] for pair in pairs], device=x.device)
+                previous_slot = torch.as_tensor([pair[2] for pair in pairs], device=x.device)
+                current_branch = branch[position, current_slot]
+                previous_branch = previous["branch"].to(x.device)[position, previous_slot]
+                raw_cos, raw_l2, norm_ratio = self._vector_metrics(current_branch, previous_branch)
+                current_w = current_weight[position, current_slot].float()
+                previous_w = previous["weight"].to(x.device)[position, previous_slot].float()
+                r0_cos, r0_l2, _ = self._vector_metrics(
+                    current_branch.float() * current_w[:, None],
+                    previous_branch.float() * previous_w[:, None],
+                )
+                _r1_cos, r1_l2, _ = self._vector_metrics(
+                    current_branch.float() * current_w[:, None],
+                    previous_branch.float() * current_w[:, None],
+                )
+                hidden_cos, hidden_l2, _ = self._vector_metrics(
+                    current_x[position], previous["input"].to(x.device)[position]
+                )
+                current_combined = fresh[-BLOCK_LENGTH:][position]
+                previous_combined = previous["combined"].to(x.device)[position]
+                post_cos, post_l2, _ = self._vector_metrics(current_combined, previous_combined)
+                current_w_np = current_w.detach().cpu().numpy()
+                previous_w_np = previous_w.detach().cpu().numpy()
+                for ordinal, pair in enumerate(pairs):
+                    pos, cur_slot, prior_slot, expert = pair
+                    self.edge_stability.append({
+                        "request_id": self.request_id,
+                        "block_id": self._block_id,
+                        "iteration_id": int(context["iteration_id"]),
+                        "layer_id": int(layer_id),
+                        "token_position": pos,
+                        "expert_id": expert,
+                        "current_slot": cur_slot,
+                        "previous_slot": prior_slot,
+                        "route_age": int(age[pos, cur_slot]),
+                        "mask_ratio": float(current_mask_np.mean()),
+                        "previous_confidence": float(
+                            self.previous_confidence[pos]
+                            if self.previous_confidence is not None else np.nan
+                        ),
+                        "current_weight": float(current_w_np[ordinal]),
+                        "previous_weight": float(previous_w_np[ordinal]),
+                        "weight_abs_drift": float(abs(current_w_np[ordinal] - previous_w_np[ordinal])),
+                        "weight_relative_drift": float(
+                            abs(current_w_np[ordinal] - previous_w_np[ordinal])
+                            / max(abs(previous_w_np[ordinal]), 1e-12)
+                        ),
+                        "raw_output_cosine": float(raw_cos[ordinal]),
+                        "raw_output_relative_l2": float(raw_l2[ordinal]),
+                        "raw_output_norm_ratio": float(norm_ratio[ordinal]),
+                        "weighted_r0_cosine": float(r0_cos[ordinal]),
+                        "weighted_r0_relative_l2": float(r0_l2[ordinal]),
+                        "weighted_r1_relative_l2": float(r1_l2[ordinal]),
+                        "input_hidden_cosine": float(hidden_cos[ordinal]),
+                        "input_hidden_relative_l2": float(hidden_l2[ordinal]),
+                        "post_moe_cosine": float(post_cos[ordinal]),
+                        "post_moe_relative_l2": float(post_l2[ordinal]),
+                    })
+
+        self._previous_edge_state[layer_id] = {
+            "ids": current_ids.detach().cpu().numpy().astype(np.int16),
+            "mask": current_mask_np.copy(),
+            "weight": current_weight.detach().cpu(),
+            "input": current_x.detach().cpu(),
+            "branch": branch.detach().cpu(),
+            "combined": fresh[-BLOCK_LENGTH:].detach().cpu(),
+            "age": age,
+        }
 
     def _decoder_hook(self, layer_id: int):
         controller = self
@@ -308,7 +455,9 @@ class SelectiveDenseEmulator:
                 self._handles.append(layer.mlp.gate.register_forward_hook(
                     self._router_hook(layer_id)
                 ))
-                if self.semantics == "f0":
+                if self.semantics == "f0" or (
+                    self.capture_temporal_edges and layer_id in self.temporal_edge_layers
+                ):
                     original = layer.mlp.moe_infer
                     self._original_moe_infer[layer_id] = original
                     layer.mlp.moe_infer = self._wrap_moe_infer(layer_id, layer.mlp, original)
@@ -401,6 +550,8 @@ def generate_selective(
     gen_length: int = 2048, eos_early_stop: bool = True,
     eos_id: int = 156892, mask_id: int = 156895, request_id: int = 0,
     capture_adjacent_hidden: bool = False,
+    capture_temporal_edges: bool = False,
+    temporal_edge_layers: tuple[int, ...] = (1, 5, 10, 14, 19),
 ) -> GenerationResult:
     """Replicate official generation with optional dense freeze emulation."""
 
@@ -424,6 +575,8 @@ def generate_selective(
     controller = SelectiveDenseEmulator(
         model, semantics, policy, request_id,
         capture_adjacent_hidden=capture_adjacent_hidden,
+        capture_temporal_edges=capture_temporal_edges,
+        temporal_edge_layers=temporal_edge_layers,
     )
     nfe = 0
     try:
@@ -468,7 +621,10 @@ def generate_selective(
                         eos_position = int(eos_positions[0].item())
                         if (cur_x[0, prompt_length:eos_position] != mask_id).all():
                             final = x[:, :total_length][:, :eos_position + 1]
-                            return GenerationResult(final, controller.records, controller.drift)
+                            return GenerationResult(
+                                final, controller.records, controller.drift,
+                                controller.edge_stability,
+                            )
             x[:, :end] = cur_x
             if eos_id is not None and (x[0, prompt_length:end] == eos_id).any():
                 break
@@ -477,7 +633,7 @@ def generate_selective(
         first = int(eos_positions[0].item()) if len(eos_positions) else gen_length
         return GenerationResult(
             answer[:, prompt_length:prompt_length + first + 1],
-            controller.records, controller.drift,
+            controller.records, controller.drift, controller.edge_stability,
         )
     finally:
         controller.close()
@@ -513,5 +669,22 @@ def save_request_trace(path: Path, result: GenerationResult, metadata: dict[str,
         payload["drift_boundary"] = np.asarray([row["boundary"] for row in result.drift], dtype=np.str_)
         payload["drift_cosine"] = np.asarray([row["cosine"] for row in result.drift], dtype=np.float32)
         payload["drift_relative_l2"] = np.asarray([row["relative_l2"] for row in result.drift], dtype=np.float32)
+    if result.edge_stability:
+        integer_keys = (
+            "request_id", "block_id", "iteration_id", "layer_id", "token_position",
+            "expert_id", "current_slot", "previous_slot", "route_age",
+        )
+        float_keys = tuple(
+            key for key in result.edge_stability[0]
+            if key not in integer_keys
+        )
+        for key in integer_keys:
+            payload[f"edge_{key}"] = np.asarray(
+                [row[key] for row in result.edge_stability], dtype=np.int32
+            )
+        for key in float_keys:
+            payload[f"edge_{key}"] = np.asarray(
+                [row[key] for row in result.edge_stability], dtype=np.float32
+            )
     payload["metadata_json"] = np.asarray(json.dumps(metadata, sort_keys=True), dtype=np.str_)
     np.savez_compressed(path, **payload)
