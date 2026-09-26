@@ -1,0 +1,151 @@
+{
+  "schema_version": "mllm_ep_foundation.bundle.v1",
+  "created_at": "2026-09-24T17:11:25+09:00",
+  "absolute_root": "/home/esjung/MLLM-EP-github/poc_mllm_ep_foundation",
+  "relative_root": "poc_mllm_ep_foundation",
+  "source_of_truth": "/home/esjung/MLLM-EP-github/poc_flashvep/reports/01_baseline_virtual_ep_spec.md",
+  "model": {
+    "id": "Qwen/Qwen3-VL-30B-A3B-Instruct",
+    "revision": "9c4b90e1e4ba969fd3b5378b57d966d725f1b86c",
+    "snapshot": "/home/esjung/.cache/huggingface/hub/models--Qwen--Qwen3-VL-30B-A3B-Instruct/snapshots/9c4b90e1e4ba969fd3b5378b57d966d725f1b86c",
+    "dtype": "bfloat16",
+    "hidden_size": 2048,
+    "intermediate_size": 768,
+    "num_experts": 128,
+    "expert_top_k": 8,
+    "decoder_layers": 48,
+    "vision_patch_size": 16,
+    "spatial_merge_size": 2,
+    "shared_expert": false,
+    "config_sha256": "6129b3f54d517a18553cf7525ff4886be6831c5806fc094d632b8ef38d859912",
+    "generation_config_sha256": "1e241830b48b397cb0900101421df5450baddc7adf01e5fc86b5615865f3bae4",
+    "chat_template_sha256": "5c72a170d2a4a1a3bc5adad2e689ae28138a9700e5b8c96c0266331e86c0acce"
+  },
+  "physical_ep4": {
+    "physical_gpus": [4, 5, 6, 7],
+    "tp": 2,
+    "dp": 2,
+    "sp": 1,
+    "pp": 1,
+    "ep": 4,
+    "backend": "deepep_high_throughput+triton_sparse_top8",
+    "expert_owner_map": "linear_contiguous_32_experts_per_rank",
+    "evidence_label": "MEASURED_TRUE_EP4",
+    "proof_status": "PASS"
+  },
+  "generation_protocols": {
+    "official": {
+      "do_sample": true,
+      "seed": 3407,
+      "temperature": 0.7,
+      "top_p": 0.8,
+      "sampling_top_k": 20,
+      "repetition_penalty": 1.0,
+      "presence_penalty": 1.5,
+      "max_new_tokens": 32768,
+      "stop": "checkpoint_eos_ids"
+    },
+    "deterministic": {
+      "do_sample": false,
+      "temperature": 0.0
+    }
+  },
+  "reported_registry": {
+    "source": "Qwen3-VL technical report Table 3, printed p.16, Instruct column",
+    "MMStar": 72.1,
+    "ChartQA_test": 86.8,
+    "RealWorldQA": 73.7,
+    "MMMU": 74.2,
+    "OCRBench_raw": 903,
+    "DocVQA_test": 95.0
+  },
+  "datasets": {
+    "manual_sanity_request_ids": [
+      "ocr_text",
+      "ocr_page",
+      "ocr_ui",
+      "number_clock",
+      "count_coins",
+      "count_board",
+      "scene_astronaut",
+      "scene_cat",
+      "scene_coffee",
+      "chart",
+      "wrong_image_control",
+      "blank_control"
+    ],
+    "MMStar": "NOT_RUN",
+    "ChartQA_test": "NOT_RUN"
+  },
+  "clean_timing_ms": {
+    "batch1_first_token": 2863.9945,
+    "batch1_forced32": 5792.639483,
+    "batch1_forced128": 14826.975177,
+    "batch4_first_token": 3069.170617,
+    "batch4_forced32": 5995.280064,
+    "batch4_forced128": 15001.825695,
+    "evidence_label": "MEASURED_TRUE_EP4_INPUT_READY",
+    "natural_e2e": "NOT_ESTABLISHED"
+  },
+  "trace": {
+    "raw_route_root": "/home/esjung/MLLM-EP-github/poc_flashvep/deepep_revalidation/results/prerouter_visual_signal_20260821_133700",
+    "bounded_hidden_root": "/home/esjung/MLLM-EP-github/poc_spatial_basis_ep/artifacts/20260924_spatial_basis_ep/discovery_trace",
+    "bounded_hidden_layers": [0, 3, 7, 15, 23, 31, 39, 47],
+    "virtual_ep4": "/home/esjung/MLLM-EP-github/poc_mllm_ep_foundation/artifacts/traces/virtual_ep4_24.json",
+    "virtual_ep8": "/home/esjung/MLLM-EP-github/poc_mllm_ep_foundation/artifacts/traces/virtual_ep8_24.json",
+    "requests": 24,
+    "layers_per_request": 48,
+    "assignments": 3016704,
+    "logical_rows": 377088,
+    "ep4_evidence_label": "MEASURED_EP4_TOPOLOGY_REPLAY",
+    "ep8_evidence_label": "UNVALIDATED_EP8_EXTRAPOLATION"
+  },
+  "calibration": {
+    "path": "/home/esjung/MLLM-EP-github/poc_mllm_ep_foundation/artifacts/analysis/cost_calibration.json",
+    "validation_path": "/home/esjung/MLLM-EP-github/poc_mllm_ep_foundation/artifacts/analysis/heldout_validation.json",
+    "domain": "Qwen3-VL-30B-A3B BF16 DeepEP-HT TP2-DP2-SP1-PP1-EP4 sparse top8",
+    "calibration_requests": 7,
+    "heldout_requests": 4,
+    "heldout_layer_observations": 192,
+    "median_ape": 0.15705182295395992,
+    "p90_ape": 0.4681717664217515,
+    "signed_bias_ms": 0.2667370404577582,
+    "status": "SIM_UNVALIDATED"
+  },
+  "resource_fallback": {
+    "four_gpu": "MEASURED_TRUE_EP4",
+    "two_gpu": "MEASURED_FULL_MODEL_TP2_SEMANTIC",
+    "one_gpu": "MEASURED_FULL_MODEL_TP1_INPROCESS_SEMANTIC",
+    "status": "TESTED_4_2_1"
+  },
+  "paths": {
+    "environment": "/home/esjung/MLLM-EP-github/poc_mllm_ep_foundation/artifacts/manifest/environment.json",
+    "sanity_manifest": "/home/esjung/MLLM-EP-github/poc_mllm_ep_foundation/artifacts/manifest/sanity_requests.json",
+    "reference_quality": "/home/esjung/MLLM-EP-github/poc_mllm_ep_foundation/artifacts/quality/sanity_reference_tp4/results.jsonl",
+    "ep4_quality": "/home/esjung/MLLM-EP-github/poc_mllm_ep_foundation/artifacts/quality/sanity_physical_ep4/results.jsonl",
+    "official_bounded_quality": "/home/esjung/MLLM-EP-github/poc_mllm_ep_foundation/artifacts/quality/sanity_official_ep4/results.jsonl",
+    "full_model_profile": "/home/esjung/MLLM-EP-github/poc_mllm_ep_foundation/artifacts/analysis/full_model_profile.json",
+    "summary_report": "/home/esjung/MLLM-EP-github/poc_mllm_ep_foundation/reports/baseline_foundation_summary.md"
+  },
+  "status": {
+    "MODEL_CONTRACT": "PASS",
+    "IMAGE_PIPELINE": "PASS",
+    "PUBLIC_REPRODUCTION": "PARTIAL_PROTOCOL_FULL_SCORE_NOT_RUN",
+    "REFERENCE_VS_EP_QUALITY": "UNRESOLVED",
+    "PHYSICAL_EP4_PROOF": "PASS",
+    "VIRTUAL_SEMANTIC_PARITY": "PARTIAL_QUALITY_UNRESOLVED",
+    "SIM_EP4_VALIDATION": "FAIL_SIM_UNVALIDATED",
+    "SIM_EP8": "UNVALIDATED_EXTRAPOLATION",
+    "RESOURCE_FALLBACK": "TESTED_4_2_1",
+    "READY_FOR_PART2": "DIAGNOSTIC_ONLY"
+  },
+  "unresolved_items": [
+    "Full MMStar and ChartQA public reproduction for stock and physical EP4",
+    "Paired task-score confidence interval and -1 pp EP non-inferiority test",
+    "Low-overhead full additive component profile",
+    "At least 16 calibration and 8 image-disjoint held-out requests",
+    "Material configuration-pair ranking and gain-sign validation",
+    "Physical EP8 validation"
+  ],
+  "new_optimization_implemented": false
+}
