@@ -1,0 +1,13 @@
+{
+  "canonical_wrapper": "poc_mllm_rank_aware_active_expert_reduction/q2_3_visual_grounding_budget/reproduce.sh",
+  "commands": [
+    "PYTHONPATH=. python -m poc_mllm_rank_aware_active_expert_reduction.q2_3_visual_grounding_budget.scripts.audit_baseline ...",
+    "PYTHONPATH=. python -m poc_mllm_rank_aware_active_expert_reduction.q2_3_visual_grounding_budget.scripts.build_cohort ...",
+    "CUDA_VISIBLE_DEVICES=2,3,6,7 PYTHONPATH=. /home/esjung/.venvs/flashvep-deepep-v020/bin/python -m poc_mllm_rank_aware_active_expert_reduction.q2_3_visual_grounding_budget.scripts.run_subspace_capture_ep4 ...",
+    "PYTHONPATH=. python -m poc_mllm_rank_aware_active_expert_reduction.q2_3_visual_grounding_budget.scripts.build_structured_probe_plan ...",
+    "CUDA_VISIBLE_DEVICES=2,3,6,7 PYTHONPATH=. /home/esjung/.venvs/flashvep-deepep-v020/bin/python -m poc_mllm_rank_aware_active_expert_reduction.q2_3_visual_grounding_budget.scripts.run_structured_probe_ep4 ...",
+    "PYTHONPATH=. python -m poc_mllm_rank_aware_active_expert_reduction.q2_3_visual_grounding_budget.scripts.analyze_visual_grounding ...",
+    "PYTHONPATH=. python -m poc_mllm_rank_aware_active_expert_reduction.q2_3_visual_grounding_budget.scripts.analyze_distributional_diagnostics ...",
+    "PYTHONPATH=. pytest -q poc_mllm_rank_aware_active_expert_reduction/q2_3_visual_grounding_budget/tests"
+  ]
+}
