@@ -1,0 +1,29 @@
+{
+  "authoritative_spec": "/home/esjung/MLLM-EP-github/poc_flashvep/reports/MLLM_Vision_Conditioned_Decode_Damage_Estimation_and_Adaptive_Skipping_PoC.md",
+  "commands": [
+    "bash poc_mllm_vision_conditioned_decode_damage_skipping/scripts/run_vector_capture.sh path_vector_capture_v1 0",
+    "bash poc_mllm_vision_conditioned_decode_damage_skipping/scripts/run_vector_capture.sh path_vector_capture_v3_remaining 25",
+    "python -m poc_mllm_vision_conditioned_decode_damage_skipping.scripts.build_local_damage --capture poc_mllm_vision_conditioned_decode_damage_skipping/artifacts/runs/path_vector_capture_v1 --capture poc_mllm_vision_conditioned_decode_damage_skipping/artifacts/runs/path_vector_capture_v3_remaining --manifest poc_mllm_vision_conditioned_decode_damage_skipping/artifacts/manifests/frozen_damage_cohort.json --compact poc_mllm_mixed_domain_online_calibration/artifacts/ep4_compact.jsonl.gz --criticality poc_mllm_vision_conditioned_decode_reduction/artifacts/frozen_vision_criticality.json --labels poc_mllm_vision_conditioned_decode_damage_skipping/artifacts/local_path_damage_labels_v2.jsonl.gz --summary poc_mllm_vision_conditioned_decode_damage_skipping/artifacts/local_damage_summary_v2.json --functional-plan poc_mllm_vision_conditioned_decode_damage_skipping/artifacts/manifests/frozen_functional_probe_plan_v2.json",
+    "bash poc_mllm_vision_conditioned_decode_damage_skipping/scripts/run_functional_probe.sh functional_damage_v1",
+    "bash poc_mllm_vision_conditioned_decode_damage_skipping/scripts/run_functional_probe.sh functional_damage_v2_remaining '' 29 frozen_functional_probe_plan_v2.json",
+    "python -m poc_mllm_vision_conditioned_decode_damage_skipping.scripts.analyze_functional_damage --run poc_mllm_vision_conditioned_decode_damage_skipping/artifacts/runs/functional_damage_v1 --run poc_mllm_vision_conditioned_decode_damage_skipping/artifacts/runs/functional_damage_v2_remaining --plan poc_mllm_vision_conditioned_decode_damage_skipping/artifacts/manifests/frozen_functional_probe_plan_v2.json --local-labels poc_mllm_vision_conditioned_decode_damage_skipping/artifacts/local_path_damage_labels_v2.jsonl.gz --labels poc_mllm_vision_conditioned_decode_damage_skipping/artifacts/functional_path_damage_labels.jsonl.gz --summary poc_mllm_vision_conditioned_decode_damage_skipping/artifacts/functional_damage_summary.json",
+    "python -m poc_mllm_vision_conditioned_decode_damage_skipping.scripts.analyze_predictors --labels poc_mllm_vision_conditioned_decode_damage_skipping/artifacts/functional_path_damage_labels.jsonl.gz --contract poc_mllm_vision_conditioned_decode_damage_skipping/artifacts/research_contract.json --artifact-dir poc_mllm_vision_conditioned_decode_damage_skipping/artifacts",
+    "python -m poc_mllm_vision_conditioned_decode_damage_skipping.scripts.build_ep8_structural --labels poc_mllm_vision_conditioned_decode_damage_skipping/artifacts/functional_path_damage_labels.jsonl.gz --predictions poc_mllm_vision_conditioned_decode_damage_skipping/artifacts/predictor_outputs.jsonl.gz --output poc_mllm_vision_conditioned_decode_damage_skipping/artifacts/ep8_structural_projection.json",
+    "python -m poc_mllm_vision_conditioned_decode_damage_skipping.scripts.render_reports --root poc_mllm_vision_conditioned_decode_damage_skipping"
+  ],
+  "dtype": "bfloat16",
+  "functional_probe_count": 256,
+  "local_path_label_count": 9312,
+  "model_revision": "9c4b90e1e4ba969fd3b5378b57d966d725f1b86c",
+  "physical_evidence": "TRUE_TP2_DP2_EP4_DEEPEP",
+  "production_runtime_implemented": false,
+  "schema_version": 1,
+  "stage_b_gate": {
+    "f5_vs_f1_increment_ge3pp_ci_positive": false,
+    "f5_vs_f2_increment_ge3pp_ci_positive": false,
+    "oracle_safe_headroom_ge20pct": true,
+    "pass": false,
+    "vision_increment_ci_positive": false
+  },
+  "verdict": "TEXT_SIGNAL_SUFFICIENT"
+}

@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "frozen_before_functional_results": true,
+  "primary_damage_metric": "max(0,target_logprob_drop_nats)+2*JSD+1[top1_flip]",
+  "absolute_safe_path": {
+    "target_logprob_drop_nats_max": 0.01,
+    "jsd_max": 0.0001,
+    "top1_flip": false
+  },
+  "critical_thresholds_from_calibration_quantiles": {
+    "strict": 0.9,
+    "moderate_primary": 0.8,
+    "relaxed": 0.7
+  },
+  "primary_gate_skip_rate": 0.2,
+  "stage_b_increment_gate_pp": 3.0,
+  "stage_b_ci_rule": "request-cluster paired bootstrap 95% CI lower bound > 0",
+  "predictor_family": "fixed-alpha standardized ridge regression",
+  "ridge_alpha": 1.0,
+  "bootstrap_seed": 3407,
+  "bootstrap_replicates": 2000,
+  "heldout_threshold_tuning": false
+}
