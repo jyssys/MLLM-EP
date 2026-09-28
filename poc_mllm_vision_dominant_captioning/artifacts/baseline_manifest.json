@@ -1,0 +1,37 @@
+{
+  "model": "Qwen/Qwen3-VL-30B-A3B-Instruct",
+  "revision": "9c4b90e1e4ba969fd3b5378b57d966d725f1b86c",
+  "dtype": "bfloat16",
+  "hidden_size": 2048,
+  "moe_intermediate_size": 768,
+  "decoder_layers": 48,
+  "routed_experts": 128,
+  "top_k": 8,
+  "shared_expert": false,
+  "ep2": {
+    "topology": "TP1-DP2-EP2",
+    "experts_per_rank": 64,
+    "physical_gpus": [4, 5],
+    "backend": "deepep_high_throughput"
+  },
+  "ep4": {
+    "topology": "TP2-DP2-EP4-PP1",
+    "experts_per_rank": 32,
+    "physical_gpus": [4, 5, 6, 7],
+    "backend": "deepep_high_throughput"
+  },
+  "ep8": {
+    "topology": "STRUCTURAL_MAPPING_ONLY",
+    "experts_per_rank": 16,
+    "physical_validation": false
+  },
+  "gpu_uuids": {
+    "4": "GPU-6076e2f2-5b63-3761-5586-56ceb7df8139",
+    "5": "GPU-a1a1cfcf-93a1-3544-9a5e-e58144b68730",
+    "6": "GPU-e3f3998e-0f1a-e94a-b97c-4abb0e8c2c28",
+    "7": "GPU-4cc26b88-19fc-1988-f9e0-17858aa7a99b"
+  },
+  "foundation_bundle": "poc_mllm_ep_foundation/artifacts/frozen_baseline_bundle.json",
+  "full_public_quality_rerun": false,
+  "latency_simulator_used": false
+}
