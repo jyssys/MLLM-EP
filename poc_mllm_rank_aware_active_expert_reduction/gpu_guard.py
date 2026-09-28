@@ -38,8 +38,48 @@ def _write(path: Path, payload: object) -> None:
     temporary.replace(path)
 
 
+def _owned_gpu_processes(gpus: set[int]) -> list[tuple[int, int, str]]:
+    """Resolve current same-user compute processes on the explicitly scoped GPUs.
+
+    vLLM changes burner worker process titles to ``VLLM::EngineCore`` and may
+    orphan them when the Python launcher is terminated, so argv matching alone
+    cannot guarantee a clean timing/capture boundary.
+    """
+    gpu_rows = subprocess.run(
+        ["nvidia-smi", "--query-gpu=index,uuid", "--format=csv,noheader"],
+        text=True, capture_output=True, check=True,
+    ).stdout.splitlines()
+    by_uuid = {
+        fields[1].strip(): int(fields[0].strip())
+        for row in gpu_rows if len(fields := row.split(",", 1)) == 2
+    }
+    apps = subprocess.run(
+        ["nvidia-smi", "--query-compute-apps=pid,gpu_uuid", "--format=csv,noheader"],
+        text=True, capture_output=True, check=True,
+    ).stdout.splitlines()
+    result = []
+    for row in apps:
+        fields = row.split(",", 1)
+        if len(fields) != 2 or fields[1].strip() not in by_uuid:
+            continue
+        pid, gpu = int(fields[0].strip()), by_uuid[fields[1].strip()]
+        if gpu not in gpus:
+            continue
+        proc = Path(f"/proc/{pid}")
+        try:
+            if proc.stat().st_uid != os.getuid():
+                continue
+            cmd = (proc / "cmdline").read_bytes().replace(b"\0", b" ").decode(errors="replace")
+        except (FileNotFoundError, PermissionError, ProcessLookupError):
+            continue
+        result.append((pid, gpu, cmd))
+    return result
+
+
 def stop(gpus: set[int], record: Path) -> None:
     rows = [row for row in _workers() if row[1] in gpus]
+    known = {row[0] for row in rows}
+    rows.extend(row for row in _owned_gpu_processes(gpus) if row[0] not in known)
     for pid, _, _ in rows:
         try:
             os.kill(pid, signal.SIGTERM)

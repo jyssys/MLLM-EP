@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "repository_base_sha": "61cc8c4b952a823ac258762794625f9a1f936e2e",
+  "branch": "flashvep/mllm-q2-2-causal-vision-path-poc",
+  "model_revision": "9c4b90e1e4ba969fd3b5378b57d966d725f1b86c",
+  "dtype": "bfloat16",
+  "physical_gpus": [2, 3, 6, 7],
+  "gpu_uuids": {
+    "2": "GPU-24200107-8a7f-de46-1bc8-b81f8d3af13e",
+    "3": "GPU-17488c15-2d4c-5d9e-d503-29b0d959a8a8",
+    "6": "GPU-e3f3998e-0f1a-e94a-b97c-4abb0e8c2c28",
+    "7": "GPU-4cc26b88-19fc-1988-f9e0-17858aa7a99b"
+  },
+  "topology": "TRUE_TP2_DP2_EP4_PP1",
+  "backend": "DeepEP high-throughput sparse dispatch/combine",
+  "cohort": {
+    "calibration_requests": 8,
+    "fresh_heldout_requests": 24,
+    "fresh_heldout_paths": 192,
+    "same_domain_swaps": true,
+    "identical_teacher_forced_prefix": true,
+    "old_q2_heldout_overlap": 0
+  },
+  "runs": {
+    "causal_capture_full_v1": {
+      "status": "COMPLETE",
+      "condition_executions": 64
+    },
+    "functional_orig_full_v1": {
+      "status": "COMPLETE",
+      "probes": 288
+    },
+    "functional_cf_full_v1": {
+      "status": "COMPLETE",
+      "probes": 253,
+      "retained_counterfactual_drop_probes": 221
+    }
+  },
+  "logical_expert_reference": {
+    "same_expert_evaluations": 512,
+    "runtime_selected_validation_rows": 219,
+    "max_relative_l2": 0.001291709,
+    "tolerance": 0.01,
+    "status": "PASS"
+  },
+  "exact_intervention_marker_audit": {
+    "original_all_pass": true,
+    "counterfactual_all_pass": true
+  },
+  "tests": {
+    "command": "/home/esjung/anaconda3/bin/python -m pytest -q poc_mllm_rank_aware_active_expert_reduction/tests poc_mllm_rank_aware_active_expert_reduction/q2_2_causal_visual_path/tests",
+    "result": "9 passed"
+  },
+  "latency_claims": "NONE",
+  "production_runtime_implemented": false
+}
