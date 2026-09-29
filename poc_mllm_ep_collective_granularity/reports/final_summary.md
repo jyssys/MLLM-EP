@@ -60,5 +60,5 @@ OVERALL_VERDICT: PROCEED_COMMUNICATION_ONLY_CHUNKING
 MLLM_FRAMING: MLLM_STRESS_REGIME_ONLY
 NEXT_ACTION: Proceed to a bounded communication-only chunking implementation PoC.
 BRANCH: flashvep/mllm-ep-collective-granularity-gap-poc
-COMMIT: RECORDED_AFTER_REPORT_GENERATION
+EVIDENCE_COMMIT: 4bc7ea35f10d81a0cf60d2720da064c01755168b
 ```
