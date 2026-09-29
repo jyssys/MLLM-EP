@@ -33,6 +33,7 @@ def main() -> None:
     parser.add_argument("--audit", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--branch", required=True)
+    parser.add_argument("--commit", default="CURRENT_BRANCH_HEAD_AT_REPORT_GENERATION")
     args = parser.parse_args()
     q1 = read_json(args.analysis / "q1_stage_breakdown.json")
     q2 = read_json(args.analysis / "q2_modality_routes.json")
@@ -238,7 +239,7 @@ Q3_VERDICT: {q3["verdict"]}
 OVERALL_VERDICT: {verdict["overall"]}
 NEXT_ACTION: {("Proceed to a separate bounded communication-only chunking design PoC." if verdict["overall"] == "COMMUNICATION_ONLY_CHUNKING_MOTIVATED" else "Do not implement communication-only chunking from this evidence; retain the measured characterization.")}
 BRANCH: {args.branch}
-COMMIT: PENDING_THIS_REPORT_COMMIT
+COMMIT: {args.commit}
 """
     write(args.output / "final_summary.md", final)
 
