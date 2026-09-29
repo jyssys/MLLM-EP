@@ -1,0 +1,89 @@
+{
+  "backend": "deepep_high_throughput",
+  "fixed_decode_tokens": 128,
+  "global_batch": 8,
+  "physical_gpus": [
+    2,
+    3,
+    6,
+    7
+  ],
+  "request_executions": 104,
+  "route_contract": "SAME_PROMPTS_AND_FORCED_TOKENS; POLICY_TRANSFORMS_CURRENT_NATIVE_ROUTE",
+  "schedule": [
+    {
+      "capture": false,
+      "condition": "SEED",
+      "replicate": -1
+    },
+    {
+      "capture": true,
+      "condition": "NATIVE_K8",
+      "replicate": 0
+    },
+    {
+      "capture": true,
+      "condition": "NATIVE_TAIL_K6",
+      "replicate": 0
+    },
+    {
+      "capture": true,
+      "condition": "RANK_AWARE_K6",
+      "replicate": 0
+    },
+    {
+      "capture": true,
+      "condition": "SAME_PAIR_COLLAPSE25",
+      "replicate": 0
+    },
+    {
+      "capture": true,
+      "condition": "NATIVE_TAIL_K6",
+      "replicate": 1
+    },
+    {
+      "capture": true,
+      "condition": "SAME_PAIR_COLLAPSE25",
+      "replicate": 1
+    },
+    {
+      "capture": true,
+      "condition": "NATIVE_K8",
+      "replicate": 1
+    },
+    {
+      "capture": true,
+      "condition": "RANK_AWARE_K6",
+      "replicate": 1
+    },
+    {
+      "capture": true,
+      "condition": "RANK_AWARE_K6",
+      "replicate": 2
+    },
+    {
+      "capture": true,
+      "condition": "NATIVE_K8",
+      "replicate": 2
+    },
+    {
+      "capture": true,
+      "condition": "SAME_PAIR_COLLAPSE25",
+      "replicate": 2
+    },
+    {
+      "capture": true,
+      "condition": "NATIVE_TAIL_K6",
+      "replicate": 2
+    }
+  ],
+  "schema_version": "rank_bridge_run.v1",
+  "steps": [
+    16,
+    32,
+    64,
+    96,
+    128
+  ],
+  "topology": "TP2-DP2-EP4-PP1"
+}
