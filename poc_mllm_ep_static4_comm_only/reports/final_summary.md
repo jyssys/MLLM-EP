@@ -81,5 +81,5 @@ CORRECTNESS_VERDICT: PASS_EXACT_BF16_OUTPUT
 OVERALL_VERDICT: STATIC4_OVERHEAD_DOMINATES
 NEXT_ACTION: bounded DeepEP/CUDA direct-buffer fast-path micro-PoC only; no adaptive policy
 BRANCH: flashvep/mllm-ep-static4-comm-only-poc
-COMMIT: PENDING_FINAL_COMMIT
+COMMIT: 3e395d2e (primary implementation and evidence)
 ```
