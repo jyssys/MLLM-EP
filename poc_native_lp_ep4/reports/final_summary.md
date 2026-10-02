@@ -60,5 +60,5 @@ MODALITY_COMMON_RESIDUAL: SUPPORTED_TESTED_INPUT_PRODUCER_PATH
 OVERALL_VERDICT: MODALITY_COMMON_RESIDUAL_FOUND
 NEXT_ACTION: Retire LP expert-fragmentation claim; study lossless multimodal producer isolation before any new communication method.
 BRANCH: flashvep/native-layered-prefill-ep4-discovery
-COMMIT: Publication evidence SHA recorded in artifacts/release.json after evidence freeze
+COMMIT: 395f514e336438bcee94324b608f8f7b3e9a6ff6 (evidence freeze; following metadata-only release commit)
 ```
