@@ -1,0 +1,11 @@
+# Instrumentation validity
+
+Clean lane: pooled local CUDA events for router completion and prepare/expert/finalize boundaries. No route clone/download, no Nsight, no per-layer global host sync. One completion drain after the 48-layer model forward. Same backend/placement/dtype/boundaries in all arms. Final stage intervals include native DeepEP's stock count synchronization; they are not wire-only timers.
+
+Initial high_baseline_v1 incorrectly captured32 external-DP idle/dummy forwards per wave under a common label. Fail-closed analyzer rejected1536 layers/rank rather than48. This run is EXCLUDED, not averaged or silently cleaned. Added CPU DP-coordinate selection: max(coordinated_dp_tokens)==actual prompt_tokens, regression test and new v2/v3 runs. Each accepted wave has exactly48 unique layers on every rank. No additional GPU reduction or .item() was added.
+
+Paired hook-bypass host-wave diagnostic n5 is noisy and includes DP idle coordination; visual CI was too wide. A separate n10 common two-event language-model envelope on active source TP0 was therefore executed. Same envelope and completion guard apply to both lanes. Inclusive clean overhead: visual 8.34% CI [7.231176982997976, 9.484449863568083]; text 7.65% CI [6.602844029828533, 8.629933758676067]. This is measured overhead, not zero; compare effect sizes accordingly. LLM host-wave overhead n5 0.49%.
+
+Internal API CUDA events + NVTX + compact capture perturb component times; >10% changed strata are UNVALIDATED_PERTURBED_INTERNAL_DURATION. Their phase durations and the subcomponent figure are DIAGNOSTIC ONLY, never the headline. Separate minimal-hook Nsight lane classified exactly48 calls for five kernel classes on each of12 native arm/rank ranges. Nsight profiler changes readiness/launch timing; kernel durations cannot be substituted into clean times or summed across ranks.
+
+No pure cross-rank data-movement interval exists: fused dispatch contains packing/movement/polling, fused combine contains movement/reduction/polling. EffectiveBW=N/A. ApparentThroughput uses logical useful bytes divided by clean composite stage time and includes all-rank useful traffic (local destinations included), not per-link bandwidth.
