@@ -1,0 +1,104 @@
+# Speculative decoding × physical MoE EP: final discovery
+
+**NO_SPECULATION_CROSSOVER**. Independent rank-traffic cost support: False; tested-depth crossover: False.
+
+Measured clean TRUE EP4 on GPUs2,3,6,7, output cap64/EOS, first16 frozen requests (8+8). Route features come from a separate trace pass with identical request/prefix/draft IDs.
+
+| Arm | acceptance | progress/verify | experts/layer | remote paths/layer | fanout/token | max-rank bytes/layer | EP ms/progress | target ms/progress | E2E ms/token |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| AR | N/A | 1.000 | 8.000 | 5.932 | 3.644 | 14924.6 | 25.953 | 90.804 | 92.779 |
+| 2 | 0.858 | 2.673 | 17.123 | 17.846 | 3.642 | 29840.6 | 9.434 | 33.214 | 46.071 |
+| 4 | 0.742 | 3.850 | 23.738 | 29.714 | 3.641 | 44742.9 | 7.140 | 23.832 | 41.043 |
+| 8 | 0.626 | 5.712 | 33.822 | 53.530 | 3.643 | 74636.0 | 4.574 | 15.733 | 37.961 |
+
+Final key repeat check: **two predefined requests ×10 repeats/depth** (forward3+reverse7 restart blocks).
+
+- gamma0: EP/progress=26.021ms; target/progress=90.153ms; E2E/token=92.130ms.
+- gamma2: EP/progress=12.634ms; target/progress=36.386ms; E2E/token=51.363ms.
+- gamma4: EP/progress=7.352ms; target/progress=26.045ms; E2E/token=45.221ms.
+- gamma8: EP/progress=5.215ms; target/progress=18.406ms; E2E/token=45.182ms.
+
+
+M2 communication MAE reduction=-0.878%; grouped-CV R2 increment=-0.00126. Whole-forward averaged features provided no eligible traffic-separated pairs; the fixed-layer secondary comparison is reported in cost_model_comparison.md and resamples requests, not layers.
+
+The same-layer comparison contains 2,743 pairs but only 16 independent requests: median EP-time difference **+0.184%**, request-cluster mean **+0.623%**, 95% CI **[-0.016%, +1.343%]**, despite matched traffic differences of at least 15%. M1 and M2 both have negative R2; this is not evidence that M1 explains all timing variation.
+
+The formal missing-cost gate has one positive point estimate: expert-proxy vs physical-cost best-depth choices disagree for 5/16 requests (31.25%; request-bootstrap CI [12.5%, 56.25%]). The other three criteria fail. This disagreement can reflect ordinary collective fixed-cost amortization rather than a new within-width rank-traffic dimension. On 106 measured common-prefix opportunities, the EP-aware oracle improves target-side cost by **0.484% vs fixed gamma8** and **0.043% vs the strongest fixed/expert/acceptance comparator** (acceptance; 95% CI [-0.137%, +0.216%]). The 12.623% gain vs the weaker expert-only proxy is not the promotion comparison. No adaptive-policy rollout or E2E oracle gain was measured. The stopping verdict applies only to the tested depths, requests, single-active-DP workload and hardware—not to all speculative MoE serving regimes.
+
+Prior audit found related EP routing-prediction work, not the identical draft/verify/accept mechanism. This is not a novelty proof or superiority claim. No online scheduler, expert dropping, router approximation or proposed-method speedup was implemented.
+
+Important limits: only16 initial requests actually measured, not the full96 frozen pool; native engines are paired forward/reverse restart blocks, not randomized per-wave interleave; single-active DP0, real DP1 dummy cost; trace timings diagnostic; clean route features are transferred from identical-prefix traced runs, with repeat checks on a small subset. Condition timings are app-level CUDA composites, not pure link bandwidth.
+
+## Required summary block
+
+```text
+POC_TYPE: DISCOVERY_ONLY
+TARGET_MODEL: Qwen/Qwen3-30B-A3B
+TARGET_REVISION: ad44e777bcd18fa416d9da3bd8f70d33ebb85d39
+DRAFT_MODEL: Qwen/Qwen3-0.6B
+DRAFT_REVISION: c1899de289a04d12100db370d81485cdf75e47ca
+TOKENIZER_COMPATIBILITY: IDENTICAL_VOCAB_AND_FILES
+SD_SEMANTICS: native greedy longest prefix + correction/bonus + KV rollback
+TARGET_OUTPUT_EQUIVALENCE: PASS 16/16 per gamma and all measured clean repeats
+GPU_SET: 2,3,6,7
+PHYSICAL_TO_LOGICAL_MAPPING: 2->0,3->1,6->2,7->3
+GPU_MODEL: H10080GBHBM3 NV18 selected links
+TOPOLOGY: TP2-DP2-EP4-PP1
+EP_SIZE: 4
+DEEPEP_BACKEND: DeepEPHTPrepareAndFinalize + TritonExperts
+DATASETS: GSM8K test + HumanEval public; 64+32 frozen,8+8 actually gated
+REQUEST_COUNT: 16
+REMOTE_ROWS_DEFINITION: token-expert path rows; destination-deduplicated hidden rows reported separately
+GENERATED_TOKENS: 890
+AR_TARGET_MS_PER_TOKEN: 90.80375570708972
+AR_EP_COMM_MS_PER_TOKEN: 25.952574245574862
+BEST_FIXED_GAMMA: 8
+BEST_EXPERT_AWARE_GAMMA_ORACLE: {0: 28, 8: 46, 4: 17, 2: 15}
+BEST_EP_AWARE_GAMMA_ORACLE: {8: 83, 4: 1, 0: 13, 2: 9}
+M1_GROUPED_CV_MAE: 3.283267055892473
+M2_GROUPED_CV_MAE: 3.312090707241245
+M2_ERROR_REDUCTION_PCT: -0.8778954272709113
+M1_GROUPED_CV_R2: -0.012430428910067182
+M2_GROUPED_CV_R2: -0.013690886538870073
+MATCHED_UNIQUE_EXPERT_EP_TIME_DELTA: 0.18354127860331637
+EP_COMM_FRACTION_OF_TARGET_VERIFY: {0: 0.28580948049430244, 2: 0.2840426656334929, 4: 0.2995736416150623, 8: 0.2907018293301598}
+REJECTED_EP_BYTE_FRACTION: {0: 0.0, 2: 0.09414454079460698, 4: 0.2055534830259828, 8: 0.332284013937398}
+EP_AWARE_ORACLE_VS_FIXED_GAIN: {'mean': 0.4838670163909886, 'ci95': [0.10910972798383146, 1.0028258285963747], 'independent_unit': 'request', 'n': 16, 'bootstrap': 2000}
+EP_AWARE_ORACLE_VS_EXPERT_AWARE_GAIN: {'mean': 12.622756470146385, 'ci95': [6.7961094081289, 19.500777151604687], 'independent_unit': 'request', 'n': 16, 'bootstrap': 2000}
+EP_AWARE_ORACLE_VS_STRONGEST_TARGET_BASELINE_GAIN: {'mean': 0.04294250511069813, 'ci95': [-0.13661324350225187, 0.21642140227849385], 'independent_unit': 'request', 'n': 16, 'bootstrap': 2000}
+EP_AWARE_ORACLE_E2E_STATUS: UNVALIDATED_NOT_AN_ADAPTIVE_POLICY_ROLLOUT
+PRIOR_OVERLAP_STATUS: RELATED_EP_PRIOR_NOT_IDENTICAL_SD_MECHANISM
+PHYSICAL_EP_MISSING_COST_STATUS: formal gate=True; independent rank-cost support=False
+SPECULATION_CROSSOVER_STATUS: NO_SPECULATION_CROSSOVER_IN_TESTED_DEPTHS
+OVERALL_VERDICT: NO_SPECULATION_CROSSOVER
+NEXT_ACTION: Do not build an EP-aware SD method from this evidence. Consider higher concurrency/EP degree only under a new frozen experiment, not threshold tuning here.
+BRANCH: flashvep/speculative-moe-ep-discovery
+COMMIT: git log -1 --format=%H on the evidence branch; exact SHA supplied in handoff
+GAMMA2_ACCEPTANCE: 0.8577981651376146
+GAMMA2_COMMITTED_PER_VERIFY: 2.672782874617737
+GAMMA2_UNIQUE_EXPERTS: 17.122642711518857
+GAMMA2_REMOTE_ROWS: 17.84633027522936
+GAMMA2_REMOTE_DEDUP_HIDDEN_ROWS: 8.188073394495413
+GAMMA2_RANK_FANOUT: 3.641713387699626
+GAMMA2_MAX_RANK_BYTES: 29840.570846075432
+GAMMA2_EP_MS_PER_COMMITTED: 9.43425886002799
+GAMMA2_E2E_MS_PER_TOKEN: 46.0712788258427
+GAMMA4_ACCEPTANCE: 0.7422907488986784
+GAMMA4_COMMITTED_PER_VERIFY: 3.850220264317181
+GAMMA4_UNIQUE_EXPERTS: 23.737885462555067
+GAMMA4_REMOTE_ROWS: 29.713748164464022
+GAMMA4_REMOTE_DEDUP_HIDDEN_ROWS: 13.650605726872246
+GAMMA4_RANK_FANOUT: 3.641005873715125
+GAMMA4_MAX_RANK_BYTES: 44742.860499265786
+GAMMA4_EP_MS_PER_COMMITTED: 7.139516324509564
+GAMMA4_E2E_MS_PER_TOKEN: 41.04281483258427
+GAMMA8_ACCEPTANCE: 0.6258169934640523
+GAMMA8_COMMITTED_PER_VERIFY: 5.712418300653595
+GAMMA8_UNIQUE_EXPERTS: 33.82175925925926
+GAMMA8_REMOTE_ROWS: 53.53036492374728
+GAMMA8_REMOTE_DEDUP_HIDDEN_ROWS: 24.584558823529413
+GAMMA8_RANK_FANOUT: 3.6430495037521182
+GAMMA8_MAX_RANK_BYTES: 74635.99128540306
+GAMMA8_EP_MS_PER_COMMITTED: 4.573608087388547
+GAMMA8_E2E_MS_PER_TOKEN: 37.961071652434455
+```
