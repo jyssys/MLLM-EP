@@ -17,6 +17,25 @@ from poc_mllm_ep_communication_motivation import instrumentation as base
 PENDING=[]
 INVOCATION=-1
 WAVE=None
+EVENT_POOL={}
+CALL_SLOTS={}
+
+
+def pooled_events(kernel, layer):
+    """Reuse timing events only after the preceding invocation was drained.
+
+    Lazy CUDA-event creation is warmed on initial resident/model profiling
+    calls, outside the injection window. Slots cover multiple apply calls in
+    one layer without re-recording an event whose timing is still pending.
+    """
+    key=(id(kernel),layer)
+    slot=CALL_SLOTS.get(key,0);CALL_SLOTS[key]=slot+1
+    key=(*key,slot)
+    if key not in EVENT_POOL:
+        events=[torch.cuda.Event(enable_timing=True) for _ in range(4)]
+        for event in events:event.record()
+        EVENT_POOL[key]=events
+    return EVENT_POOL[key]
 
 
 def drain():
@@ -38,6 +57,7 @@ def drain():
 
 
 def install():
+    pool=os.environ.get('NATIVE_LP_EVENT_POOL')=='1'
     from vllm.distributed import get_dp_group,get_ep_group,get_tp_group
     from vllm.model_executor.models.qwen3_moe import Qwen3MoeDecoderLayer
     from vllm.model_executor.layers.fused_moe.modular_kernel import FusedMoEKernelModularImpl as Kernel
@@ -68,6 +88,7 @@ def install():
         wave=base._TLS.light_control.get('wave')
         if wave!=WAVE:WAVE=wave;INVOCATION=-1
         INVOCATION+=1
+        CALL_SLOTS.clear()
         try:return original_execute(self,*args,**kwargs)
         finally:
             drain()
@@ -76,6 +97,7 @@ def install():
     def apply(self,*args,**kwargs):
         from .native import TLS
         control=getattr(base._TLS,'light_control',None)
+        events=pooled_events(self,getattr(base._TLS,'layer',-1)) if pool else None
         if not control or not control.get('capture_stage',False):
             return original_apply(self,*args,**kwargs)
         states=getattr(TLS,'states',None) or []
@@ -97,7 +119,8 @@ def install():
                 'prepare_finalize_backend':type(self.prepare_finalize).__name__,
                 'expert_backend':type(self.fused_experts).__name__,
                 'topology':{'tp':2,'dp':2,'ep':4}}
-        events=[torch.cuda.Event(enable_timing=True) for _ in range(4)]
+        if events is None:events=[torch.cuda.Event(enable_timing=True) for _ in range(4)]
+        record['event_allocation']='REUSED_AFTER_DRAIN' if pool else 'PER_CALL_LEGACY'
         base._TLS.stage=(record,events)
         base._TLS.light_meta=None
         try:

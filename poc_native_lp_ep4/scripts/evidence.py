@@ -157,11 +157,11 @@ def victim_dispatch_excess(rows,waves):
     # never filled from a model or a request-specific learned constant.
     isolated={}
     for r in rows:
-        if r['arm']=='DECODE_ONLY' and r['iteration'][0]=='decode_step':
+        if r['arm']=='DECODE_ONLY' and r['iteration'][0]=='decode_step' and r['ranks']==4 and len(r['rank_durations'])==4:
             isolated[(r['wave'],r['iteration'][1],r['layer'])]=r
     result=[]
     for r in rows:
-        if r['arm']=='DECODE_ONLY' or not r['prefill_active']:continue
+        if r['arm']=='DECODE_ONLY' or not r['prefill_active'] or r['ranks']!=4 or len(r['rank_durations'])!=4:continue
         w=waves[r['wave']];baseline=w.get('baseline_wave')
         step=r.get('global_decode_step')
         if step is None:continue

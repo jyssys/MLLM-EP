@@ -14,6 +14,21 @@ PoC results are not modified. The isolated startup hook fails closed if the
 native integration cannot install. No approximation or new communication
 slicing method is implemented.
 
+## Completed finding
+
+See [final_summary.md](reports/final_summary.md), [serving latency](reports/serving_latency.md)
+and [measured Pareto analysis](reports/pareto_analysis.md). Native correctness,
+real token emission every stage and exact prefill routing pass. AUTO follows the
+official rule and is G4. LP retains 1.000x expert reload; CP512 is 3.798x.
+
+Ten paired repeats show a common first-iteration visual producer penalty, **not
+an isolated common EP wire/collective bottleneck**. The verdict is
+`MODALITY_COMMON_RESIDUAL_FOUND`, limited to this tested producer/runtime path.
+Do not use it to promote communication-only slicing. All accepted raw JSON is
+published compressed (304 files); independent restoration reproduces 39,926
+numeric fields. Hidden/logit tensors remain local, and older failed diagnostics
+are retained locally with a published exclusion audit.
+
 ## Running
 
 Use the previously validated environment and repository data assets. From the
@@ -26,6 +41,8 @@ export NATIVE_LP_ENABLE=1
 export NATIVE_LP_TRACE=1
 export NATIVE_LP_LIGHT_TRACE=1
 export NATIVE_LP_CORRECTNESS=1
+export NATIVE_LP_EVENT_POOL=1
+export NATIVE_LP_VISION_CACHE=0
 export NATIVE_LP_OUTPUT="$PWD/poc_native_lp_ep4/artifacts/runs/new_correctness"
 export MLLM_COMM_OUTPUT="$NATIVE_LP_OUTPUT"
 export MLLM_COMM_CONTROL="$PWD/poc_native_lp_ep4/artifacts/control.json"
@@ -50,23 +67,24 @@ The output directory must be new. Numerical/stage validation:
 
 For a **clean** serving run set `NATIVE_LP_TRACE=0`,
 `NATIVE_LP_CORRECTNESS=0`, remove `--trace --correctness`, use
-`--decode-tokens 128 --pair-baseline --repeats 10`, and a new output directory.
-Set the frozen arms from the discovery selection, not from final test results.
+`--decode-tokens 128 --pair-baseline --repeats 2`, and a new output directory.
+Run five independent two-repeat blocks with `--repeat-offset 0,2,4,6,8`
+respectively for ten final repeats. With four arms and two modalities, each
+block contains 48 waves including warmup. Do not put ten repeats into one
+long external-DP session. Set the frozen arms from discovery, not final results.
 
-`blocked_campaign.py --version v6` is the finite, restart-blocked
-correctness/discovery/freeze/final/trace plan. All arms initialize resident KV
-using the same ordinary Full prefill. Each engine session has at most 48 waves,
-including warmup; ten final paired repeats span multiple restarts.
-It has per-wave and per-session watchdogs and no automatic failure retries.
-All actual commands are recorded in `artifacts/campaign_ledger.jsonl` and
-per-run manifests/source signatures. `--interleave-instrumentation` is an
-overhead diagnostic, not a headline clean result.
-
-```bash
-export PYTHONPATH="$PWD"
-/home/esjung/.venvs/flashvep-deepep-v020/bin/python \
-  -m poc_native_lp_ep4.scripts.blocked_campaign --version v6
-```
+Historical `blocked_campaign.py --version v6` collected the clean discovery
+and ten-repeat final evidence. Its original source is checkpoint `6e318988`.
+Do not run that historical source-hash guard against the repaired current
+tracer. `complete_campaign.py` is the recorded **local continuation** after a
+diagnosed rendezvous startup failure and event-allocation overhead; it reuses
+immutable v6 clean results and collects v7 trace/correctness only. It is not a
+fresh-clone entrypoint: its failed-startup audit preconditions are deliberate.
+Use the explicit fresh-run commands in [reproduction.md](reports/reproduction.md).
+All arms initialize resident KV using the same ordinary Full prefill. Commands,
+source hashes, frozen selection, watchdogs and restart boundaries are preserved
+in the ledger and per-run manifests. There are no automatic failed-wave retries.
+`--interleave-instrumentation` is an overhead diagnostic, not clean latency.
 
 ## Boundaries
 
@@ -105,3 +123,8 @@ Large hidden/logit tensors and full local run directories remain local.
 Published compressed raw traces, per-token clocks, manifests, correctness
 differences and hashes permit independent reanalysis/reproduction without
 copying model weights, credentials or images.
+
+`stage_latency.py` provides a separately labeled first-versus-later-stage
+analysis from actual engine-completion tokens. It neither replaces the primary
+whole-window peak nor reselects the best LP arm. Host completion stamps are
+never called GPU collective-wait timestamps.

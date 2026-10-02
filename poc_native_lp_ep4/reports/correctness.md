@@ -1,6 +1,6 @@
 # Native correctness
 
-## Final native revision (v4)
+## Native model revision (v4; unchanged in v6/v7)
 
 PASS: **30 Full-versus-LP comparisons**: AUTO/G8/G16/G24/G48, visual and
 matched-text inputs, three repeats per input/configuration. Final normalized
@@ -21,6 +21,32 @@ lane deliberately does not download router IDs: its route-identity fields are
 N/A, not false PASS. Exact per-source-rank route ID/weight hashes are separately
 checked in the rich route lane; previous completed rich checks below also
 passed. No correctness/trace latency is used as the clean serving headline.
+
+After the trace-only event-pool and rendezvous repair, a fresh v7 three-repeat
+bimodal Full/AUTO/G8 run passed **12 additional comparisons**. Hidden/logit
+max-absolute error, relative L2 and logit JSD remain 0; input identity,
+unforced eight-token continuation, stage order and real resident-token emission
+pass. See `artifacts/correctness/pooled_validation_v7.json`. A separate v5
+Full/G48 boundary recheck passed six comparisons after atomic admission changed.
+Neither runtime repair changes the native attention/router/expert model code.
+
+Resident forced-token parity is a **system-control integrity check**, not an
+unforced task-quality score. The injected request's eight-token continuation
+is unforced greedy and is checked separately. Historical full benchmark scores
+are reused rather than replaced with a one-token quality claim.
+
+The completed **current v7 rich lane** passes 30 exact Full-versus-LP route
+comparisons (AUTO/G8/G16/G24/G48, both inputs, three repeats). Each comparison
+has all 96 layer/source-rank records and identical selected expert-ID and
+router-weight SHA256. All 72 measured rich waves preserve the expected
+sum(k)=prompt_rows×8×48 and complete four-rank active-prefill frames.
+Loaded ownership and original token order are checked separately from timing.
+See `final_metrics.json` and the compressed raw rich runs for these checks.
+
+The numerical comparison reports max-absolute/relative-L2 error zero and
+logit JSD zero. Self-cosine calculations on large FP32 logit vectors can be
+slightly below 1 from rounding even for identical tensors; the measured
+minimum (about 0.999986) is retained, not rounded into a perfect cosine claim.
 
 ## Earlier independent rich checks (retained)
 

@@ -38,35 +38,46 @@ def compare_uncached(cached, uncached):
         hits=[e for e in events if e.get('diagnostic')=='vision_cache_hit'
               and e.get('wave')==b and e.get('ep_rank') in (0,1)]
         hit_ok=wave['modality']!='VISUAL_PREFILL' or {e['ep_rank'] for e in hits}=={0,1}
+        injection_vision=[e['cuda_ms'] for e in events
+            if e.get('diagnostic')=='vision_encoder' and e.get('wave')==b
+            and e.get('is_injection',False)]
         results.append({'modality':wave['modality'],'repeat':wave['repeat'],
             'hidden':h,'logits':l,'continuation_equal':tokens,
-            'exact_processor_cache_hit_both_source_tp':hit_ok,
+            'cache_hit_observed_on_both_source_tp_in_wave':hit_ok,
+            'injection_vision_wrapper_cuda_ms':injection_vision,
+            'cache_event_limit':'Legacy hit event is wave/rank-only, not request-specific; resident hits can also occur. Exact numerical identity and injection encoder-wrapper durations are separate checks.',
             'pass':h['relative_l2']<=.005 and l['max_abs']<=.25 and tokens and hit_ok})
     assert len(results)==6 and all(r['pass'] for r in results), results
     return results
 
 
 def main():
-    p=argparse.ArgumentParser();p.add_argument('--version',default='v6')
-    a=p.parse_args();assert a.version=='v6';f.VERSION=a.version
+    p=argparse.ArgumentParser();p.add_argument('--version',default='v7')
+    p.add_argument('--uncached-reference',type=Path,
+                   default=Path('poc_native_lp_ep4/artifacts/runs/release_correctness_v4'))
+    p.add_argument('--tag',help='new safe output tag for an independent reproduction')
+    a=p.parse_args();assert a.version in ('v6','v7');f.VERSION=a.version
+    if a.tag and not a.tag.replace('-','_').isidentifier():raise ValueError('invalid output tag')
+    label=a.version if not a.tag else a.version+'_'+a.tag
+    if a.version=='v7':os.environ['NATIVE_LP_EVENT_POOL']='1'
     root=Path('poc_native_lp_ep4')
     plan=read_json(root/'artifacts'/f'campaign_blocks_{a.version}.json')
     assert plan['status']=='MEASUREMENTS_COMPLETE'
-    output=root/'artifacts'/f'producer_control_{a.version}.json'
+    output=root/'artifacts'/f'producer_control_{label}.json'
     if output.exists():raise FileExistsError(output)
     best=plan['frozen_selection']['best_arm']
     os.environ['NATIVE_LP_VISION_CACHE']='1'
-    correct=f.launch(f'cached_producer_correctness_{a.version}',['FULL',best],3,
+    correct=f.launch(f'cached_producer_correctness_{label}',['FULL',best],3,
         trace=True,light=True,correctness=True,timeout=1100)
-    native=f.check_correctness(correct,f'cached_producer_validation_{a.version}.json')
-    comparisons=compare_uncached(correct,root/'artifacts/runs/release_correctness_v4')
-    atomic_json(root/'artifacts/correctness'/f'cached_vs_uncached_{a.version}.json',
+    native=f.check_correctness(correct,f'cached_producer_validation_{label}.json')
+    comparisons=compare_uncached(correct,a.uncached_reference)
+    atomic_json(root/'artifacts/correctness'/f'cached_vs_uncached_{label}.json',
         {'status':'PASS','scope':'LOSSLESS_VISION_OUTPUT_CONTROL_NOT_PRIMARY',
-         'source_run':str(correct),'reference_run':str(root/'artifacts/runs/release_correctness_v4'),
+         'source_run':str(correct),'reference_run':str(a.uncached_reference),
          'rows':comparisons})
-    clean=f.launch(f'cached_producer_clean_{a.version}',['CP512',best],3,
+    clean=f.launch(f'cached_producer_clean_{label}',['CP512',best],3,
         paired=True,decode=128,timeout=1100)
-    trace=f.launch(f'cached_producer_components_{a.version}',['CP512',best],3,
+    trace=f.launch(f'cached_producer_components_{label}',['CP512',best],3,
         trace=True,light=True,paired=True,decode=128,timeout=1100)
     layers=trace_rows(trace);life=lifecycle_rows(trace)
     atomic_json(output,{'status':'COMPLETE','evidence':'DIAGNOSTIC_NOT_PRIMARY',

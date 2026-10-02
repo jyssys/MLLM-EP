@@ -1,0 +1,67 @@
+{
+  "cuda": "12.9",
+  "deep_ep": "1.2.1+73b6ea4",
+  "dtype": "BF16",
+  "git": {
+    "args": [
+      "git",
+      "rev-parse",
+      "HEAD"
+    ],
+    "returncode": 0,
+    "stderr": "",
+    "stdout": "bb4cca9870da61372b77dad57afe3af591af6f05\n"
+  },
+  "gpu": {
+    "args": [
+      "nvidia-smi",
+      "--query-gpu=index,uuid,name,memory.total,memory.used,utilization.gpu,clocks.sm,temperature.gpu",
+      "--format=csv,noheader"
+    ],
+    "returncode": 0,
+    "stderr": "",
+    "stdout": "0, GPU-f217c8a0-1142-20f4-d84b-af29f3a47a0d, NVIDIA H100 80GB HBM3, 81559 MiB, 19163 MiB, 0 %, 1980 MHz, 44\n1, GPU-a77f3471-67d4-20b0-9fab-e502d4de5adb, NVIDIA H100 80GB HBM3, 81559 MiB, 19163 MiB, 0 %, 1980 MHz, 36\n2, GPU-24200107-8a7f-de46-1bc8-b81f8d3af13e, NVIDIA H100 80GB HBM3, 81559 MiB, 76495 MiB, 100 %, 1980 MHz, 51\n3, GPU-17488c15-2d4c-5d9e-d503-29b0d959a8a8, NVIDIA H100 80GB HBM3, 81559 MiB, 77355 MiB, 100 %, 1980 MHz, 67\n4, GPU-6076e2f2-5b63-3761-5586-56ceb7df8139, NVIDIA H100 80GB HBM3, 81559 MiB, 19163 MiB, 0 %, 1980 MHz, 45\n5, GPU-a1a1cfcf-93a1-3544-9a5e-e58144b68730, NVIDIA H100 80GB HBM3, 81559 MiB, 19163 MiB, 0 %, 1980 MHz, 36\n6, GPU-e3f3998e-0f1a-e94a-b97c-4abb0e8c2c28, NVIDIA H100 80GB HBM3, 81559 MiB, 76495 MiB, 100 %, 1980 MHz, 67\n7, GPU-4cc26b88-19fc-1988-f9e0-17858aa7a99b, NVIDIA H100 80GB HBM3, 81559 MiB, 76495 MiB, 100 %, 1980 MHz, 52\n"
+  },
+  "model": "/home/esjung/.cache/huggingface/hub/models--Qwen--Qwen3-VL-30B-A3B-Instruct/snapshots/9c4b90e1e4ba969fd3b5378b57d966d725f1b86c",
+  "processes": {
+    "args": [
+      "nvidia-smi",
+      "--query-compute-apps=gpu_uuid,pid,process_name,used_gpu_memory",
+      "--format=csv,noheader"
+    ],
+    "returncode": 0,
+    "stderr": "",
+    "stdout": "GPU-f217c8a0-1142-20f4-d84b-af29f3a47a0d, 338405, VLLM::Worker_DP0_TP0_EP0, 19154 MiB\nGPU-a77f3471-67d4-20b0-9fab-e502d4de5adb, 338408, VLLM::Worker_DP0_TP1_EP1, 19154 MiB\nGPU-24200107-8a7f-de46-1bc8-b81f8d3af13e, 307295, VLLM::EngineCore, 76482 MiB\nGPU-17488c15-2d4c-5d9e-d503-29b0d959a8a8, 307443, VLLM::EngineCore, 77342 MiB\nGPU-6076e2f2-5b63-3761-5586-56ceb7df8139, 338404, VLLM::Worker_DP1_TP0_EP2, 19154 MiB\nGPU-a1a1cfcf-93a1-3544-9a5e-e58144b68730, 338407, VLLM::Worker_DP1_TP1_EP3, 19154 MiB\nGPU-e3f3998e-0f1a-e94a-b97c-4abb0e8c2c28, 307513, VLLM::EngineCore, 76482 MiB\nGPU-4cc26b88-19fc-1988-f9e0-17858aa7a99b, 307287, VLLM::EngineCore, 76482 MiB\n"
+  },
+  "revision": "9c4b90e1e4ba969fd3b5378b57d966d725f1b86c",
+  "source_hashes": {
+    "/home/esjung/.cache/huggingface/hub/models--Qwen--Qwen3-VL-30B-A3B-Instruct/snapshots/9c4b90e1e4ba969fd3b5378b57d966d725f1b86c/config.json": "6129b3f54d517a18553cf7525ff4886be6831c5806fc094d632b8ef38d859912",
+    "/home/esjung/MLLM-EP-github/poc_flashvep/reports/native_layered_prefill_ep4_discovery_spec.md": "2ae6c9ea07e4af3726ad9114ddac67909e3c79f336078a1a2d991588b801351e",
+    "poc_mllm_ep_communication_motivation/artifacts/manifests/frozen_manifest.json": "ab83363802b745b1b5f7bc7667641438960977587547b51b37e9569f755f9ba6"
+  },
+  "topology": {
+    "args": [
+      "nvidia-smi",
+      "topo",
+      "-m"
+    ],
+    "returncode": 0,
+    "stderr": "",
+    "stdout": "\t\u001b[4mGPU0\tGPU1\tGPU2\tGPU3\tGPU4\tGPU5\tGPU6\tGPU7\tNIC0\tNIC1\tNIC2\tNIC3\tNIC4\tNIC5\tNIC6\tNIC7\tCPU Affinity\tNUMA Affinity\tGPU NUMA ID\u001b[0m\nGPU0\t X \tNV18\tNV18\tNV18\tNV18\tNV18\tNV18\tNV18\tPIX\tPHB\tPHB\tPHB\tPHB\tPHB\tPHB\tPHB\t0-191\t0\t\tN/A\nGPU1\tNV18\t X \tNV18\tNV18\tNV18\tNV18\tNV18\tNV18\tPHB\tPIX\tPHB\tPHB\tPHB\tPHB\tPHB\tPHB\t0-191\t0\t\tN/A\nGPU2\tNV18\tNV18\t X \tNV18\tNV18\tNV18\tNV18\tNV18\tPHB\tPHB\tPIX\tPHB\tPHB\tPHB\tPHB\tPHB\t0-191\t0\t\tN/A\nGPU3\tNV18\tNV18\tNV18\t X \tNV18\tNV18\tNV18\tNV18\tPHB\tPHB\tPHB\tPIX\tPHB\tPHB\tPHB\tPHB\t0-191\t0\t\tN/A\nGPU4\tNV18\tNV18\tNV18\tNV18\t X \tNV18\tNV18\tNV18\tPHB\tPHB\tPHB\tPHB\tPIX\tPHB\tPHB\tPHB\t0-191\t0\t\tN/A\nGPU5\tNV18\tNV18\tNV18\tNV18\tNV18\t X \tNV18\tNV18\tPHB\tPHB\tPHB\tPHB\tPHB\tPIX\tPHB\tPHB\t0-191\t0\t\tN/A\nGPU6\tNV18\tNV18\tNV18\tNV18\tNV18\tNV18\t X \tNV18\tPHB\tPHB\tPHB\tPHB\tPHB\tPHB\tPIX\tPHB\t0-191\t0\t\tN/A\nGPU7\tNV18\tNV18\tNV18\tNV18\tNV18\tNV18\tNV18\t X \tPHB\tPHB\tPHB\tPHB\tPHB\tPHB\tPHB\tPIX\t0-191\t0\t\tN/A\nNIC0\tPIX\tPHB\tPHB\tPHB\tPHB\tPHB\tPHB\tPHB\t X \tPHB\tPHB\tPHB\tPHB\tPHB\tPHB\tPHB\t\t\t\t\nNIC1\tPHB\tPIX\tPHB\tPHB\tPHB\tPHB\tPHB\tPHB\tPHB\t X \tPHB\tPHB\tPHB\tPHB\tPHB\tPHB\t\t\t\t\nNIC2\tPHB\tPHB\tPIX\tPHB\tPHB\tPHB\tPHB\tPHB\tPHB\tPHB\t X \tPHB\tPHB\tPHB\tPHB\tPHB\t\t\t\t\nNIC3\tPHB\tPHB\tPHB\tPIX\tPHB\tPHB\tPHB\tPHB\tPHB\tPHB\tPHB\t X \tPHB\tPHB\tPHB\tPHB\t\t\t\t\nNIC4\tPHB\tPHB\tPHB\tPHB\tPIX\tPHB\tPHB\tPHB\tPHB\tPHB\tPHB\tPHB\t X \tPHB\tPHB\tPHB\t\t\t\t\nNIC5\tPHB\tPHB\tPHB\tPHB\tPHB\tPIX\tPHB\tPHB\tPHB\tPHB\tPHB\tPHB\tPHB\t X \tPHB\tPHB\t\t\t\t\nNIC6\tPHB\tPHB\tPHB\tPHB\tPHB\tPHB\tPIX\tPHB\tPHB\tPHB\tPHB\tPHB\tPHB\tPHB\t X \tPHB\t\t\t\t\nNIC7\tPHB\tPHB\tPHB\tPHB\tPHB\tPHB\tPHB\tPIX\tPHB\tPHB\tPHB\tPHB\tPHB\tPHB\tPHB\t X \t\t\t\t\n\nLegend:\n\n  X    = Self\n  SYS  = Connection traversing PCIe as well as the SMP interconnect between NUMA nodes (e.g., QPI/UPI)\n  NODE = Connection traversing PCIe as well as the interconnect between PCIe Host Bridges within a NUMA node\n  PHB  = Connection traversing PCIe as well as a PCIe Host Bridge (typically the CPU)\n  PXB  = Connection traversing multiple PCIe bridges (without traversing the PCIe Host Bridge)\n  PIX  = Connection traversing at most a single PCIe bridge\n  NV#  = Connection traversing a bonded set of # NVLinks\n\nNIC Legend:\n\n  NIC0: mlx5_0\n  NIC1: mlx5_1\n  NIC2: mlx5_2\n  NIC3: mlx5_3\n  NIC4: mlx5_4\n  NIC5: mlx5_5\n  NIC6: mlx5_6\n  NIC7: mlx5_7\n\n"
+  },
+  "torch": "2.11.0+cu129",
+  "upstream_commit": "053f80e5201a7c0ab56e468e3d578907a2ca9cc3",
+  "vllm": "0.20.0+cu129",
+  "weight_shapes": {
+    "model.language_model.layers.0.mlp.experts.down_proj": [
+      128,
+      768,
+      2048
+    ],
+    "model.language_model.layers.0.mlp.experts.gate_up_proj": [
+      128,
+      2048,
+      1536
+    ]
+  }
+}

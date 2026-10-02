@@ -21,6 +21,7 @@ def table(headers,rows):
 
 def main():
     p=argparse.ArgumentParser();p.add_argument('--metrics',type=Path,required=True)
+    p.add_argument('--stages',type=Path,help='secondary actual engine-completion stage analysis')
     p.add_argument('--output',type=Path,required=True);a=p.parse_args()
     if a.output.exists():raise FileExistsError(a.output)
     a.output.mkdir(parents=True);d=read_json(a.metrics)
@@ -41,6 +42,17 @@ def main():
     serve+='The SLO proxy is peak ITL / paired decode-only median <=1.5, not a production SLO. '
     serve+='Peak statistics include the whole injection response window: finer groups have a longer exposure window. '
     serve+='These are repeated measurements of a fixed bounded pool, not claims across unseen workloads.\n'
+    if a.stages:
+        stages=read_json(a.stages)
+        serve+='\n## First producer iteration versus later stages (secondary)\n\n'
+        serve+=table(['Arm','Input','Phase','Wave n','Wave peak ITL','Paired wave peak VSEL'],[
+            [r['arm'],r['modality'],r['phase'],r['n_waves'],number(r['peak_stage_itl_ms']),number(r['peak_stage_vsel_ms'])]
+            for r in stages['summary']])+'\n'
+        error=max(r['dp0_completion_alignment_error_ms'] for r in stages['rows'])
+        serve+=f'Actual DP0 scheduler/engine completion alignment residual is at most **{error:.3f} ms**. '
+        serve+='Peer ITL uses the same forced token position. This separation neither removes the first burst '
+        serve+='from the primary metric nor changes the frozen winner. Later-stage peak exposure differs with group count; '
+        serve+='layers/stages/residents are not independent bootstrap samples. These host clocks are not GPU CWT.\n'
     save('serving_latency.md',serve)
     ep='# Native MoE/EP component evidence\n\n'
     ep+='All numbers below are local CUDA spans. We select one cumulative-critical rank and keep dispatch/expert/combine '
@@ -48,9 +60,11 @@ def main():
     ep+='Prepare/dispatch can include peer producer-readiness waits and host layout work, not just network service. '
     ep+='The active mixed-stage kernel contains resident decode rows as well as prefill rows; fused expert time cannot be '
     ep+='allocated between them by a FLOPs ratio.\n\n'
-    ep+=table(['Arm','Input','n','Dispatch total','Expert total','Max-rank expert total','Combine total','MoE total','Max dispatch quantum'],[
+    usable={(r['arm'],r['modality']):r['usable'] for r in d['instrumentation_overhead']['stratified']}
+    ep+=table(['Arm','Input','n','Dispatch total','Expert total','Max-rank expert total','Combine total','MoE total','Max prepare span','Overhead screen'],[
         [r['arm'],r['modality'],r['n'],*[number(r[k]) for k in ('dispatch_total_ms','expert_total_ms','max_rank_expert_total_ms',
-          'combine_total_ms','moe_total_ms','max_dispatch_quantum_ms')]] for r in d['component_summary']])+'\n'
+          'combine_total_ms','moe_total_ms','max_dispatch_quantum_ms')],
+          'USABLE_LOCAL_SPAN' if usable.get((r['arm'],r['modality']),False) else 'UNVALIDATED'] for r in d['component_summary']])+'\n'
     ep+='## Route/weight-working-set accounting (independent rich lane)\n\n'
     ep+=table(['Arm','Input','Reload amplification','Weight-access proxy (GB)','Logical remote dispatch (GB)'],[
         [r['arm'],r['modality'],number(r['expert_reload_amp']),
@@ -61,8 +75,15 @@ def main():
     ep+='ReloadAmp counts reactivations of prompt experts across chunks, not actual HBM reads. '
     ep+='Payload is destination-deduplicated hidden-vector accounting; metadata/padding/wire traffic is not inferred. '
     ep+='Per-rank send/recv matrices, per-layer times, active-expert counts and weight shapes remain in raw artifacts.\n\n'
+    ep+='These counters and totals attach to **prefill-active mixed kernel invocations**, not an isolated prefill-only GEMM. '
+    ep+='LP also executes resident-only layers on each stage; their useful decode work is not charged to the prompt reload proxy. '
+    ep+='Low reload therefore does not imply identical whole-system HBM traffic or TTFT.\n\n'
     ep+=f"Logical top8 paths across all 48 layers: {'PASS' if d['all_logical_path_invariants_pass'] else 'FAIL'}. "
-    ep+=f"Complete four-rank component frames: {'PASS' if d['all_four_rank_component_frames'] else 'FAIL'}.\n\n"
+    audit=d['component_frame_audit']
+    ep+=f"Complete four-rank **active injected-prefill** component frames: {'PASS' if audit['all_active_prefill_frames_complete'] else 'FAIL'}. "
+    ep+=f"All captured frames complete: **{audit['all_captured_frames_complete']}**; {audit['partial_frame_count']} partial frames "
+    ep+=f"({audit['partial_active_prefill_frame_count']} active-prefill) are retained in the trace-frame audit, never filled. "
+    ep+='Post-injection capture-boundary omissions are not inferred missing executions; native stage/token correctness is checked separately.\n\n'
     ep+='## Instrumentation overhead\n\n'
     overhead=d['instrumentation_overhead']
     ep+=table(['Metric','Trace minus hook-bypass (%)'],[[k,number(v)] for k,v in overhead['summary'].items()])+'\n'
@@ -70,7 +91,7 @@ def main():
         [r['arm'],r['modality'],number(r['ttft_ms']),number(r['mean_itl_ms']),r['usable']]
         for r in overhead['stratified']])+'\n'
     ep+=f"Component breakdown usable under the <=10% screening rule: **{overhead['component_breakdown_usable']}**. "
-    ep+='If false, these component values are diagnostic/UNVALIDATED and do not support an EP-common verdict. '
+    ep+='The individual failing strata are UNVALIDATED and cannot support an EP-common verdict; passing strata remain separately labeled. '
     ep+='Unhooked clean serving results above remain separate.\n'
     save('ep_component_analysis.md',ep)
     mod='# Matched-token modality comparison\n\n'

@@ -43,8 +43,8 @@ def launch(name, arms, repeats, *, trace=False, light=False,
          '--repeats',str(repeats),'--decode-tokens',str(decode),'--inject-at','16',
          '--preprocess-before-injection','--repeat-offset',str(repeat_offset)]
     if trace:cmd+=['--trace']
-    if VERSION in ('v5','v6'):cmd+=['--atomic-wave-admission']
-    if VERSION=='v6':cmd+=['--uniform-resident-prefill']
+    if VERSION in ('v5','v6','v7'):cmd+=['--atomic-wave-admission']
+    if VERSION in ('v6','v7'):cmd+=['--uniform-resident-prefill']
     if trace and not light:cmd+=['--route-stats']
     if correctness:cmd+=['--correctness']
     if paired:cmd+=['--pair-baseline']

@@ -25,6 +25,27 @@ def require_complete(run):
     return run
 
 
+def frame_audit(rows):
+    """Do not mistake a trace-window cutoff for a missing MoE collective.
+
+    Autonomous workers can observe the host capture flag on opposite sides
+    of its final boundary. Keep these partial records visible and exclude
+    them from complete-rank statistics. Active injected-prefill frames have
+    their own strict gate, never repaired with invented rank data.
+    """
+    def complete(r):
+        return r['ranks']==4 and set(r['rank_durations'])=={'0','1','2','3'}
+    partial=[{k:r[k] for k in ('run','wave','arm','modality','iteration','layer','ranks','prefill_active')}
+             for r in rows if not complete(r)]
+    active=[r for r in rows if r['prefill_active']]
+    return {'all_captured_frames_complete':bool(rows) and all(complete(r) for r in rows),
+            'all_active_prefill_frames_complete':bool(active) and all(complete(r) for r in active),
+            'partial_frame_count':len(partial),
+            'partial_active_prefill_frame_count':sum(r['prefill_active'] for r in partial),
+            'partial_frames':partial,
+            'scope':'Actual logs retained; partial post-injection capture-boundary frames are not filled or used as complete-rank timing.'}
+
+
 def policy_deltas(rows):
     groups=defaultdict(dict)
     for r in rows:
@@ -115,7 +136,7 @@ def main():
     v=a.version
     def actual_run(saved):
         return require_complete((a.raw_root/Path(saved).name) if a.raw_root else Path(saved))
-    if v in ('v5','v6'):
+    if v in ('v5','v6','v7'):
         plan=read_json(root/'artifacts'/f'campaign_blocks_{v}.json')
         assert plan['status']=='MEASUREMENTS_COMPLETE'
         discovery=[actual_run(p) for p in plan['discovery_runs']]
@@ -137,6 +158,9 @@ def main():
     cw=component_waves(layers)
     rl=sum((trace_rows(p) for p in routes),[]);rw=component_waves(rl)
     route_checks=route_invariants(rl,{'VISUAL_PREFILL':2029,'TOKEN_MATCHED_TEXT':2033})
+    frames=frame_audit(layers);route_frames=frame_audit(rl)
+    if not frames['all_active_prefill_frames_complete'] or not route_frames['all_active_prefill_frames_complete']:
+        raise ValueError('incomplete active injected-prefill trace; do not fabricate a critical rank or traffic counter')
     lifecycle=sum((lifecycle_rows(p) for p in components),[])
     result={'schema':'native-lp-actual-metrics-v1','version':v,
         'discovery_summary':summarize(ds),'final_summary':summarize(fs),
@@ -151,10 +175,11 @@ def main():
         'all_logical_path_invariants_pass':bool(route_checks) and all(r['pass'] for r in route_checks),
         'current_rich_route_identity':sum((route_identity_comparison(p) for p in routes),[]),
         'all_four_rank_component_frames':bool(layers) and all(r['ranks']==4 for r in layers),
+        'component_frame_audit':frames,'route_frame_audit':route_frames,
         'lifecycle_summary':summarize_lifecycle(lifecycle),
         'dispatch_shape':dispatch_shape(layers),
         'victim_dispatch_excess':sum((victim_dispatch_excess(trace_rows(p),read_json(p/'manifest.json')['waves']) for p in components),[]),
-        'selection':read_json(root/'artifacts/manifests'/('frozen_final_selection_'+v+'.json')),
+        'selection':plan['frozen_selection'] if v=='v7' else read_json(root/'artifacts/manifests'/('frozen_final_selection_'+v+'.json')),
         'limits':['Clean engine-completion clock; CPU rendering before model-ready arrival.',
             'Local DeepEP prepare CUDA duration includes peer input-readiness waits.',
             'Route-rich times excluded; logical payload/weight bytes are not wire/HBM measurements.',

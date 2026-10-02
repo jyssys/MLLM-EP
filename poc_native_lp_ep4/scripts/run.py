@@ -13,7 +13,8 @@ import traceback
 from pathlib import Path
 
 from poc_native_lp_ep4.contract import MODEL, MODEL_REVISION, GPU_MASK, atomic_json, read_json, groups_for
-from poc_mllm_ep_collective_granularity.scripts.run_serving import free_port, make_injection
+from poc_mllm_ep_collective_granularity.scripts.run_serving import make_injection
+from poc_native_lp_ep4.scripts.network import choose_dp_port
 from poc_mllm_ep_communication_motivation.scripts.run_q3_interference import image_prompt
 
 
@@ -263,10 +264,13 @@ def main():
                         waves[-1]['instrumented']=False
                         waves[-2]['overhead_control_wave']=len(waves)-1
                         waves[-1].pop('overhead_control_wave',None)
+    port=choose_dp_port()
     atomic_json(args.output/"manifest.json",{**vars(args),"output":str(args.output),
         "manifest":str(args.manifest),"control":str(args.control),"waves":waves,
         "physical_gpus":[0,1,4,5],"topology":"TP2-DP2-EP4-PP1",
         "model_revision":MODEL_REVISION,"vision_cached_control":os.environ.get("NATIVE_LP_VISION_CACHE")=="1",
+        "event_pool":os.environ.get('NATIVE_LP_EVENT_POOL')=='1',
+        "rendezvous_port":port,"rendezvous_namespace":"16 verified consecutive ports outside OS ephemeral range",
         "component_trace_lane":"LOW_OVERHEAD" if os.environ.get('NATIVE_LP_LIGHT_TRACE')=='1' else 'ROUTE_DIAGNOSTIC' if args.trace else None,
         "injection_rule":"all four DP0 residents have emitted inject_at tokens",
         "primary_token_timestamp":"EngineCoreOutputs.timestamp monotonic completion, not client polling",
@@ -277,7 +281,7 @@ def main():
     atomic_json(args.control,{"condition":"STARTUP","capture_stage":False,"route_stats":False})
     ctx=mp.get_context("spawn")
     barrier=ctx.Barrier(2); progress=ctx.Queue()
-    manifest=read_json(args.manifest); port=free_port()
+    manifest=read_json(args.manifest)
     workers=[ctx.Process(target=worker,args=(rank,port,args,barrier,progress,manifest,waves)) for rank in (0,1)]
     for proc in workers: proc.start()
     last=time.monotonic();failure=None;model_ready=set()
