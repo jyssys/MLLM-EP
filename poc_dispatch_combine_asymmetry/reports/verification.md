@@ -24,3 +24,5 @@ Unmet/limited claims explicitly retained:
 - Final untracked-code hash records published code and inherited dependencies, not a retroactive source snapshot of every run. Primary stage boundaries were retained while optional capture/profiler/envelope diagnostics were added afterward.
 
 Original repository staged/unstaged diff binary hashes match the pre-task snapshots. Only this independent project is committed on the new branch; no model weights/images/hidden state/profiler database upload. Resource handoff overrides the earlier burner-restoration policy; allowed GPUs are empty at the recorded snapshot and no further GPU run is required.
+
+Post-commit verification: a clean detached checkout of evidence commit `fc5ed196b83a75c34f0324c2b53affffe1c6b69e` ran the8 tests, the complete compact-bundle verifier and all five figure regenerations **without local raw runs/hidden captures**. All passed; checkout remained clean. This confirms fresh-checkout CPU usability, not a second physical GPU replication. Scoped `git diff --check` passes; the exact authoritative snapshot retains the source's intentional Markdown hard-break trailing spaces.
