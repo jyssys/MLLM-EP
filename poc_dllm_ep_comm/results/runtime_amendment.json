@@ -1,0 +1,19 @@
+{
+  "trigger": "main_v1 fails on humaneval_04_b32 in SGLang small-M moe_sum_reduce_torch_compile / Inductor fake-tensor attention-pattern initialization, CUDA invalid configuration argument",
+  "bounded_workaround": "TORCHDYNAMO_DISABLE=1 for all arms of one full main_v2 restart; raw Triton expert GEMMs and actual DeepEP collectives remain unchanged",
+  "selection_unchanged": true,
+  "decoder_parameters_unchanged": true,
+  "architecture_unchanged": true,
+  "old_evidence_preserved": true,
+  "old_main_incomplete_diagnostic_only": true,
+  "hypotheses": [
+    "small-M runtime compiler specialization/lazy initialization",
+    "empty receive buffer unsupported reduction",
+    "asynchronous previous CUDA kernel failure"
+  ],
+  "narrow_reduction_probe": "all M=0,1,8,16,24,32 pass in isolation; empty reduction alone does NOT reproduce the failure",
+  "root_cause_scope": "compiler stack implicated; exact trigger unresolved, do not claim zero-receive bug proven",
+  "retry_bound": "one complete main restart; no repeated repair loop or serving framework rewrite",
+  "metric_correction": "CUDA model-forward sum omits decoder/cache gaps; also report first-to-last denoising-forward span and use whole-request-wall communication share as a conservative gate",
+  "timing_no_cherry_pick": "all successful main_v2 requests used; main_v1 is retained but not merged as favorable samples"
+}

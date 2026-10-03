@@ -1,0 +1,884 @@
+diff --git a/benchmarks/benchmark_dataset_sglang.py b/benchmarks/benchmark_dataset_sglang.py
+index bc17fdc..6146665 100644
+--- a/benchmarks/benchmark_dataset_sglang.py
++++ b/benchmarks/benchmark_dataset_sglang.py
+@@ -115,9 +115,39 @@ def main(world_size, rank, gpu_id, args):
+     model_config = AutoConfig.from_pretrained(args.model_name, trust_remote_code=True)
+     if args.use_quant:
+         load_quant_config(model_config, args.model_name)
+-        server_args = ServerArgs(model_path=args.model_name, quantization="modelopt_fp8",modelopt_quant="fp8", enable_dp_attention=True, trust_remote_code=True, tp_size=args.tp_size, dp_size = 1, pp_size = 1)
++        server_args = ServerArgs(
++            model_path=args.model_name,
++            quantization="modelopt_fp8",
++            modelopt_quant="fp8",
++            enable_dp_attention=True,
++            trust_remote_code=True,
++            tp_size=args.tp_size,
++            ep_size=args.ep_size,
++            dp_size=1,
++            pp_size=1,
++            moe_a2a_backend=args.moe_a2a_backend,
++            deepep_mode=args.deepep_mode,
++        )
+     else:
+-        server_args = ServerArgs(model_path=args.model_name, enable_dp_attention=True, trust_remote_code=True, tp_size=args.tp_size, dp_size = 1, pp_size = 1)
++        server_args = ServerArgs(
++            model_path=args.model_name,
++            enable_dp_attention=True,
++            trust_remote_code=True,
++            tp_size=args.tp_size,
++            ep_size=args.ep_size,
++            dp_size=1,
++            pp_size=1,
++            moe_a2a_backend=args.moe_a2a_backend,
++            deepep_mode=args.deepep_mode,
++        )
++    # DeepEP enables SGLang DP-attention as part of its server-oriented
++    # configuration.  This benchmark uses dInfer's replicated manual
++    # diffusion runner rather than SGLang's DP-attention token layout; the
++    # sparse block performs its own exact row partition in forward_deepep.
++    # Leaving DP-attention enabled makes LayerCommunicator reduce-scatter a
++    # replicated tensor into a nonexistent DP layout.
++    if args.moe_a2a_backend == "deepep":
++        server_args.enable_dp_attention = False
+     try:
+         from sglang.srt.server_args import set_global_server_args_for_scheduler
+     except ImportError:
+@@ -145,7 +175,20 @@ def main(world_size, rank, gpu_id, args):
+     aligned_lengths = np.unique([max(args.block_length, min(length//args.block_length*args.block_length, args.prefilling_limit)) for length in input_lengths])
+     aligned_lengths = [int(length) for length in aligned_lengths]
+     supported_batch_sizes = [2**i for i in range(int(np.log2(args.mini_batch_size))+1)]
+-    model = ModelRunner(model, device, server_args=server_args, max_length=max_length, prefill_lengths=aligned_lengths, enable_cuda_graph=True, supported_batch_sizes=supported_batch_sizes, use_cross_block=args.batch_size==1)
++    model = ModelRunner(
++        model,
++        device,
++        server_args=server_args,
++        max_length=max_length,
++        prefill_lengths=aligned_lengths,
++        enable_cuda_graph=args.enable_cuda_graph,
++        supported_batch_sizes=supported_batch_sizes,
++        use_cross_block=args.batch_size==1,
++    )
++    if args.init_only:
++        torch.distributed.barrier()
++        torch.distributed.destroy_process_group()
++        return
+ 
+ 
+     if args.parallel_decoding == 'threshold':
+@@ -179,6 +222,7 @@ def main(world_size, rank, gpu_id, args):
+         dllm = BlockDiffusionLLM(model, decoder, BlockIteratorFactory(start_block_align=True, use_block_diffusion=True), cache_factory=cache_factory, early_stop=True, maximum_unroll=1, expected_tpf=15, backend='sglang', mini_batch_size=args.mini_batch_size, prefilling_limit=args.prefilling_limit, use_naive_batching=args.use_naive_batching)
+     # warmup for decoding algorithms
+     input_ids = torch.randint(0, 100000, (args.mini_batch_size, 64), dtype=torch.long, device=device)
++    os.environ["LLADA_REQUEST_ID"] = "warmup"
+     dllm.generate(input_ids, gen_length=args.gen_len, block_length=args.block_length)
+     batch_size = args.batch_size
+     
+@@ -217,6 +261,7 @@ def main(world_size, rank, gpu_id, args):
+             input_ids = batch_input_ids
+             inner_start = time.time()
+             prev_forwards = dllm.num_forwards
++            os.environ["LLADA_REQUEST_ID"] = f"measured_{i}"
+             out = dllm.generate(input_ids, gen_length=min_padded_length, block_length=block_length)
+             nfe = dllm.num_forwards - prev_forwards
+             inner_stop = time.time()
+@@ -319,9 +364,13 @@ if __name__ == '__main__':
+     parser.add_argument('--use_bd', action='store_true')
+     parser.add_argument('--model_type', type=str, default='mini')
+     parser.add_argument('--ep_size', type=int, default=1)
++    parser.add_argument('--moe_a2a_backend', choices=['none', 'deepep'], default='none')
++    parser.add_argument('--deepep_mode', choices=['normal', 'low_latency'], default='normal')
++    parser.add_argument('--enable_cuda_graph', action='store_true')
+     parser.add_argument('--mini_batch_size', type=int, default=4)
+     parser.add_argument('--use_quant', action='store_true')
+     parser.add_argument('--prefilling_limit', type=int, default=128)
++    parser.add_argument('--init_only', action='store_true')
+     parser.add_argument('--config', type=int, default=0)
+     parser.add_argument('--use_naive_batching', action='store_true')
+ 
+diff --git a/python/dinfer/decoding/diffusion_runner.py b/python/dinfer/decoding/diffusion_runner.py
+index 8191ff5..c2c952b 100644
+--- a/python/dinfer/decoding/diffusion_runner.py
++++ b/python/dinfer/decoding/diffusion_runner.py
+@@ -143,7 +143,8 @@ class ModelRunner:
+             # we need to make sure the maximum length of buffer >= max_length and align to power of 2
+             # we capture cache lengths ranging from 128 to 128 * 2**n, where n ensures that 128 * 2**n >= max_length
+             self.max_length = max_length
+-            n = int(math.log2((self.max_length-1) // 128)) + 1
++            cache_ratio = max(1, (self.max_length - 1) // 128)
++            n = int(math.log2(cache_ratio)) + 1
+             cache_lengths = [128 * 2**i for i in range(n+1)]
+         self.max_length = max(max_length, max(cache_lengths))
+ 
+@@ -524,4 +525,4 @@ class CudaGraphRunner:
+         self.graphs[(self.bs, is_decode_phase, length, cache_length)].replay()
+ 
+         output = self.output_buffers[(self.bs, is_decode_phase, length, cache_length)]
+-        return output
+\ No newline at end of file
++        return output
+diff --git a/python/dinfer/decoding/generate_uniform.py b/python/dinfer/decoding/generate_uniform.py
+index 9fb5eed..f5d195b 100644
+--- a/python/dinfer/decoding/generate_uniform.py
++++ b/python/dinfer/decoding/generate_uniform.py
+@@ -1,6 +1,8 @@
+ import torch
+ import numpy as np
+ import logging
++import json
++import os
+ 
+ from transformers.models.layoutlmv2.modeling_layoutlmv2 import relative_position_bucket
+ 
+@@ -1104,6 +1106,13 @@ class BlockDiffusionLLM(DiffusionLLM):
+         mask_length = (max(self.cache_factory.max_length, prompt_length + gen_length)+block_length-1)//block_length*block_length
+         attn_mask_num_blocks = mask_length // block_length
+         mini_batch_size = self.mini_batch_size
++        denoise_trace_iteration = 0
++        wave_trace = os.environ.get("LLADA_WAVE_TRACE") == "1"
++        logical_trace = (
++            os.environ.get("LLADA_DENOISE_TRACE") == "1"
++            or wave_trace
++            or bool(os.environ.get("LLADA_EP_SHAPE_TRACE_DIR"))
++        )
+ 
+         # Prepare block_mask and position IDs
+         block_mask = torch.tril(torch.ones(attn_mask_num_blocks, attn_mask_num_blocks, device=device, dtype=torch.bool))
+@@ -1167,16 +1176,66 @@ class BlockDiffusionLLM(DiffusionLLM):
+                 decoding_seq_ids = select_decoding_batch_sequences(x, current_cache_flag, mask_id, mini_batch_size)
+                 decoding_x = x.select_seqs(decoding_seq_ids)
+                 decoding_block = gather_blocks(decoding_x.data, decoding_start[decoding_seq_ids], block_length)
++                remaining_before = (decoding_block.data == mask_id).sum(dim=1)
+                 decoding_past_key_values = self.past_key_values[:, :, decoding_seq_ids, :, :current_cache_length]
+                 decoding_pos_ids = torch.arange(block_length, device=device, dtype=torch.long).repeat(decoding_seq_ids.shape[0], 1)
+                 decoding_pos_ids = decoding_pos_ids + decoding_start[decoding_seq_ids].unsqueeze(1)
++
++                # Trace-only logical identity for aligning source-token routes
++                # across refinement iterations. Environment state is process
++                # local; all four ranks execute the same deterministic loop.
++                if logical_trace:
++                    os.environ["LLADA_TRACE_SEQ_IDS"] = json.dumps(
++                        [int(value) for value in decoding_seq_ids.cpu().tolist()]
++                    )
++                    os.environ["LLADA_TRACE_BLOCK_STARTS"] = json.dumps(
++                        [int(value) for value in decoding_start[decoding_seq_ids].cpu().tolist()]
++                    )
++                    os.environ["LLADA_TRACE_REMAINING_BEFORE"] = json.dumps(
++                        [int(value) for value in remaining_before.cpu().tolist()]
++                    )
+                 
+                 # Forward pass
+-                output = self.model(decoding_block, use_cache=True, position_ids=decoding_pos_ids, 
++                if wave_trace:
++                    wave_start = torch.cuda.Event(enable_timing=True)
++                    wave_end = torch.cuda.Event(enable_timing=True)
++                    wave_start.record()
++                output = self.model(decoding_block, use_cache=True, position_ids=decoding_pos_ids,
+                                  past_key_values=decoding_past_key_values)
++                if wave_trace:
++                    wave_end.record()
++                    wave_end.synchronize()
++                    model_forward_ms = float(wave_start.elapsed_time(wave_end))
++                else:
++                    model_forward_ms = None
+                 # Decode logits and update token array
+                 logits = output.logits[:len(decoding_seq_ids)]
+                 self.decoder.batch_decode(logits, decoding_start[decoding_seq_ids], decoding_x, block_length)
++                if logical_trace:
++                    updated_block = gather_blocks(
++                        decoding_x.data, decoding_start[decoding_seq_ids], block_length
++                    )
++                    remaining_after = (updated_block.data == mask_id).sum(dim=1)
++                    if torch.distributed.get_rank() == 0:
++                        print(
++                            "[LLADA_DENOISE]"
++                            + json.dumps(
++                                {
++                                    "request_id": os.environ.get("LLADA_REQUEST_ID", "unknown"),
++                                    "iteration": denoise_trace_iteration,
++                                    "sequence_ids": [int(value) for value in decoding_seq_ids.cpu().tolist()],
++                                    "block_starts": [int(value) for value in decoding_start[decoding_seq_ids].cpu().tolist()],
++                                    "remaining_before": [int(value) for value in remaining_before.cpu().tolist()],
++                                    "remaining_after": [int(value) for value in remaining_after.cpu().tolist()],
++                                    "accepted": [int(value) for value in (remaining_before - remaining_after).cpu().tolist()],
++                                    "physical_rows": int(len(decoding_seq_ids) * block_length),
++                                    "model_forward_ms": model_forward_ms,
++                                },
++                                separators=(",", ":"),
++                            ),
++                            flush=True,
++                        )
++                    denoise_trace_iteration += 1
+                 block_finished = (decoding_block.data==mask_id).sum(dim=1)==0
+                 # Update KV cache
+                 inner_shape = output.past_key_values[0].shape
+@@ -1204,4 +1263,3 @@ class BlockDiffusionLLM(DiffusionLLM):
+                 
+         logger.info(f'The number of diffusion iterations: {self.num_forwards}')
+         return x.get_generated_tokens()
+-
+diff --git a/python/dinfer/model/modeling_llada2_moe_sglang.py b/python/dinfer/model/modeling_llada2_moe_sglang.py
+index 6dfccf2..c2a0f67 100755
+--- a/python/dinfer/model/modeling_llada2_moe_sglang.py
++++ b/python/dinfer/model/modeling_llada2_moe_sglang.py
+@@ -19,9 +19,11 @@
+ # limitations under the License.
+ """ SGLang LLaDA2 model."""
+ import logging
++import os
+ from typing import Any, Dict, Iterable, Optional, Tuple, Union
+ 
+ import torch
++import torch.distributed as dist
+ import torch.nn.functional as F
+ from torch import nn
+ from transformers import PretrainedConfig
+@@ -88,6 +90,7 @@ from sglang.srt.layers.activation import SiluAndMul
+ from sglang.srt.layers.communicator import (
+     LayerCommunicator,
+     LayerScatterModes,
++    ScatterMode,
+     enable_moe_dense_fully_dp,
+ )
+ from sglang.srt.layers.dp_attention import (
+@@ -108,7 +111,7 @@ from sglang.srt.layers.moe import get_moe_a2a_backend
+ from sglang.srt.layers.moe.ep_moe.layer import get_moe_impl_class
+ from sglang.srt.layers.moe.fused_moe_triton.layer import FusedMoE
+ from sglang.srt.layers.moe.token_dispatcher import DeepEPDispatcher
+-from sglang.srt.layers.moe.topk import TopK
++from sglang.srt.layers.moe.topk import StandardTopKOutput, TopK
+ from sglang.srt.layers.moe.utils import DeepEPMode
+ from sglang.srt.layers.quantization.base_config import QuantizationConfig
+ from sglang.srt.layers.radix_attention import RadixAttention
+@@ -119,7 +122,11 @@ from sglang.srt.layers.vocab_parallel_embedding import (
+     VocabParallelEmbedding,
+ )
+ from sglang.srt.model_executor.cuda_graph_runner import get_is_capture_mode
+-from sglang.srt.model_executor.forward_batch_info import ForwardBatch, PPProxyTensors
++from sglang.srt.model_executor.forward_batch_info import (
++    ForwardBatch,
++    ForwardMode,
++    PPProxyTensors,
++)
+ from sglang.srt.model_loader.weight_utils import default_weight_loader
+ from sglang.srt.models.utils import (
+     create_fused_set_kv_buffer_arg,
+@@ -567,6 +574,22 @@ class LLaDA2SparseMoeBlock(nn.Module):
+         # router_logits: (num_tokens, n_experts)
+         router_logits = self.gate(hidden_states)
+         topk_output = self.topk(hidden_states, router_logits)
++        dump_dir = os.environ.get("LLADA_MOE_DUMP_DIR")
++        if (
++            dump_dir
++            and self.layer_id == 1
++            and get_tensor_model_parallel_rank() == 0
++        ):
++            dump_path = Path(dump_dir) / "tp_layer_01_routes.pt"
++            if not dump_path.exists():
++                dump_path.parent.mkdir(parents=True, exist_ok=True)
++                torch.save(
++                    {
++                        "ids": topk_output.topk_ids.detach().cpu(),
++                        "weights": topk_output.topk_weights.detach().cpu(),
++                    },
++                    dump_path,
++                )
+         # self._save_record(topk_output.topk_ids)
+         return self.experts(hidden_states, topk_output)
+ 
+@@ -609,81 +632,359 @@ class LLaDA2SparseMoeBlock(nn.Module):
+         # print('shared_output', shared_output.shape)
+         # print('final_hidden_states', final_hidden_states.shape)
+ 
++        dump_dir = os.environ.get("LLADA_MOE_DUMP_DIR")
++        if dump_dir and self.layer_id == 1:
++            debug_routed = final_hidden_states.clone()
++            debug_shared = shared_output.clone()
++            if self.tp_size > 1 and not use_reduce_scatter:
++                debug_routed = tensor_model_parallel_all_reduce(debug_routed)
++                debug_shared = tensor_model_parallel_all_reduce(debug_shared)
++
+         if self.num_shared_experts > 0:
+             final_hidden_states = final_hidden_states + shared_output
+ 
+         if self.tp_size > 1 and not use_reduce_scatter:
+             final_hidden_states = tensor_model_parallel_all_reduce(final_hidden_states)
++        if dump_dir and self.layer_id == 1 and get_tensor_model_parallel_rank() == 0:
++            dump_path = Path(dump_dir) / "tp_layer_01_moe.pt"
++            if not dump_path.exists():
++                dump_path.parent.mkdir(parents=True, exist_ok=True)
++                torch.save(
++                    {
++                        "routed": debug_routed.detach().cpu(),
++                        "shared": debug_shared.detach().cpu(),
++                        "moe_total": final_hidden_states.detach().cpu(),
++                    },
++                    dump_path,
++                )
+         # print('moe output', final_hidden_states.shape)
+         return final_hidden_states.view(bsz, num_tokens, hidden_size)
+ 
+     def forward_deepep(
+         self, hidden_states: torch.Tensor, forward_batch: ForwardBatch
+     ) -> torch.Tensor:
+-        shared_output = None
+-        forward_mode = forward_batch.forward_mode
+-        if is_non_idle_and_non_empty(forward_mode, hidden_states):
+-            router_logits = self.gate(hidden_states)
+-            if self.num_shared_experts > 0:
+-                shared_output = self.shared_experts(hidden_states)
+-
+-            topk_weights, topk_idx, _ = self.topk(
+-                hidden_states,
+-                router_logits,
+-                num_token_non_padded=forward_batch.num_token_non_padded,
+-                expert_location_dispatch_info=ExpertLocationDispatchInfo.init_new(
+-                    layer_id=self.layer_id,
+-                ),
++        # dInfer's manual runner keeps dense layers in TP and does not create an
++        # SGLang ForwardBatch.  Its original DeepEP branch therefore passed a
++        # bool where current SGLang expects ForwardBatch, and every TP rank
++        # would otherwise route the same replicated token matrix.  Partition
++        # the exact token rows across the existing physical TP/EP ranks before
++        # DeepEP, then gather the exact source-token outputs.  This preserves
++        # dense TP4 while making the sparse block a genuine EP4 execution.
++        original_shape = hidden_states.shape
++        flat_hidden = hidden_states.reshape(-1, original_shape[-1])
++        trace_dir = os.environ.get("LLADA_EP_TRACE_DIR")
++        trace_layers_raw = os.environ.get("LLADA_EP_TRACE_LAYERS")
++        if trace_dir and trace_layers_raw:
++            trace_layers = {
++                int(value) for value in trace_layers_raw.split(",") if value.strip()
++            }
++            if self.layer_id not in trace_layers:
++                trace_dir = None
++        shape_trace_dir = os.environ.get("LLADA_EP_SHAPE_TRACE_DIR")
++        shape_trace_layers = {
++            int(value)
++            for value in os.environ.get("LLADA_EP_SHAPE_TRACE_LAYERS", "1,16,31").split(",")
++            if value.strip()
++        }
++        shape_trace = bool(shape_trace_dir) and self.layer_id in shape_trace_layers
++        trace_events = None
++        if trace_dir:
++            trace_events = [torch.cuda.Event(enable_timing=True) for _ in range(7)]
++            trace_events[0].record()
++        if flat_hidden.shape[0] % self.ep_size != 0:
++            raise RuntimeError(
++                "dInfer DeepEP token partition requires rows divisible by EP size: "
++                f"rows={flat_hidden.shape[0]}, ep={self.ep_size}"
+             )
+-        else:
+-            topk_idx = torch.full(
+-                (0, self.top_k), -1, dtype=torch.int, device=hidden_states.device
++        rows_per_rank = flat_hidden.shape[0] // self.ep_size
++        ep_rank = get_tensor_model_parallel_rank()
++        local_hidden = flat_hidden.narrow(0, ep_rank * rows_per_rank, rows_per_rank)
++
++        class _ManualForwardBatch:
++            forward_mode = ForwardMode.EXTEND
++            is_extend_in_batch = True
++
++            def __init__(self, rows):
++                self.num_token_non_padded = rows
++
++        local_batch = _ManualForwardBatch(rows_per_rank)
++        router_logits = self.gate(local_hidden)
++        topk_output = self.topk(
++            local_hidden,
++            router_logits,
++            num_token_non_padded=None,
++            # This bounded bridge uses the checkpoint's static logical expert
++            # order (64 contiguous experts per EP4 rank), not SGLang EPLB.
++            # No EPLB metadata is initialized in dInfer's manual runner.
++            expert_location_dispatch_info=None,
++        )
++        if shape_trace:
++            shape_owner = torch.div(
++                topk_output.topk_ids.long(), self.num_experts // self.ep_size,
++                rounding_mode="floor",
+             )
+-            topk_weights = torch.empty(
+-                (0, self.top_k), dtype=torch.float32, device=hidden_states.device
++            shape_rank_counts = torch.bincount(
++                shape_owner.flatten(), minlength=self.ep_size
+             )
+-
+-        if self.ep_size > 1:
+-            (
+-                hidden_states,
+-                topk_idx,
+-                topk_weights,
+-                reorder_topk_ids,
+-                num_recv_tokens_per_expert,
+-                seg_indptr,
+-                masked_m,
+-                expected_m,
+-            ) = self.deepep_dispatcher.dispatch(
+-                hidden_states,
+-                topk_idx,
+-                topk_weights,
+-                forward_batch=forward_batch,
++            shape_expert_histogram = torch.bincount(
++                topk_output.topk_ids.flatten().long(), minlength=self.num_experts
++            )
++            shape_token_fanout = (
++                torch.tensor(
++                    [torch.unique(row).numel() for row in shape_owner],
++                    device=shape_owner.device,
++                )
++                if shape_owner.shape[0]
++                else torch.empty(0, device=shape_owner.device)
++            )
++            shape_weights = topk_output.topk_weights.float().clamp_min(1e-12)
++            shape_entropy = -(shape_weights * shape_weights.log()).sum(dim=-1)
++        if trace_events:
++            trace_events[1].record()
++        dump_dir = os.environ.get("LLADA_MOE_DUMP_DIR")
++        if dump_dir and self.layer_id == 1:
++            route_ids = torch.empty(
++                (flat_hidden.shape[0], self.top_k),
++                device=local_hidden.device,
++                dtype=topk_output.topk_ids.dtype,
++            )
++            route_weights = torch.empty(
++                (flat_hidden.shape[0], self.top_k),
++                device=local_hidden.device,
++                dtype=topk_output.topk_weights.dtype,
++            )
++            dist.all_gather_into_tensor(
++                route_ids,
++                topk_output.topk_ids.contiguous(),
++                group=parallel_state.get_tp_group().device_group,
+             )
++            dist.all_gather_into_tensor(
++                route_weights,
++                topk_output.topk_weights.contiguous(),
++                group=parallel_state.get_tp_group().device_group,
++            )
++            if ep_rank == 0:
++                dump_path = Path(dump_dir) / "ep_layer_01_routes.pt"
++                if not dump_path.exists():
++                    dump_path.parent.mkdir(parents=True, exist_ok=True)
++                    torch.save(
++                        {
++                            "ids": route_ids.detach().cpu(),
++                            "weights": route_weights.detach().cpu(),
++                            "moe_input": flat_hidden.detach().cpu(),
++                        },
++                        dump_path,
++                    )
++
++        dispatch_output = self.deepep_dispatcher.dispatch(
++            hidden_states=local_hidden,
++            input_global_scale=None,
++            topk_idx=topk_output.topk_ids,
++            topk_weights=topk_output.topk_weights,
++            forward_batch=local_batch,
++        )
++        recv_hidden, recv_topk_idx, recv_topk_weights, _ = dispatch_output
++        if trace_events:
++            trace_events[2].record()
++        # DeepEP normal dispatch returns owner-local expert IDs in
++        # [0, num_local_experts), with -1 for non-local slots.
++        local_topk_idx = recv_topk_idx
++        local_topk = StandardTopKOutput(
++            recv_topk_weights,
++            local_topk_idx,
++            torch.empty(0, device=recv_hidden.device),
++        )
++        # Execute the current SGLang BF16 Triton runner without applying the
++        # module's global-to-local expert map a second time.
++        local_dispatch = self.experts.dispatcher.dispatch(
++            hidden_states=recv_hidden, topk_output=local_topk
++        )
++        local_combine = self.experts.quant_method.apply(
++            layer=self.experts, dispatch_output=local_dispatch
++        )
++        recv_output = self.experts.dispatcher.combine(local_combine)
++        if trace_events:
++            trace_events[3].record()
++
++        # Current SGLang's public normal-mode combine assumes DeepGEMM's
++        # expanded expert-row output.  The BF16 Triton FusedMoE above already
++        # reduces local expert contributions per received token, so call the
++        # exact DeepEP combine core directly and wait on its completion event.
++        normal_dispatcher = self.deepep_dispatcher._normal_dispatcher
++        local_output, combine_event = normal_dispatcher._combine_core(
++            recv_output, previous_event=None
++        )
++        combine_event.current_stream_wait()
++        normal_dispatcher.handle = None
++        # We invoked the normal implementation's BF16-compatible combine
++        # core directly, so complete the public dispatcher's state machine as
++        # the regular combine_b path would do.  Without this, layer 2 sees the
++        # previous layer stuck at AFTER_DISPATCH_B.
++        self.deepep_dispatcher._stage = (
++            self.deepep_dispatcher._stage.__class__.INITIAL
++        )
++        if trace_events:
++            trace_events[4].record()
+ 
+-        final_hidden_states = self.experts(
+-            hidden_states=hidden_states,
+-            topk_idx=topk_idx,
+-            topk_weights=topk_weights,
+-            reorder_topk_ids=reorder_topk_ids,
+-            seg_indptr=seg_indptr,
+-            masked_m=masked_m,
+-            expected_m=expected_m,
+-            num_recv_tokens_per_expert=num_recv_tokens_per_expert,
+-            forward_batch=forward_batch,
++        if self.num_shared_experts > 0:
++            local_shared = self.shared_experts(local_hidden)
++            local_output = local_output + local_shared
++        else:
++            local_shared = torch.zeros_like(local_output)
++        if trace_events:
++            trace_events[5].record()
++
++        gathered = torch.empty_like(flat_hidden)
++        dist.all_gather_into_tensor(
++            gathered,
++            local_output.contiguous(),
++            group=parallel_state.get_tp_group().device_group,
+         )
+-        if self.ep_size > 1:
+-            final_hidden_states = self.deepep_dispatcher.combine(
+-                final_hidden_states,
+-                topk_idx,
+-                topk_weights,
+-                forward_batch=forward_batch,
++        if trace_events:
++            trace_events[6].record()
++            trace_events[6].synchronize()
++            if not hasattr(self, "_ep_trace_invocation"):
++                self._ep_trace_invocation = 0
++            owner = torch.div(
++                topk_output.topk_ids.long(), self.num_experts // self.ep_size,
++                rounding_mode="floor",
+             )
+-
+-        final_hidden_states *= self.routed_scaling_factor
+-
+-        if shared_output is not None:
+-            final_hidden_states = final_hidden_states + shared_output
+-        return final_hidden_states
++            rank_counts = torch.bincount(owner.flatten(), minlength=self.ep_size)
++            token_fanout = (
++                torch.tensor(
++                    [torch.unique(row).numel() for row in owner],
++                    device=owner.device,
++                )
++                if owner.shape[0]
++                else torch.empty(0, device=owner.device)
++            )
++            request_id = os.environ.get("LLADA_REQUEST_ID", "unknown")
++            input_rel_l2 = input_cosine = moe_output_rel_l2 = moe_output_cosine = None
++            previous = getattr(self, "_ep_trace_previous", None)
++            if (
++                previous is not None
++                and previous[0] == request_id
++                and previous[1].shape == local_hidden.shape
++            ):
++                previous_input, previous_output = previous[1], previous[2]
++                current_input = local_hidden.float()
++                current_output = local_output.float()
++                input_rel_l2 = float(
++                    ((current_input - previous_input).norm() / previous_input.norm()).item()
++                )
++                input_cosine = float(
++                    torch.nn.functional.cosine_similarity(
++                        current_input.flatten(), previous_input.flatten(), dim=0
++                    ).item()
++                )
++                moe_output_rel_l2 = float(
++                    ((current_output - previous_output).norm() / previous_output.norm()).item()
++                )
++                moe_output_cosine = float(
++                    torch.nn.functional.cosine_similarity(
++                        current_output.flatten(), previous_output.flatten(), dim=0
++                    ).item()
++                )
++            self._ep_trace_previous = (
++                request_id,
++                local_hidden.float().detach().clone(),
++                local_output.float().detach().clone(),
++            )
++            record = {
++                "rank": int(ep_rank),
++                "layer": int(self.layer_id),
++                "invocation": int(self._ep_trace_invocation),
++                "request_id": request_id,
++                "sequence_ids": json.loads(os.environ.get("LLADA_TRACE_SEQ_IDS", "[]")),
++                "block_starts": json.loads(os.environ.get("LLADA_TRACE_BLOCK_STARTS", "[]")),
++                "remaining_before": json.loads(os.environ.get("LLADA_TRACE_REMAINING_BEFORE", "[]")),
++                "batch": int(original_shape[0]),
++                "physical_m_global": int(flat_hidden.shape[0]),
++                "physical_m_local": int(local_hidden.shape[0]),
++                "topk": int(self.top_k),
++                "rank_counts_local_source": [int(x) for x in rank_counts.cpu()],
++                "rank_fanout_mean": float(token_fanout.float().mean().item()) if token_fanout.numel() else 0.0,
++                "rank_fanout_max": int(token_fanout.max().item()) if token_fanout.numel() else 0,
++                "recv_rows": int(recv_hidden.shape[0]),
++                "router_ms": float(trace_events[0].elapsed_time(trace_events[1])),
++                "dispatch_ms": float(trace_events[1].elapsed_time(trace_events[2])),
++                "expert_ms": float(trace_events[2].elapsed_time(trace_events[3])),
++                "combine_ms": float(trace_events[3].elapsed_time(trace_events[4])),
++                "shared_ms": float(trace_events[4].elapsed_time(trace_events[5])),
++                "gather_ms": float(trace_events[5].elapsed_time(trace_events[6])),
++                "input_rel_l2_lag1": input_rel_l2,
++                "input_cosine_lag1": input_cosine,
++                "moe_output_rel_l2_lag1": moe_output_rel_l2,
++                "moe_output_cosine_lag1": moe_output_cosine,
++            }
++            if os.environ.get("LLADA_EP_TRACE_ROUTES") == "1":
++                record["topk_ids"] = topk_output.topk_ids.cpu().tolist()
++                record["topk_weights"] = topk_output.topk_weights.float().cpu().tolist()
++            trace_path = Path(trace_dir)
++            trace_path.mkdir(parents=True, exist_ok=True)
++            with (trace_path / f"ep_rank{ep_rank}.jsonl").open("a") as f:
++                f.write(json.dumps(record) + "\n")
++            self._ep_trace_invocation += 1
++        if shape_trace:
++            if not hasattr(self, "_ep_shape_trace_invocation"):
++                self._ep_shape_trace_invocation = 0
++            shape_record = {
++                "rank": int(ep_rank),
++                "layer": int(self.layer_id),
++                "invocation": int(self._ep_shape_trace_invocation),
++                "request_id": os.environ.get("LLADA_REQUEST_ID", "unknown"),
++                "sequence_ids": json.loads(os.environ.get("LLADA_TRACE_SEQ_IDS", "[]")),
++                "block_starts": json.loads(os.environ.get("LLADA_TRACE_BLOCK_STARTS", "[]")),
++                "remaining_before": json.loads(os.environ.get("LLADA_TRACE_REMAINING_BEFORE", "[]")),
++                "batch": int(original_shape[0]),
++                "physical_m_global": int(flat_hidden.shape[0]),
++                "physical_m_local": int(local_hidden.shape[0]),
++                "topk": int(self.top_k),
++                "topk_ids_local_source": topk_output.topk_ids.cpu().tolist(),
++                "expert_histogram_local_source": [
++                    int(value) for value in shape_expert_histogram.cpu()
++                ],
++                "rank_counts_local_source": [
++                    int(value) for value in shape_rank_counts.cpu()
++                ],
++                "rank_fanout_mean": float(shape_token_fanout.float().mean().item())
++                if shape_token_fanout.numel() else 0.0,
++                "rank_fanout_max": int(shape_token_fanout.max().item())
++                if shape_token_fanout.numel() else 0,
++                "recv_rows": int(recv_hidden.shape[0]),
++                "top1_weight_mean": float(shape_weights[:, 0].mean().item()),
++                "topk_entropy_mean": float(shape_entropy.mean().item()),
++            }
++            shape_path = Path(shape_trace_dir)
++            shape_path.mkdir(parents=True, exist_ok=True)
++            with (shape_path / f"shape_rank{ep_rank}.jsonl").open("a") as f:
++                f.write(json.dumps(shape_record) + "\n")
++            self._ep_shape_trace_invocation += 1
++        if dump_dir and self.layer_id == 1:
++            gathered_routed = torch.empty_like(flat_hidden)
++            gathered_shared = torch.empty_like(flat_hidden)
++            dist.all_gather_into_tensor(
++                gathered_routed,
++                (local_output - local_shared).contiguous(),
++                group=parallel_state.get_tp_group().device_group,
++            )
++            dist.all_gather_into_tensor(
++                gathered_shared,
++                local_shared.contiguous(),
++                group=parallel_state.get_tp_group().device_group,
++            )
++            if ep_rank == 0:
++                dump_path = Path(dump_dir) / "ep_layer_01_moe.pt"
++                if not dump_path.exists():
++                    torch.save(
++                        {
++                            "routed": gathered_routed.detach().cpu(),
++                            "shared": gathered_shared.detach().cpu(),
++                            "moe_total": gathered.detach().cpu(),
++                        },
++                        dump_path,
++                    )
++        return gathered.view(original_shape)
+ 
+ # Copied from transformers.models.llama.modeling_llama.repeat_kv
+ def repeat_kv(hidden_states: torch.Tensor, n_rep: int) -> torch.Tensor:
+@@ -935,6 +1236,20 @@ class LLaDA2Block(nn.Module):
+             is_layer_sparse=self.is_layer_sparse,
+             is_previous_layer_sparse=is_previous_layer_sparse,
+         )
++        if get_moe_a2a_backend().is_deepep():
++            # SGLang's server path couples DeepEP to DP-attention and marks
++            # the MLP boundary SCATTERED.  dInfer's manual diffusion runner
++            # keeps an exact replicated token matrix across the dense TP
++            # group; forward_deepep partitions those rows itself.  Keep the
++            # layer communicator in the replicated TP-attention contract so
++            # it performs only the required TP reductions/layer norms.
++            self.layer_scatter_modes = LayerScatterModes(
++                layer_input_mode=ScatterMode.TP_ATTN_FULL,
++                attn_mode=ScatterMode.TP_ATTN_FULL,
++                mlp_mode=ScatterMode.FULL,
++                middle_residual_mode=ScatterMode.TP_ATTN_FULL,
++                layer_output_mode=ScatterMode.TP_ATTN_FULL,
++            )
+ 
+         self.is_last_layer = self.layer_id == config.num_hidden_layers - 1
+ 
+@@ -987,11 +1302,25 @@ class LLaDA2Block(nn.Module):
+         attention_mask: Optional[torch.Tensor]=None,
+     ) -> torch.Tensor:
+         bsz, q_len, h = hidden_states.size()
++        block_trace_dir = os.environ.get("LLADA_BLOCK_TRACE_DIR")
++        block_trace_layers_raw = os.environ.get("LLADA_BLOCK_TRACE_LAYERS")
++        if block_trace_dir and block_trace_layers_raw:
++            block_trace_layers = {
++                int(value) for value in block_trace_layers_raw.split(",") if value.strip()
++            }
++            if self.layer_id not in block_trace_layers:
++                block_trace_dir = None
++        block_events = None
++        if block_trace_dir:
++            block_events = [torch.cuda.Event(enable_timing=True) for _ in range(6)]
++            block_events[0].record()
+         hidden_states, residual = self.layer_communicator.prepare_attn(
+             hidden_states=hidden_states,
+             residual=residual,
+             forward_batch=None,
+         )
++        if block_events:
++            block_events[1].record()
+         # # residual = hidden_states
+ 
+         # # hidden_states = self.input_layernorm(hidden_states)
+@@ -1003,6 +1332,8 @@ class LLaDA2Block(nn.Module):
+             use_cache=use_cache,
+             attention_mask=attention_mask,
+         )
++        if block_events:
++            block_events[2].record()
+         # hidden_states = hidden_states.flatten(0, 1)
+         # residual = residual.flatten(0, 1)
+         # print(self.layer_communicator.prepare_mlp)
+@@ -1011,6 +1342,8 @@ class LLaDA2Block(nn.Module):
+             residual=residual,
+             forward_batch=None,
+         )
++        if block_events:
++            block_events[3].record()
+         # if self.tp_size>1:
+         #     hidden_states = tensor_model_parallel_all_reduce(hidden_states)
+         # # hidden_states, residual = layernorm(hidden_states, residual)
+@@ -1019,6 +1352,8 @@ class LLaDA2Block(nn.Module):
+         # residual = hidden_states
+         # hidden_states = self.post_attention_layernorm(hidden_states)
+         hidden_states = self.mlp(hidden_states, False)
++        if block_events:
++            block_events[4].record()
+ 
+         # print(self.layer_communicator.postprocess_layer)
+         hidden_states, residual = self.layer_communicator.postprocess_layer(
+@@ -1026,10 +1361,52 @@ class LLaDA2Block(nn.Module):
+             residual=residual,
+             forward_batch=None,
+         )
++        if block_events:
++            block_events[5].record()
++            block_events[5].synchronize()
++            rank = dist.get_rank()
++            if not hasattr(self, "_block_trace_invocation"):
++                self._block_trace_invocation = 0
++            record = {
++                "rank": int(rank),
++                "layer": int(self.layer_id),
++                "invocation": int(self._block_trace_invocation),
++                "request_id": os.environ.get("LLADA_REQUEST_ID", "unknown"),
++                "sequence_ids": json.loads(os.environ.get("LLADA_TRACE_SEQ_IDS", "[]")),
++                "block_starts": json.loads(os.environ.get("LLADA_TRACE_BLOCK_STARTS", "[]")),
++                "remaining_before": json.loads(os.environ.get("LLADA_TRACE_REMAINING_BEFORE", "[]")),
++                "batch": int(bsz),
++                "q_len": int(q_len),
++                "prepare_attn_ms": float(block_events[0].elapsed_time(block_events[1])),
++                "attention_ms": float(block_events[1].elapsed_time(block_events[2])),
++                "prepare_mlp_ms": float(block_events[2].elapsed_time(block_events[3])),
++                "mlp_ms": float(block_events[3].elapsed_time(block_events[4])),
++                "postprocess_ms": float(block_events[4].elapsed_time(block_events[5])),
++            }
++            trace_path = Path(block_trace_dir)
++            trace_path.mkdir(parents=True, exist_ok=True)
++            with (trace_path / f"block_rank{rank}.jsonl").open("a") as f:
++                f.write(json.dumps(record) + "\n")
++            self._block_trace_invocation += 1
+         # hidden_states = hidden_states + residual
+         # hidden_states = hidden_states.view(bsz, q_len, -1)
+         # residual = residual.view(bsz, q_len, -1)
+ 
++        debug_dir = os.environ.get("LLADA_LAYER_DUMP_DIR")
++        if debug_dir and dist.get_rank() == 0:
++            debug_path = Path(debug_dir) / f"layer_{self.layer_id:02d}.pt"
++            if not debug_path.exists():
++                debug_path.parent.mkdir(parents=True, exist_ok=True)
++                torch.save(
++                    {
++                        "hidden_states": hidden_states.detach().cpu(),
++                        "residual": (
++                            None if residual is None else residual.detach().cpu()
++                        ),
++                    },
++                    debug_path,
++                )
++
+         return hidden_states, residual, present_key_values
+ 
+ 
+@@ -1578,7 +1955,10 @@ class LLaDA2SGLangLM(nn.Module):
+                 del new_state_dict[f"model.layers.{layer_id}.mlp.w2"]
+                 self.model.layers[layer_id].mlp.experts.expert_map_cpu = per_gpu_inverse_mapping[layer_id]
+                 
+-            if 0 in gate_projs[layer_id].keys():
++            # Every EP rank owns a non-empty contiguous subset, but only EP
++            # rank 0 owns logical expert 0.  Gating fused-weight creation on
++            # key 0 silently left ranks 1..EP-1 uninitialized.
++            if len(gate_projs[layer_id]) > 0:
+                 for expert_id in per_gpu_expert_mapping[layer_id]:
+                     expert_id = int(expert_id)
+                     gate_proj = gate_projs[layer_id][expert_id].to(device)
+@@ -1597,10 +1977,21 @@ class LLaDA2SGLangLM(nn.Module):
+                 del new_state_dict[f"model.layers.{layer_id}.mlp.gate.expert_bias"]
+ 
+             if f"model.layers.{layer_id}.mlp.shared_experts.gate_proj.weight" in state_dict.keys():
+-                part_size = state_dict[f"model.layers.{layer_id}.mlp.shared_experts.gate_proj.weight"].shape[0] // tp_size
+-                part_start = tp_rank * part_size
+-                part_end = (tp_rank + 1) * part_size
+-                new_state_dict[f"model.layers.{layer_id}.mlp.shared_experts.gate_up_proj.weight"] = torch.cat([state_dict[f"model.layers.{layer_id}.mlp.shared_experts.gate_proj.weight"][part_start:part_end], state_dict[f"model.layers.{layer_id}.mlp.shared_experts.up_proj.weight"][part_start:part_end]], dim=0)
++                shared_gate = state_dict[f"model.layers.{layer_id}.mlp.shared_experts.gate_proj.weight"]
++                shared_up = state_dict[f"model.layers.{layer_id}.mlp.shared_experts.up_proj.weight"]
++                if get_moe_a2a_backend().is_deepep():
++                    # The exact token-row EP substrate evaluates the replicated
++                    # shared expert on each rank's disjoint source-token shard.
++                    # Its module was intentionally constructed with tp_size=1.
++                    shared_gate_part = shared_gate
++                    shared_up_part = shared_up
++                else:
++                    part_size = shared_gate.shape[0] // tp_size
++                    part_start = tp_rank * part_size
++                    part_end = (tp_rank + 1) * part_size
++                    shared_gate_part = shared_gate[part_start:part_end]
++                    shared_up_part = shared_up[part_start:part_end]
++                new_state_dict[f"model.layers.{layer_id}.mlp.shared_experts.gate_up_proj.weight"] = torch.cat([shared_gate_part, shared_up_part], dim=0)
+                 del new_state_dict[f"model.layers.{layer_id}.mlp.shared_experts.gate_proj.weight"]
+                 del new_state_dict[f"model.layers.{layer_id}.mlp.shared_experts.up_proj.weight"]
+             if f"model.layers.{layer_id}.mlp.gate_proj.weight" in state_dict.keys():
+@@ -1688,7 +2079,12 @@ class LLaDA2SGLangLM(nn.Module):
+                     else:
+                         filtered_file_state_dict[key] = value
+                         
+-                state_dict.update(file_state_dict)
++                # Only stage this rank's expert weights.  The original SGLang
++                # loader path computed the filtered dictionary but accidentally
++                # retained every expert tensor, which makes a 100B EP4 load
++                # require each process to hold the full ~206 GB checkpoint in
++                # host memory before conversion.
++                state_dict.update(filtered_file_state_dict)
+ 
+         if self.quant_config is not None:
+             self._update_state_dict_for_fusemoe_quant(state_dict, num_layers, dtype, per_gpu_expert_mapping, per_gpu_inverse_mapping, device)
