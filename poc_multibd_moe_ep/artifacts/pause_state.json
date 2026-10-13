@@ -1,0 +1,37 @@
+{
+  "status": "USER_REQUESTED_PAUSE",
+  "requested_at_utc": "2026-10-06T06:45:00Z",
+  "gpu_mask": "2,3,6,7",
+  "gpu_policy_during_pause": "OFF: no experiment and no burner until explicit resume",
+  "automatic_continuation_stopped": true,
+  "completed": [
+    "metadata-only 8 calibration / 24 held-out freeze",
+    "pinned checkpoint download",
+    "official CPU state-machine fixture",
+    "TRUE physical EP4 synthetic correctness and full-model R1/R2 proof",
+    "all 12 calibration cases: R1/R2/R3/R4 clean/timing/trace"
+  ],
+  "interrupted": "artifacts/R3_ep4_held_out_paired",
+  "interrupted_scope": "first held-out R3 case, partially completed request files retained",
+  "pending": [
+    "complete held-out EP4 R3/R2/R4/R1 same-session observer/parity comparisons",
+    "same-checkpoint TP-only R3/R2/R4/R1 control",
+    "final request-level statistics and held-out official Plus quality",
+    "final reports/figures and scoped commit/push"
+  ],
+  "preserve_existing_artifacts": true,
+  "resume_notes": [
+    "Do not rerun completed calibration or redownload weights.",
+    "GPU processes were terminated to release HBM, not SIGSTOP-suspended.",
+    "Load the local checkpoint again and warm the runtime before new clean timing.",
+    "run_confirmation refuses existing output directories: add a distinct resume suffix and metadata-preserving completed-request selection before resuming.",
+    "Do not overwrite partial interrupted evidence or treat it as a successful completed case.",
+    "Do not resume run_remaining or any GPU/burner process without a new explicit user request."
+  ],
+  "cleanup": {
+    "stopped_master_pid": 2169878,
+    "stopped_guard_pid": 2187759,
+    "remaining_rank0_sigkill_pid": 2187798,
+    "other_gpu_users_untouched": true
+  }
+}
