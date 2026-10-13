@@ -96,6 +96,12 @@ report automatically includes them. Every model/evaluation/trace failure
 is retained, with the relevant validity stratum. CPU analysis uses an empty
 CUDA mask and does not require stopping the restored burner.
 
+Restored burner stdout is append-only operational output, not an ongoing
+experiment. The guard moves its still-open inode to a unique directory under
+`/home/esjung/external/multibd-burner-live-*` and retains a bounded snapshot
+plus `burner_log_archive.json` in the evidence. This keeps the committed
+worktree stable without restarting/stopping a burner or deleting any log data.
+
 ## Original calibration provenance (historical GPU 2/3/6/7)
 
 The commands below are an execution ledger for the original runner. They are

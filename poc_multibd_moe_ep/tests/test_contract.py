@@ -142,5 +142,27 @@ class ContractTests(unittest.TestCase):
         self.assertTrue(state['primary_ep_complete'])
         self.assertFalse(state['optional_tp_valid'])
 
+    def test_live_burner_log_snapshot_does_not_interrupt_writer(self):
+        import json,subprocess,tempfile
+        from poc_multibd_moe_ep.scripts.run_guarded import freeze_restored_burner_log
+        with tempfile.TemporaryDirectory(prefix='multibd-log-test-') as directory:
+            root=Path(directory);output=root/'session';output.mkdir()
+            live_parent=root/'live';live_parent.mkdir()
+            snapshot=output/'restored_burner.log'
+            with snapshot.open('w') as stream:
+                stream.write('before\n');stream.flush()
+                # CPU-only fixture with a matching argv; never starts a GPU burner.
+                proc=subprocess.Popen([sys.executable,'-c','import time; time.sleep(30)',
+                    'utilize.py','--gpus',MASK,'--duration-sec','30'],stdout=stream)
+                try:
+                    freeze_restored_burner_log(output,live_parent)
+                    archive=json.loads((output/'burner_log_archive.json').read_text())
+                    stream.write('after\n');stream.flush()
+                    self.assertIsNone(proc.poll())
+                    self.assertEqual(snapshot.read_text(),'before\n')
+                    self.assertEqual(Path(archive['ongoing_log']).read_text(),'before\nafter\n')
+                finally:
+                    proc.terminate();proc.wait(timeout=5)
+
 
 if __name__=='__main__':unittest.main()

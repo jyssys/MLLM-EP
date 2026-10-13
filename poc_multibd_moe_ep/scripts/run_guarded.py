@@ -4,9 +4,44 @@ import os
 import json
 import signal
 import subprocess
+import shutil
+import tempfile
 import time
 from pathlib import Path
 from poc_multibd_moe_ep.contract import *
+
+
+def freeze_restored_burner_log(output,live_parent=None):
+    """Keep restored burners running without appending to committed evidence.
+
+    Rename the still-open stdout inode, retain all ongoing output outside the
+    worktree, and copy a bounded snapshot back. No process or data is removed.
+    """
+    output=Path(output)
+    for filename in ['restored_burner.log','restored_burner_fallback.log']:
+        path=output/filename
+        if not path.exists():continue
+        matched=[]
+        for entry in Path('/proc').iterdir():
+            if not entry.name.isdigit():continue
+            try:
+                args=(entry/'cmdline').read_bytes().replace(b'\0',b' ')
+                own_burner=entry.stat().st_uid==os.getuid() and (
+                    ('utilize.py --gpus '+MASK+' ').encode() in args or
+                    (b'run_utilize.sh' in args and
+                     ('VLLM_UTILIZE_GPUS='+MASK).encode() in (entry/'environ').read_bytes()))
+                if own_burner and (entry/'fd/1').resolve()==path.resolve():
+                    matched.append(int(entry.name))
+            except (FileNotFoundError,PermissionError):pass
+        if not matched:continue
+        parent=live_parent or PROJECT.parent/'external'
+        live_dir=Path(tempfile.mkdtemp(prefix='multibd-burner-live-',dir=str(parent)))
+        live_path=live_dir/filename
+        path.rename(live_path)
+        shutil.copy2(live_path,path)
+        write(output/'burner_log_archive.json',dict(
+            snapshot=filename,ongoing_log=str(live_path),burner_pids=matched,
+            mask=MASK,processes_uninterrupted=True,all_log_data_retained=True))
 
 
 def finish_scoped_cleanup(output):
@@ -51,6 +86,7 @@ def finish_scoped_cleanup(output):
             write(output/'restored_burner_fallback.json',dict(pid=proc.pid,mask=MASK))
     write(output/'cleanup_status.json',dict(terminated_owned_orphans=remaining,
         target_GPU_processes=sorted(old.compute_pids()),foreign_users_untouched=True))
+    freeze_restored_burner_log(output)
 
 
 def main():
