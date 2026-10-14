@@ -1,0 +1,94 @@
+{
+  "leading_target": "Oversized backing-storage clone in out-of-place KV slice_scatter",
+  "next_gate": "One exact compact out-of-place scatter control, after architecture screening. No new engine.",
+  "not_target": "Prefix projection caching already exists. No EP A2A. No stale attention reuse.",
+  "preserved_work": "Fresh QKV, native cache content/mask, out-of-place cache ownership, original sampler and weights",
+  "profile_validity": [
+    {
+      "output_NFE_parity": true,
+      "overhead": 0.05177546702401514,
+      "rank": 0,
+      "scope": "One calibration request. No request-population CI.",
+      "valid_bounded": true,
+      "wall_ms": 431.757583
+    },
+    {
+      "output_NFE_parity": true,
+      "overhead": 0.03858468043898777,
+      "rank": 1,
+      "scope": "One calibration request. No request-population CI.",
+      "valid_bounded": true,
+      "wall_ms": 426.395349
+    },
+    {
+      "output_NFE_parity": true,
+      "overhead": 0.04423192951872079,
+      "rank": 2,
+      "scope": "One calibration request. No request-population CI.",
+      "valid_bounded": true,
+      "wall_ms": 428.648439
+    },
+    {
+      "output_NFE_parity": true,
+      "overhead": 0.04966018329765709,
+      "rank": 3,
+      "scope": "One calibration request. No request-population CI.",
+      "valid_bounded": true,
+      "wall_ms": 430.893208
+    }
+  ],
+  "source_proof": [
+    {
+      "actual_full_storage_copy_bytes": 335544320,
+      "all_to_all": false,
+      "logical_KV_view_bytes": 8388608,
+      "native_graph_D2D_bytes": 187904819200,
+      "native_graph_full_storage_copy_count": 560,
+      "observed_regular_or_refresh_graphs": 14,
+      "physical_copy_inflation": 40,
+      "rank": 0,
+      "source": "native LLaDA2Attention.forward -> Tensor.slice_scatter on a view of monolithic graph KV storage",
+      "source_diagnostic_copy_count": 40,
+      "source_same_input_eager_logits_exact": true
+    },
+    {
+      "actual_full_storage_copy_bytes": 335544320,
+      "all_to_all": false,
+      "logical_KV_view_bytes": 8388608,
+      "native_graph_D2D_bytes": 187904819200,
+      "native_graph_full_storage_copy_count": 560,
+      "observed_regular_or_refresh_graphs": 14,
+      "physical_copy_inflation": 40,
+      "rank": 1,
+      "source": "native LLaDA2Attention.forward -> Tensor.slice_scatter on a view of monolithic graph KV storage",
+      "source_diagnostic_copy_count": 40,
+      "source_same_input_eager_logits_exact": true
+    },
+    {
+      "actual_full_storage_copy_bytes": 335544320,
+      "all_to_all": false,
+      "logical_KV_view_bytes": 8388608,
+      "native_graph_D2D_bytes": 187904819200,
+      "native_graph_full_storage_copy_count": 560,
+      "observed_regular_or_refresh_graphs": 14,
+      "physical_copy_inflation": 40,
+      "rank": 2,
+      "source": "native LLaDA2Attention.forward -> Tensor.slice_scatter on a view of monolithic graph KV storage",
+      "source_diagnostic_copy_count": 40,
+      "source_same_input_eager_logits_exact": true
+    },
+    {
+      "actual_full_storage_copy_bytes": 335544320,
+      "all_to_all": false,
+      "logical_KV_view_bytes": 8388608,
+      "native_graph_D2D_bytes": 187904819200,
+      "native_graph_full_storage_copy_count": 560,
+      "observed_regular_or_refresh_graphs": 14,
+      "physical_copy_inflation": 40,
+      "rank": 3,
+      "source": "native LLaDA2Attention.forward -> Tensor.slice_scatter on a view of monolithic graph KV storage",
+      "source_diagnostic_copy_count": 40,
+      "source_same_input_eager_logits_exact": true
+    }
+  ]
+}
