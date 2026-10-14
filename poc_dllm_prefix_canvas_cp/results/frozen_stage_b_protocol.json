@@ -1,0 +1,34 @@
+{
+  "Stage_A_evidence": "8 real native TP4 requests per prefix; validated coarse observer; profiler identifies full-KV copies as a target, not just SDPA",
+  "arms": [
+    "native_full_cache_slice_scatter_SDPA",
+    "local_exact_canvas_only_update_SDPA",
+    "prefix_sequence_sharded_CP_with_all_collectives"
+  ],
+  "copy": "one-time actual prefix all-to-all measured; amortization 4/8/16/32 iterations",
+  "correctness": {
+    "BF16_atol": 0.03125,
+    "local_vs_native": "BITWISE",
+    "relative_L2": 0.01,
+    "rtol": 0.01
+  },
+  "gate": "Must beat optimized native and strong local baseline >=1.25x including communication; no full integration if not.",
+  "layers": 20,
+  "physical_GPUS": [
+    4,
+    5,
+    6,
+    7
+  ],
+  "prefixes": [
+    512,
+    8192,
+    16384
+  ],
+  "queries": 32,
+  "sampling": "10 interleaved paired repeats,3warmups; repeats are NOT independent task requests",
+  "scope": "Synthetic shape-matched attention microbenchmark only. No pretrained generation/quality result inferred.",
+  "seed": 19411,
+  "synthetic_steps": 3,
+  "utc": "2026-10-14T09:53:29.886525+00:00"
+}

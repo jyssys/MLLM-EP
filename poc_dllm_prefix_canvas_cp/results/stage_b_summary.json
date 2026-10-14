@@ -1,0 +1,88 @@
+{
+  "Stage_C": "NOT_RUN: Gate B fails even with free preparation",
+  "actual_GPUS": [
+    4,
+    5,
+    6,
+    7
+  ],
+  "no_new_kernel": true,
+  "payload": "Q/canvas gather, LSE MAX, weighted-output reduce-scatter; prefix all-to-all preparation charged separately",
+  "rank_reuse": "head-sharded inputs -> sequence-sharded prefix -> exact softmax -> original head owners",
+  "results": [
+    {
+      "BF16_pass": true,
+      "amortized_speedup_vs_native": {
+        "16": 0.28455688506646093,
+        "32": 0.3090684800648135,
+        "4": 0.19280909353841036,
+        "8": 0.2456006975654024
+      },
+      "critical_rank": 3,
+      "distributed_ms": 4.883345336914062,
+      "local_ms": 1.2956755065917969,
+      "max_abs": 0.001953125,
+      "max_relative_L2": 0.0029507302679121494,
+      "native_ms": 1.6515520286560057,
+      "physical_keys": 1024,
+      "population_CI": "NOT_APPLICABLE: synthetic microbenchmark, not independent requests",
+      "prefix": 512,
+      "prefix_prepare_cold_ms": 2347.510498046875,
+      "prefix_prepare_warm_ms": 4.909855842590332,
+      "repeat_count": 10,
+      "speedup_vs_local": 0.2653253901168035,
+      "speedup_vs_native": 0.3382009492901587,
+      "unit": "ms /60 attention calls (20 layers x3 states)"
+    },
+    {
+      "BF16_pass": true,
+      "amortized_speedup_vs_native": {
+        "16": 0.43685909170677395,
+        "32": 0.4613527911217178,
+        "4": 0.3313187499739451,
+        "8": 0.3949251210353056
+      },
+      "critical_rank": 3,
+      "distributed_ms": 6.707038879394531,
+      "local_ms": 2.4890790367126465,
+      "max_abs": 0.00048828125,
+      "max_relative_L2": 0.0029929999727755785,
+      "native_ms": 3.278107147216797,
+      "physical_keys": 16384,
+      "population_CI": "NOT_APPLICABLE: synthetic microbenchmark, not independent requests",
+      "prefix": 8192,
+      "prefix_prepare_cold_ms": 7.242591857910156,
+      "prefix_prepare_warm_ms": 4.2494401931762695,
+      "repeat_count": 10,
+      "speedup_vs_local": 0.3711144487859812,
+      "speedup_vs_native": 0.4887562464097008,
+      "unit": "ms /60 attention calls (20 layers x3 states)"
+    },
+    {
+      "BF16_pass": true,
+      "amortized_speedup_vs_native": {
+        "16": 0.48188231777566637,
+        "32": 0.516264738028977,
+        "4": 0.3443023464990065,
+        "8": 0.42524148807992745
+      },
+      "critical_rank": 0,
+      "distributed_ms": 7.363939590454102,
+      "local_ms": 2.8801136207580567,
+      "max_abs": 0.000244140625,
+      "max_relative_L2": 0.0029902199748903513,
+      "native_ms": 4.0938387298583985,
+      "physical_keys": 32768,
+      "population_CI": "NOT_APPLICABLE: synthetic microbenchmark, not independent requests",
+      "prefix": 16384,
+      "prefix_prepare_cold_ms": 33.735679626464844,
+      "prefix_prepare_warm_ms": 6.035071849822998,
+      "repeat_count": 10,
+      "speedup_vs_local": 0.3911104355733115,
+      "speedup_vs_native": 0.5559305151233526,
+      "unit": "ms /60 attention calls (20 layers x3 states)"
+    }
+  ],
+  "scope": "SYNTHETIC_SHAPE_AND_NATIVE_Q_LAYOUT_MATCHED_PHYSICAL_MICROBENCH",
+  "task_correctness": "NOT_RUN"
+}
