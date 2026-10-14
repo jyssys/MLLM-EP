@@ -1,0 +1,70 @@
+`torch_dtype` is deprecated! Use `dtype` instead!
+`torch_dtype` is deprecated! Use `dtype` instead!
+`torch_dtype` is deprecated! Use `dtype` instead!
+`torch_dtype` is deprecated! Use `dtype` instead!
+[rank0]:[W1014 14:09:34.916603283 ProcessGroupNCCL.cpp:1538] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())
+W1014 14:09:35.636000 3881818 site-packages/torch/multiprocessing/spawn.py:169] Terminating process 3881823 via signal SIGTERM
+W1014 14:09:35.637000 3881818 site-packages/torch/multiprocessing/spawn.py:169] Terminating process 3881825 via signal SIGTERM
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/esjung/MLLM-EP-looped-moe-ep/poc_looped_moe_ep/scripts/validate_true_ep4.py", line 56, in <module>
+    if __name__=='__main__':main()
+                            ^^^^^^
+  File "/home/esjung/MLLM-EP-looped-moe-ep/poc_looped_moe_ep/scripts/validate_true_ep4.py", line 53, in main
+    mp.spawn(worker,args=(port,a.output),nprocs=4,join=True)
+  File "/home/esjung/anaconda3/envs/dinfer-ep-poc/lib/python3.11/site-packages/torch/multiprocessing/spawn.py", line 340, in spawn
+    return start_processes(fn, args, nprocs, join, daemon, start_method="spawn")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/anaconda3/envs/dinfer-ep-poc/lib/python3.11/site-packages/torch/multiprocessing/spawn.py", line 296, in start_processes
+    while not context.join():
+              ^^^^^^^^^^^^^^
+  File "/home/esjung/anaconda3/envs/dinfer-ep-poc/lib/python3.11/site-packages/torch/multiprocessing/spawn.py", line 215, in join
+    raise ProcessRaisedException(msg, error_index, failed_process.pid)
+torch.multiprocessing.spawn.ProcessRaisedException: 
+
+-- Process 2 terminated with the following error:
+Traceback (most recent call last):
+  File "/home/esjung/anaconda3/envs/dinfer-ep-poc/lib/python3.11/site-packages/torch/multiprocessing/spawn.py", line 90, in _wrap
+    fn(i, *args)
+  File "/home/esjung/MLLM-EP-looped-moe-ep/poc_looped_moe_ep/scripts/validate_true_ep4.py", line 28, in worker
+    actual=model(input_ids=ids).logits.detach();records=ep.resolved()
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/anaconda3/envs/dinfer-ep-poc/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1773, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/anaconda3/envs/dinfer-ep-poc/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1784, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/.cache/huggingface/modules/transformers_modules/ShourenWSR/how_hyphen_to_hyphen_loop_hyphen_moe/c1c857bab4665f00302f191fde5feb274ea97936/modeling_loop_lm.py", line 965, in forward
+    logits, lb, lz = self.model(input_ids, trace_sink=trace_sink)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/anaconda3/envs/dinfer-ep-poc/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1773, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/anaconda3/envs/dinfer-ep-poc/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1784, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/.cache/huggingface/modules/transformers_modules/ShourenWSR/how_hyphen_to_hyphen_loop_hyphen_moe/c1c857bab4665f00302f191fde5feb274ea97936/modeling_loop_lm.py", line 708, in forward
+    x, lb_total, lz_total = run_outer(self.head_layers, "head", 0, x, lb_total, lz_total)
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/.cache/huggingface/modules/transformers_modules/ShourenWSR/how_hyphen_to_hyphen_loop_hyphen_moe/c1c857bab4665f00302f191fde5feb274ea97936/modeling_loop_lm.py", line 697, in run_outer
+    x, lb, lz = layer(
+                ^^^^^^
+  File "/home/esjung/anaconda3/envs/dinfer-ep-poc/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1773, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/anaconda3/envs/dinfer-ep-poc/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1784, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<poc-native-expert-expression-only>", line 1, in forward
+  File "/home/esjung/MLLM-EP-looped-moe-ep/poc_looped_moe_ep/runtime.py", line 112, in run
+    dist.all_reduce(restored)
+  File "/home/esjung/anaconda3/envs/dinfer-ep-poc/lib/python3.11/site-packages/torch/distributed/c10d_logger.py", line 81, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/anaconda3/envs/dinfer-ep-poc/lib/python3.11/site-packages/torch/distributed/distributed_c10d.py", line 2924, in all_reduce
+    work = group.allreduce([tensor], opts)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: Tensors must be contiguous
+
