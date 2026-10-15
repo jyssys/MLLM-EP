@@ -1,0 +1,27 @@
+{
+  "architecture": [
+    {"factor": "Executed logical depth", "Ouro": "48, 96, or 192", "Qwen3": 28, "Qwen2.5": 36, "causal_control": "Native vs tied at identical R"},
+    {"factor": "MHA vs GQA", "Ouro_KV_heads": 16, "Qwen3_KV_heads": 8, "Qwen2.5_KV_heads": 2, "causal_control": "Native vs tied keeps head geometry"},
+    {"factor": "FFN width", "Ouro": 5632, "Qwen3": 6144, "Qwen2.5": 11008, "interpretation": "Raw cross-model latency cannot isolate recurrence"},
+    {"factor": "Attention projection details", "Ouro": "No Q/K head norm; no QKV bias", "Qwen3": "Q/K RMSNorm; no QKV bias", "Qwen2.5": "No Q/K head norm; QKV bias", "interpretation": "Operator and fusion differences are generic architecture confounds"},
+    {"factor": "Vocabulary and output head", "Ouro": 49152, "Qwen": 151936, "interpretation": "LM-head GEMM and gather work differ"},
+    {"factor": "Qwen2.5 TP4 KV replication", "status": "Checked from actual local heads and all-layer K/V weight hashes", "interpretation": "Total physical KV is not an exact quarter per rank"},
+    {"factor": "Ouro per-pass norm and residual reset", "status": "Preserved in explicit tied execution", "interpretation": "Do not compare a plain 192-layer Qwen clone"}
+  ],
+  "runtime": [
+    {"factor": "Model runner", "control": "Same installed native V2 runner for all primary configurations"},
+    {"factor": "CUDA Graph", "control": "Same main capture policy; actual replay counts recorded"},
+    {"factor": "Kernel selection", "control": "Actual kernel and collective tapes compared; shape-dependent kernels remain generic runtime effects"},
+    {"factor": "Large KV pool", "control": "Same HBM utilization policy; pool bytes and logical written bytes reported separately"},
+    {"factor": "Teacher forcing", "control": "Same sampler hook and frozen continuation within each model; copy overhead has a separate diagnostic"},
+    {"factor": "Execution order and drift", "control": "Partly counterbalanced configurations and adjacent native/tied sessions", "limitation": "No fully randomized independent multi-session experiment"},
+    {"factor": "Foreign activity", "control": "No foreign processes on selected GPUs; other physical GPUs remain untouched", "limitation": "Whole-host activity can affect CPU scheduling"}
+  ],
+  "measurement": [
+    {"factor": "Profiler service totals", "status": "Never used as additive E2E shares"},
+    {"factor": "Rank clock alignment", "status": "UNRESOLVED", "consequence": "No precise cross-rank waiting claim"},
+    {"factor": "Graph raw node counts", "status": "Primary destroys raw graph; separate retained-graph diagnostic only"},
+    {"factor": "Quality", "status": "Forced continuation is not benchmark accuracy; R1/R2 change the model"},
+    {"factor": "Ideal TP gap", "status": "Diagnostic only; not a removable latency estimate"}
+  ]
+}

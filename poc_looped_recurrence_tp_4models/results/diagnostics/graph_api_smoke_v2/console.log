@@ -1,0 +1,15 @@
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/esjung/MLLM-EP-looped-recurrence-tp/poc_looped_recurrence_tp_4models/scripts/graph_api_smoke.py", line 23, in <module>
+    if __name__=='__main__':main()
+                            ~~~~^^
+  File "/home/esjung/MLLM-EP-looped-recurrence-tp/poc_looped_recurrence_tp_4models/scripts/graph_api_smoke.py", line 17, in main
+    records=probe.graph_nodes();assert len(records)==1 and records[0]['node_count']>0
+  File "/home/esjung/MLLM-EP-looped-recurrence-tp/poc_looped_recurrence_tp_4models/graph_probe.py", line 46, in graph_nodes
+    check(lib.cudaGraphGetEdges(raw,sources,destinations,ctypes.byref(edges)))
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/MLLM-EP-looped-recurrence-tp/poc_looped_recurrence_tp_4models/graph_probe.py", line 35, in check
+    def check(code):assert code==0,('CUDA graph introspection error',code)
+                           ^^^^^^^
+AssertionError: ('CUDA graph introspection error', 1)

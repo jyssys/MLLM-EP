@@ -1,0 +1,153 @@
+INFO 10-15 18:45:43 [api_utils.py:273] non-default args: {'trust_remote_code': True, 'dtype': 'bfloat16', 'seed': 41015, 'max_model_len': 32768, 'distributed_executor_backend': 'mp', 'enable_prefix_caching': False, 'gpu_memory_utilization': 0.85, 'max_num_batched_tokens': 32768, 'max_num_seqs': 8, 'disable_log_stats': True, 'hf_overrides': {'total_ut_steps': 4}, 'enable_chunked_prefill': False, 'compilation_config': {'mode': None, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', 'custom_ops': [], 'ir_enable_torch_wrap': None, 'splitting_ops': None, 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'compile_sizes': None, 'compile_ranges_endpoints': None, 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'size_asserts': False, 'alignment_asserts': False, 'scalar_asserts': False, 'combo_kernels': True, 'benchmark_combo_kernel': True}, 'inductor_passes': {}, 'cudagraph_mode': None, 'cudagraph_num_of_warmups': 0, 'cudagraph_capture_sizes': [1, 2, 4, 8], 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': None, 'pass_config': {}, 'max_cudagraph_capture_size': None, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': None, 'static_all_moe_layers': []}, 'worker_extension_cls': 'poc_looped_recurrence_tp_4models.graph_probe.GraphProbe', 'async_scheduling': False, 'model': '/home/esjung/.cache/huggingface/hub/models--ByteDance--Ouro-2.6B-Thinking/snapshots/f1edd81e7ac41355db670500ceaf204e0f73af68'}
+/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/transformers/modeling_rope_utils.py:1080: FutureWarning: `rope_config_validation` is deprecated and has been removed. Its functionality has been moved to RotaryEmbeddingConfigMixin.validate_rope method. PreTrainedConfig inherits this class, so please call self.validate_rope() instead. Also, make sure to use the new rope_parameters syntax. You can call self.standardize_rope_params() in the meantime.
+  warnings.warn(
+[transformers] `layer_type_validation` is deprecated and will be removed in v5.20. Use `PreTrainedConfig.validate_layer_type` instead
+[transformers] `layer_type_validation` is deprecated and will be removed in v5.20. Use `PreTrainedConfig.validate_layer_type` instead
+INFO 10-15 18:45:43 [model.py:623] Resolved architecture: OuroForCausalLM
+INFO 10-15 18:45:43 [model.py:1788] Using max model len 32768
+WARNING 10-15 18:45:43 [arg_utils.py:2536] This model does not officially support disabling chunked prefill. Disabling this manually may cause the engine to crash or produce incorrect outputs.
+INFO 10-15 18:45:43 [vllm.py:1109] Asynchronous scheduling is disabled.
+INFO 10-15 18:45:43 [kernel.py:295] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native'])
+[transformers] `layer_type_validation` is deprecated and will be removed in v5.20. Use `PreTrainedConfig.validate_layer_type` instead
+[transformers] `layer_type_validation` is deprecated and will be removed in v5.20. Use `PreTrainedConfig.validate_layer_type` instead
+[transformers] `layer_type_validation` is deprecated and will be removed in v5.20. Use `PreTrainedConfig.validate_layer_type` instead
+[transformers] `layer_type_validation` is deprecated and will be removed in v5.20. Use `PreTrainedConfig.validate_layer_type` instead
+[transformers] `layer_type_validation` is deprecated and will be removed in v5.20. Use `PreTrainedConfig.validate_layer_type` instead
+[transformers] `layer_type_validation` is deprecated and will be removed in v5.20. Use `PreTrainedConfig.validate_layer_type` instead
+(EngineCore pid=909883) INFO 10-15 18:45:50 [core.py:116] Initializing a V1 LLM engine (v0.26.0) with config: model='/home/esjung/.cache/huggingface/hub/models--ByteDance--Ouro-2.6B-Thinking/snapshots/f1edd81e7ac41355db670500ceaf204e0f73af68', speculative_config=None, tokenizer='/home/esjung/.cache/huggingface/hub/models--ByteDance--Ouro-2.6B-Thinking/snapshots/f1edd81e7ac41355db670500ceaf204e0f73af68', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, tokenizer_revision=None, trust_remote_code=True, dtype=torch.bfloat16, max_seq_len=32768, download_dir=None, load_format=auto, tensor_parallel_size=1, pipeline_parallel_size=1, data_parallel_size=1, decode_context_parallel_size=1, dcp_comm_backend=ag_rs, disable_custom_all_reduce=False, quantization=None, quantization_config=None, enforce_eager=False, enable_return_routed_experts=False, kv_cache_dtype=auto, device_config=cuda, structured_outputs_config=StructuredOutputsConfig(backend='auto', disable_any_whitespace=False, disable_additional_properties=False, reasoning_parser='', reasoning_parser_plugin='', enable_in_reasoning=False), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None, kv_cache_metrics=False, kv_cache_metrics_sample=0.01, cudagraph_metrics=False, enable_layerwise_nvtx_tracing=False, enable_mfu_metrics=False, enable_mm_processor_stats=False, enable_logging_iteration_details=False, jit_monitor_mode='warn', jit_monitor_verbose=False), seed=41015, served_model_name=/home/esjung/.cache/huggingface/hub/models--ByteDance--Ouro-2.6B-Thinking/snapshots/f1edd81e7ac41355db670500ceaf204e0f73af68, enable_prefix_caching=False, enable_chunked_prefill=False, pooler_config=None, compilation_config={'mode': <CompilationMode.VLLM_COMPILE: 3>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', 'custom_ops': ['none'], 'ir_enable_torch_wrap': True, 'splitting_ops': ['vllm::unified_attention_with_output', 'vllm::unified_mla_attention_with_output', 'vllm::mamba_mixer2', 'vllm::mamba_mixer', 'vllm::short_conv', 'vllm::linear_attention', 'vllm::plamo2_mamba_mixer', 'vllm::qwen_gdn_attention_core', 'vllm::gdn_attention_core_xpu', 'vllm::olmo_hybrid_gdn_full_forward', 'vllm::kda_attention', 'vllm::sparse_attn_indexer', 'vllm::rocm_aiter_sparse_attn_indexer', 'vllm::deepseek_v4_attention', 'vllm::hpc_rope_norm_forward', 'vllm::unified_kv_cache_update', 'vllm::unified_mla_kv_cache_update'], 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'compile_sizes': [], 'compile_ranges_endpoints': [32768], 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'size_asserts': False, 'alignment_asserts': False, 'scalar_asserts': False, 'combo_kernels': True, 'benchmark_combo_kernel': True}, 'inductor_passes': {}, 'cudagraph_mode': <CUDAGraphMode.FULL_AND_PIECEWISE: (2, 1)>, 'cudagraph_num_of_warmups': 1, 'cudagraph_capture_sizes': [1, 2, 4, 8], 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': False, 'pass_config': {'fuse_norm_quant': False, 'fuse_act_quant': False, 'fuse_attn_quant': False, 'enable_sp': False, 'fuse_gemm_comms': False, 'fuse_allreduce_rms': False, 'enable_qk_norm_rope_fusion': False, 'fuse_rope_kvcache_cat_mla': False, 'fuse_act_padding': False, 'fuse_qk_norm_rope_kvcache': False}, 'max_cudagraph_capture_size': 8, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': False, 'static_all_moe_layers': []}, kernel_config=KernelConfig(ir_op_priority=IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native']), enable_flashinfer_autotune=True, enable_cutedsl_warmup=True, enable_bf16x3_router_gemm=False, moe_backend='auto', linear_backend='auto')
+(EngineCore pid=909883) INFO 10-15 18:45:50 [multiproc_executor.py:140] DP group leader: node_rank=0, node_rank_within_dp=0, master_addr=127.0.0.1, mq_connect_ip=192.168.0.2 (local), world_size=1, local_world_size=1
+INFO 10-15 18:45:56 [worker_base.py:282] Injected <class 'poc_looped_recurrence_tp_4models.graph_probe.GraphProbe'> into <class 'vllm.v1.worker.gpu_worker.Worker'> for extended collective_rpc calls ['enable_loop_trace', 'finish_kernel_profile', 'finish_loop_trace', 'finish_outer_events', 'finish_parity_capture', 'graph_nodes', 'inspect_four', 'inspect_memory', 'inspect_ownership', 'runtime_counts_finish', 'runtime_counts_start', 'sampler_bypass', 'start_kernel_profile', 'start_outer_events', 'start_parity_capture', 'teacher']
+(Worker pid=909921) INFO 10-15 18:45:57 [parallel_state.py:1615] world_size=1 rank=0 local_rank=0 distributed_init_method=tcp://127.0.0.1:47227 backend=nccl
+(Worker pid=909921) INFO 10-15 18:45:57 [parallel_state.py:1946] rank 0 in world size 1 is assigned as DP rank 0, PP rank 0, PCP rank 0, TP rank 0, EP rank N/A, EPLB rank N/A
+(Worker pid=909921) INFO 10-15 18:45:57 [gpu_worker.py:378] Using V2 Model Runner
+(Worker pid=909921) INFO 10-15 18:45:58 [model_runner.py:284] Loading model from scratch...
+(Worker pid=909921) INFO 10-15 18:45:58 [cuda.py:482] Using FLASH_ATTN attention backend out of potential backends: ['FLASH_ATTN', 'FLASHINFER', 'TRITON_ATTN', 'FLEX_ATTENTION'].
+(Worker pid=909921) INFO 10-15 18:45:58 [flash_attn.py:776] Using FlashAttention version 3
+(Worker pid=909921) <frozen importlib._bootstrap_external>:1061: FutureWarning: The cuda.cudart module is deprecated and will be removed in a future release, please switch to use the cuda.bindings.runtime module instead.
+(Worker pid=909921) <frozen importlib._bootstrap_external>:1061: FutureWarning: The cuda.nvrtc module is deprecated and will be removed in a future release, please switch to use the cuda.bindings.nvrtc module instead.
+(Worker pid=909921) INFO 10-15 18:45:59 [weight_utils.py:869] Filesystem type for checkpoints: EXT4. Checkpoint size: 4.97 GiB. Available RAM: 1750.15 GiB.
+(Worker pid=909921) INFO 10-15 18:45:59 [weight_utils.py:892] Auto-prefetch is disabled because the filesystem (EXT4) is not a recognized network FS (NFS/Lustre). If you want to force prefetching, start vLLM with --safetensors-load-strategy=prefetch.
+(Worker pid=909921) Loading safetensors checkpoint shards:   0% Completed | 0/1 [00:00<?, ?it/s]
+(Worker pid=909921) Loading safetensors checkpoint shards: 100% Completed | 1/1 [00:01<00:00,  1.07s/it]
+(Worker pid=909921) Loading safetensors checkpoint shards: 100% Completed | 1/1 [00:01<00:00,  1.07s/it]
+(Worker pid=909921) 
+(Worker pid=909921) INFO 10-15 18:46:00 [default_loader.py:430] Loading weights took 1.20 seconds
+(Worker pid=909921) INFO 10-15 18:46:01 [model_runner.py:305] Model loading took 5.0 GiB and 3.276889 seconds
+(Worker pid=909921) INFO 10-15 18:46:01 [topk_topp_sampler.py:55] Using FlashInfer for top-p & top-k sampling.
+(Worker pid=909921) /home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/transformers/modeling_rope_utils.py:1080: FutureWarning: `rope_config_validation` is deprecated and has been removed. Its functionality has been moved to RotaryEmbeddingConfigMixin.validate_rope method. PreTrainedConfig inherits this class, so please call self.validate_rope() instead. Also, make sure to use the new rope_parameters syntax. You can call self.standardize_rope_params() in the meantime.
+(Worker pid=909921)   warnings.warn(
+(Worker pid=909921) [transformers] `layer_type_validation` is deprecated and will be removed in v5.20. Use `PreTrainedConfig.validate_layer_type` instead
+(Worker pid=909921) [transformers] `layer_type_validation` is deprecated and will be removed in v5.20. Use `PreTrainedConfig.validate_layer_type` instead
+(Worker pid=909921) [transformers] `layer_type_validation` is deprecated and will be removed in v5.20. Use `PreTrainedConfig.validate_layer_type` instead
+(Worker pid=909921) [transformers] `layer_type_validation` is deprecated and will be removed in v5.20. Use `PreTrainedConfig.validate_layer_type` instead
+(Worker pid=909921) INFO 10-15 18:46:11 [backends.py:1094] Using cache directory: /home/esjung/.cache/vllm/torch_compile_cache/c89c900c96/rank_0_0/backbone for vLLM's torch.compile
+(Worker pid=909921) INFO 10-15 18:46:11 [backends.py:1155] Dynamo bytecode transform time: 10.26 s
+(Worker pid=909921) INFO 10-15 18:46:19 [backends.py:292] Directly load the compiled graph(s) for compile range (1, 32768) from the cache, took 6.362 s
+(Worker pid=909921) INFO 10-15 18:46:19 [decorators.py:311] Directly load AOT compilation from path /home/esjung/.cache/vllm/torch_compile_cache/torch_aot_compile/54de1d1942b2007d493ee69cddc005f30c7063b81b847148331d386d94fa3cc0/rank_0_0/model
+(Worker pid=909921) INFO 10-15 18:46:19 [monitor.py:53] torch.compile took 18.13 s in total
+(Worker pid=909921) INFO 10-15 18:46:21 [monitor.py:81] Initial profiling/warmup run took 1.58 s
+(Worker pid=909921) INFO 10-15 18:46:22 [gpu_worker.py:560] Available KV cache memory: 60.65 GiB
+(EngineCore pid=909883) INFO 10-15 18:46:22 [kv_cache_utils.py:2177] GPU KV cache size: 41,392 tokens
+(EngineCore pid=909883) INFO 10-15 18:46:22 [kv_cache_utils.py:2178] Maximum concurrency for 32,768 tokens per request: 1.26x
+(Worker pid=909921) INFO 10-15 18:46:22 [kernel_warmup.py:65] Warming up ll_bf16 router GEMM kernels.
+(Worker pid=909921) INFO 10-15 18:46:32 [cutedsl_warmup.py:101] Skipping CuTeDSL warmup because no compile units were requested.
+(Worker pid=909921) Capturing CUDA graphs (PIECEWISE):   0%|          | 0/4 [00:00<?, ?it/s]Capturing CUDA graphs (PIECEWISE):  25%|██▌       | 1/4 [00:00<00:00,  4.33it/s]Capturing CUDA graphs (PIECEWISE):  50%|█████     | 2/4 [00:00<00:00,  5.12it/s]Capturing CUDA graphs (PIECEWISE):  75%|███████▌  | 3/4 [00:00<00:00,  5.40it/s]Capturing CUDA graphs (PIECEWISE): 100%|██████████| 4/4 [00:00<00:00,  5.53it/s]Capturing CUDA graphs (PIECEWISE): 100%|██████████| 4/4 [00:00<00:00,  5.34it/s]
+(Worker pid=909921) Capturing CUDA graphs (FULL):   0%|          | 0/4 [00:00<?, ?it/s]Capturing CUDA graphs (FULL):  25%|██▌       | 1/4 [00:00<00:00,  7.45it/s]Capturing CUDA graphs (FULL):  50%|█████     | 2/4 [00:00<00:00,  7.10it/s]Capturing CUDA graphs (FULL):  75%|███████▌  | 3/4 [00:00<00:00,  7.55it/s]Capturing CUDA graphs (FULL): 100%|██████████| 4/4 [00:00<00:00,  7.78it/s]Capturing CUDA graphs (FULL): 100%|██████████| 4/4 [00:00<00:00,  7.62it/s]
+(Worker pid=909921) INFO 10-15 18:46:33 [model_runner.py:747] Graph capturing finished in 2 secs, took 0.33 GiB
+(Worker pid=909921) INFO 10-15 18:46:33 [gpu_worker.py:857] Free memory on device (78.68/79.19 GiB) on startup. Desired GPU memory utilization is (0.85, 67.31 GiB). Actual usage is 5.0 GiB for weight, 1.44 GiB for peak activation, 0.22 GiB for non-torch memory, and 0.33 GiB for CUDAGraph memory. Replace gpu_memory_utilization config with `--kv-cache-memory=64618189824` (60.18 GiB) to fit into requested memory, or `--kv-cache-memory=76822074368` (71.55 GiB) to fully utilize gpu memory. Current kv cache memory in use is 60.65 GiB.
+(Worker pid=909921) INFO 10-15 18:46:34 [jit_monitor.py:79] Kernel JIT monitor activated; monitored JIT compilations during inference will use mode=warn.
+(EngineCore pid=909883) INFO 10-15 18:46:35 [core.py:340] init engine (profile, create kv cache, warmup model) took 34.15 s (compilation: 18.13 s)
+(EngineCore pid=909883) /home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/transformers/modeling_rope_utils.py:1080: FutureWarning: `rope_config_validation` is deprecated and has been removed. Its functionality has been moved to RotaryEmbeddingConfigMixin.validate_rope method. PreTrainedConfig inherits this class, so please call self.validate_rope() instead. Also, make sure to use the new rope_parameters syntax. You can call self.standardize_rope_params() in the meantime.
+(EngineCore pid=909883)   warnings.warn(
+(EngineCore pid=909883) [transformers] `layer_type_validation` is deprecated and will be removed in v5.20. Use `PreTrainedConfig.validate_layer_type` instead
+(EngineCore pid=909883) [transformers] `layer_type_validation` is deprecated and will be removed in v5.20. Use `PreTrainedConfig.validate_layer_type` instead
+(EngineCore pid=909883) [transformers] `layer_type_validation` is deprecated and will be removed in v5.20. Use `PreTrainedConfig.validate_layer_type` instead
+(EngineCore pid=909883) [transformers] `layer_type_validation` is deprecated and will be removed in v5.20. Use `PreTrainedConfig.validate_layer_type` instead
+(EngineCore pid=909883) INFO 10-15 18:46:36 [vllm.py:1109] Asynchronous scheduling is disabled.
+(EngineCore pid=909883) INFO 10-15 18:46:36 [kernel.py:295] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native'])
+(Worker pid=909921) ERROR 10-15 18:46:36 [multiproc_executor.py:1007] WorkerProc hit an exception.
+(Worker pid=909921) ERROR 10-15 18:46:36 [multiproc_executor.py:1007] Traceback (most recent call last):
+(Worker pid=909921) ERROR 10-15 18:46:36 [multiproc_executor.py:1007]   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/v1/executor/multiproc_executor.py", line 999, in worker_busy_loop
+(Worker pid=909921) ERROR 10-15 18:46:36 [multiproc_executor.py:1007]     output = func(*args, **kwargs)
+(Worker pid=909921) ERROR 10-15 18:46:36 [multiproc_executor.py:1007]   File "/home/esjung/MLLM-EP-looped-recurrence-tp/poc_looped_recurrence_tp_4models/graph_probe.py", line 33, in graph_nodes
+(Worker pid=909921) ERROR 10-15 18:46:36 [multiproc_executor.py:1007]     graph.instantiate();raw=ptr(graph.raw_cuda_graph())
+(Worker pid=909921) ERROR 10-15 18:46:36 [multiproc_executor.py:1007]     ~~~~~~~~~~~~~~~~~^^
+(Worker pid=909921) ERROR 10-15 18:46:36 [multiproc_executor.py:1007]   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/cuda/graphs.py", line 135, in instantiate
+(Worker pid=909921) ERROR 10-15 18:46:36 [multiproc_executor.py:1007]     super().instantiate()
+(Worker pid=909921) ERROR 10-15 18:46:36 [multiproc_executor.py:1007]     ~~~~~~~~~~~~~~~~~~~^^
+(Worker pid=909921) ERROR 10-15 18:46:36 [multiproc_executor.py:1007] RuntimeError: instantiate() is intended to be called by the user only when keep_graph=true
+(Worker pid=909921) ERROR 10-15 18:46:36 [multiproc_executor.py:1007] Traceback (most recent call last):
+(Worker pid=909921) ERROR 10-15 18:46:36 [multiproc_executor.py:1007]   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/v1/executor/multiproc_executor.py", line 999, in worker_busy_loop
+(Worker pid=909921) ERROR 10-15 18:46:36 [multiproc_executor.py:1007]     output = func(*args, **kwargs)
+(Worker pid=909921) ERROR 10-15 18:46:36 [multiproc_executor.py:1007]   File "/home/esjung/MLLM-EP-looped-recurrence-tp/poc_looped_recurrence_tp_4models/graph_probe.py", line 33, in graph_nodes
+(Worker pid=909921) ERROR 10-15 18:46:36 [multiproc_executor.py:1007]     graph.instantiate();raw=ptr(graph.raw_cuda_graph())
+(Worker pid=909921) ERROR 10-15 18:46:36 [multiproc_executor.py:1007]     ~~~~~~~~~~~~~~~~~^^
+(Worker pid=909921) ERROR 10-15 18:46:36 [multiproc_executor.py:1007]   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/cuda/graphs.py", line 135, in instantiate
+(Worker pid=909921) ERROR 10-15 18:46:36 [multiproc_executor.py:1007]     super().instantiate()
+(Worker pid=909921) ERROR 10-15 18:46:36 [multiproc_executor.py:1007]     ~~~~~~~~~~~~~~~~~~~^^
+(Worker pid=909921) ERROR 10-15 18:46:36 [multiproc_executor.py:1007] RuntimeError: instantiate() is intended to be called by the user only when keep_graph=true
+(Worker pid=909921) ERROR 10-15 18:46:36 [multiproc_executor.py:1007] 
+(EngineCore pid=909883) ERROR 10-15 18:46:36 [core.py:1548] Invocation of collective_rpc method failed
+(EngineCore pid=909883) ERROR 10-15 18:46:36 [core.py:1548] Traceback (most recent call last):
+(EngineCore pid=909883) ERROR 10-15 18:46:36 [core.py:1548]   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/v1/engine/core.py", line 1538, in _invoke_utility_method
+(EngineCore pid=909883) ERROR 10-15 18:46:36 [core.py:1548]     result = get_result()
+(EngineCore pid=909883) ERROR 10-15 18:46:36 [core.py:1548]   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/v1/engine/core.py", line 1493, in <lambda>
+(EngineCore pid=909883) ERROR 10-15 18:46:36 [core.py:1548]     and method(*self._convert_msgspec_args(method, args))
+(EngineCore pid=909883) ERROR 10-15 18:46:36 [core.py:1548]         ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=909883) ERROR 10-15 18:46:36 [core.py:1548]   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/v1/engine/core.py", line 952, in collective_rpc
+(EngineCore pid=909883) ERROR 10-15 18:46:36 [core.py:1548]     return self.model_executor.collective_rpc(method, timeout, args, kwargs)
+(EngineCore pid=909883) ERROR 10-15 18:46:36 [core.py:1548]            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=909883) ERROR 10-15 18:46:36 [core.py:1548]   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/v1/executor/multiproc_executor.py", line 405, in collective_rpc
+(EngineCore pid=909883) ERROR 10-15 18:46:36 [core.py:1548]     return future if non_block else future.result()
+(EngineCore pid=909883) ERROR 10-15 18:46:36 [core.py:1548]                                     ~~~~~~~~~~~~~^^
+(EngineCore pid=909883) ERROR 10-15 18:46:36 [core.py:1548]   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/v1/executor/multiproc_executor.py", line 91, in result
+(EngineCore pid=909883) ERROR 10-15 18:46:36 [core.py:1548]     return super().result()
+(EngineCore pid=909883) ERROR 10-15 18:46:36 [core.py:1548]            ~~~~~~~~~~~~~~^^
+(EngineCore pid=909883) ERROR 10-15 18:46:36 [core.py:1548]   File "/home/esjung/anaconda3/lib/python3.14/concurrent/futures/_base.py", line 447, in result
+(EngineCore pid=909883) ERROR 10-15 18:46:36 [core.py:1548]     return self.__get_result()
+(EngineCore pid=909883) ERROR 10-15 18:46:36 [core.py:1548]            ~~~~~~~~~~~~~~~~~^^
+(EngineCore pid=909883) ERROR 10-15 18:46:36 [core.py:1548]   File "/home/esjung/anaconda3/lib/python3.14/concurrent/futures/_base.py", line 396, in __get_result
+(EngineCore pid=909883) ERROR 10-15 18:46:36 [core.py:1548]     raise self._exception
+(EngineCore pid=909883) ERROR 10-15 18:46:36 [core.py:1548]   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/v1/executor/multiproc_executor.py", line 95, in _wait_for_response
+(EngineCore pid=909883) ERROR 10-15 18:46:36 [core.py:1548]     response = self.aggregate(self.get_response())
+(EngineCore pid=909883) ERROR 10-15 18:46:36 [core.py:1548]                               ~~~~~~~~~~~~~~~~~^^
+(EngineCore pid=909883) ERROR 10-15 18:46:36 [core.py:1548]   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/v1/executor/multiproc_executor.py", line 394, in get_response
+(EngineCore pid=909883) ERROR 10-15 18:46:36 [core.py:1548]     raise RuntimeError(
+(EngineCore pid=909883) ERROR 10-15 18:46:36 [core.py:1548]     ...<2 lines>...
+(EngineCore pid=909883) ERROR 10-15 18:46:36 [core.py:1548]     )
+(EngineCore pid=909883) ERROR 10-15 18:46:36 [core.py:1548] RuntimeError: Worker failed with error 'instantiate() is intended to be called by the user only when keep_graph=true', please check the stack trace above for the root cause
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/esjung/MLLM-EP-looped-recurrence-tp/poc_looped_recurrence_tp_4models/scripts/run_control_diagnostic.py", line 81, in <module>
+    if __name__=='__main__':main()
+                            ~~~~^^
+  File "/home/esjung/MLLM-EP-looped-recurrence-tp/poc_looped_recurrence_tp_4models/scripts/run_control_diagnostic.py", line 28, in main
+    write(output/'graphs.json',llm.collective_rpc('graph_nodes',timeout=120))
+                               ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/entrypoints/llm.py", line 590, in collective_rpc
+    return self.llm_engine.collective_rpc(method, timeout, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/v1/engine/llm_engine.py", line 426, in collective_rpc
+    return self.engine_core.collective_rpc(method, timeout, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/v1/engine/core_client.py", line 942, in collective_rpc
+    return self.call_utility("collective_rpc", method, timeout, args, kwargs)
+           ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/v1/engine/core_client.py", line 881, in call_utility
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/esjung/anaconda3/lib/python3.14/concurrent/futures/_base.py", line 454, in result
+    return self.__get_result()
+           ~~~~~~~~~~~~~~~~~^^
+  File "/home/esjung/anaconda3/lib/python3.14/concurrent/futures/_base.py", line 396, in __get_result
+    raise self._exception
+Exception: Call to collective_rpc method failed: Worker failed with error 'instantiate() is intended to be called by the user only when keep_graph=true', please check the stack trace above for the root cause
+(EngineCore pid=909883) INFO 10-15 18:46:36 [core.py:1313] [shutdown] EngineCore: trigger received signal=SIGTERM
+(EngineCore pid=909883) INFO 10-15 18:46:36 [core.py:1432] [shutdown] EngineCore: start mode=abort timeout=0s
+(EngineCore pid=909883) INFO 10-15 18:46:36 [core.py:1463] [shutdown] EngineCore: request processing complete; starting resource teardown
+(EngineCore pid=909883) INFO 10-15 18:46:36 [core.py:1326] [shutdown] EngineCore: exiting busy loop
+(EngineCore pid=909883) INFO 10-15 18:46:36 [multiproc_executor.py:429] [shutdown] Executor: waiting for worker exit count=1
+(Worker pid=909921) INFO 10-15 18:46:36 [multiproc_executor.py:793] Parent process exited, terminating worker queues
+(EngineCore pid=909883) INFO 10-15 18:46:39 [multiproc_executor.py:436] [shutdown] Executor: all workers exited gracefully
+WARNING 10-15 18:46:41 [utils.py:626] [shutdown] Process manager: force killing remaining processes count=1

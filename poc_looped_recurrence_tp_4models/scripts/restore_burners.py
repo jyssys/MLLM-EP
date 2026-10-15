@@ -1,0 +1,11 @@
+"""Reuse the audited final launcher with this campaign's artifact roots."""
+from poc_looped_recurrence_tp_4models.contract import ROOT,PROJECT,ASSETS,GPUS
+from poc_looped_multigpu_kv_placement.scripts import restore_burners as shared
+
+shared.ROOT=ROOT
+shared.PROJECT=PROJECT
+shared.ASSETS=ASSETS
+shared.GPUS=GPUS
+shared.MASK=','.join(map(str,GPUS))
+
+if __name__=='__main__':shared.main()
