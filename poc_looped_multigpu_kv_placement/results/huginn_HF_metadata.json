@@ -1,0 +1,146 @@
+{
+  "_id": "677e5da6e25244bffa8e4a17",
+  "author": "tomg-group-umd",
+  "cardData": {
+    "datasets": [
+      "tomg-group-umd/huginn-dataset"
+    ],
+    "language": [
+      "en"
+    ],
+    "library_name": "transformers",
+    "license": "apache-2.0",
+    "pipeline_tag": "text-generation",
+    "tags": [
+      "code",
+      "math",
+      "reasoning",
+      "llm"
+    ]
+  },
+  "config": {
+    "architectures": [
+      "RavenForCausalLM"
+    ],
+    "auto_map": {
+      "AutoConfig": "raven_config_minimal.RavenConfig",
+      "AutoModelForCausalLM": "raven_modeling_minimal.RavenForCausalLM"
+    },
+    "model_type": "huginn_raven",
+    "tokenizer_config": {
+      "bos_token": "<|begin_text|>",
+      "chat_template": "{% set loop_messages = messages %}{% for message in loop_messages %}{% set start_content = '<|begin_header|>' %}{% set end_content = message['content'] | trim  + '<|end_turn|>' %}{% if loop.index0 == 0 %}{% set start_content = bos_token + start_content %}{% endif %}{% if message['role'] == 'Huginn' or message['role'] == 'assistant' %}{% set start_content = start_content + 'Huginn<|end_header|>\n\n' %}{{ start_content }}{% generation %}{{ end_content }}{% endgeneration %}{% else %}{% set start_content = start_content + message['role'] + '<|end_header|>\n\n' %}{{ start_content }}{{ end_content }}{% endif %}{% endfor %}{% if add_generation_prompt %}{{ '<|begin_header|>Huginn<|end_header|>\n\n' }}{% else %}{{ '<|end_text|>' }}{% endif %}",
+      "eos_token": "<|end_text|>",
+      "pad_token": "<|pad|>"
+    }
+  },
+  "createdAt": "2025-01-08T11:12:38.000Z",
+  "disabled": false,
+  "downloads": 10329,
+  "gated": false,
+  "id": "tomg-group-umd/huginn-0125",
+  "lastModified": "2025-07-29T09:40:51.000Z",
+  "library_name": "transformers",
+  "likes": 315,
+  "model-index": null,
+  "modelId": "tomg-group-umd/huginn-0125",
+  "pipeline_tag": "text-generation",
+  "private": false,
+  "safetensors": {
+    "parameters": {
+      "F32": 3911400096
+    },
+    "total": 3911400096
+  },
+  "sha": "bb6621b65e90b6a4b9b29ef88dc83866d450470c",
+  "siblings": [
+    {
+      "rfilename": ".gitattributes"
+    },
+    {
+      "rfilename": "README.md"
+    },
+    {
+      "rfilename": "asset1.gif"
+    },
+    {
+      "rfilename": "asset2.jpeg"
+    },
+    {
+      "rfilename": "config.json"
+    },
+    {
+      "rfilename": "generation_config.json"
+    },
+    {
+      "rfilename": "model-00001-of-00004.safetensors"
+    },
+    {
+      "rfilename": "model-00002-of-00004.safetensors"
+    },
+    {
+      "rfilename": "model-00003-of-00004.safetensors"
+    },
+    {
+      "rfilename": "model-00004-of-00004.safetensors"
+    },
+    {
+      "rfilename": "model.safetensors.index.json"
+    },
+    {
+      "rfilename": "raven_config_minimal.py"
+    },
+    {
+      "rfilename": "raven_modeling_minimal.py"
+    },
+    {
+      "rfilename": "special_tokens_map.json"
+    },
+    {
+      "rfilename": "tokenizer.json"
+    },
+    {
+      "rfilename": "tokenizer_config.json"
+    }
+  ],
+  "spaces": [
+    "Sal-ONE/Huginn"
+  ],
+  "tags": [
+    "transformers",
+    "safetensors",
+    "huginn_raven",
+    "text-generation",
+    "code",
+    "math",
+    "reasoning",
+    "llm",
+    "conversational",
+    "custom_code",
+    "en",
+    "dataset:tomg-group-umd/huginn-dataset",
+    "arxiv:2502.05171",
+    "license:apache-2.0",
+    "region:us"
+  ],
+  "transformersInfo": {
+    "auto_model": "AutoModelForCausalLM",
+    "custom_class": "raven_modeling_minimal.RavenForCausalLM",
+    "pipeline_tag": "text-generation"
+  },
+  "usedStorage": 15648624173,
+  "widgetData": [
+    {
+      "text": "Hi, what can you help me with?"
+    },
+    {
+      "text": "What is 84 * 3 / 2?"
+    },
+    {
+      "text": "Tell me an interesting fact about the universe!"
+    },
+    {
+      "text": "Explain quantum computing in simple terms."
+    }
+  ]
+}

@@ -1,0 +1,115 @@
+{
+  "KV_total_bytes": 51538034688,
+  "account": "CONCEPTUAL_OWNERSHIP_AND_LOGICAL_TRANSFER_LEDGER. Not a candidate runtime or speedup.",
+  "calibrated_components": "Native TP1/2/4 request latencies and diagnostic kernel services are measured.",
+  "candidate_cost_model": "PARTIAL. Extra communication and different compute ownership are UNKNOWN. No zero-cost oracle speedup.",
+  "core_weight_storage_bytes": 4933296130,
+  "largest_context_capacity_bound": {
+    "KV_only_bytes_required": 360766242816,
+    "aggregate_physical_HBM_bytes": 342083239936,
+    "exceeds_HBM_even_with_zero_weights": true,
+    "limitation": "Bound applies to this exact full-KV workload. It is not a global latency optimality result.",
+    "measured_native_TP4_resident": 5,
+    "required_for_25_percent": 7
+  },
+  "layouts": [
+    {
+      "embedding_reduction_per_forward": 1,
+      "extra_CP_phases_per_forward": 0,
+      "logical_KV_per_rank_bytes": [
+        12884508672.0,
+        12884508672.0,
+        12884508672.0,
+        12884508672.0
+      ],
+      "name": "NATIVE_TP4",
+      "native_layer_reductions_per_forward": 384,
+      "status": "MEASURED_NATIVE",
+      "weights_per_rank_bytes": [
+        1334580226,
+        1334580226,
+        1334580226,
+        1334580226
+      ]
+    },
+    {
+      "constraints": [
+        "KV-head ownership stays exact.",
+        "Current queries need prefix partial outputs and global softmax normalization.",
+        "Fresh K/V append reaches each owning shard before later decode.",
+        "TP2 weights and compute use only two GPUs."
+      ],
+      "embedding_reduction_per_forward": 1,
+      "extra_CP_phases_per_forward": 192,
+      "extra_query_and_partial_output_LSE_bytes_per_cached_forward": 1585152,
+      "fresh_remote_KV_write_bytes_per_cached_forward": 1572864,
+      "initial_prefill_remote_KV_bytes_reference": 25769017344.0,
+      "latency_ms": null,
+      "logical_KV_per_rank_bytes": [
+        12884508672.0,
+        12884508672.0,
+        12884508672.0,
+        12884508672.0
+      ],
+      "name": "TP2_COMPUTE_CP2_KV",
+      "native_layer_reductions_per_forward": 384,
+      "owners": {
+        "physical4": "TP0 compute and half of its KV sequence",
+        "physical5": "TP1 compute and half of its KV sequence",
+        "physical6": "Remaining TP0 KV sequence",
+        "physical7": "Remaining TP1 KV sequence"
+      },
+      "status": "CONCEPTUAL_NOT_IMPLEMENTED",
+      "unresolved": [
+        "Distributed attention launch/sync/merge cost",
+        "KV conversion and write overlap",
+        "TP2 compute contention with remote CP attention",
+        "Graph/workspace and real pool allocation"
+      ],
+      "weights_per_rank_bytes": [
+        2668369922,
+        2668369922,
+        0,
+        0
+      ]
+    },
+    {
+      "constraints": [
+        "B1 loop dependencies remain sequential.",
+        "Each loop owner stores the complete shared core weights.",
+        "The final output token returns to the first owner.",
+        "Independent-request pipeline claims require a DP baseline."
+      ],
+      "correction_or_next_token_feedback_bytes": 8,
+      "inter_loop_hidden_bytes_per_cached_forward": 12288,
+      "inter_loop_hidden_bytes_per_prefill": 401866752,
+      "latency_ms": null,
+      "logical_KV_per_rank_bytes": [
+        12884508672.0,
+        12884508672.0,
+        12884508672.0,
+        12884508672.0
+      ],
+      "name": "RECURRENT_DEPTH_OWNERS",
+      "owners": {
+        "4": "Loop 0, all heads and all 48 physical core layers",
+        "5": "Loop 1, all heads and all 48 physical core layers",
+        "6": "Loop 2, all heads and all 48 physical core layers",
+        "7": "Loop 3, all heads and all 48 physical core layers"
+      },
+      "status": "CONCEPTUAL_NOT_IMPLEMENTED",
+      "unresolved": [
+        "Physical stage timing and pipeline utilization",
+        "Additional graph/workspace allocations"
+      ],
+      "weights_per_rank_bytes": [
+        5134622722,
+        4933296130,
+        4933296130,
+        5134622722
+      ]
+    }
+  ],
+  "model_weight_storage_bytes": 5335949314,
+  "positions_filled": 32767
+}
