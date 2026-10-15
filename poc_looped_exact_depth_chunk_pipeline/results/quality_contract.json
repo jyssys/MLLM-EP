@@ -1,0 +1,84 @@
+{
+  "R": 4,
+  "chat_template": "{%- if messages[0]['role'] == 'system' -%}{{- '<|im_start|>system\\n' + messages[0]['content'] + '<|im_end|>\\n' }}{%- else -%}{{- '<|im_start|>system\\nYou are a helpful assistant.<|im_end|>\\n' }}{%- endif -%}{%- for message in messages -%}{%- if message.role == 'system' and loop.first -%}{# Skip #}{%- else -%}{{- '<|im_start|>' + message['role'] + '\\n' + message['content'] + '<|im_end|>' + '\\n' }}{%- endif -%}{%- endfor -%}{%- if add_generation_prompt -%}{{- '<|im_start|>assistant\\n' }}{%- if enable_thinking is defined and enable_thinking is true -%}{{- '<think>\\n' }}{%- endif -%}{%- endif -%}",
+  "component_tolerance": {
+    "KV_relative_L2": 0.01,
+    "greedy_top1_equal": true,
+    "hidden_relative_L2": 0.01,
+    "logits_max_abs": 0.125,
+    "scope": "HF BF16 component chunk-shape comparison, fixed before measurement. No relaxation after failure."
+  },
+  "datasets": [
+    {
+      "available_rows": 30,
+      "file": "data/train-00000-of-00001.parquet",
+      "name": "aime24",
+      "path": "/home/esjung/external/looped-exact-depth-chunk-assets/aime24.parquet",
+      "repo": "HuggingFaceH4/aime_2024",
+      "revision": "2fe88a2f1091d5048c0f36abc874fb997b3dd99a",
+      "sha256": "26139847601a5037c237d5928b195e7260ca8074cf4f264b794af42847f79ccf",
+      "url": "https://huggingface.co/datasets/HuggingFaceH4/aime_2024/resolve/2fe88a2f1091d5048c0f36abc874fb997b3dd99a/data/train-00000-of-00001.parquet"
+    },
+    {
+      "available_rows": 500,
+      "file": "test.jsonl",
+      "name": "math100",
+      "path": "/home/esjung/external/looped-exact-depth-chunk-assets/math100.jsonl",
+      "repo": "HuggingFaceH4/MATH-500",
+      "revision": "6e4ed1a2a79af7d8630a6b768ec859cb5af4d3be",
+      "sha256": "35dc41080a3680858b27fa7e0533d2d547825316fc5dafe5d316f4ccc5a06132",
+      "url": "https://huggingface.co/datasets/HuggingFaceH4/MATH-500/resolve/6e4ed1a2a79af7d8630a6b768ec859cb5af4d3be/test.jsonl"
+    }
+  ],
+  "early_exit_threshold": 1.0,
+  "eos_token_id": 2,
+  "greedy": {
+    "temperature": 0.0,
+    "top_p": 1.0
+  },
+  "model_revision": "f1edd81e7ac41355db670500ceaf204e0f73af68",
+  "primary_cap": 4096,
+  "protocol_comparison": "REFERENCE_PROTOCOL_NOT_IDENTICAL",
+  "quality_completion_gate": "At final cap, >=90% must terminate naturally in each primary lane. Otherwise QUALITY_BASELINE_WEAK.",
+  "request_batch": 8,
+  "sampling": {
+    "repetition_penalty": 1.0,
+    "temperature": 1.0,
+    "top_k": -1,
+    "top_p": 0.7
+  },
+  "secondary_rule": "100 metadata-stratified MATH-500 problems, greedy. Upgrade the complete secondary lane if >=10% reach cap.",
+  "seeds": [
+    41015,
+    41016,
+    41017
+  ],
+  "selection": "Hash order within subject, then subject round-robin. No output-based selection.",
+  "special_tokens": {
+    "additional_special_tokens": [
+      "<|endoftext|>",
+      "<|im_start|>",
+      "<|im_end|>",
+      "<think>",
+      "</think>",
+      "<file_sep>",
+      "<filename>",
+      "<gh_stars>",
+      "<issue_start>",
+      "<issue_comment>",
+      "<issue_closed>",
+      "<jupyter_start>",
+      "<jupyter_text>",
+      "<jupyter_code>",
+      "<jupyter_output>",
+      "<jupyter_script>",
+      "<empty_output>"
+    ],
+    "bos_token": "<|im_start|>",
+    "eos_token": "<|im_end|>",
+    "unk_token": "<|endoftext|>"
+  },
+  "tokenizer_class": "GPT2TokenizerFast",
+  "upgrade_cap": 8192,
+  "upgrade_rule": "If >=10% of AIME sampling or greedy outputs reach cap, rerun the complete AIME lane at 8192. Preserve both caps."
+}
