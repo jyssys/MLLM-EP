@@ -1,0 +1,30 @@
+{
+  "EOS_enabled": true,
+  "cap": 8192,
+  "consequential_drift_rule": "Investigate large-margin top1 changes, mask/cache inconsistencies, or failed confirmation limits. Small-margin natural branch changes are not alone a model bug.",
+  "inputs_sha256": "e8c78a217aa82ec511abb8233c4d711d564fa3a44560f49ef4a89c445ee17eee",
+  "primary_lock_sha256": "fcb626ccee0a403257117b06974649ae2462d3f5832ab14f8b94c59e0c99c25b",
+  "reason": "Two metadata-ordered MATH cases supplement the long AIME capped probes. No result-based sample selection.",
+  "temperature": 0.0,
+  "tolerance_rule": {
+    "KV_relative_L2": {
+      "ceiling": 0.05,
+      "floor": 0.025
+    },
+    "calibration_multiplier": 2.0,
+    "hidden_relative_L2": {
+      "ceiling": 0.1,
+      "floor": 0.06
+    },
+    "logits_relative_L2": {
+      "ceiling": 0.1,
+      "floor": 0.04
+    },
+    "next_token_JSD": {
+      "ceiling": 0.05,
+      "floor": 0.005
+    },
+    "rule": "For each metric, freeze max(floor, 2*calibration maximum). A result above the ceiling blocks confirmation.",
+    "scope": "Diagnostic cross-backend BF16 calibration. Not a quality or bitwise parity assertion."
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "engine_kwargs_source": "results/quality_v1/engine_contract.json",
+  "failed_logs_preserved": true,
+  "failed_run": "restart_same_history_default_v1",
+  "failure_phase": "Engine initialization, before any client generation",
+  "fixed_guard_source_sha256": "f75c97124bf97cd7ec1a2b399f1776728dc0ea05e26337ad15b75c158b0fff8f",
+  "hypotheses_ranked": [
+    "Duplicate normal and post-exit burner restore",
+    "Late burner child missed by the next initial scan",
+    "Foreign allocation"
+  ],
+  "initial_GPU4_worker": 2024129,
+  "late_GPU4_context": 2024597,
+  "late_GPU4_worker": 2024298,
+  "model_or_sampling_changes": false,
+  "old_guard_source_sha256": "3b702d84019607fbcb942f2b183aab757eb162fd315107e726647729df6dbe0f",
+  "regression_green_exit": 0,
+  "regression_red_exit": 1,
+  "repair": "Only restore devices that post-exit cleanup itself reclaimed from surviving model contexts.",
+  "retry_run": "restart_same_history_default_v2",
+  "root_cause": "The post-exit fallback duplicated an already requested CPU-loading burner restore. A late GPU4 worker was absent from the next guard initial inventory."
+}

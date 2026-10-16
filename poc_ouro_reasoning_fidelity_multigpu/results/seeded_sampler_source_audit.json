@@ -1,0 +1,42 @@
+{
+  "actual_seeded_path": "Nonempty request generators select the PyTorch-native sampler, not the FlashInfer branch.",
+  "causal_attribution": "UNRESOLVED. Source inspection does not measure the actual RNG offset or the first differing logits.",
+  "files": [
+    {
+      "path": "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/v1/sample/ops/topk_topp_sampler.py",
+      "sha256": "ad9406a08a9bfcc84f182dab4522920f73605d4999191ee8f0dbb1479d946506"
+    },
+    {
+      "path": "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/v1/worker/gpu_model_runner.py",
+      "sha256": "81b7627fbe81f7aaa2f77b4bf085faa353c69d03662ebfe369536a9773bb70d0"
+    },
+    {
+      "path": "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/v1/worker/gpu_input_batch.py",
+      "sha256": "ca9b8a627cb8e5109c804970a09597c6aa019a78957df399e8b3022bd493ecfc"
+    }
+  ],
+  "gpu_sampling_probe": "NOT_RUN",
+  "method": "INSTALLED_SOURCE_AUDIT_ONLY",
+  "no_main_run_setting_change": true,
+  "noise": "The native sampler draws exponential noise with each request generator.",
+  "observed_restart_evidence_sha256": "e294ea3cf30f24e97da89880afbb1a104ec241b3127c94b860e2e3f3e50951d4",
+  "remaining_hypotheses": [
+    "Request-generator offsets or batching history differ.",
+    "Model or sampler arithmetic differs across sessions."
+  ],
+  "request_seed_initialization": "A seeded request creates a device generator and applies sampling_params.seed.",
+  "ruled_out_variant": "The compared sessions have equal actual KV-pool geometry and equal engine arguments.",
+  "sampled_function_boundaries": {
+    "forward_cuda": {
+      "end_line": 174,
+      "start_line": 147,
+      "text": "def forward_cuda(\n        self,\n        logits: torch.Tensor,\n        generators: dict[int, torch.Generator],\n        k: torch.Tensor | None,\n        p: torch.Tensor | None,\n    ) -> tuple[torch.Tensor, torch.Tensor | None]:\n        \"\"\"More optimized implementation for top-k and top-p sampling.\"\"\"\n        # Fall back to the PyTorch-native path when FlashInfer has nothing\n        # to do (no top-k / top-p filter) or when per-request generators\n        # are present (unsupported by FlashInfer 0.2.3+).\n        if (k is None and p is None) or generators:\n            if generators:\n                logger.debug_once(\n                    \"FlashInfer 0.2.3+ does not support \"\n                    \"per-request generators. Falling back to \"\n                    \"PyTorch-native implementation.\"\n                )\n            return self.forward_native(logits, generators, k, p)\n        if self.use_fp64_gumbel:\n            return self.forward_native(logits, generators, k, p)\n        assert self.logprobs_mode not in (\"processed_logits\", \"processed_logprobs\"), (\n            \"FlashInfer does not support returning logits/logprobs\"\n        )\n        # flashinfer sampling functions expect contiguous logits.\n        # In flex_attn/triton_attn fp32 inference, logits can be non-contiguous\n        # because of slicing operation in logits_processor.\n        return flashinfer_sample(logits.contiguous(), k, p, generators), None"
+    },
+    "random_sample": {
+      "end_line": 469,
+      "start_line": 447,
+      "text": "def random_sample(\n    probs: torch.Tensor,\n    generators: dict[int, torch.Generator],\n    use_fp64_gumbel: bool = False,\n) -> torch.Tensor:\n    \"\"\"Randomly sample from the probabilities.\n\n    We use this function instead of torch.multinomial because torch.multinomial\n    causes CPU-GPU synchronization.\n    \"\"\"\n    q = empty_exponential_noise_like(probs, use_fp64_gumbel)\n    # NOTE(woosuk): To batch-process the requests without their own seeds,\n    # which is the common case, we first assume that every request does\n    # not have its own seed. Then, we overwrite the values for the requests\n    # that have their own seeds.\n    if len(generators) != probs.shape[0]:\n        q.exponential_()\n    if generators:\n        # TODO(woosuk): This can be slow because we handle each request\n        # one by one. Optimize this.\n        for i, generator in generators.items():\n            q[i].exponential_(generator=generator)\n    return sample_with_exponential_noise(probs, q)"
+    }
+  },
+  "startup_log_limit": "The FlashInfer selection log does not identify the seeded request path."
+}

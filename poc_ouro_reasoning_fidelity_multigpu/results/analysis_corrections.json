@@ -1,0 +1,12 @@
+{
+  "affected_derived_file": "calibration_diagnostic_summary_v1.json",
+  "replacement": "calibration_diagnostic_summary_v2.json",
+  "raw_outputs_changed": false,
+  "tolerances_changed": false,
+  "benchmark_scores_changed": false,
+  "issue": "Reverse argsort selected the highest token ID at an exact logit tie. Greedy argmax selects the lowest token ID.",
+  "regression": "test_equal_maximum_uses_first_token_index failed with 5 != 4 before the correction.",
+  "correction": "Use stable descending order for tied logits. Clamp only negative floating-point roundoff in JSD to zero.",
+  "unaffected_metrics": ["max_abs", "relative_L2", "hidden", "KV", "positive JSD", "original calibration ceiling failure"],
+  "limitation": "The first native divergent-prefix diagnostic used a shorter generation cap. Its source snapshot preserves that configuration."
+}

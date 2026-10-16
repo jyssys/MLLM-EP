@@ -1,0 +1,39 @@
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/esjung/MLLM-EP-ouro-fidelity/poc_ouro_reasoning_fidelity_multigpu/scripts/run_hf_fidelity.py", line 80, in <module>
+    main()
+  File "/home/esjung/MLLM-EP-ouro-fidelity/poc_ouro_reasoning_fidelity_multigpu/scripts/run_hf_fidelity.py", line 39, in main
+    result=model(inp,past_key_values=past,use_cache=True,exit_at_step=3,logits_to_keep=1)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/anaconda3/envs/dinfer-ep-poc/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1773, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/anaconda3/envs/dinfer-ep-poc/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1784, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/external/ouro-reasoning-fidelity-assets/hf454_deps/transformers/utils/generic.py", line 961, in wrapper
+    output = func(self, *args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/.cache/huggingface/modules/transformers_modules/f1edd81e7ac41355db670500ceaf204e0f73af68/modeling_ouro.py", line 744, in forward
+    outputs, hidden_states_list, gate_list = self.model(
+                                             ^^^^^^^^^^^
+  File "/home/esjung/anaconda3/envs/dinfer-ep-poc/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1773, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/anaconda3/envs/dinfer-ep-poc/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1879, in _call_impl
+    return inner()
+           ^^^^^^^
+  File "/home/esjung/anaconda3/envs/dinfer-ep-poc/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1827, in inner
+    result = forward_call(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/external/ouro-reasoning-fidelity-assets/hf454_deps/transformers/utils/generic.py", line 1069, in wrapper
+    outputs = func(self, *args, **kwargs)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/.cache/huggingface/modules/transformers_modules/f1edd81e7ac41355db670500ceaf204e0f73af68/modeling_ouro.py", line 597, in forward
+    past_key_values = UniversalTransformerCache(max_cache_size)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/.cache/huggingface/modules/transformers_modules/f1edd81e7ac41355db670500ceaf204e0f73af68/modeling_ouro.py", line 134, in __init__
+    self.key_cache: list[Optional[torch.Tensor]] = []
+    ^^^^^^^^^^^^^^
+AttributeError: property 'key_cache' of 'UniversalTransformerCache' object has no setter

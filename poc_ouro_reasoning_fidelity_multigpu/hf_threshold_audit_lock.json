@@ -1,0 +1,10 @@
+{
+  "purpose": "Audit the released threshold selector, not an alternative quality configuration.",
+  "input": "Calibration question 60 and its original frozen 1025-token teacher prefix.",
+  "source": "Pinned modeling_ouro.py. Reproduce its sigmoid, remaining-probability, cumulative-probability, and threshold operations in their actual dtype.",
+  "forward_selection": "Keep exit_at_step=3 for every model forward. Do not change generated benchmark outputs.",
+  "observations": "Count which state the default threshold=1.0 selector would choose. Compare selected logits only at steps 0,1,4,32,128,1024.",
+  "interpretation": "A hypothetical selector difference is not a measured benchmark gain or a claim about the private author harness.",
+  "execution": "After all four frozen HF natural corroboration outputs are saved. Use the same loaded model on physical GPU4.",
+  "performance_claim": false
+}

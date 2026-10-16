@@ -1,0 +1,67 @@
+{
+  "PASS": true,
+  "capped_rule": "A matching extracted answer is not completed accuracy if finish_reason is length.",
+  "tests": [
+    {
+      "PASS": true,
+      "actual": 7,
+      "expected": 7,
+      "input": "The result is \\boxed{007}.",
+      "rule": "LAST_BALANCED_BOX"
+    },
+    {
+      "PASS": true,
+      "actual": 12,
+      "expected": 12,
+      "input": "\\boxed{3} then \\boxed{12}",
+      "rule": "LAST_BALANCED_BOX"
+    },
+    {
+      "PASS": true,
+      "actual": 42,
+      "expected": 42,
+      "input": "Final answer: 42",
+      "rule": "EXPLICIT_FINAL_MARKER"
+    },
+    {
+      "PASS": true,
+      "actual": null,
+      "expected": null,
+      "input": "Reasoning contains 42 but no final answer.",
+      "rule": "UNPARSEABLE"
+    },
+    {
+      "PASS": true,
+      "actual": null,
+      "expected": null,
+      "input": "\\boxed{1000}",
+      "rule": "LAST_BALANCED_BOX"
+    },
+    {
+      "PASS": true,
+      "actual": null,
+      "expected": null,
+      "input": "\\boxed{-1}",
+      "rule": "LAST_BALANCED_BOX"
+    },
+    {
+      "PASS": true,
+      "actual": 7,
+      "expected": 7,
+      "input": "\\boxed{\\text{7}}",
+      "rule": "LAST_BALANCED_BOX"
+    }
+  ],
+  "wrong_answer_controls": [
+    {
+      "correct": false,
+      "prediction": 8,
+      "reference": 7
+    },
+    {
+      "correct": false,
+      "prediction": null,
+      "reference": 7
+    }
+  ]
+}

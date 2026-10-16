@@ -1,0 +1,63 @@
+{
+  "GPU_used": false,
+  "execution_parameters_changed": false,
+  "full_generation_attention_mask": "NOT_CAPTURED",
+  "helper_source": "    def _prepare_attention_mask_for_generation(\n        self,\n        inputs_tensor: torch.Tensor,\n        generation_config: GenerationConfig,\n        model_kwargs: dict[str, Any],\n    ) -> torch.LongTensor:\n        pad_token_id = generation_config._pad_token_tensor\n        eos_token_id = generation_config._eos_token_tensor\n\n        # `input_ids` may be present in the model kwargs, instead of being the main input (e.g. multimodal model)\n        if \"input_ids\" in model_kwargs and model_kwargs[\"input_ids\"].shape[1] > 0:\n            inputs_tensor = model_kwargs[\"input_ids\"]\n\n        # No information for attention mask inference -> return default attention mask\n        default_attention_mask = torch.ones(inputs_tensor.shape[:2], dtype=torch.long, device=inputs_tensor.device)\n        if pad_token_id is None:\n            return default_attention_mask\n\n        is_input_ids = len(inputs_tensor.shape) == 2 and inputs_tensor.dtype in [torch.int, torch.long]\n        if not is_input_ids:\n            return default_attention_mask\n\n        is_pad_token_in_inputs = (pad_token_id is not None) and (\n            isin_mps_friendly(elements=inputs_tensor, test_elements=pad_token_id).any()\n        )\n        is_pad_token_not_equal_to_eos_token_id = (eos_token_id is None) or ~(\n            isin_mps_friendly(elements=eos_token_id, test_elements=pad_token_id).any()\n        )\n        can_infer_attention_mask = is_pad_token_in_inputs * is_pad_token_not_equal_to_eos_token_id\n        attention_mask_from_padding = inputs_tensor.ne(pad_token_id).long()\n\n        attention_mask = (\n            attention_mask_from_padding * can_infer_attention_mask + default_attention_mask * ~can_infer_attention_mask\n        )\n        return attention_mask\n",
+  "interpretation": "The installed helper returns an all-ones mask for these unpadded B1 prompts when pad equals EOS.",
+  "limitation": "This helper check does not capture every mask inside the running reference model.",
+  "model_forward": "NOT_RUN",
+  "records": [
+    {
+      "all_input_positions_visible": true,
+      "arm": "P0",
+      "id": "60",
+      "mask_dtype": "torch.int64",
+      "mask_shape": [
+        1,
+        177
+      ],
+      "prompt_contains_EOS_delimiters": true,
+      "token_count": 177
+    },
+    {
+      "all_input_positions_visible": true,
+      "arm": "P1",
+      "id": "60",
+      "mask_dtype": "torch.int64",
+      "mask_shape": [
+        1,
+        179
+      ],
+      "prompt_contains_EOS_delimiters": true,
+      "token_count": 179
+    },
+    {
+      "all_input_positions_visible": true,
+      "arm": "P0",
+      "id": "61",
+      "mask_dtype": "torch.int64",
+      "mask_shape": [
+        1,
+        148
+      ],
+      "prompt_contains_EOS_delimiters": true,
+      "token_count": 148
+    },
+    {
+      "all_input_positions_visible": true,
+      "arm": "P1",
+      "id": "61",
+      "mask_dtype": "torch.int64",
+      "mask_shape": [
+        1,
+        150
+      ],
+      "prompt_contains_EOS_delimiters": true,
+      "token_count": 150
+    }
+  ],
+  "source_path": "/home/esjung/.venvs/llada2-mini-reference/lib/python3.11/site-packages/transformers/generation/utils.py",
+  "source_sha256": "a20024b1e82ed5361a524d238d2197be5407abc91297dd9888c57e8284d63fef",
+  "torch": "2.8.0+cu128",
+  "transformers": "4.57.1"
+}

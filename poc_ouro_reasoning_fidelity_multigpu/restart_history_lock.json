@@ -1,0 +1,12 @@
+{
+  "purpose": "Separate a fixed request history from the earlier comparison of different histories.",
+  "input_problems": ["60", "61", "62", "63"],
+  "primary_control": "One fresh engine with the exact full-quality kwargs and history: two 256-cap waves, then the first 8192-cap wave.",
+  "comparison": "Compare to the already stored full-quality history. Compare all four cases, not only equal cases.",
+  "if_control_matches": "Stop the additional engine experiment. The earlier property still shows that engine kwargs plus seed alone were insufficient across different histories.",
+  "if_control_differs": "Run two fresh engines with only VLLM_ENABLE_V1_MULTIPROCESSING=0 changed. Keep ordinary graphs, BF16, FA3, weights, prompt, and sampling fixed.",
+  "not_a_quality_selection": "No prompt, seed, cap, grade, or primary quality output changes from this diagnostic.",
+  "not_a_method": "Generic engine reproducibility audit. No recurrence-specific contribution or speedup claim.",
+  "physical_gpus": [4,5,6,7],
+  "start_condition": "Native full collection and the queued HF corroboration have released their GPU jobs."
+}
