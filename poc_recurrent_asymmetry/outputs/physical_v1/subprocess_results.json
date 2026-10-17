@@ -1,0 +1,44 @@
+[
+  {
+    "CUDA_VISIBLE_DEVICES": "4",
+    "command": [
+      "/usr/local/cuda/bin/ncu",
+      "--profile-from-start",
+      "off",
+      "--launch-count",
+      "3",
+      "--metrics",
+      "dram__bytes_read.sum,dram__bytes_write.sum,lts__t_bytes.sum,sm__throughput.avg.pct_of_peak_sustained_elapsed",
+      "--csv",
+      "/home/esjung/.venvs/llada2-mini-reference/bin/python",
+      "-m",
+      "poc_recurrent_asymmetry.scripts.counter_probe"
+    ],
+    "exit_code": 1,
+    "name": "counter"
+  },
+  {
+    "CUDA_VISIBLE_DEVICES": "4,5,6,7",
+    "command": [
+      "/home/esjung/.venvs/llada2-mini-reference/bin/python",
+      "-m",
+      "poc_recurrent_asymmetry.scripts.physical_microbench"
+    ],
+    "exit_code": 0,
+    "name": "physical"
+  },
+  {
+    "CUDA_VISIBLE_DEVICES": "4,5,6,7",
+    "command": [
+      "/home/esjung/.venvs/llada2-mini-reference/bin/python",
+      "-m",
+      "torch.distributed.run",
+      "--standalone",
+      "--nproc_per_node=4",
+      "-m",
+      "poc_recurrent_asymmetry.scripts.nccl_microbench"
+    ],
+    "exit_code": 0,
+    "name": "nccl"
+  }
+]
