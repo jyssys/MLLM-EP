@@ -24,6 +24,10 @@ def score(row, result):
         matches = re.findall(r'####\s*([+-]?[\d,]+(?:\.\d+)?)', result['text'])
         if matches:
             extracted, rule = matches[-1], 'EXPLICIT_GSM_MARKER'
+    if extracted is None:
+        tail=result['text'].rsplit('</think>',1)[-1].replace('<|im_end|>','').strip()
+        if numeric(tail) is not None:
+            extracted,rule=tail,'STANDALONE_FINAL_NUMBER'
     if row['dataset']=='gsm8k':
         prediction = numeric(extracted)
         correct = prediction is not None and prediction == numeric(row['answer'])

@@ -31,6 +31,7 @@ Warm-up 1 preserves the first recurrent pass exactly.
 At each later round boundary, the emulator creates all three predicted inputs before stage 1 executes.
 Stage 1 receives the available round input. Stages 2–4 receive frozen predictions.
 The round output comes from stage 4. The official terminal norm still executes before the next round.
+All stage outputs and current-position KV writes must complete before the next round starts.
 
 ```text
 Previous round states + current round input
@@ -73,8 +74,10 @@ Same-stream ordering establishes causal execution in the emulator.
 Host enqueue timestamps are not GPU completion measurements or cross-GPU clock measurements.
 The diagnostic cache observer checks all 96 writes in order for each teacher-forced position.
 
-Batch evaluation uses left padding with explicit masks and position IDs.
-EOS row compaction removes completed requests before the next model invocation.
+Batch evaluation uses the official generation driver with its native masks and position handling.
+The fixed batch preserves the official EOS behavior. Completed rows can receive inactive physical padding KV entries.
+These entries are not new logical tokens. They never enter another request's cache or extend its output.
+The initial compacting driver failed long output parity and does not supply primary quality evidence.
 Candidate KV persists across every subsequent decode token. Exact reference KV does not replace it.
 
 ## Architecture bounds
@@ -82,3 +85,8 @@ Candidate KV persists across every subsequent decode token. Exact reference KV d
 The 16/7 and 16/4 ratios assume equal stage costs and zero communication, prediction, and synchronization costs.
 They compare against 16 serial stages, not optimized TP4 or DP4.
 These ratios are analytical bounds from the specification. They are not measured or predicted serving speedups.
+
+A distributed implementation must communicate the required previous-stage output to each predictor's device.
+The normalized stage-4 output also becomes the new round input and may require additional transfers.
+These transfers are not free because the source tensors already exist.
+The current numerical emulator does not measure their communication or synchronization cost.

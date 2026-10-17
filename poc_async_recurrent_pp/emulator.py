@@ -156,7 +156,7 @@ def generate(model, tokenizer, prompt_ids, cap, emulator=None):
 
 
 @torch.inference_mode()
-def generate_batch(model, tokenizer, prompts, cap, emulator=None):
+def legacy_compact_batch(model, tokenizer, prompts, cap, emulator=None, on_complete=None):
     """Left-padded exact prefill, fresh candidate KV, and EOS row compaction.
 
     A completed row leaves the cache before the next model invocation.
@@ -190,10 +190,14 @@ def generate_batch(model, tokenizer, prompts, cap, emulator=None):
                     approximate_KV_persisted=emulator is not None and emulator.arm!='exact',
                     cache_slots=96,KV_writes_after_EOS=0,baseline_batch_size=len(prompts),
                     scope='Batched single-GPU numerical emulation. Not physical pipeline timing.')
+                if on_complete is not None:
+                    on_complete(original,completed[original])
             else:
                 keep.append(i)
         if not keep:
             break
+        if len(sequences[live[keep[0]]])%512==0:
+            print('decode progress',len(sequences[live[keep[0]]]),'of cap',cap,'active',len(keep),flush=True)
         past=result.past_key_values
         if len(keep)!=len(live):
             selection=torch.tensor(keep,device='cuda')
@@ -206,3 +210,66 @@ def generate_batch(model, tokenizer, prompts, cap, emulator=None):
         result=model(inp,attention_mask=mask,position_ids=positions,past_key_values=past,
                      use_cache=True,exit_at_step=3,logits_to_keep=1)
     return [completed[i] for i in range(len(prompts))]
+
+
+@torch.inference_mode()
+def generate_batch(model, tokenizer, prompts, cap, emulator=None, on_complete=None):
+    """Use the official generation driver for exact and predicted-input arms.
+
+    The batch remains fixed, as in unmodified GenerationMixin. Native padding
+    after EOS is not a new logical request token. Those padding KV entries are
+    unused and never transferred to another request. There is no row compaction.
+    """
+    from transformers import StoppingCriteria, StoppingCriteriaList
+    width=max(map(len,prompts))
+    batch=len(prompts)
+    inputs=torch.tensor([[tokenizer.eos_token_id]*(width-len(row))+row for row in prompts],device='cuda')
+    mask=torch.tensor([[0]*(width-len(row))+[1]*len(row) for row in prompts],device='cuda')
+    records={}
+    start=time.perf_counter()
+    class Observe(StoppingCriteria):
+        def __call__(self,input_ids,scores,**kwargs):
+            count=input_ids.shape[1]-width
+            tokens=input_ids[:,-1].tolist()
+            for i,token in enumerate(tokens):
+                if i in records:
+                    continue
+                if token==tokenizer.eos_token_id or count>=cap:
+                    ids=input_ids[i,width:].tolist()
+                    record=dict(ids=ids,text=tokenizer.decode(ids,skip_special_tokens=False),
+                        generated_tokens=len(ids),finish_reason='eos' if token==tokenizer.eos_token_id else 'length',
+                        wall_ms=(time.perf_counter()-start)*1000,exact_prefill=True,
+                        approximate_KV_persisted=emulator is not None and emulator.arm!='exact',
+                        cache_slots=96,logical_token_writes_after_EOS=0,
+                        native_physical_inactive_padding_KV=True,native_fixed_batch=True,
+                        baseline_batch_size=batch,
+                        scope='Official HF generation with boundary hooks. Single-GPU functional emulation, not parallel serving timing.')
+                    records[i]=record
+                    if on_complete is not None:
+                        on_complete(i,record)
+            if count%512==0:
+                print('native decode progress',count,'of cap',cap,'unfinished',batch-len(records),flush=True)
+            # This observer must never change the official stopping decision.
+            return torch.zeros(batch,dtype=torch.bool,device=input_ids.device)
+    handle=None
+    if emulator is not None:
+        emulator.enabled=False
+        def enable_after_prefill(module,args,value):
+            emulator.enabled=True
+        handle=model.register_forward_hook(enable_after_prefill)
+    try:
+        result=model.generate(inputs,attention_mask=mask,max_new_tokens=cap,do_sample=False,
+            eos_token_id=tokenizer.eos_token_id,pad_token_id=tokenizer.eos_token_id,
+            use_cache=True,exit_at_step=3,return_dict_in_generate=True,
+            stopping_criteria=StoppingCriteriaList([Observe()]))
+    finally:
+        if handle is not None:
+            handle.remove()
+    signature=cache_signature(result.past_key_values)
+    assert len(records)==batch
+    for i in range(batch):
+        native_ids=result.sequences[i,width:].tolist()
+        if tokenizer.eos_token_id in native_ids:
+            native_ids=native_ids[:native_ids.index(tokenizer.eos_token_id)+1]
+        assert native_ids==records[i]['ids']
+    return [records[i] for i in range(batch)]

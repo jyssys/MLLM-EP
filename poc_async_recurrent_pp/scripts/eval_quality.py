@@ -37,9 +37,12 @@ def main():
         GPU_mask=os.environ['CUDA_VISIBLE_DEVICES'],UUID=str(torch.cuda.get_device_properties(0).uuid),
         predictor_sha256=sha(ROOT/'outputs/manifests/predictor.json'),
         data_sha256=sha(ROOT/'outputs/manifests/data.json'),
+        native_lane_clarification_sha256=sha(ROOT/'outputs/manifests/native_lane_clarification.json'),
+        generation_driver='Official model.generate; fixed batch; no EOS row compaction',
+        batch_size=8,
         dtype='BF16',sampling='Greedy',tokenizer_revision=REVISION,
         source='Official HF forward with boundary-input hooks. Serial functional emulation only.'))
-    assert read(ROOT/'outputs/baseline_tasks_v1/status.json')['baseline_plausible']
+    assert read(ROOT/'outputs/baseline_tasks_v2/status.json')['baseline_plausible']
     records=[]
     for start in range(0,len(rows),8):
         group=rows[start:start+8]
@@ -47,19 +50,22 @@ def main():
         hook=StageEmulator(model,args.arm,coefficients)
         try:
             prompts=[token_ids(tokenizer,row,data['prompt_suffix']) for row in group]
-            results=generate_batch(model,tokenizer,prompts,args.cap,hook)
-            if not records:
-                write(output/'availability_trace.json',hook.events)
-            for row,ids,result in zip(group,prompts,results):
+            def completed(index,result):
+                row,ids=group[index],prompts[index]
                 record=dict(id=row['id'],dataset=row['dataset'],arm=args.arm,prompt_ids=ids,
                     prompt=row['question']+data['prompt_suffix'],cap=args.cap,
                     **result,**score(row,result))
                 write(output/filename(row['id']),record)
                 records.append(record)
                 print(args.arm,row['id'],record['correct_completed'],record['generated_tokens'],record['finish_reason'],flush=True)
+            results=generate_batch(model,tokenizer,prompts,args.cap,hook,on_complete=completed)
+            if not records:
+                write(output/'availability_trace.json',hook.events)
         finally:
             hook.close()
+            del hook
             gc.collect()
+            torch.cuda.empty_cache()
     write(output/'status.json',dict(success=True,n=len(records),arm=args.arm,
         correct=sum(r['correct_completed'] for r in records),
         parsed=sum(r['parsed'] for r in records),truncated=sum(r['truncated'] for r in records),

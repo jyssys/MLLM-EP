@@ -34,6 +34,15 @@ The four natural outputs contain 251, 772, 831, and 639 tokens.
 These are arithmetic integrity probes, not benchmark accuracy measurements.
 The output cap is 2,048 tokens. None of these four outputs truncates.
 
+The native-generation driver also passes a longer four-request batch comparison with the exact stage hooks active.
+All generated token IDs and EOS behavior match the unmodified official driver.
+The four output lengths are 364, 827, 660, and 637 tokens.
+The initial compacting driver fails this comparison and remains excluded.
+
+The corrected native task-sanity bank scores 4/4 GSM8K and 4/4 MATH-500 questions.
+All eight outputs reach EOS under the 8,192-token cap.
+These are eight unique sanity questions, not a complete benchmark or an independent confirmation cohort.
+
 The official cache index is `24 * recurrent_depth + physical_layer`.
 Every checked cache slot has the same logical sequence length.
 Different depth/layer slots have distinct storage.

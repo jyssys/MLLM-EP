@@ -6,6 +6,7 @@ from poc_async_recurrent_pp.contract import *
 
 
 def collect(wave, arm):
+    assert read(wave/arm/'status.json')['success'], 'Require a successful complete worker'
     return [read(path) for path in sorted((wave/arm).glob('*.json'))
             if path.name not in ['status.json','availability_trace.json','eval_contract.json']]
 
@@ -23,11 +24,18 @@ def summarize(wave):
                 continue
             x=np.array([int(selected[i]['correct_completed']) for i in ids])
             a=np.array([int(baseline[i]['correct_completed']) for i in ids])
+            answer=np.array([int(selected[i]['answer_matches']) for i in ids])
+            answer_a=np.array([int(baseline[i]['answer_matches']) for i in ids])
             rng=np.random.default_rng(20261017)
             sample=rng.integers(0,len(ids),(10000,len(ids)))
             ci=np.quantile((x-a)[sample].mean(1)*100,[.025,.975]).tolist()
             results.append(dict(dataset=dataset,arm=arm,n=len(ids),correct=int(x.sum()),
+                generation_errors=0,EOS_completed=sum(not selected[i]['truncated'] for i in ids),
                 accuracy_percent=float(x.mean()*100),delta_pp=float((x-a).mean()*100),
+                answer_correct=int(answer.sum()),answer_accuracy_percent=float(answer.mean()*100),
+                answer_delta_pp=float((answer-answer_a).mean()*100),
+                answer_delta_pp_CI95=np.quantile((answer-answer_a)[sample].mean(1)*100,[.025,.975]).tolist(),
+                answer_accuracy_CI95=np.quantile(answer[sample].mean(1)*100,[.025,.975]).tolist(),
                 delta_pp_CI95=ci,accuracy_CI95=np.quantile(x[sample].mean(1)*100,[.025,.975]).tolist(),
                 baseline_right_candidate_wrong=int(((a==1)&(x==0)).sum()),
                 baseline_wrong_candidate_right=int(((a==0)&(x==1)).sum()),
@@ -37,6 +45,7 @@ def summarize(wave):
                 mean_tokens=float(np.mean([selected[i]['generated_tokens'] for i in ids])),
                 median_tokens=float(np.median([selected[i]['generated_tokens'] for i in ids])),
                 max_tokens=max(selected[i]['generated_tokens'] for i in ids),
+                answer_baseline_error_ids=[i for i in ids if baseline[i]['answer_matches'] and not selected[i]['answer_matches']],
                 baseline_error_ids=[i for i in ids if baseline[i]['correct_completed'] and not selected[i]['correct_completed']]))
     return results
 

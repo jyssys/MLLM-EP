@@ -12,6 +12,10 @@ The frozen pilot contains 64 GSM8K test questions and 64 MATH-500 questions.
 The initial screening wave uses the first 16 questions from each dataset.
 The manifest also preserves all 1,319 GSM8K test questions and all 500 MATH-500 questions.
 
+The primary evaluator uses the official fixed-batch `model.generate()` driver for every arm.
+The initial compacting driver failed long output parity. Its pilot results do not support the primary quality decision.
+New directories preserve the corrected execution results without changing sample selection or predictor coefficients.
+
 The initial output cap is 2,048 tokens. EOS remains enabled.
 If any pilot arm truncates, the controller repeats the complete paired screening wave at 8,192 tokens.
 This rule uses identical prompt groups and a common cap for all arms.
@@ -19,12 +23,15 @@ The larger-cap wave remains a new result. It does not replace or delete the firs
 
 The evaluator extracts the last balanced boxed expression or an explicit final-answer marker.
 GSM8K additionally accepts its explicit `####` marker. Numeric comparison removes commas and normalizes decimal notation.
+Both datasets also accept a standalone numeric final response after the reasoning section.
 MATH-500 uses strict Math-Verify equivalence with LaTeX extraction and two-second timeouts.
 The evaluator records parsing failures, answer matches, completion, and truncation separately.
-Completed accuracy requires both a matching answer and EOS completion.
-Capped answer matches remain a separate diagnostic count.
+Answer accuracy counts a valid matching answer, including a capped output with a valid final answer.
+Completed-answer accuracy additionally requires EOS. Both endpoints receive paired confidence intervals.
+The native-lane clarification fixes these two endpoints before the corrected quality wave starts.
+Truncation alone cannot establish a mathematical accuracy regression.
 
-The early-failure rule requires every W1/W0 candidate's paired accuracy CI upper bound below minus 10 percentage points.
+The early-failure rule requires every W1/W0 candidate's paired CI upper bound below minus 10 percentage points for both endpoints.
 This rule screens for large regressions after 16 questions per dataset.
 If this rule does not decide the experiment, additional fixed-protocol evaluation is necessary.
 No pilot result can establish quality GO.

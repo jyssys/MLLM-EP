@@ -19,3 +19,33 @@ The second diagnostic version repeats reference parity, cache audits, and interv
 
 This correction changes emulator bookkeeping. It does not change model weights, precision, attention, routing, or acceptance semantics.
 No prediction coefficient uses evaluation labels or future evaluation activations.
+
+## Batched generation driver
+
+The first custom generation driver compacted the batch after EOS.
+Long reference validation found output differences in three of four smoke requests.
+The first request ended after 364 tokens. Other requests first diverged at token indices 377, 415, and 433.
+The compacting driver therefore does not supply primary quality evidence.
+Its pilot results and failed parity artifacts remain available without a quality claim.
+
+A smaller EOS-boundary probe compared the same cached forward with batch sizes four and three.
+All 96 selected key/value tensors matched before the forward.
+Inputs, masks, and position IDs also matched for the remaining rows.
+That first forward produced bitwise-equal logits and observed first-layer components.
+This probe did not isolate the later divergence's internal cause.
+The analysis does not claim that immediate cache corruption or one specific kernel caused the failure.
+
+The primary evaluator now calls the official `model.generate()` for every arm.
+Only the stage-boundary hooks change candidate hidden inputs.
+The exact wrapper uses the same native fixed-batch generation and EOS handling as the official reference.
+An observer never changes a stopping decision. It records completed outputs and returns an all-false stop condition.
+The new long parity gate must pass before any new quality wave starts.
+
+Native fixed-batch generation can update inactive padding KV after a request ends.
+These entries are not logical generated positions. They do not alter any active request or enter another request's history.
+The report distinguishes this official padding behavior from erroneous live-token writes.
+No generation token appears after a request's first EOS.
+
+The corrected quality runs preserve the original questions, predictor coefficients, cap rule, and greedy settings.
+They use new output directories. Earlier files remain unchanged.
+No accuracy comparison from the rejected driver contributes to the final quality gate.

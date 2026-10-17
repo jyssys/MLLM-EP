@@ -85,6 +85,7 @@ class Semantics(unittest.TestCase):
         result['finish_reason']='length'
         self.assertFalse(score(row,result)['correct_completed'])
         self.assertTrue(score(row,result)['answer_matches'])
+        self.assertTrue(score(row,dict(text='42<|im_end|>',finish_reason='eos'))['correct_completed'])
 
     def test_hand_checked_math_equivalence(self):
         cases=[('42','42',True),(r'\frac{1}{2}','0.5',True),

@@ -109,6 +109,7 @@ def main():
             trace=hook.resolved_gpu_trace()
             keyed={(event['token_position'],event['round'],event['stage'],event['kind']):event['GPU_ms_from_local_anchor'] for event in trace}
             checked=0
+            checked_sources=0
             for event in trace:
                 if event['kind']!='prediction_ready':
                     continue
@@ -117,8 +118,15 @@ def main():
                 if consumer is not None:
                     assert event['GPU_ms_from_local_anchor']<=consumer
                     checked+=1
+                sources=[(p,r,0,'round_input_ready')]
+                if r>0:
+                    sources += [(p,r-1,j-1,'stage_output_ready'),(p,r-1,0,'round_input_ready')]
+                for key in sources:
+                    if key in keyed:
+                        assert keyed[key]<=event['GPU_ms_from_local_anchor']
+                        checked_sources+=1
             write(output/(row['id'].replace('/','_')+'_'+label+'_GPU_availability.json'),
-                  dict(events=trace,prediction_before_consumer_checks=checked,
+                  dict(events=trace,prediction_before_consumer_checks=checked,source_before_prediction_checks=checked_sources,
                        conclusion='Causal emulator availability only. No distributed concurrency claim.'))
             hook.close()
         print('diagnostics',row['id'],flush=True)

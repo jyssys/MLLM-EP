@@ -44,8 +44,8 @@ Use a new output directory for every GPU attempt. Preserve failed attempts and t
 /home/esjung/.venvs/llada2-mini-reference/bin/python -m poc_async_recurrent_pp.scripts.campaign
 ```
 
-The controller first waits for baseline certification.
-It then runs batched parity diagnostics, baseline task sanity, and paired pilot accuracy.
+The controller first waits for baseline certification and corrected native task sanity.
+It requires the long exact-hook batch parity gate before the corrected pilot accuracy wave.
 The primary pilot wave uses 16 questions per dataset and an output cap of 2,048 tokens.
 Any truncation triggers a complete paired rerun at 8,192 tokens.
 Pilot screening can reject a materially harmful approximation. It cannot establish quality GO.
@@ -53,10 +53,11 @@ Pilot screening can reject a materially harmful approximation. It cannot establi
 ## Analysis
 
 ```bash
-/home/esjung/.venvs/llada2-mini-reference/bin/python -m poc_async_recurrent_pp.scripts.aggregate --wave poc_async_recurrent_pp/outputs/pilot_cap2048_v1
+/home/esjung/.venvs/llada2-mini-reference/bin/python -m poc_async_recurrent_pp.scripts.aggregate --wave poc_async_recurrent_pp/outputs/pilot_cap2048_v2
 ```
 
 Use the same command for a completed higher-cap wave with its directory path.
+The primary directories use the `v2` suffix. The rejected compacting driver's `v1` quality wave remains excluded.
 The bootstrap resamples paired questions 10,000 times.
 Layer, token, stage, and loop observations do not count as independent accuracy samples.
 
