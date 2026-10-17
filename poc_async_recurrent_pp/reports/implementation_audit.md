@@ -49,3 +49,16 @@ No generation token appears after a request's first EOS.
 The corrected quality runs preserve the original questions, predictor coefficients, cap rule, and greedy settings.
 They use new output directories. Earlier files remain unchanged.
 No accuracy comparison from the rejected driver contributes to the final quality gate.
+
+## Decimal parser regression
+
+A hand-written regression case exposed a decimal parsing defect in the inherited explicit-answer fallback.
+The old integer-task pattern cut `$1,234.50$` at its decimal point.
+The regression test failed before the parser correction.
+The corrected fallback preserves the complete final line or a complete delimited expression.
+It still gives balanced boxed answers priority.
+
+This correction uses a generic hand-written formatting case, not a benchmark answer.
+The final analysis rescans every valid native generation with the same parser version.
+It retains each generation's original encoded grade and records any grade change separately.
+No prompt, predictor, model setting, sample selection, or output token changes.

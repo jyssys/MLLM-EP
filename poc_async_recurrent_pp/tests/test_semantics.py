@@ -78,6 +78,11 @@ class Semantics(unittest.TestCase):
             self.assertEqual(numeric(text),numeric(expected))
         self.assertIsNone(numeric('the answer is perhaps 9'))
 
+    def test_explicit_decimal_answer_is_not_cut_at_decimal_point(self):
+        value=score(dict(dataset='gsm8k',answer='1234.5'),
+                    dict(text='The final answer is $1,234.50$.',finish_reason='eos'))
+        self.assertTrue(value['answer_matches'])
+
     def test_last_box_and_completion(self):
         row=dict(dataset='gsm8k',answer='42')
         result=dict(text=r'Work: \boxed{40}. Final: \boxed{42}',finish_reason='eos')
@@ -117,6 +122,18 @@ class Semantics(unittest.TestCase):
                     hook.output_hook(j)(None,None,torch.full((1,1,2048),float(10*(r+1)+j)))
         finally:
             hook.close()
+
+    def test_symbolic_stale_path_needs_three_neighbor_rounds(self):
+        # Structural graph test only. These sets are not pretrained activations.
+        previous=[set() for _ in range(4)]
+        reached={}
+        for recurrence in range(2,6):
+            current=[{'fresh_F1_R2'} if recurrence==2 else set()]
+            current += [set(previous[j-1]) for j in range(1,4)]
+            reached[recurrence]='fresh_F1_R2' in current[3]
+            previous=current
+        self.assertFalse(reached[4])
+        self.assertTrue(reached[5])
 
 
 if __name__=='__main__':

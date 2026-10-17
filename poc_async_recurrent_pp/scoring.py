@@ -2,6 +2,7 @@
 import re
 from decimal import Decimal, InvalidOperation
 from poc_looped_exact_depth_chunk_pipeline.scoring import final_answer
+PARSER_VERSION = 'parpp-final-v2'
 
 
 def numeric(value):
@@ -20,6 +21,16 @@ def numeric(value):
 
 def score(row, result):
     extracted, rule = final_answer(result['text'])
+    if rule=='EXPLICIT_FINAL_MARKER':
+        # The inherited integer-task fallback stopped at every period.
+        # Retain decimal points and complete delimited expressions instead.
+        tail=result['text'].rsplit('</think>',1)[-1][-4000:]
+        markers=list(re.finditer(r'(?:final\s+answer|answer)\s*(?:is|:|=)\s*',tail,re.I))
+        if markers:
+            line=tail[markers[-1].end():].split('\n',1)[0].replace('<|im_end|>','').strip()
+            math=re.match(r'^\$([^$\n]+)\$',line)
+            extracted=math.group(1).strip() if math else line.removesuffix('.').strip()
+            rule='EXPLICIT_FINAL_LINE_V2'
     if extracted is None and row['dataset']=='gsm8k':
         matches = re.findall(r'####\s*([+-]?[\d,]+(?:\.\d+)?)', result['text'])
         if matches:
@@ -49,4 +60,4 @@ def score(row, result):
     complete = result['finish_reason']=='eos'
     return dict(extracted_answer=prediction,parse_rule=rule,parsed=parsed,
         answer_matches=bool(correct),correct_completed=bool(correct and complete),
-        truncated=not complete,reference_answer=row['answer'])
+        truncated=not complete,reference_answer=row['answer'],parser_version=PARSER_VERSION)

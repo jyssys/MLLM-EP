@@ -90,3 +90,18 @@ A distributed implementation must communicate the required previous-stage output
 The normalized stage-4 output also becomes the new round input and may require additional transfers.
 These transfers are not free because the source tensors already exist.
 The current numerical emulator does not measure their communication or synchronization cost.
+
+## Short recurrent horizon
+
+The stale schedule delays propagation of a newly computed lower-stage output.
+For example, its neighbor path is:
+
+```text
+F1(R2) -> F2(R3) -> F3(R4) -> F4(R5)
+```
+
+R5 does not execute under fixed R4.
+This symbolic path does not prove that any particular model must lose accuracy.
+A predictor can estimate information before the corresponding exact computation finishes.
+However, the example shows why preserving total layer work does not preserve the exact information path.
+The unit test checks this graph property only. It is not a GPU measurement or an accuracy result.
