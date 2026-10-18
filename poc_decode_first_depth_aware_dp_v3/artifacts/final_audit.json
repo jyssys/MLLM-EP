@@ -1,0 +1,84 @@
+{
+  "GPU_state": "4, GPU-6076e2f2-5b63-3761-5586-56ceb7df8139, NVIDIA H100 80GB HBM3, 71383 MiB, 100 %\n5, GPU-a1a1cfcf-93a1-3544-9a5e-e58144b68730, NVIDIA H100 80GB HBM3, 71383 MiB, 100 %\n6, GPU-e3f3998e-0f1a-e94a-b97c-4abb0e8c2c28, NVIDIA H100 80GB HBM3, 71383 MiB, 100 %\n7, GPU-4cc26b88-19fc-1988-f9e0-17858aa7a99b, NVIDIA H100 80GB HBM3, 71551 MiB, 100 %\n",
+  "base_commit": "e6a350e0a862d94251c5cefa0ef38038b017b8c4",
+  "branch": "flashvep/decode-first-depth-aware-dp-v3",
+  "burners_restored": true,
+  "experiment_GPU_processes_remaining": false,
+  "final_decision": {
+    "G0R": "RUN: usable online original-gate CDB",
+    "G1": "RUN: physical depth heterogeneity",
+    "G2": "RUN: live DP4 and validated P95/ITL cost model. Some TTFT strata remain partial.",
+    "G3": "NOT_CONFIRMED: modeled C64 gain 12.77%, live C64 gain 4.41% with CI crossing zero. No statistically clear quality-matched scheduling gain.",
+    "G4": "PREDICTION_BLOCKED: prompt-only ridge fails to recover the oracle gain.",
+    "RL": "NOT_RUN",
+    "claim": "No deployable depth-aware scheduler or quality-preserving scheduling speedup is established.",
+    "next_action": "Do not start RL. First measure teacher-aligned batch-shape effects on logits and exit decisions with fixed prefixes.",
+    "prefill": "PREFILL_FULL_DEPTH",
+    "quality": "QUALITY_WARNING",
+    "source_selection": "INCUMBENT_CONTINUE",
+    "verdict": "NO_GO_SCHEDULING"
+  },
+  "guard_success": {
+    "ablation_fixed_v1": true,
+    "ablation_no_refill_v1": true,
+    "ablation_refill_v1": true,
+    "admission_smoke_v1": true,
+    "batched_kv_probe_v1": false,
+    "batched_kv_probe_v2": true,
+    "cost_surface_v1": true,
+    "discovery128_graph_b1_v1": true,
+    "hindsight_confirmation_c64_v1": true,
+    "hindsight_confirmation_v1": true,
+    "live_clean_v1": true,
+    "live_trace_v1": true,
+    "observer_eager_clean_v1": true,
+    "observer_graph_clean_v1": true,
+    "observer_graph_trace_v1": true,
+    "quality8192_part0_v1": true,
+    "quality8192_part1_v1": true,
+    "quality8192_part2_v1": true,
+    "quality8192_part3_v1": true,
+    "smoke_b4_graph_v1": true
+  },
+  "original_staged_sha256": "7018be31bd8a517574711055a72afbd6ae90737e4a585578c98ec255dbf7e1d9",
+  "original_tracked_changes_preserved": true,
+  "original_unstaged_sha256": "f56c2cbd47c4995364f072907ad7d886c935c3afe55d90e175a65abf0a4d941e",
+  "previous_v2_sources_preserved": true,
+  "scope": "Only physical GPUs 4,5,6,7 operated. Other users and GPUs were not signalled.",
+  "selected_GPU_processes": [
+    {
+      "GPU_context_pid": 1340976,
+      "logical_burner_device": 0,
+      "memory_MiB": 71374,
+      "owned_burner_worker_pid": 1340642,
+      "physical_gpu": 4,
+      "process_name": "VLLM::EngineCore"
+    },
+    {
+      "GPU_context_pid": 1340983,
+      "logical_burner_device": 0,
+      "memory_MiB": 71374,
+      "owned_burner_worker_pid": 1340646,
+      "physical_gpu": 5,
+      "process_name": "VLLM::EngineCore"
+    },
+    {
+      "GPU_context_pid": 1341039,
+      "logical_burner_device": 0,
+      "memory_MiB": 71374,
+      "owned_burner_worker_pid": 1340649,
+      "physical_gpu": 6,
+      "process_name": "VLLM::EngineCore"
+    },
+    {
+      "GPU_context_pid": 1341046,
+      "logical_burner_device": 0,
+      "memory_MiB": 71542,
+      "owned_burner_worker_pid": 1340652,
+      "physical_gpu": 7,
+      "process_name": "VLLM::EngineCore"
+    }
+  ],
+  "tests": "test_cohort (poc_decode_first_depth_aware_dp_v3.tests.test_contract.Contract.test_cohort) ... ok\ntest_destination_replicas (poc_decode_first_depth_aware_dp_v3.tests.test_contract.Contract.test_destination_replicas) ... ok\ntest_frozen_prior (poc_decode_first_depth_aware_dp_v3.tests.test_contract.Contract.test_frozen_prior) ... ok\ntest_information_boundary (poc_decode_first_depth_aware_dp_v3.tests.test_contract.Contract.test_information_boundary) ... ok\ntest_published_json_fallback (poc_decode_first_depth_aware_dp_v3.tests.test_contract.Contract.test_published_json_fallback) ... ok\ntest_report_decision (poc_decode_first_depth_aware_dp_v3.tests.test_contract.Contract.test_report_decision) ... ok\ntest_selection (poc_decode_first_depth_aware_dp_v3.tests.test_contract.Contract.test_selection) ... ok\ntest_simulator_progress (poc_decode_first_depth_aware_dp_v3.tests.test_contract.Contract.test_simulator_progress) ... ok\n\n----------------------------------------------------------------------\nRan 8 tests in 0.059s\n\nOK\n",
+  "utc": "2026-10-18T15:16:03.165334+00:00"
+}

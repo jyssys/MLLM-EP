@@ -1,0 +1,103 @@
+{
+  "decode_tokens": 31946,
+  "domains": [
+    {
+      "CI95_mean_depth": [
+        2.8881646952259166,
+        3.0767377983802215
+      ],
+      "EOS": 2,
+      "between_request_std": 0.27033452861875584,
+      "cap_truncated": 30,
+      "dataset": "alpaca",
+      "depth_range": [
+        2.4784313725490197,
+        3.8666666666666667
+      ],
+      "mean_depth": 2.9810581841432224,
+      "mean_output_tokens": 241.96875,
+      "n": 32
+    },
+    {
+      "CI95_mean_depth": [
+        3.0723039215686274,
+        3.126348039215686
+      ],
+      "EOS": 0,
+      "between_request_std": 0.07812737885651624,
+      "cap_truncated": 32,
+      "dataset": "gsm8k",
+      "depth_range": [
+        2.9568627450980394,
+        3.3490196078431373
+      ],
+      "mean_depth": 3.097916666666667,
+      "mean_output_tokens": 256,
+      "n": 32
+    },
+    {
+      "CI95_mean_depth": [
+        2.9969972781379277,
+        3.0558868477845387
+      ],
+      "EOS": 5,
+      "between_request_std": 0.0848825276811183,
+      "cap_truncated": 27,
+      "dataset": "math500",
+      "depth_range": [
+        2.8588235294117648,
+        3.235294117647059
+      ],
+      "mean_depth": 3.026329448507349,
+      "mean_output_tokens": 248.34375,
+      "n": 32
+    },
+    {
+      "CI95_mean_depth": [
+        2.8409313725490195,
+        2.991299019607843
+      ],
+      "EOS": 0,
+      "between_request_std": 0.21778377948304783,
+      "cap_truncated": 32,
+      "dataset": "sharegpt",
+      "depth_range": [
+        2.4745098039215687,
+        3.3529411764705883
+      ],
+      "mean_depth": 2.917892156862745,
+      "mean_output_tokens": 256,
+      "n": 32
+    }
+  ],
+  "histogram": {
+    "2": 3789,
+    "3": 24438,
+    "4": 3719
+  },
+  "notes": [
+    "All timing is trace-lane B1. It is not live DP4 scheduling evidence.",
+    "The common cap is 256 with natural EOS. Truncated responses do not establish task accuracy.",
+    "Actual depth is a retrospective diagnostic feature, not a causal admission feature."
+  ],
+  "repeated_loop_work": 95768,
+  "request_mean_depth_range": [
+    2.4745098039215687,
+    3.8666666666666667
+  ],
+  "requests": 128,
+  "retrospective_cost_regressions": [
+    {
+      "MAE_ms": 148.21396195956174,
+      "R2": 0.8712493853028546,
+      "heldout_n": 96,
+      "name": "length_prompt_domain"
+    },
+    {
+      "MAE_ms": 20.81436354383936,
+      "R2": 0.9925578617349792,
+      "heldout_n": 96,
+      "name": "plus_actual_depth_work"
+    }
+  ]
+}
