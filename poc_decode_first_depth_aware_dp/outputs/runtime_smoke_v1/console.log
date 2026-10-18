@@ -1,0 +1,48 @@
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/esjung/MLLM-EP-decode-first-depth-dp/poc_decode_first_depth_aware_dp/scripts/runtime_smoke.py", line 70, in <module>
+    if __name__=='__main__':main()
+                            ~~~~^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/utils/_contextlib.py", line 124, in decorate_context
+    return func(*args, **kwargs)
+  File "/home/esjung/MLLM-EP-decode-first-depth-dp/poc_decode_first_depth_aware_dp/scripts/runtime_smoke.py", line 16, in main
+    model,tokenizer,engine=load_engine(None,graphs=False)
+                           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/MLLM-EP-decode-first-depth-dp/poc_decode_first_depth_aware_dp/runtime.py", line 15, in load_engine
+    model=load_ouro_model(str(MODEL),recur_steps=4,dtype=torch.bfloat16,
+        attn_impl='paged|flash_attention_3',kv_policy='last_exited')
+  File "/home/esjung/external/decode-first-cdb-upstream/src/looped_cdb/eval/model_loading.py", line 81, in load_ouro_model
+    model = OuroForCausalLM.from_pretrained(
+        model_id,
+    ...<2 lines>...
+        attn_implementation=attn_impl,
+    )
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/transformers/modeling_utils.py", line 4350, in from_pretrained
+    model = cls(config, *model_args, **model_kwargs)
+  File "/home/esjung/external/decode-first-cdb-upstream/src/looped_cdb/models/ouro/modeling_ouro.py", line 761, in __init__
+    super().__init__(config)
+    ~~~~~~~~~~~~~~~~^^^^^^^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/transformers/modeling_utils.py", line 1345, in __init__
+    self.config._attn_implementation_internal = self._check_and_adjust_attn_implementation(
+                                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        self.config._attn_implementation,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        allow_all_kernels=hub_kernels.ALLOW_ALL_KERNELS,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/transformers/modeling_utils.py", line 1909, in _check_and_adjust_attn_implementation
+    lazy_import_flash_attention(applicable_attn_implementation)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/transformers/modeling_flash_attention_utils.py", line 265, in lazy_import_flash_attention
+    _flash_fn, _flash_varlen_fn, _flash_with_kvcache_fn, _pad_fn, _unpad_fn = _lazy_imports(
+                                                                              ~~~~~~~~~~~~~^
+        implementation, attention_wrapper, allow_all_kernels=allow_all_kernels
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/transformers/modeling_flash_attention_utils.py", line 177, in _lazy_imports
+    from flash_attn_interface import flash_attn_func, flash_attn_varlen_func, flash_attn_with_kvcache
+ModuleNotFoundError: No module named 'flash_attn_interface'

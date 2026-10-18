@@ -1,0 +1,39 @@
+Loading weights:   0%|          | 0/269 [00:00<?, ?it/s]Loading weights: 100%|██████████| 269/269 [00:00<00:00, 4240.78it/s]
+[transformers] [1mOuroForCausalLM LOAD REPORT[0m from: /home/esjung/.cache/huggingface/hub/models--ByteDance--Ouro-1.4B/snapshots/574fa66cb8bf5abdc979642d01cf2b79b16bfab1
+Key                              | Status  | 
+---------------------------------+---------+-
+model.lookahead_exit_gate.weight | MISSING | 
+model.lookahead_exit_gate.bias   | MISSING | 
+model.preloop_exit_gate.bias     | MISSING | 
+model.preloop_exit_gate.weight   | MISSING | 
+
+Notes:
+- MISSING:	those params were newly initialized because missing from the checkpoint. Consider training on your downstream task.
+/home/esjung/external/decode-first-depth-dp-assets/cdb_dependencies/transformers/modeling_rope_utils.py:1034: FutureWarning: `rope_config_validation` is deprecated and has been removed. Its functionality has been moved to RotaryEmbeddingConfigMixin.validate_rope method. PreTrainedConfig inherits this class, so please call self.validate_rope() instead. Also, make sure to use the new rope_parameters syntax. You can call self.standardize_rope_params() in the meantime.
+  warnings.warn(
+[transformers] `layer_type_validation` is deprecated and will be removed in v5.20. Use `PreTrainedConfig.validate_layer_type` instead
+[transformers] `layer_type_validation` is deprecated and will be removed in v5.20. Use `PreTrainedConfig.validate_layer_type` instead
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/esjung/MLLM-EP-decode-first-depth-dp/poc_decode_first_depth_aware_dp/scripts/runtime_smoke.py", line 82, in <module>
+    if __name__=='__main__':main()
+                            ~~~~^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/utils/_contextlib.py", line 124, in decorate_context
+    return func(*args, **kwargs)
+  File "/home/esjung/MLLM-EP-decode-first-depth-dp/poc_decode_first_depth_aware_dp/scripts/runtime_smoke.py", line 71, in main
+    cases.append(case);write(output/f'q_{q}.json',case)
+                       ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/MLLM-EP-decode-first-depth-dp/poc_looped_multigpu_kv_placement/contract.py", line 30, in write
+    path.write_text(json.dumps(value,indent=2,sort_keys=True)+'\n')
+                    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/anaconda3/lib/python3.14/json/__init__.py", line 242, in dumps
+    **kw).encode(obj)
+          ~~~~~~^^^^^
+  File "/home/esjung/anaconda3/lib/python3.14/json/encoder.py", line 202, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+  File "/home/esjung/anaconda3/lib/python3.14/json/encoder.py", line 263, in iterencode
+    return _iterencode(o, 0)
+TypeError: keys must be str, int, float, bool or None, not tuple
+when serializing dict item 'exit_depth_histogram'
+when serializing dict item 'stats'

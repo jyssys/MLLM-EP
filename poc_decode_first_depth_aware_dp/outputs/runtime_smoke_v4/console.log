@@ -1,0 +1,32 @@
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/esjung/MLLM-EP-decode-first-depth-dp/poc_decode_first_depth_aware_dp/scripts/runtime_smoke.py", line 82, in <module>
+    if __name__=='__main__':main()
+                            ~~~~^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/utils/_contextlib.py", line 124, in decorate_context
+    return func(*args, **kwargs)
+  File "/home/esjung/MLLM-EP-decode-first-depth-dp/poc_decode_first_depth_aware_dp/scripts/runtime_smoke.py", line 16, in main
+    model,tokenizer,engine=load_engine(None,graphs=False)
+                           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/MLLM-EP-decode-first-depth-dp/poc_decode_first_depth_aware_dp/runtime.py", line 20, in load_engine
+    configure_imports()
+    ~~~~~~~~~~~~~~~~~^^
+  File "/home/esjung/MLLM-EP-decode-first-depth-dp/poc_decode_first_depth_aware_dp/runtime.py", line 13, in configure_imports
+    import transformers
+  File "/home/esjung/external/decode-first-depth-dp-assets/cdb_dependencies/transformers/__init__.py", line 30, in <module>
+    from . import dependency_versions_check
+  File "/home/esjung/external/decode-first-depth-dp-assets/cdb_dependencies/transformers/dependency_versions_check.py", line 56, in <module>
+    require_version_core(deps[pkg])
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/home/esjung/external/decode-first-depth-dp-assets/cdb_dependencies/transformers/utils/versions.py", line 116, in require_version_core
+    return require_version(requirement, hint)
+  File "/home/esjung/external/decode-first-depth-dp-assets/cdb_dependencies/transformers/utils/versions.py", line 110, in require_version
+    _compare_versions(op, got_ver, want_ver, requirement, pkg, hint)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/external/decode-first-depth-dp-assets/cdb_dependencies/transformers/utils/versions.py", line 43, in _compare_versions
+    raise ImportError(
+        f"{requirement} is required for a normal functioning of this module, but found {pkg}=={got_ver}.{hint}"
+    )
+ImportError: tokenizers>=0.22.0,<=0.23.0 is required for a normal functioning of this module, but found tokenizers==0.23.2.
+Try: `pip install transformers -U` or `pip install -e '.[dev]'` if you're working with git main

@@ -1,0 +1,34 @@
+/home/esjung/external/decode-first-depth-dp-assets/cdb_dependencies/transformers/modeling_rope_utils.py:1034: FutureWarning: `rope_config_validation` is deprecated and has been removed. Its functionality has been moved to RotaryEmbeddingConfigMixin.validate_rope method. PreTrainedConfig inherits this class, so please call self.validate_rope() instead. Also, make sure to use the new rope_parameters syntax. You can call self.standardize_rope_params() in the meantime.
+  warnings.warn(
+[transformers] `layer_type_validation` is deprecated and will be removed in v5.20. Use `PreTrainedConfig.validate_layer_type` instead
+[transformers] `layer_type_validation` is deprecated and will be removed in v5.20. Use `PreTrainedConfig.validate_layer_type` instead
+[transformers] The `check_model_inputs` decorator is deprecated in favor of `merge_with_config_defaults`.
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/esjung/MLLM-EP-decode-first-depth-dp/poc_decode_first_depth_aware_dp/scripts/reference_smoke.py", line 58, in <module>
+    if __name__=='__main__':main()
+                            ~~~~^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/utils/_contextlib.py", line 124, in decorate_context
+    return func(*args, **kwargs)
+  File "/home/esjung/MLLM-EP-decode-first-depth-dp/poc_decode_first_depth_aware_dp/scripts/reference_smoke.py", line 23, in main
+    model=AutoModelForCausalLM.from_pretrained(MODEL,config=config,trust_remote_code=True,torch_dtype=torch.bfloat16,
+          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        device_map='cuda:0',attn_implementation=args.backend).eval()
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/external/decode-first-depth-dp-assets/cdb_dependencies/transformers/models/auto/auto_factory.py", line 390, in from_pretrained
+    return model_class.from_pretrained(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        pretrained_model_name_or_path, *model_args, config=config, **hub_kwargs, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/esjung/external/decode-first-depth-dp-assets/cdb_dependencies/transformers/modeling_utils.py", line 4140, in from_pretrained
+    device_map = check_and_set_device_map(device_map)  # warn, error and fix the device map
+  File "/home/esjung/external/decode-first-depth-dp-assets/cdb_dependencies/transformers/integrations/accelerate.py", line 134, in check_and_set_device_map
+    raise ValueError(
+    ...<2 lines>...
+    )
+ValueError: Using a `device_map`, `tp_plan`, `torch.device` context manager or setting `torch.set_default_device(device)` requires `accelerate`. You can install it with `pip install accelerate`
+[ERROR] `cache_position` is part of OuroModel.forward's signature, but not documented. Make sure to add it to the docstring of the function in /home/esjung/.cache/huggingface/modules/transformers_modules/_574fa66cb8bf5abdc979642d01cf2b79b16bfab1/55edb176a6d9ac35/modeling_ouro.py.
+[ERROR] `cache_position` is part of OuroForCausalLM.forward's signature, but not documented. Make sure to add it to the docstring of the function in /home/esjung/.cache/huggingface/modules/transformers_modules/_574fa66cb8bf5abdc979642d01cf2b79b16bfab1/55edb176a6d9ac35/modeling_ouro.py.

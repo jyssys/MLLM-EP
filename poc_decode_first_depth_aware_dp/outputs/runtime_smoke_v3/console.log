@@ -1,0 +1,35 @@
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/esjung/MLLM-EP-decode-first-depth-dp/poc_decode_first_depth_aware_dp/scripts/runtime_smoke.py", line 82, in <module>
+    if __name__=='__main__':main()
+                            ~~~~^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/utils/_contextlib.py", line 124, in decorate_context
+    return func(*args, **kwargs)
+  File "/home/esjung/MLLM-EP-decode-first-depth-dp/poc_decode_first_depth_aware_dp/scripts/runtime_smoke.py", line 16, in main
+    model,tokenizer,engine=load_engine(None,graphs=False)
+                           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/MLLM-EP-decode-first-depth-dp/poc_decode_first_depth_aware_dp/runtime.py", line 17, in load_engine
+    model=load_ouro_model(str(MODEL),recur_steps=4,dtype=torch.bfloat16,
+        attn_impl='paged|flash_attention_3',kv_policy='last_exited')
+  File "/home/esjung/external/decode-first-cdb-upstream/src/looped_cdb/eval/model_loading.py", line 81, in load_ouro_model
+    model = OuroForCausalLM.from_pretrained(
+        model_id,
+    ...<2 lines>...
+        attn_implementation=attn_impl,
+    )
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/transformers/modeling_utils.py", line 4350, in from_pretrained
+    model = cls(config, *model_args, **model_kwargs)
+  File "/home/esjung/external/decode-first-cdb-upstream/src/looped_cdb/models/ouro/modeling_ouro.py", line 762, in __init__
+    self.model = OuroModel(config)
+                 ~~~~~~~~~^^^^^^^^
+  File "/home/esjung/external/decode-first-cdb-upstream/src/looped_cdb/models/ouro/modeling_ouro.py", line 579, in __init__
+    self.padding_idx = config.pad_token_id
+                       ^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/transformers/configuration_utils.py", line 484, in __getattribute__
+    return super().__getattribute__(key)
+           ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/transformers/integrations/heterogeneity/configuration_utils.py", line 312, in __getattribute__
+    return super().__getattribute__(key)
+           ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+AttributeError: 'OuroConfig' object has no attribute 'pad_token_id'. Did you mean: 'bos_token_id'?
