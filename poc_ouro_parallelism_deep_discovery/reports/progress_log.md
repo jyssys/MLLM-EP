@@ -95,3 +95,38 @@ No distributed engine is authorized by these screens yet.
 The guard restored owned burners after completed GPU probes.
 Natural baseline pilots remain active on physical GPUs 5 and 7.
 No foreign job or predecessor worktree changed.
+
+## Baseline strengthening and storage-counterfactual checkpoint
+
+Coordinator segments cover 9938.535710 seconds through 2026-10-19T12:38:31.535710Z.
+This is about 2.76 hours, not ten hours.
+The campaign remains active with no final verdict or qualifying shortlist.
+Concurrent research-worker time does not add campaign elapsed hours.
+
+Existing native asynchronous scheduling improves the controlled baseline across both sizes and TP1/2/4.
+That generic option is not a new architecture result.
+The same-GPU Base 2.6B natural recheck produces identical token sequences for all sixteen calibration requests with async OFF and ON.
+Small calibration accuracy does not establish population equivalence.
+The held-out cohort remains untouched.
+
+External per-replay events place 97.8–99.0% of the defined local cached-decode window inside complete graph envelopes.
+That denominator excludes prefill and boundary sampling intervals.
+It is not an E2E component breakdown.
+Graph internals can still contain communication and waiting.
+
+The R1/R4 control does not show the same TP-scaling direction across both model sizes.
+Full-core alias/copies tests have numerical differences and a shared compilation-cache confound.
+The coordinator stopped the owned P4 queue coordinator without stopping the guarded active job.
+Fresh per-arm cache controls now run on physical GPUs 4 and 6.
+All earlier raw evidence remains available.
+
+The actual key fixtures have full-column-rank score differences for the selected heads under exact rational arithmetic.
+This is not a GPU-rounded attention theorem or an output-reuse impossibility result.
+The lossless KV screen reduces encoded key capacity but increases modeled uncached reconstruction reads.
+It measures neither HBM traffic nor GPU speedup.
+
+The updated register has nineteen candidate dispositions and zero shortlisted architectures.
+The source index has 98 observations, 61 arXiv work keys, and 73 search records.
+Those counts include partial and metadata-only reads.
+They do not claim 61 deep paper reads.
+The latest predecessor-preservation check passes.

@@ -1,0 +1,230 @@
+{
+  "schema_version": 1,
+  "candidate": "C08",
+  "task": "Bounded ownership and protocol audit for lossless transport versus arithmetic delta All-Reduce",
+  "scope": {
+    "models": ["Base Ouro-1.4B", "Base Ouro-2.6B"],
+    "modes": ["R4", "original-gate adaptive"],
+    "source_audit": true,
+    "deterministic_cpu_examples": true,
+    "gpu_execution": false,
+    "model_execution": false,
+    "collective_execution": false,
+    "codec_implementation": false,
+    "entropy_codec_execution": false,
+    "external_code_changes": false,
+    "performance_gain_established": false
+  },
+  "runtime_identity": {
+    "vllm_version": "0.26.0+cu129",
+    "torch_version_observed_by_cpu_script": "2.11.0+cu129",
+    "source_root": "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm",
+    "active_gpu_backend_identified": false,
+    "binary_kernel_accumulation_order_audited": false,
+    "binary_kernel_accumulation_precision_audited": false
+  },
+  "source_ledger": [
+    {
+      "path": "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/model_executor/models/ouro.py",
+      "sha256": "cf0792c6c8024ded45dba10553b5f0d24b7b6542dd8f8f0e0e6899807ec0c4ff",
+      "locations": [
+        {"lines": [78, 91], "claim": "MLP down projection uses RowParallelLinear."},
+        {"lines": [147, 162], "claim": "Attention output projection uses RowParallelLinear."},
+        {"lines": [260, 281], "claim": "Hidden state and residual have separate normalization boundaries."},
+        {"lines": [367, 374], "claim": "The loop reuses layer modules. This function does not retain an activation history for a codec."}
+      ]
+    },
+    {
+      "path": "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/model_executor/layers/linear.py",
+      "sha256": "10b1ebae493158ca1074aef37a9f466f4e8e536c5a71d91c5b66062095ce3a44",
+      "function": "RowParallelLinear.forward",
+      "lines": [1676, 1702],
+      "claim": "Each rank computes output_parallel and passes it to tensor_model_parallel_all_reduce when reduction is enabled. The result is not a collection of peer-local histories."
+    },
+    {
+      "path": "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/distributed/communication_op.py",
+      "sha256": "3c3f8ac60db38ece891d39dc1e2f6f1947ad438685893d2e5777d072320bd1b8",
+      "function": "tensor_model_parallel_all_reduce",
+      "lines": [12, 14],
+      "claim": "The TP helper calls get_tp_group().all_reduce."
+    },
+    {
+      "path": "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/distributed/parallel_state.py",
+      "sha256": "ecfa5eeda697e9982591c93eca835fcc53463267c1c22110700819efcecee74f",
+      "locations": [
+        {"lines": [632, 639], "claim": "Graph capture waits for initialization and selects a capture stream."},
+        {"lines": [641, 668], "claim": "The coordinator dispatches an out-of-place All-Reduce operation."}
+      ]
+    },
+    {
+      "path": "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/distributed/device_communicators/cuda_communicator.py",
+      "sha256": "e91777d5037b79cbfbc7930febd63b57baa5f27b15a7cabe33b3a2efc857ee40",
+      "function": "all_reduce",
+      "lines": [273, 339],
+      "claim": "Backend selection depends on eligibility. The installed dispatcher includes symmetric-memory, quick-reduce, FlashInfer, AITER, custom, PyNccl, and PyTorch paths."
+    },
+    {
+      "path": "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/distributed/device_communicators/pynccl.py",
+      "sha256": "28596817ee9fb842026624a8a6c32b0637630b6b908ddb2a79ecccbeac531e35",
+      "function": "all_reduce",
+      "lines": [166, 197],
+      "claim": "Default reduction is SUM. NCCL receives tensor count, tensor dtype, reduction operation, communicator, and stream. No decoder-base parameter exists."
+    },
+    {
+      "path": "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/distributed/device_communicators/custom_all_reduce.py",
+      "sha256": "3ed3ff9bbcaf361071ce6af77b879f5d269ba816366f56619cb3c21d486c52e7",
+      "locations": [
+        {"lines": [230, 243], "claim": "Eligibility checks input size, layout, topology, and maximum size."},
+        {"lines": [245, 262], "claim": "The operation uses tensor operands and registered or staging buffers."},
+        {"lines": [264, 280], "claim": "Graph capture selects registered input behavior. No versioned decoder-base interface exists."}
+      ]
+    }
+  ],
+  "xor_transport": {
+    "formula": "code = bits16(payload) XOR bits16(base); bits16(payload) = code XOR bits16(base)",
+    "lossless_condition": "The decoder retains the exact base bits and matching dtype, shape, layout, and packet version.",
+    "xor_alone_encoded_bytes": "2*M*H",
+    "xor_alone_saves_bytes": false,
+    "entropy_ratio_established_by_this_audit": false,
+    "required_packet_fields": [
+      "model_revision", "runtime_revision", "request_generation", "token_positions", "branch_lineage",
+      "row_identities", "physical_operator", "physical_layer", "recurrent_depth", "normalization_boundary",
+      "sender_identity", "payload_version", "base_version", "base_owner", "dtype", "shape", "shard",
+      "layout", "encoded_length", "decoded_length", "completion_dependency"
+    ],
+    "base_lifetime": {
+      "sender_lease_start": "Before encoding reads the base.",
+      "receiver_lease_start": "Before a dependent packet can arrive.",
+      "release_condition": "All dependent encoder and decoder readers finish. Required completion acknowledgments arrive.",
+      "promotion_condition": "Both endpoints agree on the next immutable base version and its ordering.",
+      "missing_base_action": "Full bootstrap, charged fetch, or valid charged recomputation.",
+      "wrong_version_action": "Reject or recover explicitly. Do not silently decode with another version.",
+      "branch_prune_rule": "Keep the base lease until pending codec readers finish, even if the branch loses."
+    }
+  },
+  "ownership_cases": [
+    {
+      "layout": "native_tp",
+      "base": "previous local partial from sender i",
+      "initial_owner": "rank i while its operand buffer remains valid",
+      "receiver_has_base_automatically": false,
+      "required_extra_state": "Retained local history plus a mechanism that establishes it at each decoder that requires it."
+    },
+    {
+      "layout": "native_tp",
+      "base": "previous global reduced output",
+      "initial_owner": "all participating ranks receive that output",
+      "receiver_has_base_automatically": "Only as a transient operand, not as a guaranteed retained history.",
+      "required_extra_state": "A per-operator, per-row immutable retained version.",
+      "xor_base_valid_if_retained": true,
+      "equivalent_to_previous_peer_partial": false,
+      "arithmetic_single_global_base_reuse_justified": false
+    },
+    {
+      "layout": "remote_mlp",
+      "base": "prior MLP input or prior MLP output at the same tensor boundary",
+      "initial_owner": "Both stable endpoints can observe the version after its original transfer.",
+      "receiver_has_base_automatically": false,
+      "required_extra_state": "Matching retained versions at both endpoints. Bootstrap after cold placement or migration."
+    },
+    {
+      "layout": "replica_owned_branch",
+      "base": "prior hidden activation or projection output",
+      "initial_owner": "Its producer and any endpoint that previously received that exact version.",
+      "receiver_has_base_automatically": false,
+      "required_extra_state": "Lineage-aware cache and reader leases. A shared KV prefix alone is insufficient."
+    }
+  ],
+  "structural_accounting": {
+    "evidence_class": "analytic capacity, not measured allocation or a universal minimum",
+    "hidden_width": 2048,
+    "bf16_bytes": 2,
+    "physical_layers": {"Base Ouro-1.4B": 24, "Base Ouro-2.6B": 48},
+    "M_definition": "Current activation rows, not cached context length.",
+    "one_payload_bytes": "2*M*H = 4096*M",
+    "one_retained_family_bytes_per_rank": "2*L*M*H*2",
+    "families": ["previous local partials", "previous global reduced outputs"],
+    "one_family_M1": {"Base Ouro-1.4B_bytes": 196608, "Base Ouro-2.6B_bytes": 393216},
+    "one_family_M8192": {"Base Ouro-1.4B_GiB": 1.5, "Base Ouro-2.6B_GiB": 3.0},
+    "both_families_M8192": {"Base Ouro-1.4B_GiB": 3.0, "Base Ouro-2.6B_GiB": 6.0},
+    "all_sender_histories_at_each_receiver": "Can multiply the local-partial family by P. This is an example retention design, not a universal minimum.",
+    "excluded": ["current operands", "codec scratch", "metadata", "graph buffers", "KV"],
+    "required_wire_costs": ["encoded payload", "headers", "length coordination", "base transfers or bootstrap"],
+    "required_memory_traffic": ["base-cache writes", "base-cache reads", "encode and decode traffic"],
+    "adaptive_constraints": ["Rows can change identity or order.", "Exited depths do not supply future bases.", "A future gate cannot select an unavailable base."]
+  },
+  "collective_options": [
+    {
+      "option": "Decode own operand before unchanged native All-Reduce",
+      "input_bit_preservation": "Yes, with the exact base.",
+      "native_arithmetic_preservation": "Conditional on unchanged backend, dtype, shape, participant order, and execution conditions.",
+      "native_wire_byte_saving": 0
+    },
+    {
+      "option": "Gather encoded operands, decode, then reduce locally",
+      "input_bit_preservation": "Possible with all required bases.",
+      "native_arithmetic_preservation": "Not automatic. The arrangement changes the collective algorithm.",
+      "native_wire_byte_saving": "Not established."
+    },
+    {
+      "option": "Custom wire-coded All-Reduce",
+      "input_bit_preservation": "Conditional on a complete base protocol.",
+      "native_arithmetic_preservation": "Must match each arithmetic stage, chunk, operand order, accumulator precision, and cast. Intermediate aggregate bases may be necessary.",
+      "native_wire_byte_saving": "Conditional and unmeasured.",
+      "implemented": false
+    },
+    {
+      "option": "SUM XOR or entropy-coded words directly",
+      "valid_bf16_sum_substitute": false
+    },
+    {
+      "option": "BF16 local arithmetic deltas plus prior reduced global output",
+      "lossless_substitute_in_general": false,
+      "reason": "Local subtraction can lose information. Rounded global state and changed arithmetic grouping can also change the result."
+    }
+  ],
+  "cpu_check": {
+    "script": "scripts/check_lossless_collective_contract_cpu.py",
+    "sha256": "f9f5055c923a79a41ecd360a245098d7772cd1de9896b4e76ac170ad42d53e22",
+    "command": "CUDA_VISIBLE_DEVICES='' /home/esjung/.venvs/cp-composition-vllm026/bin/python /home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/scripts/check_lossless_collective_contract_cpu.py",
+    "status": "PASS",
+    "case_count": 7,
+    "pass_observed_no_later_than_utc": "2026-10-19 11:50:36 UTC",
+    "initial_test_correction": "The first run expected 4.0 for BF16-code SUM then XOR. The correct expected value is 2.0. After this expectation changed, all cases passed.",
+    "cases": [
+      {"case": "base_version_identity", "payload": 1.5, "base": 1.0, "wrong_base": 0.5, "wrong_decode": 0.75},
+      {"case": "special_payload_words", "words": ["0x8000", "0x7fc1", "0x7f80", "0x0001", "0x3f80"], "word_identity": true},
+      {"case": "encoded_words_are_not_sum_operands", "partials": [1.5, 2.0], "base": 1.0, "integer_code_sum_then_xor": 3.0, "bf16_code_sum_then_xor": 2.0, "desired_sum": 3.5},
+      {"case": "bf16_subtraction_is_not_lossless", "base": 1024.0, "current": 1.0, "rounded_delta": -1024.0, "reconstructed": 0.0},
+      {"case": "exact_local_deltas_do_not_restore_a_rounded_global_sum", "prior_partials": [256.0, 1.0], "current_partials": [256.0, 2.0], "local_deltas": [0.0, 1.0], "global_reuse_result": 256.0, "direct_two_operand_bf16_sum": 258.0},
+      {"case": "reduction_grouping_can_change_bf16_bits", "partials": [256.0, 1.0, -256.0, 0.0], "left_fold": 0.0, "regrouped": 1.0},
+      {"case": "common_base_needs_rank_multiplicity", "P": 2, "base": 1.0, "partials": [1.5, 2.0], "one_base_plus_delta_sum": 2.5, "P_bases_plus_delta_sum": 3.5}
+    ],
+    "limits": ["Synthetic CPU arithmetic only.", "No claim about installed GPU kernel accumulation order or precision.", "No model quality or GPU speed result."]
+  },
+  "classification": {
+    "xor_wrapper": "Generic transport representation with explicit retained bases.",
+    "recurrence_specific_new_axis_established": false,
+    "recurrence_can_change_input_statistics": true,
+    "uncomputed_future_work_exposed": false,
+    "prior_C08_test_status_preserved": "NO_NET_HEADROOM for the tested unfused small-message premise.",
+    "fused_codec_status": "Untested by this audit.",
+    "original_gate_requirement": "Preserve decoded input bits and downstream arithmetic, or validate a numerically changed mechanism separately."
+  },
+  "verification": {
+    "report_linter_violations": 0,
+    "json_parse": "PASS",
+    "source_hashes_checked": 7,
+    "source_hash_checks": "PASS",
+    "script_hash_check": "PASS",
+    "capacity_arithmetic": "PASS",
+    "gpu_execution": false
+  },
+  "own_time_record": {
+    "start_utc": "2026-10-19 11:44:46 UTC",
+    "end_utc": "2026-10-19 11:54:08 UTC",
+    "elapsed_seconds": 562,
+    "includes": ["targeted source reads", "CPU examples", "report writing", "report checks"],
+    "excludes": ["other agents' work", "GPU execution", "campaign elapsed time"]
+  }
+}

@@ -114,3 +114,66 @@ It does not establish a new model runtime's quality.
 No approximate mechanism currently qualifies for held-out quality confirmation.
 The campaign retains the earlier stale/delta quality failure.
 It does not repeat that method under a new architecture name.
+
+## Completed baseline pilot update
+
+`artifacts/quality_calibration_checkpoint4.json` supersedes the earlier incomplete-arm summary.
+All four staged-reference arms and both native TP1 arms completed their 16 calibration requests.
+The table preserves correct/N and request-bootstrap 95% intervals.
+No candidate mechanism is active in these rows.
+
+| Model | Runtime and mode | GSM8K | GSM8K 95% CI, % | MATH-500 | MATH 95% CI, % | MATH length-capped/N |
+|---|---|---:|---|---:|---|---:|
+| Base1.4B | Staged fixed R4 | 4/8, 50.0% | [12.5, 87.5] | 3/8, 37.5% | [12.5, 75.0] | 1/8 |
+| Base1.4B | Staged adaptive | 5/8, 62.5% | [25.0, 87.5] | 4/8, 50.0% | [12.5, 87.5] | 0/8 |
+| Base1.4B | Native fixed R4, TP1 | 3/8, 37.5% | [12.5, 75.0] | 4/8, 50.0% | [12.5, 87.5] | 0/8 |
+| Base2.6B | Staged fixed R4 | 7/8, 87.5% | [62.5, 100] | 4/8, 50.0% | [12.5, 87.5] | 4/8 |
+| Base2.6B | Staged adaptive | 6/8, 75.0% | [50.0, 100] | 4/8, 50.0% | [12.5, 87.5] | 3/8 |
+| Base2.6B | Native fixed R4, TP1 | 7/8, 87.5% | [62.5, 100] | 5/8, 62.5% | [25.0, 100] | 3/8 |
+
+The paired adaptive-minus-staged-fixed differences are operating-point context, not method effects.
+For Base1.4B, both domains show +12.5 pp, with CI [0, 37.5] pp.
+For Base2.6B GSM8K, the difference is −12.5 pp, with CI [−37.5, 0] pp.
+For Base2.6B MATH, the difference is 0 pp, with CI [−37.5, 37.5] pp.
+
+The native-minus-staged fixed differences also remain uncertain.
+Base1.4B GSM8K shows −12.5 pp, CI [−37.5, 0] pp.
+Base1.4B MATH shows +12.5 pp, CI [−25.0, 50.0] pp.
+Base2.6B GSM8K shows 0 pp, CI [0, 0] pp for these eight paired outcomes.
+That degenerate small-sample bootstrap does not establish population equivalence.
+Base2.6B MATH shows +12.5 pp, CI [0, 37.5] pp.
+
+Length-capped answers count as incomplete under the frozen rule.
+The campaign does not increase the cap after these outcomes to improve the reported scores.
+The wide intervals and truncation remain explicit limitations.
+The held-out cohort is still untouched.
+
+## Generic native option update
+
+Existing native async scheduling improves controlled-work timing in the first Base1.4B TP2/TP4 controls.
+This is baseline engineering, not a new recurrent architecture.
+The comparison artifact is `artifacts/native_controls_checkpoint2.json`.
+The TP2 four-position capture is bitwise identical in logits, hidden states, and sampled KV.
+The TP4 capture contains numerical differences, so no bitwise claim applies there.
+Neither result establishes full natural option-on/off output or accuracy parity.
+The stronger conventional reference must retain these controls and their limits.
+## Same-device scheduler-option recheck
+
+The Base 2.6B natural-output recheck uses physical GPU7 for both arms.
+The arms run in separate fresh processes with the same frozen sixteen calibration requests.
+Both use the common 8192-token cap and original prompt, checkpoint, and evaluator.
+
+Async OFF and ON produce identical raw output token IDs for all sixteen requests.
+Each arm scores 7/8 on GSM8K and 4/8 on MATH-500.
+The paired accuracy delta is 0 percentage points in each domain.
+The empirical paired bootstrap interval is [0, 0] percentage points for each eight-item domain.
+This degenerate small-sample interval does not prove population equivalence or a noninferiority margin.
+
+The earlier cross-device comparison had a one-item MATH difference.
+This recheck does not reproduce that difference on the matched device.
+It does not identify its cause.
+It does not establish TP4 natural-output parity or candidate quality preservation.
+Natural latency cannot become a scheduler speedup when generated work differs.
+
+Evidence: `artifacts/quality_option_same_gpu_recheck_v1.json` and the corresponding raw recheck directory.
+The untouched held-out cohort remains unused.

@@ -1,0 +1,191 @@
+{
+  "task": "candidate_round3_independent_axes",
+  "worker": "/root/independent_axes",
+  "segment_start_utc": "2026-10-19 11:50:20 UTC",
+  "observation_checkpoint_utc": "2026-10-19 11:58:48 UTC",
+  "evidence_class": "CPU_AND_PRIMARY_SOURCE_SCREEN",
+  "write_scope": "New round3 files only",
+  "restrictions_observed": [
+    "No GPU execution",
+    "No installs or environment changes",
+    "No weight downloads",
+    "No commits or coordinator edits",
+    "No earlier report edits"
+  ],
+  "proposals": [
+    {
+      "id": "R3-A",
+      "mechanism": "Fresh feature-tile projection before final RMS scaling",
+      "distinction": "One tiled contraction, not an old hidden vector plus dense delta",
+      "verdict": "GENERIC_ONLY",
+      "limitation": "The simple rewrite is not universally BF16 identical"
+    },
+    {
+      "id": "R3-B",
+      "mechanism": "Reuse a deterministic transition after complete read-set equality",
+      "distinction": "Exact bytes and side effects, not predicted hidden similarity",
+      "verdict": "CONDITIONAL_MECHANISM",
+      "limitation": "No model hit rate or recurrence-specific benefit"
+    }
+  ],
+  "searches": [
+    {
+      "q": "RMSNorm linear projection fusion move normalization scale after matrix multiplication FlashNorm",
+      "purpose": "Detect generic deferred normalization"
+    },
+    {
+      "q": "exact attention pruning softmax zero floating point certified skipping attention blocks",
+      "purpose": "Explore a neighboring conditional-elimination direction, not advanced"
+    },
+    {
+      "q": "FlashNorm RMSNorm linear exact normalization fusion paper github",
+      "purpose": "Locate primary paper and author source"
+    },
+    {
+      "q": "exact memoization neural network inference activation equality cache recurrent fixed point",
+      "purpose": "Detect exact-reuse overlap"
+    },
+    {
+      "q": "content addressed inference cache intermediate activations exact memoization transformer prefix cache",
+      "purpose": "Find production identity and reuse controls"
+    },
+    {
+      "q": "exact computation reuse memoization neural networks inference identical input hardware",
+      "purpose": "Distinguish weight reuse from equal-input reuse"
+    },
+    {
+      "q": "recurrent neural network exact fixed point memoization bitwise equality skip inference",
+      "purpose": "Check RNN reuse and fixed-point prior"
+    },
+    {
+      "q": "site.docs.nvidia.com cutlass epilogue visitor tree reduction normalization fusion",
+      "purpose": "Check generic fusion vocabulary"
+    },
+    {
+      "q": "site.openxla.org common subexpression elimination HLO optimization",
+      "purpose": "Check compiler duplicate-expression control"
+    }
+  ],
+  "sources": [
+    {
+      "id": "LOCAL_REGISTER",
+      "kind": "Campaign register",
+      "path": "reports/candidate_register.md",
+      "locator": "Complete file",
+      "observation": "Register lists C01 through C14. Separate completed cards contain C15 and C16.",
+      "limits": "No coordinator state changed"
+    },
+    {
+      "id": "LOCAL_SPEC",
+      "kind": "User scope",
+      "path": "/home/esjung/MLLM-EP-github/poc_flashvep/reports/ouro_parallelism_deep_discovery_spec.md",
+      "locator": "Sections 0 through 2 and 21.2",
+      "observation": "Both Base sizes, both depth modes, strong same-P controls, low system C and no learned component remain mandatory."
+    },
+    {
+      "id": "OURO_SEMANTICS",
+      "kind": "Campaign primary-source audit",
+      "path": "reports/ouro_semantics_audit.md",
+      "locator": "Dimensions, exact block dependencies, gate semantics and last_exited",
+      "observation": "The two Base sources share model code. Historical KV remains depth-specific.",
+      "limits": "This round does not load checkpoint tensors"
+    },
+    {
+      "id": "LOCAL_OURO_MODEL",
+      "kind": "Actual installed source",
+      "path": "/home/esjung/external/decode-first-cdb-upstream/src/looped_cdb/models/ouro/modeling_ouro.py",
+      "revision": "abdfae0adbdd12be8c6123ccb34eee98a38afb39",
+      "sha256": "47c21a0e5f33992ccc40464eff8f41eee414e16413f247caabdb7f975b04b538",
+      "locator": "OuroMLP, OuroAttention, OuroRMSNorm and OuroDecoderLayer",
+      "observation": "RMSNorm computes in FP32 then casts normalized coordinates before norm-weight multiplication. Q/K projection precedes RoPE.",
+      "limits": "CDB source differs from the published Base file"
+    },
+    {
+      "id": "LOCAL_ORIGINAL_GATE",
+      "kind": "Actual adapter source",
+      "path": "/home/esjung/external/decode-first-cdb-upstream/src/looped_cdb/continuous_depth_batching/adapters/ouro.py",
+      "sha256": "dc1eaaf92a4cec1e2c0ae14323674005f4f60ecea70fbd15fbaf385044b8c2ea",
+      "locator": "recurrent_step and exit_policy_spec",
+      "observation": "The original gate consumes loop-normalized hidden output. Shared weights do not remove this predecessor."
+    },
+    {
+      "id": "FLASHNORM_V5",
+      "kind": "Primary paper",
+      "url": "https://arxiv.org/html/2407.09577v5",
+      "revision_date": "2026-04-24",
+      "locator": "Section 3.2, sections 4.1 and 4.2, Appendix A",
+      "observation": "Deferred RMS scaling and its parallel-execution opportunity are direct generic prior.",
+      "limits": "Mathematical identity does not guarantee all BF16 decisions. Reported device results do not measure Ouro."
+    },
+    {
+      "id": "FLASHNORM_CODE",
+      "kind": "Author implementation",
+      "url": "https://github.com/OpenMachine-ai/transformer-tricks/blob/c3cec7e8076926acd2a31c2e5d7eadfd47489318/transformer_tricks.py",
+      "revision": "c3cec7e8076926acd2a31c2e5d7eadfd47489318",
+      "revision_date": "2026-10-12T18:44:46Z",
+      "locator": "merge_norm_proj lines 125 through 136",
+      "observation": "The helper merges norm/projection weights in FP32, then casts to the original projection dtype.",
+      "limits": "Read source only. Did not execute conversion or the example's download/install instructions."
+    },
+    {
+      "id": "FLASHNORM_RETRIEVAL_FAILURE",
+      "kind": "Failed lookup",
+      "url": "https://raw.githubusercontent.com/OpenMachine-ai/transformer-tricks/main/flashNorm_paper.py",
+      "status": "HTTP_404",
+      "observation": "A guessed filename failed. The official tree supplied actual paths.",
+      "limits": "No technical claim relies on this failed lookup"
+    },
+    {
+      "id": "CUTLASS_FUSION",
+      "kind": "Official vendor documentation",
+      "url": "https://docs.nvidia.com/cutlass/latest/media/docs/operators/tutorials/001_gemm_with_fused_epilogue.html",
+      "locator": "Broadcast examples and reductions",
+      "observation": "Generic epilogue abstractions include scaling, auxiliary tensors and reductions.",
+      "limits": "This tutorial requires Blackwell. It is not H100 performance evidence."
+    },
+    {
+      "id": "VLLM_PREFIX_CACHE",
+      "kind": "Official design",
+      "url": "https://docs.vllm.ai/en/latest/design/prefix_caching/",
+      "locator": "Hash components, collision-risk notes and block identity",
+      "observation": "Production exact-prefix reuse already keys state by prefix, tokens and additional configuration identity.",
+      "limits": "Does not implement this full dynamic hidden/KV equality proposal"
+    },
+    {
+      "id": "OPENXLA_CSE",
+      "kind": "Official compiler source document",
+      "url": "https://github.com/openxla/xla/blob/main/docs/hlo_to_thunks.md",
+      "locator": "HloCSE after multi-output fusion",
+      "observation": "Generic compiler CSE removes duplicate expressions.",
+      "limits": "Static expression equality is not a runtime proof of equal dynamic input values"
+    },
+    {
+      "id": "FUZZY_RNN",
+      "kind": "Primary abstract",
+      "url": "https://arxiv.org/abs/2202.06563",
+      "locator": "Abstract",
+      "observation": "Fuzzy memoization predicts similar outputs using an added bitwise network.",
+      "limits": "Not exact equality, and its learned predictor is outside scope. Abstract inspection only."
+    },
+    {
+      "id": "APPROX_RNN_FIXED_POINT",
+      "kind": "Primary abstract",
+      "url": "https://arxiv.org/abs/2106.02417",
+      "locator": "Abstract",
+      "observation": "The work recovers recurrent dependencies through iterative fixed-point evaluation.",
+      "limits": "Not an observed finite-precision transition cycle. Abstract inspection only."
+    },
+    {
+      "id": "UCNN",
+      "kind": "Primary abstract",
+      "url": "https://arxiv.org/abs/1804.06508",
+      "locator": "Abstract",
+      "observation": "The accelerator exploits repeated scalar weights for computation reuse.",
+      "limits": "Not equal complete transition read sets. No result transfers to Ouro. Abstract inspection only."
+    }
+  ],
+  "cpu_artifact": "artifacts/candidate_round3_cpu.json",
+  "cpu_script": "scripts/candidate_round3_cpu.py",
+  "source_screen_limit": "Queries and inspected sources do not establish a complete prior-work inventory.",
+  "time_accounting": "Count the active worker segment once. Concurrent intervals do not multiply campaign wall time."
+}

@@ -29,7 +29,7 @@ def main():
                 if 'output_ids' not in value:continue
                 row=by_id[value['id']]
                 raw_finish_reason=value['finish_reason']
-                if value.get('runtime')=='native_vllm' and value.get('native_finish_reason')=='stop' and value.get('native_stop_reason') is None:
+                if value.get('runtime','').startswith('native_vllm') and value.get('native_finish_reason')=='stop' and value.get('native_stop_reason') is None:
                     value['finish_reason']='eos'
                 evaluation=score(row,value)
                 # A frozen stop string can complete a few-shot answer without

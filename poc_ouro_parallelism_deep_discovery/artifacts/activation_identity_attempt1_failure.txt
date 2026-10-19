@@ -1,0 +1,18 @@
+Command:
+CUDA_VISIBLE_DEVICES=4,5,6,7 /home/esjung/.venvs/llada2-mini-reference/bin/python -m poc_ouro_parallelism_deep_discovery.scripts.activation_identity_screen --output poc_ouro_parallelism_deep_discovery/artifacts/activation_identity_screen_v1.json
+
+Exit code: 1
+
+Observed failure:
+ImportError: Failed to load PyTorch C extensions:
+    It appears that PyTorch has loaded the `torch/_C` folder
+    of the PyTorch repository rather than the C extensions which
+    are expected in the `torch._C` namespace.
+
+Interpretation:
+The script imports the pinned native Python 3.14 binary package root.
+The first command used the process-guard interpreter instead of the campaign interpreter.
+The analysis did not start and created no result JSON.
+No environment or package changed.
+The next command uses /home/esjung/.venvs/ouro-deep-discovery/bin/python.
+This is an interpreter correction, not a model or algorithm change.

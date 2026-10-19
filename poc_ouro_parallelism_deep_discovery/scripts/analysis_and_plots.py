@@ -46,17 +46,22 @@ def svg(path,series,title,xlabel,ylabel):
     path.write_text('\n'.join(lines)+'\n')
 
 def main():
-    p=argparse.ArgumentParser();p.add_argument('--label',required=True);args=p.parse_args()
+    p=argparse.ArgumentParser();p.add_argument('--label',required=True)
+    p.add_argument('--native-family',choices=['default','async','asyncR1','fused'],default='default',
+        help='Keep native options in separate summaries. Never pool different execution configurations.')
+    args=p.parse_args()
     output=ROOT/'analysis'/args.label;output.mkdir(parents=True,exist_ok=False)
     native=[];operators=[];paged=[];correction=[];parity=[]
     for run in sorted((ROOT/'outputs').iterdir()):
         guard=run/'guard_status.json'
         if not guard.exists() or not read(guard).get('success'):continue
-        for status in run.glob('*_TP*/status.json'):
+        prefix={'default':'native_base','async':'control_async_base','asyncR1':'control_asyncR1_base','fused':'control_fused_base'}[args.native_family]
+        native_states=run.glob('*_TP*/status.json') if run.name.startswith(prefix) else []
+        for status in native_states:
             if not read(status).get('success'):continue
             for file in status.parent.glob('P*_request*_repeat*.json'):
                 value=read(file);metrics=value['metrics']
-                native.append(dict(run=run.name,model=value['size'],R=value['R'],P=value['TP'],
+                native.append(dict(run=run.name,native_family=args.native_family,model=value['size'],R=value['R'],P=value['TP'],
                     physical_gpus=','.join(map(str,value['physical_gpus'])),context=value['prompt'],request_id=value['request_id'],
                     repeat=value['repeat'],wall_ms=value['wall_ms'],
                     engine_TTFT_ms=metrics['first_token_latency']*1000 if metrics else None,
@@ -95,7 +100,7 @@ def main():
     summaries=[]
     for model,R,P,N in sorted({(r['model'],r['R'],r['P'],r['context']) for r in native}):
         rows=[r for r in native if (r['model'],r['R'],r['P'],r['context'])==(model,R,P,N)]
-        summaries.append(dict(model=model,R=R,P=P,context=N,trials=len(rows),unique_requests=len({r['request_id'] for r in rows}),
+        summaries.append(dict(model=model,R=R,P=P,context=N,native_family=args.native_family,trials=len(rows),unique_requests=len({r['request_id'] for r in rows}),
             median_wall_ms=statistics.median(r['wall_ms'] for r in rows),
             median_TTFT_ms=statistics.median(r['engine_TTFT_ms'] for r in rows),
             median_TPOT_ms=statistics.median(r['engine_TPOT_ms'] for r in rows),
@@ -106,7 +111,7 @@ def main():
             svg(output/(model+'_'+metric+'.svg'),
                 [dict(name=f'TP{P}',points=[(r['context'],r[metric]) for r in summaries if r['model']==model and r['R']==4 and r['P']==P])
                  for P in sorted({r['P'] for r in summaries if r['model']==model})],
-                f'{model} fixed R4 native hardware baseline','Prompt tokens',ylabel)
+                f'{model} fixed R4 native {args.native_family} hardware baseline','Prompt tokens',ylabel)
     for P in [2,4]:
         for model in MODELS:
             rows=[r for r in operators if r['P']==P and r['model']==MODELS[model]['id'] and r['graph']]
@@ -119,7 +124,7 @@ def main():
             [dict(name=f'case{i+1} warm{warm}',points=[(r['rounds'],r['current_KV_max_abs']) for r in rows if r['request_id']==request and r['warmup']==warm])
              for i,request in enumerate(sorted({r['request_id'] for r in rows})) for warm in [0,1]],
             f'{model} finite correction, two single-token probes','Correction rounds','Current-token KV max absolute error')
-    write(output/'summary.json',dict(UTC=datetime.datetime.now(datetime.timezone.utc).isoformat(),native=summaries,
+    write(output/'summary.json',dict(UTC=datetime.datetime.now(datetime.timezone.utc).isoformat(),native_family=args.native_family,native=summaries,
         sample_counts=dict(native_trials=len(native),operators=len(operators),paged=len(paged),correction=len(correction)),
         interpretation='Component, task-quality, and live controlled-work evidence are separate. No candidate E2E speedup exists.',
         campaign_completion='Not established by this analysis.'))

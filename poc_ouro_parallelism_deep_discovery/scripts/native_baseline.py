@@ -18,6 +18,12 @@ def main():
     p.add_argument('--R',type=int,choices=[1,4],required=True)
     p.add_argument('--fuse-allreduce-rms',action='store_true',
         help='Generic baseline-strength control. This is not a new looped architecture.')
+    p.add_argument('--async-scheduling',action='store_true',
+        help='Generic native asynchronous scheduler control, not a new recurrent architecture.')
+    p.add_argument('--weight-storage-control',choices=['alias','copies'],
+        help='Allocate four identical block copies in both arms. Change only execution pointer reuse. Not a candidate method.')
+    p.add_argument('--isolate-compile-cache',action='store_true',
+        help='Use a fresh job-local compilation cache. This prevents storage controls from loading another arm\'s compiled artifacts.')
     args=p.parse_args();mask=validate_mask();assert len(mask)==args.tp
     output=Path(os.environ['LOOPED_KV_OUTPUT'])/f'{args.size}_R{args.R}_TP{args.tp}'
     output.mkdir(parents=True,exist_ok=False)
@@ -47,6 +53,15 @@ def main():
     if args.fuse_allreduce_rms:
         assert args.tp>1
         config['compilation_config']['pass_config']={'fuse_allreduce_rms':True}
+    if args.async_scheduling:config['async_scheduling']=True
+    if args.isolate_compile_cache:
+        cache=output/'compile_cache'
+        assert not cache.exists()
+        config['compilation_config']['cache_dir']=str(cache)
+    if args.weight_storage_control:
+        assert args.R==4
+        os.environ['OURO_CAMPAIGN_STORAGE_CONTROL']=args.weight_storage_control
+        config['worker_extension_cls']='poc_ouro_parallelism_deep_discovery.worker_probe.CampaignProbe'
     write(output/'engine_config.json',config)
     llm=LLM(**config)
     ownership=llm.collective_rpc('inspect_ownership',timeout=120)
@@ -55,6 +70,8 @@ def main():
     assert {r['GPU_uuid'].removeprefix('GPU-') for r in ownership}=={UUIDS[GPUS.index(g)] for g in mask}
     assert all(all(g['Q_heads']==16//args.tp and g['KV_heads']==16//args.tp for g in r['geometry']) for r in ownership)
     write(output/'ownership.json',ownership)
+    if args.weight_storage_control:
+        write(output/'storage_control.json',llm.collective_rpc('storage_control_evidence',timeout=120))
     def generate(row,N,count=128):
         llm.collective_rpc('teacher',timeout=120,args=(teacher[:count],))
         before=time.perf_counter()

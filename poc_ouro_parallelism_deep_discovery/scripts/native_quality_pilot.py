@@ -10,7 +10,12 @@ configure_native_imports()
 
 def main():
     parser=argparse.ArgumentParser();parser.add_argument('--size',choices=MODELS,required=True)
-    parser.add_argument('--tp',type=int,choices=[1,2,4],required=True);args=parser.parse_args()
+    parser.add_argument('--tp',type=int,choices=[1,2,4],required=True)
+    parser.add_argument('--async-scheduling',action='store_true',
+        help='Check an existing native option on frozen calibration items. This is not a candidate method.')
+    parser.add_argument('--runtime-label',default='',
+        help='Separate a repeat from earlier accuracy denominators. This changes metadata only.')
+    args=parser.parse_args()
     mask=validate_mask();assert len(mask)==args.tp
     from transformers import AutoTokenizer
     from vllm import LLM,SamplingParams
@@ -18,13 +23,18 @@ def main():
     protocol=read(ROOT/'artifacts/probe_protocol.json')
     rows=[r for r in protocol['rows'] if r['campaign_partition']=='calibration']
     assert len(rows)==16
-    out=Path(os.environ['LOOPED_KV_OUTPUT'])/f'{args.size}_native_fixed_TP{args.tp}'
+    runtime='native_vllm_async' if args.async_scheduling else 'native_vllm'
+    if args.runtime_label:
+        assert args.runtime_label.replace('_','').isalnum()
+        runtime+='_'+args.runtime_label
+    suffix='_async' if args.async_scheduling else ''
+    out=Path(os.environ['LOOPED_KV_OUTPUT'])/f'{args.size}_native_fixed_TP{args.tp}{suffix}'
     out.mkdir(parents=True,exist_ok=False)
     config=dict(model=str(info['path']),trust_remote_code=True,dtype='bfloat16',
         tensor_parallel_size=args.tp,hf_overrides={'total_ut_steps':4},seed=20261019,
         max_model_len=10240,max_num_seqs=8,max_num_batched_tokens=10240,
         enable_prefix_caching=False,enable_chunked_prefill=False,enable_expert_parallel=False,
-        kv_cache_memory_bytes=20*1024**3,enforce_eager=False,async_scheduling=False,
+        kv_cache_memory_bytes=20*1024**3,enforce_eager=False,async_scheduling=args.async_scheduling,
         distributed_executor_backend='mp',disable_log_stats=False,
         worker_extension_cls='poc_looped_recurrence_tp_4models.worker_probe.FourModelProbe',
         compilation_config={'cudagraph_capture_sizes':[1,2,4,8]})
@@ -46,7 +56,8 @@ def main():
         # The pinned vLLM scheduler leaves stop_reason unset for native EOS.
         # Explicit text/token stops populate that field instead.
         reason='length' if native_stop=='length' else 'eos' if answer.stop_reason in [None,tok.eos_token_id] else 'stop'
-        result=dict(id=row['id'],dataset=row['dataset'],size=args.size,mode='fixed',runtime='native_vllm',
+        result=dict(id=row['id'],dataset=row['dataset'],size=args.size,mode='fixed',runtime=runtime,
+            async_scheduling=args.async_scheduling,
             TP=args.tp,model=info['id'],revision=info['revision'],physical_gpus=mask,
             prompt_ids=ids,output_ids=list(answer.token_ids),text=answer.text,
             generated_tokens=len(answer.token_ids),finish_reason=reason,
@@ -60,6 +71,7 @@ def main():
         write(out/(row['id'].replace('/','_')+'.json'),result)
         print('NATIVE_QUALITY',args.size,args.tp,row['id'],len(answer.token_ids),reason,flush=True)
     write(out/'status.json',dict(success=True,N=16,size=args.size,TP=args.tp,mode='fixed',
-        runtime='native_vllm',quality_scope='Frozen calibration only. No held-out or candidate quality test.'))
+        runtime=runtime,async_scheduling=args.async_scheduling,
+        quality_scope='Frozen calibration only. No held-out or candidate quality test.'))
 
 if __name__=='__main__':main()

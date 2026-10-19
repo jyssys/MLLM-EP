@@ -48,7 +48,7 @@ ROWS=[
   'Coded matrix multiplication is generic. Native BF16 decode stragglers and net gain are not measured.',
   'Measured removable tail plus a numerical contract and coding/decoding cost below that tail.'),
  ('C12','CONDITIONAL_MECHANISM','Attention feature summaries','No qualifying implementation',
-  ['reports/independent_axes_redteam.md'],
+  ['reports/independent_axes_redteam.md','reports/attention_summary_exactness_screen.md','artifacts/key_rank_base14_v1.json'],
   'No small exact query-independent summary is established for the current softmax graph. Generic approximate features remain untested.',
   'A new representation with an explicit approximation class and a decisive quality/cost test.'),
  ('C13','GENERIC_ONLY','Exact-input work beside the gate','Adaptive-only baseline opportunity',
@@ -67,6 +67,18 @@ ROWS=[
   ['reports/mixed_depth_frontier_redteam.md'],
   'WaveFront already batches full-depth KV unions. Local CDB slot homogeneity is an implementation restriction, not a new axis.',
   'A physical cross-owner benefit beyond generic full-KV union on identical online ready traces.'),
+ ('C17','GENERIC_ONLY','Component-ready norm/projection contraction','Audited fresh-tile algebra',
+  ['candidates/C17_component_ready_norm_projection.md','reports/candidate_round3_independent_axes.md','reports/tile_dataflow_prior_audit.md'],
+  'FlashNorm and generic dataflow cover the valid transformation. The simple BF16 rewrite also changes an explicit cast boundary.',
+  'A distinct physical mechanism beyond generic fusion with a declared numerical contract and net same-P benefit.'),
+ ('C18','GENERIC_ONLY','Certified exact transition coalescing','Complete-read-set equality design',
+  ['candidates/C18_exact_transition_coalescing.md','artifacts/activation_identity_screen_v1.json'],
+  'Generic exact memoization is the current mechanism. The bounded actual MLP screen observes no identical whole row across compared passes.',
+  'A measured useful exact-hit regime plus complete state publication and lookup costs below saved work.'),
+ ('C19','NO_NET_HEADROOM','Lossless shared-base KV ownership','Bounded key captures and uncached reconstruction model',
+  ['candidates/C19_lossless_large_KV_reopening.md','reports/lossless_kv_measurement_screen.md','reports/lossless_kv_reopening_prior.md'],
+  'Captured key coding reduces storage, but modeled uncached shared-base reads increase. Generic on-read decoding already has prior code. No new distributed ownership benefit is established.',
+  'A legal base-retention or ownership mechanism with net measured latency beyond independent compression and alias-aware KV.'),
 ]
 
 def main():

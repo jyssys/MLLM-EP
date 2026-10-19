@@ -8,10 +8,12 @@ from urllib.parse import urlsplit, urlunsplit
 from poc_ouro_parallelism_deep_discovery.contract import ROOT, read, sha, write
 
 JSONL_INPUTS=['literature_sources.jsonl','parallel_sampling_sources.jsonl',
-    'operator_ownership_sources.jsonl','dynamic_runtime_sources.jsonl','certified_operator_sources.jsonl']
+    'operator_ownership_sources.jsonl','dynamic_runtime_sources.jsonl','certified_operator_sources.jsonl',
+    'tile_dataflow_sources.jsonl','lossless_kv_reopening_sources.jsonl']
 JSON_INPUTS=['coordinator_sources.json','independent_candidate_seeds.json',
     'persistent_execution_audit.json','layout_residual_cpu.json',
-    'certified_decision_cpu.json','branch_ownership_cost_ledger.json']
+    'certified_decision_cpu.json','branch_ownership_cost_ledger.json',
+    'candidate_round3_source_observations.json']
 
 def canonical(record):
     text=' '.join(str(record.get(k,'')) for k in ['identifier','url','paper_url','pdf_url'])
@@ -88,7 +90,8 @@ def main():
              'run_contract':read(contract) if contract.exists() else None,
              'guard_status':read(state) if state.exists() else {'status':'RUNNING_OR_UNRESOLVED'},
              'files':[{ 'path':str(p.relative_to(ROOT)),'sha256':sha(p)}
-                for p in sorted(directory.rglob('*.json')) if p.name!='clean_start.json']}
+                for p in sorted(directory.rglob('*.json'))
+                if p.name!='clean_start.json' and 'compile_cache' not in p.parts]}
         # Avoid publishing process environment inventories from the guard.
         if row['run_contract'] is not None:
             row['run_contract'].pop('environment',None)
