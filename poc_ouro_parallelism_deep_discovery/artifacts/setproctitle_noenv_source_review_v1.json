@@ -1,0 +1,100 @@
+{
+  "scope": "Primary-source, CPU regression, and completion-record review only. No GPU launched by this agent.",
+  "official_version": "1.3.7",
+  "official_tag": "version-1.3.7",
+  "tag_object": "a158208aadeac3f669370060d6620b8557f14611",
+  "source_commit": "389ed6f4e3ccfebb34a38893553992ea10cf5dc8",
+  "binary_build_reproducibility_proven": false,
+  "source_access_interval_utc": {
+    "start": "2026-10-19 17:11:43 UTC",
+    "end": "2026-10-19 17:13:50 UTC"
+  },
+  "primary_sources": [
+    {
+      "url": "https://github.com/dvarrazzo/py-setproctitle/blob/389ed6f4e3ccfebb34a38893553992ea10cf5dc8/README.rst#L86-L94",
+      "accessed_via": "https://raw.githubusercontent.com/dvarrazzo/py-setproctitle/389ed6f4e3ccfebb34a38893553992ea10cf5dc8/README.rst",
+      "claim": "Nonempty SPT_NOENV avoids clobbering proc environ and limits title storage to the command-line area.",
+      "additional_locator": "README.rst:51-55 warns that environment edits may interfere with initialization."
+    },
+    {
+      "url": "https://github.com/dvarrazzo/py-setproctitle/blob/389ed6f4e3ccfebb34a38893553992ea10cf5dc8/src/spt_status.c#L186-L218",
+      "accessed_via": "https://raw.githubusercontent.com/dvarrazzo/py-setproctitle/389ed6f4e3ccfebb34a38893553992ea10cf5dc8/src/spt_status.c",
+      "claim": "Setup reads SPT_NOENV. The default branch extends the buffer through contiguous environment strings and copies environ. A nonempty value skips this branch.",
+      "additional_locators": ["spt_status.c:110-111 selects the Linux strategy", "spt_status.c:321-356 writes the title and pads its old region"]
+    },
+    {
+      "url": "https://github.com/dvarrazzo/py-setproctitle/blob/389ed6f4e3ccfebb34a38893553992ea10cf5dc8/src/setproctitle.c#L31-L67",
+      "accessed_via": "https://raw.githubusercontent.com/dvarrazzo/py-setproctitle/389ed6f4e3ccfebb34a38893553992ea10cf5dc8/src/setproctitle.c",
+      "claim": "getproctitle and setproctitle call setup. The Linux module initializer does not call setup."
+    },
+    {
+      "url": "https://github.com/dvarrazzo/py-setproctitle/blob/389ed6f4e3ccfebb34a38893553992ea10cf5dc8/src/spt_setup.c#L414-L438",
+      "accessed_via": "https://raw.githubusercontent.com/dvarrazzo/py-setproctitle/389ed6f4e3ccfebb34a38893553992ea10cf5dc8/src/spt_setup.c",
+      "claim": "Setup caches success or failure once per process. The option must precede first setup and does not repair already overwritten bytes."
+    }
+  ],
+  "installed_source": {
+    "package_version": "1.3.7",
+    "extension_sha256": "a2fbfff9d930784a36b10e40558caa2bdb6d8c8e21f1cccfdd2cbac2b3b45a23",
+    "metadata_sha256": "f3aae6f59f0e0c2ae3378189d4399d7a4a25de58c774cdb423fbfa02a534d0aa",
+    "actual_C_function_identity_asserted": true,
+    "native_worker_sequence": {
+      "path": "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/v1/executor/multiproc_executor.py",
+      "sha256": "fb279ff0e0a08681aa0078037d559351006b5453ecd1b1ea12277995925f3312",
+      "locator": "624-633",
+      "claim": "Title before init_device, then another title after device and distributed group initialization."
+    }
+  },
+  "cpu_regression": {
+    "script": "scripts/setproctitle_noenv_red_green_cpu_v1.py",
+    "script_sha256": "a8943ef46f282a1d0bc66b6d6e58ff0717d59ca01c93e36874927732ff178b5e",
+    "artifact": "artifacts/setproctitle_noenv_red_green_cpu_v1.json",
+    "artifact_sha256": "255770dec8d8a810d13339679c12431ebee2ac483fe1f37f57e32e01d0e555e9",
+    "children": 2,
+    "title_calls_per_child": 2,
+    "guard_keys_per_observation": 3,
+    "requested_titles_applied_in_both_children": true,
+    "proc_cmdline_title_assertions_passed": true,
+    "logical_guard_checks_all_match": true,
+    "default_initial_guard_keys_after_each_title": "0/3 present",
+    "preserved_initial_guard_keys_after_each_title": "3/3 present and matching",
+    "default_strict_lease_pass": false,
+    "preserved_strict_lease_pass": true,
+    "guard_values_exported": false,
+    "torch_imported_in_children": false,
+    "vllm_imported_in_children": false,
+    "first_title_already_reproduces_mismatch": true,
+    "earlier_fixture_artifacts_unchanged": true
+  },
+  "v4_completion_status_only": {
+    "directory": "outputs/native_tp2_dp2_cohort_base14_v4_preserve_environ",
+    "model_mode": "Base1.4 fixed-R4 TP2xDP2",
+    "runner_success": true,
+    "guard_success": true,
+    "guard_exit_code": 0,
+    "strict_lease_checks_unchanged": true,
+    "strict_helper_sha256_in_v4_plan_and_current_source": "bdfd43857dab7b96e1749f7b6a99d14e82d7f7994de5d4bf0799582b89d1a7e5",
+    "status_sha256": "96c76ffb5f124b7d330ba883cc62dfd5257532b9babc02e8c840a0269a22ede0",
+    "guard_status_sha256": "48f3eff7bf4ef90d5a71d9b659209c6ed7392d2000f29725c045eeb07bc01846",
+    "plan_sha256": "d6234c23bb40edb9ea46e4356569b820190db6703aa9da1ce2d31742ae31275c",
+    "replica0_leases_sha256": "8d1835c86e768e782bd617a7377bc899bc3047806aaf961e0c0bce266a15a48f",
+    "replica1_leases_sha256": "e97f09eb7c6861909449854fd903a0fb4d7b6276fefbbab13dbefcf8a5fafe70",
+    "raw_cohort_result_analysis": "PENDING_IN_THIS_REVIEW",
+    "quality": "NOT_RUN",
+    "candidate_gain": "NOT_RUN",
+    "main_agent_ran_v4": true,
+    "this_agent_launched_GPU": false
+  },
+  "limits": [
+    "Earlier import-first fixtures did not assert that the requested title applied. Their results remain unchanged.",
+    "The exact earlier import-time operation that produced the different fixture result is not identified.",
+    "The preservation option can truncate longer titles to the command-line buffer. The short CPU fixture does not measure the truncation limit.",
+    "The CPU seam does not instrument every native startup operation.",
+    "V4 status is not a Base2.6, adaptive, quality, latency-gain, or candidate claim."
+  ],
+  "time_ledger": "artifacts/setproctitle_noenv_review_time_v1.jsonl",
+  "total_counted_active_seconds": 295,
+  "counted_active_segments_seconds": [77, 218],
+  "excluded_user_pause_utc": {"start":"2026-10-19 17:07:51 UTC","end":"2026-10-19 17:11:01 UTC","seconds":190},
+  "time_policy": "Count only the listed active agent segments. Exclude the user pause and all unworked gaps. Do not add this concurrent work to campaign elapsed time."
+}

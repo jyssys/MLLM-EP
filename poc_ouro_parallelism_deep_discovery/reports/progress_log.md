@@ -158,6 +158,7 @@ The direct distributed-verification audit preserves a conditional ownership ques
 
 Native TP4 natural calibration is running on physical 4/5/6/7.
 The held-out cohort remains untouched.
+
 No qualifying candidate or candidate E2E result exists.
 Checkpoint a1dcf761ef57a905417257c416d3d929b74ee382 is pushed.
 New evidence remains scoped to this campaign directory.
@@ -352,4 +353,40 @@ It is not a candidate or the protected adaptive CDB factorial experiment.
 Independent page-certificate, historical-KV prefetch, and phase-handoff cost screens continue.
 No candidate has measured E2E acceleration or free-running quality evidence.
 The held-out cohort remains untouched.
+
+## Resumed checkpoint at2026-10-19T17:58:52.067817UTC
+
+The user pause lasted from17:07:51 through17:11:01UTC.
+The time ledger excludes that interval.
+Closed coordinator segments total28969.068226seconds, or about8.047hours.
+The minimum ten-hour normal-completion condition remains unmet.
+Concurrent worker minutes do not add elapsed campaign time.
+
+Both conventional TP2×DP2 controls completed.
+Their raw ownership and timing audits admit80new clean trials across both sizes.
+The combined native controls contain400clean trials across80model/configuration/shape cells.
+Their API and parent completion endpoints remain separate.
+The job-local SPT_NOENV option preserves process provenance without weakening lease checks.
+All earlier failed startup attempts remain intact.
+
+The current Tables A/B/E/F cover19scoped candidate records.
+The new Tables C/D separate natural quality, controlled hardware timing, and component/model headroom.
+All candidate live-E2E and free-running-quality cells remain NOT_RUN.
+The primary-source re-audit corrects CDB replay wording and its2.6B component scope.
+It also preserves KernelFlume's measured low-batch scope and SNLP's theoretical speedup label.
+
+The frozen baseline extension uses32new requests per domain.
+It excludes all original campaign IDs and selected earlier workload metadata IDs.
+Both1.4B arms complete64requests. All128closed raw records pass the new integrity supplement.
+That supplement is explicitly post-launch. It changes no grading or generation rule.
+The independent audit preserves the original analyzer's synthetic admission gaps and exact source archive.
+Both2.6B arms remain active on physical GPUs6/7.
+Owned utilization workers run on released physical GPUs4/5.
+
+The isolated v8regression passes34modules and307CPU tests.
+The earlier v7failure remains recorded. Its historical test used an obsolete analyzer signature.
+The corrected historical test loads the hash-identical archival source.
+Predecessor preservation checks pass.
+The original held-out cohort remains untouched.
+No candidate qualifies for an engine or confirmation run.
 

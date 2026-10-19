@@ -1,0 +1,551 @@
+{
+  "schema_version": 1,
+  "record_kind": "BOUNDED_BASELINE_EXTENSION_AND_TABLES_CD_CPU_REVIEW",
+  "status": "PASS_AFTER_TWO_GENERATOR_REMEDIES_WITH_RECORDED_LIMITS",
+  "time_record": {
+    "segment_start_utc": "2026-10-19 17:48:00 UTC",
+    "verification_checkpoint_utc": "2026-10-19 17:53:55 UTC",
+    "active_seconds_through_checkpoint": 355,
+    "prior_pause_time_counted": false,
+    "concurrent_worker_seconds_are_not_campaign_elapsed": true
+  },
+  "scope": {
+    "GPU_execution": false,
+    "model_execution": false,
+    "actual_extension_outcomes_read": false,
+    "partial_outcomes_read": false,
+    "protected_factorial_inspection": false,
+    "source_or_runtime_edits_by_reviewer": false,
+    "frozen_artifact_edits_by_reviewer": false,
+    "scorer_transitive_package_review": "SEPARATE_LITERATURE_AUDIT",
+    "final_campaign_verdict": null
+  },
+  "prepatch_findings": [
+    {
+      "id": "G1",
+      "function": "build_result_tables_cd.extension_panels",
+      "initial_observation": "Synthetic QUALITY_ONLY summary with N=32 entered a panel despite jobs marking the arm NOT_AVAILABLE.",
+      "evidence_type": "SYNTHETIC_CPU",
+      "actual_record_discrepancy_established": false,
+      "initial_source_sha256": null,
+      "initial_hash_limit": "The initial generator hash was not recorded before the concurrent patch. Do not infer it from the final hash.",
+      "resolution": "Main added AVAILABLE arm and 64 unique admitted-record checks, including 32 records for the summary domain.",
+      "postpatch_status": "REJECTED"
+    },
+    {
+      "id": "G2",
+      "function": "build_result_tables_cd.native_panels",
+      "initial_observation": "Synthetic TP1 and TP4 rows with different explicit boundary strings produced ratio 2.0 because mode names alone selected the ratio.",
+      "evidence_type": "SYNTHETIC_CPU",
+      "actual_record_discrepancy_established": false,
+      "initial_source_sha256": null,
+      "resolution": "Main now also requires equality with the matching TP1 boundary string.",
+      "postpatch_status": "RATIO_SUPPRESSED"
+    }
+  ],
+  "source_checks": [
+    {
+      "rule": "Prompt IDs bind to frozen prompt encoding",
+      "location": "scripts/validate_baseline_extension_integrity.py:19",
+      "status": "PASS"
+    },
+    {
+      "rule": "Text binds to recorded output-ID decoding",
+      "location": "scripts/validate_baseline_extension_integrity.py:23",
+      "status": "PASS"
+    },
+    {
+      "rule": "EOS then cap then stop precedence, nonempty stop suffix, no earlier terminal",
+      "location": "scripts/validate_baseline_extension_integrity.py:26",
+      "status": "PASS"
+    },
+    {
+      "rule": "Launch source hashes, fixed count/cap, mapping and model pins",
+      "location": "scripts/validate_baseline_extension_integrity.py:42",
+      "status": "PASS",
+      "limit": "Recorded provenance, not independent model re-execution or proof of launch-time source immutability."
+    },
+    {
+      "rule": "Guard and runner success plus complete exact raw ID set",
+      "location": "scripts/validate_baseline_extension_integrity.py:58",
+      "status": "PASS"
+    },
+    {
+      "rule": "Analyzer rechecks audited raw-file hashes before scoring",
+      "location": "scripts/analyze_baseline_extension.py:153",
+      "status": "PASS"
+    },
+    {
+      "rule": "Depth events, graph coverage and source counters",
+      "location": "scripts/analyze_baseline_extension.py:25",
+      "status": "PASS"
+    },
+    {
+      "rule": "Complete 32/domain summaries and paired complete-arm IDs",
+      "location": "scripts/analyze_baseline_extension.py:182",
+      "status": "PASS"
+    },
+    {
+      "rule": "Endpoint-compatible TP ratios only, no DP or same-P candidate ratio",
+      "location": "scripts/build_result_tables_cd.py:16",
+      "status": "PASS_AFTER_PATCH"
+    },
+    {
+      "rule": "Extension summary requires complete admitted arm",
+      "location": "scripts/build_result_tables_cd.py:47",
+      "status": "PASS_AFTER_PATCH"
+    },
+    {
+      "rule": "Candidate result fields remain NOT_RUN and observer costs stay invalid for attribution",
+      "location": "scripts/build_result_tables_cd.py:117",
+      "status": "PASS"
+    }
+  ],
+  "tests": {
+    "final_targeted_modules": [
+      {
+        "path": "tests/test_baseline_extension_cpu.py",
+        "tests": 3,
+        "status": "PASS"
+      },
+      {
+        "path": "tests/test_baseline_extension_integrity_cpu.py",
+        "tests": 6,
+        "status": "PASS"
+      },
+      {
+        "path": "tests/test_baseline_extension_analysis_cpu.py",
+        "tests": 5,
+        "status": "PASS"
+      },
+      {
+        "path": "tests/test_result_tables_cpu.py",
+        "tests": 5,
+        "status": "PASS"
+      },
+      {
+        "path": "tests/test_baseline_extension_admission_review_cpu_v1.py",
+        "tests": 4,
+        "status": "PASS_HISTORICAL_CHARACTERIZATION"
+      }
+    ],
+    "final_unittest_total": 23,
+    "earlier_prepatch_targeted_total": 17,
+    "earlier_prepatch_targeted_status": "PASS; the later adversarial checks exposed missing cases",
+    "integrated_synthetic_checks": [
+      {
+        "case": "Full integrity-to-analysis chain",
+        "result": "64 synthetic records admitted; three absent arms excluded"
+      },
+      {
+        "case": "Failed outer guard",
+        "result": "EXCLUDED"
+      },
+      {
+        "case": "N_completed=63 with success true",
+        "result": "REJECTED"
+      },
+      {
+        "case": "Raw mutation after integrity hashing",
+        "result": "REJECTED"
+      },
+      {
+        "case": "Frozen launch-source mutation",
+        "result": "REJECTED"
+      },
+      {
+        "case": "Non-PASS integrity arm",
+        "result": "EXCLUDED"
+      }
+    ],
+    "postpatch_adversarial_checks": [
+      {
+        "case": "64 unique records, 32 for domain, AVAILABLE arm",
+        "result": "ACCEPTED"
+      },
+      {
+        "case": "Arm NOT_AVAILABLE",
+        "result": "REJECTED"
+      },
+      {
+        "case": "63 records",
+        "result": "REJECTED"
+      },
+      {
+        "case": "Duplicate record ID",
+        "result": "REJECTED"
+      },
+      {
+        "case": "31 records for domain",
+        "result": "REJECTED"
+      },
+      {
+        "case": "One record belongs to another arm",
+        "result": "REJECTED"
+      },
+      {
+        "case": "Different explicit TP timing boundaries",
+        "result": "RATIO_SUPPRESSED"
+      }
+    ],
+    "execution_environment": "CUDA_VISIBLE_DEVICES='' PYTHONDONTWRITEBYTECODE=1 /home/esjung/.venvs/llada2-mini-reference/bin/python",
+    "denominator": "Synthetic cases and source checks. No outcome-derived sample, independent-token CI, or architecture test."
+  },
+  "frozen_hash_checks": {
+    "launch_source_entries": 4,
+    "analysis_source_entries": 3,
+    "status": "PASS",
+    "transitive_scorer_packages": "NOT_REVIEWED_HERE"
+  },
+  "headroom_scope_review": [
+    {
+      "candidate": "C01",
+      "status": "PASS_NARROW_SCOPE",
+      "scope_guard": "Legal ready unions and a generic pooling prior do not establish a complete ownership cost or a universal residency limit.",
+      "frozen_headroom_row": {
+        "candidate": "C01",
+        "baseline_exposed": "UNRESOLVED",
+        "removed": "Proposed reuse of a ready operator frontier",
+        "compute": "All useful rows remain mandatory",
+        "communication": "Owner dispatch and return remain charged",
+        "state": "Packet readiness, gate and KV publication",
+        "estimate": "No distinct complete model",
+        "validation": "NOT_RUN. Generic ready unions are legal",
+        "source": "reports/operator_ownership_nearest_audit.md"
+      }
+    },
+    {
+      "candidate": "C02",
+      "status": "PASS_NARROW_SCOPE",
+      "scope_guard": "Only the isolated-source remote full-MLP component loses at tested row counts. The AG/RS refinement and full native engine remain unmeasured.",
+      "frozen_headroom_row": {
+        "candidate": "C02",
+        "baseline_exposed": "Isolated MLP component only:local≈0.037ms,TP≈0.027–0.030ms at one row",
+        "removed": "Proposed local attention with remote full MLP",
+        "compute": "One complete MLP at the owner",
+        "communication": "Both measured directions:remote total≈0.062–0.067ms",
+        "state": "Source waits for the returned down projection",
+        "estimate": "Tested round trip loses at1–512 rows. Separate AG/RS hybrid is unmeasured",
+        "validation": "Component BF16 words match. No model E2E. TP component uses NCCL,not native custom AR",
+        "source": "reports/cost_and_headroom.md;reports/dp_attention_tp4_ffn_refinement_v1.md"
+      }
+    },
+    {
+      "candidate": "C03",
+      "status": "PASS_NARROW_SCOPE",
+      "scope_guard": "The evidence concerns terminal address fixtures and skipped-depth adaptive publication. Fixed R4 has no terminal-copy saving from this rule.",
+      "frozen_headroom_row": {
+        "candidate": "C03",
+        "baseline_exposed": "Terminal copy address fixtures only",
+        "removed": "Skipped-depth terminal copies under selected adaptive KV policy",
+        "compute": "Address lookup and publication",
+        "communication": "Any remote owner access remains charged",
+        "state": "Terminal selection,reclamation and stale-reference prevention",
+        "estimate": "No complete online estimate",
+        "validation": "Direct ragged-cache prior. No fixed-R4 terminal-copy saving",
+        "source": "reports/kv_indirection_redteam.md"
+      }
+    },
+    {
+      "candidate": "C04",
+      "status": "PASS_NARROW_SCOPE",
+      "scope_guard": "The failures concern particular nonlinear partial-sum rewrites. Other layouts can change bytes, startup, or exposed synchronization.",
+      "frozen_headroom_row": {
+        "candidate": "C04",
+        "baseline_exposed": "UNRESOLVED",
+        "removed": "Proposed layout conversion,bytes,startup or exposed reduction",
+        "compute": "Consumer-compatible nonlinear arithmetic remains mandatory",
+        "communication": "Deferred reductions/gathers remain charged",
+        "state": "Residual,norm and gate layout boundaries",
+        "estimate": "Specific partial-sum nonlinear rewrites fail. Other layouts are open",
+        "validation": "CPU algebra only. No complete native numerical or live layout result",
+        "source": "reports/layout_and_structured_residual_redteam.md"
+      }
+    },
+    {
+      "candidate": "C05",
+      "status": "PASS_NARROW_SCOPE",
+      "scope_guard": "The exact recovery diagnostic needs four expensive logical rounds in the tested initialization. Its distributed latency is modeled, not measured.",
+      "frozen_headroom_row": {
+        "candidate": "C05",
+        "baseline_exposed": "Native TPOT is only a coarse model input",
+        "removed": "Hypothesized depth-chain span through parallel correction",
+        "compute": "Observed exact recovery:warm0 plus4 rounds or warm1 plus3",
+        "communication": "Unmeasured and omitted in the optimistic screen",
+        "state": "Validation,current-token KV repair,correction and allocation omitted",
+        "estimate": "Explicit optimistic same-P model does not support tested exact recovery. Not a physical lower bound",
+        "validation": "Actual current-token numerical diagnostic. Distributed timing/free-running quality NOT_RUN",
+        "source": "reports/parallel_sampling_nearest_audit.md"
+      }
+    },
+    {
+      "candidate": "C06",
+      "status": "PASS_NARROW_SCOPE",
+      "scope_guard": "The 2448 adjacent row pairs cover two prompts and three selected layers per model. No adaptive-decode or nonlinear down-input claim follows.",
+      "frozen_headroom_row": {
+        "candidate": "C06",
+        "baseline_exposed": "UNRESOLVED",
+        "removed": "Proposed retained base plus sparse or structured fresh work",
+        "compute": "Dense changed operands still require fresh contraction",
+        "communication": "Indices,changed values and exact base ownership",
+        "state": "Accumulation order and exact delta representation",
+        "estimate": "2448 adjacent row pairs show no unchanged sampled input tile. No kernel-time estimate",
+        "validation": "Two prompts and three selected layers/model. No adaptive-decode or down-input coverage",
+        "source": "reports/c06_sparse_fresh_delta_screen_v1.md"
+      }
+    },
+    {
+      "candidate": "C07",
+      "status": "PASS_NARROW_SCOPE",
+      "scope_guard": "The P1 fixture failed bitwise qualification. Zero accepted service trials establish neither a branch architecture failure nor task-quality loss.",
+      "frozen_headroom_row": {
+        "candidate": "C07",
+        "baseline_exposed": "Zero accepted service trials",
+        "removed": "Hypothesized useful verified branch span",
+        "compute": "Draft,verify and rejected ancestors remain charged",
+        "communication": "Branch-owner state,verification and commit",
+        "state": "Rollback,private KV and gate-policy matching",
+        "estimate": "UNRESOLVED after first P1 fixture parity failure",
+        "validation": "1889/2048 output words differ. Cause unresolved. No branch E2E or architecture failure conclusion",
+        "source": "reports/c07_p1_bitwise_failure_analysis_v1.md"
+      }
+    },
+    {
+      "candidate": "C08",
+      "status": "PASS_NARROW_SCOPE",
+      "scope_guard": "The GPU evidence covers a 4096-byte P2 broadcast and unfused transform. No fused codec or compressed serving collective was tested.",
+      "frozen_headroom_row": {
+        "candidate": "C08",
+        "baseline_exposed": "4096-byte P2 primitive:broadcast≈0.01035ms",
+        "removed": "Proposed exact encoded message reduction",
+        "compute": "Unfused transform≈0.00908ms before entropy codec",
+        "communication": "Compressed packet,metadata and inverse transform",
+        "state": "Exact base lifetime and publication",
+        "estimate": "Encoded size is not transfer latency. No full fused codec model",
+        "validation": "CPU exact-word coding and GPU transform only. No compressed serving collective",
+        "source": "reports/cost_and_headroom.md"
+      }
+    },
+    {
+      "candidate": "C09",
+      "status": "PASS_NARROW_SCOPE",
+      "scope_guard": "Toy certificates do not provide a native final-hidden enclosure, useful checkpoint hit rate, or sampler-equivalence result.",
+      "frozen_headroom_row": {
+        "candidate": "C09",
+        "baseline_exposed": "UNRESOLVED",
+        "removed": "Proposed early certified final decision",
+        "compute": "Certified bounds,verification and fallback",
+        "communication": "Any global decision/reduction",
+        "state": "Actual final-hidden enclosure and original sampler",
+        "estimate": "Toy certificates do not supply native hit rates or error bounds",
+        "validation": "No checkpoint useful-decision hits or live result",
+        "source": "reports/adversarial_final_axis_search_v1.md"
+      }
+    },
+    {
+      "candidate": "C10",
+      "status": "PASS_NARROW_SCOPE",
+      "scope_guard": "Generic restoration has costs. Known-address prefetch does not remove a fresh-query dependency. No complete cost advantage was measured.",
+      "frozen_headroom_row": {
+        "candidate": "C10",
+        "baseline_exposed": "UNRESOLVED",
+        "removed": "Proposed avoided KV capacity or exposed movement",
+        "compute": "Exact restoration or rematerialization",
+        "communication": "Real missing-state transfers only",
+        "state": "Historical hidden,RoPE,append and authoritative fallback",
+        "estimate": "No named validated complete cost advantage",
+        "validation": "Generic restoration overlap. Known-address prefetch does not remove a future query dependency",
+        "source": "reports/candidate_search_v9_certified_kv_prefetch.md"
+      }
+    },
+    {
+      "candidate": "C11",
+      "status": "PASS_NARROW_SCOPE",
+      "scope_guard": "The naive BF16 checksum control fails. It does not reject other proof systems. No qualified removable native straggler was measured.",
+      "frozen_headroom_row": {
+        "candidate": "C11",
+        "baseline_exposed": "No qualified removable native tail",
+        "removed": "Proposed coded straggler work or cheaper verification",
+        "compute": "Redundancy,decoder and prover remain charged",
+        "communication": "Parity data,checks and rank coordination",
+        "state": "Native BF16 operation semantics",
+        "estimate": "A naive BF16 checksum adaptation fails. Other proof systems remain open",
+        "validation": "CPU controls only. No native straggler or latency result",
+        "source": "reports/adversarial_final_axis_search_v1.md"
+      }
+    },
+    {
+      "candidate": "C12",
+      "status": "PASS_NARROW_SCOPE",
+      "scope_guard": "The fixed small linear-feature rank construction is narrow. Nonlinear summaries, indexes, and exact fallback remain open.",
+      "frozen_headroom_row": {
+        "candidate": "C12",
+        "baseline_exposed": "UNRESOLVED",
+        "removed": "Proposed exact or qualified query-summary work",
+        "compute": "Summary,query,certificate and fallback",
+        "communication": "Distributed summary/partial outputs",
+        "state": "Fresh query,full KV lifetime and numerical envelope",
+        "estimate": "A fixed-feature rank obstruction is not a universal nonlinear-index lower bound",
+        "validation": "Selected-key and toy positive controls. Native complete query algorithm NOT_RUN",
+        "source": "reports/candidate_search_v9_certified_kv_prefetch.md"
+      }
+    },
+    {
+      "candidate": "C13",
+      "status": "PASS_NARROW_SCOPE",
+      "scope_guard": "Four observer triplets fail timing validity guards despite functional checks. Their event spans cannot supply removable time or an Amdahl share.",
+      "frozen_headroom_row": {
+        "candidate": "C13",
+        "baseline_exposed": "INVALID_FOR_ATTRIBUTION",
+        "removed": "Proposed original-gate wait overlap",
+        "compute": "Exact gate and legally independent useful work",
+        "communication": "Publication and any original required data movement",
+        "state": "Rounded hazards,selected hidden,terminal KV and original exits",
+        "estimate": "All4 observer triplets fail frozen validity guards. No time share or Amdahl gain",
+        "validation": "Functional/depth/graph parity passes. That does not validate timing",
+        "source": "reports/cdb_cost_trace_base14_adaptive_audit_v1.md"
+      }
+    },
+    {
+      "candidate": "C14",
+      "status": "PASS_NARROW_SCOPE",
+      "scope_guard": "The F1/4 prefill interpolation is a model, not a bound or measured PP stage. Seven negative budgets do not reject all pipelines.",
+      "frozen_headroom_row": {
+        "candidate": "C14",
+        "baseline_exposed": "Separate fixed-native128-output reference",
+        "removed": "Hypothesized faster prefill with later ownership transition",
+        "compute": "Pack/scatter and unchanged decode in this screen",
+        "communication": "Designed2.6B32K one-way cluster remote KV:36GiB",
+        "state": "Paged layout,poison check,bitwise round trip and transition",
+        "estimate": "F1/4 interpolation:7/8 modeled10% budgets negative. Sole positive2.138ms. Not a bound or measured PP",
+        "validation": "Transpose replay DEFERRED. No full candidate or adaptive result",
+        "source": "reports/c14_transpose_decision_screen_v1.md;reports/c14_kv_transpose_replay_design_v1.md"
+      }
+    },
+    {
+      "candidate": "C15",
+      "status": "PASS_NARROW_SCOPE",
+      "scope_guard": "Static RoPE absorption fails its position control. The audited retained-K variants lose their stated capacity saving, not all reassociations.",
+      "frozen_headroom_row": {
+        "candidate": "C15",
+        "baseline_exposed": "UNRESOLVED",
+        "removed": "Proposed static projection-input storage saving",
+        "compute": "Position-correct RoPE/head contraction",
+        "communication": "Any distributed retained representation",
+        "state": "Retained K,V,X and scratch",
+        "estimate": "Static query absorption fails the position control. Valid retained-K variants lose the stated capacity premise",
+        "validation": "CPU mathematical control. No native latency or universal reassociation rejection",
+        "source": "reports/residual_input_reassociation_redteam.md"
+      }
+    },
+    {
+      "candidate": "C16",
+      "status": "PASS_NARROW_SCOPE",
+      "scope_guard": "Equal ready sets do not imply equal physical costs. Cross-owner service, communication, and self-consistent future readiness remain unmeasured.",
+      "frozen_headroom_row": {
+        "candidate": "C16",
+        "baseline_exposed": "UNRESOLVED",
+        "removed": "Proposed changed ready-frontier ownership cost",
+        "compute": "Same useful rows under tested readiness assumptions",
+        "communication": "Packet,AG/RS,padding and owner returns",
+        "state": "Self-consistent future online readiness and gate/KV semantics",
+        "estimate": "Equal ready sets do not imply equal physical costs. Cross-owner cost remains open",
+        "validation": "Generic union/source controls. No zero-benefit physical proof",
+        "source": "reports/dp_attention_tp4_ffn_refinement_v1.md"
+      }
+    },
+    {
+      "candidate": "C17",
+      "status": "PASS_NARROW_SCOPE",
+      "scope_guard": "A generic norm identity and one BF16 counterexample do not reject every qualified norm/projection implementation or certificate.",
+      "frozen_headroom_row": {
+        "candidate": "C17",
+        "baseline_exposed": "UNRESOLVED",
+        "removed": "Proposed component-ready norm/projection work",
+        "compute": "Deferred scaling,retention and complete fresh contractions",
+        "communication": "Required reductions and consumer publication",
+        "state": "Native accumulation and tensor lifetime",
+        "estimate": "Generic FlashNorm identity. Simple native BF16 word-exact rewrite fails",
+        "validation": "No native tail-certificate hits or retention cost measurement",
+        "source": "reports/adversarial_final_axis_search_v1.md"
+      }
+    },
+    {
+      "candidate": "C18",
+      "status": "PASS_NARROW_SCOPE",
+      "scope_guard": "Bounded sampled inputs have no whole-row identity hit. This is not a universal no-reuse result or a measured lookup cost.",
+      "frozen_headroom_row": {
+        "candidate": "C18",
+        "baseline_exposed": "UNRESOLVED",
+        "removed": "Proposed repeated exact transition computation",
+        "compute": "Read-set lookup,identity validation and side effects",
+        "communication": "Any shared result movement",
+        "state": "History,position,gate,KV and sampler identity",
+        "estimate": "No observed whole-row hit in bounded actual-input samples",
+        "validation": "Numerical identity screen only. Correct side effects remain an obligation,not a candidate PASS",
+        "source": "reports/shared_weights_selected_computations_audit.md"
+      }
+    },
+    {
+      "candidate": "C19",
+      "status": "PASS_NARROW_SCOPE",
+      "scope_guard": "The selected-key codec and uncached-read model do not measure full K+V latency. The named 32K native success does not exhaust capacity regimes.",
+      "frozen_headroom_row": {
+        "candidate": "C19",
+        "baseline_exposed": "No actual HBM traffic or exposed read interval",
+        "removed": "Proposed exact larger-history capacity/read saving",
+        "compute": "Complete decoder,append and metadata",
+        "communication": "Native TP has no remote historical-KV transfer to delete",
+        "state": "Legal base/page lifetime and full K+V",
+        "estimate": "CPU encoded capacity plus explicitly uncached read model. Not measured latency",
+        "validation": "32K native succeeds in named reservation. Other capacity regimes remain open",
+        "source": "reports/candidate_search_v9_certified_kv_prefetch.md"
+      }
+    }
+  ],
+  "limitations": [
+    "No actual generated record or published numeric result was independently inspected in this review.",
+    "Tokenizer equality is tested through the validator API and a synthetic tokenizer here. The production tokenizer-only run belongs to a separate evidence lane.",
+    "An incomplete JSON status can abort the integrity validator. This fails closed and does not admit a partial arm.",
+    "Integrity artifacts and summaries are trusted local analysis products, not adversarial signed attestations.",
+    "The analyzer rehashes raw records. It does not rerun every tokenizer check or revalidate every launch-source hash after supplement creation.",
+    "The table generator does not recompute scores from admitted records. It preserves analyzer summaries.",
+    "P8 hardware, candidate live E2E, candidate free-running quality, and valid CDB exposed-cost attribution remain absent.",
+    "The final generator hash records the patched implementation only."
+  ],
+  "input_sha256": {
+    "scripts/validate_baseline_extension_integrity.py": "7e1055b436784a01fe281e6c457f8a6eacb78e9c12e641b2338241b6b9c7c5e6",
+    "scripts/analyze_baseline_extension.py": "b9d24f781dcbd7f98274e1f61182e7c8c77439be933578a7f26d7970bd031bf9",
+    "scripts/build_result_tables_cd.py": "76bc1747a9e44a96c42bbe7df61b3c3bcf773bd88597de275cf2f722f200065c",
+    "scripts/baseline_extension.py": "a49d059626a7012d15c98c1573c3aa3efc9766eff04e9bae040cbe37437606f7",
+    "runtime.py": "03d8164fb359477525ef29e295b18397412f79b13f8253a72d386050c26c8fff",
+    "scripts/analyze_native_tp_dp_cohorts.py": "69b511896dca837173bff7fe3516260c85e5eb3c7a1e35da8b3f59d0257b2cfa",
+    "scripts/analyze_native_hybrid_cohorts.py": "3e81e7a33f134b4f6af89bbf5f6704309cdf3a5956f91f588c5d88ac390b9e7f",
+    "scripts/analyze_native_cohorts.py": "4bef5d5a22eefafcb1f4c38505f9ee760c98cbbc2abfa8b73f8976e85f2f5b5d",
+    "tests/test_baseline_extension_cpu.py": "ebfee7c9ce33ec4fb39272f300d0acff7663e20f7f2659e7725e5800f3ea0e54",
+    "tests/test_baseline_extension_integrity_cpu.py": "1e80d7f2b47b33d44155196d1ed9d0681026556abedcc8dc4242c405c05de20b",
+    "tests/test_baseline_extension_analysis_cpu.py": "d38f42d7d7dac65fff7c07619bbeea56659f5818470a52f31c059bac1bca404a",
+    "tests/test_result_tables_cpu.py": "2ccd0f92e473b4021dde64274c3c13be9671ee86a2f75545f2537bdf0160ba16",
+    "tests/test_baseline_extension_admission_review_cpu_v1.py": "722861caee5c9ce064931106db2746380e2de9b2e3b16c6271e65379cd88f544",
+    "artifacts/analyze_baseline_extension_pre_integrity_review_v1.py": "f3c5d5bb0ddd10dd16a09cca0f4a43b132ab4d361f65a9633e963f6bb98cc731",
+    "artifacts/current_headroom_decomposition_v1.json": "155bda38299ffe5713894a7e8440fd930b6eb15f60229abc2ed24724e43a8511",
+    "artifacts/baseline_extension_launch_contract_v1.json": "02bd4dbfe69f882e9c610d3071df6cc13c1e2ba2df8728f0c369adb3f38aa37a",
+    "artifacts/baseline_extension_analysis_contract_v1.json": "60624122e1b8030ed30433032c6c73bd505c9e787e5c1e937c0197ad19407eae",
+    "artifacts/baseline_extension_protocol_v1.json": "0f4e9290f37cd4afe5aa1b3881cff253790604ce4c7dc78b90527b9f6386d11e",
+    "artifacts/probe_protocol.json": "50dbb97cbe3e5928ffe3ab10010004d223308ab01967e53e6648387e9b0530c9",
+    "reports/baseline_extension_contract_v1.md": "b7a071e1981840e5de73d142014597e97215177456f68c740904dc53c38092cb",
+    "reports/baseline_extension_independent_review_v1.md": "b85c806f77940378bb741713efcba26a82faed33449f573c8bb3760c2784efb1",
+    "reports/baseline_extension_postlaunch_integrity_contract_v1.md": "acfa1ad14ff88dc19d648b66d116324b4738537889598992118b208fc39a6438",
+    "reports/negative_scope_audit_v1.md": "271a29aa217e4bdc129a06d98c9a7c0dd0699a1a4f6b4ef632125b9899c7c7d0",
+    "reports/current_tables_abef_overlay_v1.md": "4c45d20c67130f16110c228b8c4135b1f7bd19bf942e00d537a8f85df42c6d16",
+    "reports/cost_and_headroom.md": "2af8867db2b804193b4acc39c28bd3118e2826ce2c28f9ef96e32744d4a7cc14",
+    "reports/primary_claim_reaudit_v1.md": "bf8b3ef42b827292dfce3e698fd2d53394f13f63758e367e8034631aff587155"
+  },
+  "validation": {
+    "headroom_rows": 19,
+    "all_candidate_ids_present": true,
+    "frozen_launch_and_analysis_hashes": "PASS",
+    "report_lint": "PASS: zero violations",
+    "input_hashes_rechecked": "PASS: 26 inputs"
+  }
+}

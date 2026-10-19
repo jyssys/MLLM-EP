@@ -1,0 +1,30 @@
+{
+  "status": "FROZEN_BEFORE_GPU_OUTCOMES",
+  "frozen_utc": "2026-10-19 17:26:42 UTC",
+  "source_sha256": {
+    "poc_async_recurrent_pp/scoring.py": "7226e350e01cfb36661377ea549c87834579524a81317f93811e98f7f8b39b35",
+    "poc_ouro_parallelism_deep_discovery/scripts/score_quality.py": "6a658c18820caf4d70d8b437dead7f11a9a4c4d39e28d74f9a484f2d0b30b912",
+    "poc_ouro_parallelism_deep_discovery/scripts/baseline_extension.py": "a49d059626a7012d15c98c1573c3aa3efc9766eff04e9bae040cbe37437606f7"
+  },
+  "parser": "poc_async_recurrent_pp.scoring.score",
+  "completion_override": {
+    "truncated": "finish_reason equals length",
+    "correct_completed": "parser answer_matches and not truncated",
+    "EOS_and_frozen_stop": "Both count as completed. Raw finish reason remains stored."
+  },
+  "bootstrap": {
+    "resamples": 4000,
+    "seed": 2026101911,
+    "unit": "request, separately within each domain and arm",
+    "bounds": "Sorted bootstrap replicates at zero-based indices100 and3899. Paired accuracy differences resample common request IDs."
+  },
+  "work_accounting": {
+    "recorded_decode_core_pass_work": "sum(depth_events.depth). Excludes full R4 prefill and first output token.",
+    "normalized_decode_depth": "recorded decode core-pass work divided by recorded decode positions",
+    "layer_execution_proxy": "physical layer count times recorded decode core-pass work. This is an operation-count proxy, not FLOPs, memory traffic, timing, or a causal ready frontier.",
+    "token_weighted_and_request_weighted": "Report separately."
+  },
+  "quality_interpretation": "Baseline operating-point comparison only. No candidate quality, noninferiority, official-paper reproduction, or architecture speedup.",
+  "partial_runs": "Do not admit incomplete arms into completed benchmark rows. Preserve partial outputs and failures.",
+  "held_out": "All original held-out IDs remain excluded."
+}

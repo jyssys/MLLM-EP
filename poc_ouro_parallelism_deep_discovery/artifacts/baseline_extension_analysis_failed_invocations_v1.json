@@ -1,0 +1,18 @@
+{
+  "scope": "Analysis invocation failures. No quality score or benchmark row was emitted by these invocations.",
+  "failures": [
+    {
+      "UTC": "2026-10-19T17:48:41+00:00",
+      "command": "/home/esjung/.venvs/llada2-mini-reference/bin/python -m poc_ouro_parallelism_deep_discovery.scripts.analyze_baseline_extension --integrity poc_ouro_parallelism_deep_discovery/artifacts/baseline_extension_integrity_checkpoint_v1.json --output poc_ouro_parallelism_deep_discovery/analysis/baseline_extension_checkpoint_v2",
+      "exit_code": 1,
+      "error": "ValueError: a relative integrity path is not a subpath of the absolute campaign root in Path.relative_to.",
+      "resolution": "Normalize analysis input paths with Path.resolve before provenance-relative paths. Do not change any scoring or generation rule. The failed invocation created no output directory."
+    },
+    {
+      "artifact": "artifacts/cpu_regression_isolated_v7.json",
+      "module": "tests/test_baseline_extension_admission_review_cpu_v1.py",
+      "error": "The historical full-arm test calls analyze(root) after the new supplement makes an integrity path mandatory.",
+      "resolution": "Preserve the historical source-review result. Test current fail-closed integration separately. The narrower request-helper characterizations remain valid."
+    }
+  ]
+}

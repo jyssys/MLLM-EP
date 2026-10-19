@@ -1,6 +1,9 @@
 import unittest
+from pathlib import Path
+import tempfile
 
-from poc_ouro_parallelism_deep_discovery.scripts.build_research_ledger import canonical, indexed_sources, jsonl_kind
+from poc_ouro_parallelism_deep_discovery.scripts.build_research_ledger import (
+    canonical, indexed_sources, jsonl_kind, experiment_evidence_paths)
 
 
 class LedgerTests(unittest.TestCase):
@@ -31,6 +34,16 @@ class LedgerTests(unittest.TestCase):
     def test_invalid_arxiv_month_is_not_a_work_key(self):
         self.assertEqual(canonical({'url': 'https://doi.org/10.1145/3689031.3696072'}),
                          'url:https://doi.org/10.1145/3689031.3696072')
+
+    def test_active_gzip_and_caches_are_not_complete_evidence(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory)
+            for name in ('status.json','request.json.gz','clean_start.json','compile_cache/internal.json'):
+                path=root/name
+                path.parent.mkdir(exist_ok=True)
+                path.write_text('synthetic')
+            self.assertEqual([p.name for p in experiment_evidence_paths(root,False)],['status.json'])
+            self.assertEqual([p.name for p in experiment_evidence_paths(root,True)],['request.json.gz','status.json'])
 
 
 if __name__ == '__main__':

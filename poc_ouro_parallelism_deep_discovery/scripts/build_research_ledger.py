@@ -32,7 +32,10 @@ JSON_INPUTS=['coordinator_sources.json','independent_candidate_seeds.json',
     'candidate_search_v8_precomputed_arithmetic_sources.json',
     'hardware_counter_permission_sources_v1.json',
     'candidate_search_v9_certified_kv_prefetch_sources.json',
-    'dp_attention_tp4_ffn_refinement_v1.json']
+    'dp_attention_tp4_ffn_refinement_v1.json',
+    'adversarial_final_axis_search_v1.json',
+    'primary_claim_reaudit_v1.json',
+    'setproctitle_noenv_source_review_v1.json']
 
 def jsonl_kind(name, row):
     """Retain explicit types. Query-only ledgers do not create source observations."""
@@ -61,6 +64,17 @@ def indexed_sources(value,pointer):
     elif isinstance(value,list):
         for index,child in enumerate(value):yield from indexed_sources(child,pointer+'/'+str(index))
 
+def experiment_evidence_paths(directory, complete):
+    """Do not hash an in-progress gzip stream as complete raw evidence."""
+    excluded={'compile_cache','vllm_cache','inductor_cache','triton_cache','torch_extensions'}
+    paths=[]
+    for path in directory.rglob('*'):
+        if not path.is_file() or set(path.parts)&excluded or path.name=='clean_start.json':
+            continue
+        if path.suffix=='.json' or (complete and path.name.endswith('.json.gz')):
+            paths.append(path)
+    return sorted(paths)
+
 def main():
     parser=argparse.ArgumentParser();parser.add_argument('--label',required=True)
     parser.add_argument('--publish-current',action='store_true')
@@ -87,7 +101,7 @@ def main():
         path=ROOT/'artifacts'/name
         if not path.exists():continue
         value=read(path);provenance.append({'path':str(path.relative_to(ROOT)),'sha256':sha(path)})
-        for key in ['sources','external_sources','primary_sources','primary_observations']:
+        for key in ['sources','external_sources','primary_sources','primary_observations','papers','code_blobs']:
             for pointer,row in indexed_sources(value.get(key,[]),'/'+key):
                 source_records.append({'origin':str(path.relative_to(ROOT)),'json_pointer':pointer,'original':row})
         for key in ['searches','search_batches','search_queries','source_searches']:
@@ -114,13 +128,14 @@ def main():
     for directory in sorted((ROOT/'outputs').iterdir()):
         if not directory.is_dir():continue
         contract=directory/'run_contract.json';state=directory/'guard_status.json'
+        guard=read(state) if state.exists() else {'status':'RUNNING_OR_UNRESOLVED'}
+        complete=guard.get('success') is True and guard.get('exit_code')==0
         row={'experiment_id':directory.name,'path':str(directory.relative_to(ROOT)),
              'run_contract':read(contract) if contract.exists() else None,
-             'guard_status':read(state) if state.exists() else {'status':'RUNNING_OR_UNRESOLVED'},
+             'guard_status':guard,
              'files':[{ 'path':str(p.relative_to(ROOT)),'sha256':sha(p)}
-                for p in sorted(directory.rglob('*.json'))
-                if p.name!='clean_start.json' and not set(p.parts)&{
-                    'compile_cache','vllm_cache','inductor_cache','triton_cache','torch_extensions'}]}
+                for p in experiment_evidence_paths(directory,complete)],
+             'raw_gzip_rule':'Index gzip request payloads only after successful outer-guard completion. Other snapshots can change while a job runs.'}
         # Avoid publishing process environment inventories from the guard.
         if row['run_contract'] is not None:
             row['run_contract'].pop('environment',None)
@@ -134,6 +149,15 @@ def main():
     jsonl('experiment_manifest.jsonl',experiments)
     claims=ROOT/'artifacts/semantics_claims.jsonl'
     claim_records=[json.loads(s) for s in claims.read_text().splitlines()] if claims.exists() else []
+    reaudit=ROOT/'artifacts/primary_claim_reaudit_v1.json'
+    if reaudit.exists():
+        value=read(reaudit)
+        papers={row['work']:row for row in value['papers']}
+        for group in value['source_claim_matrix']:
+            for check in group['checks']:
+                claim_records.append(dict(origin=str(reaudit.relative_to(ROOT)),work=group['work'],
+                    primary_paper=papers[group['work']],selected_code_files=[value['code_blobs'][i] for i in group['code_files']],
+                    unverified=group['unverified'],evidence_class='SOURCE_REPORTED',**check))
     jsonl('claim_ledger.jsonl',claim_records)
     write(target/'index.json',{'generated_utc':dt.datetime.now(dt.timezone.utc).isoformat(),
         'source_observations':len(source_records),'unique_work_or_document_keys':len(normalized),

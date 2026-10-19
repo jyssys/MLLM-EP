@@ -1,0 +1,86 @@
+{
+  "scope": "Independent prelaunch source, metadata, and CPU tokenizer review. No protected results opened and no GPU execution.",
+  "launch_blockers_found_in_inspected_scope": [],
+  "analysis_admission_conditions": [
+    "Freeze the existing scorer hash and campaign completion override before outcomes.",
+    "Only length is answer truncation. EOS and configured frozen stops count as completed.",
+    "Use a new gzip-aware analysis for the new frozen IDs. Do not run old score_quality.py unchanged.",
+    "Require runner and guard success, all 64 IDs, valid gzip content, and consistent source hashes before an arm summary.",
+    "Keep failed or incomplete arms explicit. Do not form partial paired claims."
+  ],
+  "source_sha256_at_review": {
+    "scripts/freeze_baseline_extension.py": "49a21ab2ff6e08073e471e40681a10a49d0adb067ebdd42ec8465e76cac4e153",
+    "scripts/baseline_extension.py": "a49d059626a7012d15c98c1573c3aa3efc9766eff04e9bae040cbe37437606f7",
+    "reports/baseline_extension_contract_v1.md": "589de8ec582cee02dfd08f790b6e52371bc57511d6af78b181012286dccf3e63",
+    "artifacts/baseline_extension_protocol_v1.json": "0f4e9290f37cd4afe5aa1b3881cff253790604ce4c7dc78b90527b9f6386d11e",
+    "artifacts/baseline_extension_launch_contract_v1.json": "02bd4dbfe69f882e9c610d3071df6cc13c1e2ba2df8728f0c369adb3f38aa37a",
+    "scripts/quality_pilot.py": "e6a314959620a1f2fb01ac76222a7283b1a4506e7e39aa7d2d34efdbdb18bc01",
+    "runtime.py": "03d8164fb359477525ef29e295b18397412f79b13f8253a72d386050c26c8fff",
+    "scripts/score_quality.py": "6a658c18820caf4d70d8b437dead7f11a9a4c4d39e28d74f9a484f2d0b30b912",
+    "poc_async_recurrent_pp/scoring.py": "7226e350e01cfb36661377ea549c87834579524a81317f93811e98f7f8b39b35"
+  },
+  "locators": {
+    "sample_exclusions": "scripts/freeze_baseline_extension.py:12-29",
+    "runtime_loader_and_warmup": "scripts/baseline_extension.py:39-48",
+    "exit_callback_and_generate": "scripts/baseline_extension.py:49-74",
+    "raw_gzip_before_depth_assertion": "scripts/baseline_extension.py:76-91",
+    "failure_and_status": "scripts/baseline_extension.py:99-106",
+    "CDB_greedy_eager_and_graph": "/home/esjung/external/decode-first-cdb-upstream/src/looped_cdb/continuous_depth_batching/model_runner.py:1062,1105",
+    "CDB_exit_callback": "/home/esjung/external/decode-first-cdb-upstream/src/looped_cdb/continuous_depth_batching/continuous_api.py:1190-1210",
+    "outer_guard_timeout": "poc_looped_multigpu_kv_placement/scripts/gpu_session.py:20,76",
+    "old_completion_override": "scripts/score_quality.py:38-39"
+  },
+  "metadata_check": {
+    "N": 64,
+    "unique_N": 64,
+    "per_domain": {"gsm8k":32,"math500":32},
+    "original_campaign_metadata_N": 80,
+    "original_campaign_overlap": 0,
+    "earlier_pilot_overlap": 0,
+    "protected_metadata_overlap": 0,
+    "selection_and_order_exact": true,
+    "source_hash_matches": true,
+    "original_hash_matches": true,
+    "protected_metadata_hash_matches": true,
+    "pinned_revisions_match": true,
+    "gzip_names_unique": true,
+    "campaign_partition": "baseline_extension",
+    "protected_result_files_opened": false
+  },
+  "cpu_tests": {
+    "command": "/home/esjung/.venvs/ouro-deep-discovery/bin/python -m unittest poc_ouro_parallelism_deep_discovery.tests.test_baseline_extension_cpu -q",
+    "N_tests": 3,
+    "seconds": 0.108,
+    "verdict": "PASS"
+  },
+  "tokenizer_only_preflight": {
+    "method": "Existing load_ouro_tokenizer for each pinned local checkpoint. Encode every frozen prompt and stop string. No model load or forward.",
+    "1.4B": {"N":64,"min_prompt_tokens":33,"max_prompt_tokens":384,"too_long_for_8192_plus_10240_limit":0,"EOS":0,"all_configured_stops_nonempty":true},
+    "2.6B": {"N":64,"min_prompt_tokens":33,"max_prompt_tokens":384,"too_long_for_8192_plus_10240_limit":0,"EOS":0,"all_configured_stops_nonempty":true},
+    "model_loaded": false,
+    "cuda_initialized": false,
+    "protected_result_files_opened": false
+  },
+  "watchdog": {
+    "frozen_arm_guard_seconds":14400,
+    "per_generate_alarm_seconds":1200,
+    "alarm_covers_load_warmup_and_sync":false,
+    "outer_guard_covers_complete_arm":true,
+    "outer_timeout_is_answer_truncation":false
+  },
+  "interpretation_limits": [
+    "Baseline-only both-size fixed/original-adaptive operating-point evidence.",
+    "No new candidate, policy tuning, architecture comparison, or graph-ON comparison.",
+    "No candidate quality or noninferiority claim.",
+    "Request-level intervals do not create independent natural populations.",
+    "Recorded depth sums exclude prefill, first-output production, warmup, and non-core costs.",
+    "No simultaneous CDB membership or ready-frontier inference from serial trajectories.",
+    "No independent-one-GPU wall to same-P architecture speedup inference.",
+    "Held-out untouched refers to original campaign IDs, not every upstream metadata split."
+  ],
+  "GPU_executed_by_this_review":false,
+  "runtime_numerical_parity_tested":false,
+  "prior_files_modified":false,
+  "quality_outcomes_inspected":false,
+  "time_ledger":"artifacts/baseline_extension_independent_review_time_v1.jsonl"
+}

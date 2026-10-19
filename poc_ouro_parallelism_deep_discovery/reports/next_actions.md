@@ -125,3 +125,23 @@ No candidate runtime or architecture speedup is available.
 10. Push a scoped resume checkpoint after size, privacy, and preservation checks.
 
 No experiment is active. Owned burners remain on physical GPUs4/5/6/7 under the user's standing instruction.
+
+## Active actions after resumption at17:11:01UTC
+
+This section supersedes the preceding paused resource state.
+The pause17:07:51–17:11:01UTC does not count as research time.
+
+1. Preserve both completed conventional TP2×DP2 controls and their independent ownership audits.
+2. Finish the frozen64-request baseline extension in all four model/mode arms.
+3. Keep the original held-out cohort untouched. Do not pool the new32/domain with the old8/domain cohort.
+4. Complete the post-launch integrity supplement without changing scoring, EOS, stops, or sample membership.
+5. Carry primary-source corrections into the final dossier. Do not rewrite older reports or frozen cards.
+6. Reconcile Tables A–F with explicit unknown component and candidate cells.
+7. Run fresh isolated CPU regressions after the new analysis tests.
+8. Preserve partial outputs, failed probes, invalid observers, and job ownership records.
+9. Commit only closed evidence files. Do not stage a raw gzip file while its writer remains active.
+10. Continue substantive research toward the minimum duration before any normal final verdict.
+
+At17:44:47UTC, GPUs4/6/7 run the remaining extension arms.
+GPU5 completed its64-request adaptive1.4B arm. Its guard restores the owned burner.
+No protected factorial result is inspected or assumed.
