@@ -98,3 +98,30 @@ No candidate runtime or architecture speedup is available.
 8. Keep source-only compatibility, physical components, modeled costs, and candidate live E2E distinct.
 9. Keep held-out quality untouched until a primary mechanism and protocol qualify.
 10. Continue substantive research. About 6.31 coordinator hours are recorded, not ten hours.
+# Current actions after the 16:42 UTC checkpoint
+
+1. Review the new conventional TP2xDP2 helpers, ownership checks, and CPU tests before any GPU launch.
+2. Preserve the invalidated CDB trace. Do not derive component shares, Amdahl gains, or clean costs from it.
+3. Keep stock native PP ineligibility distinct from conceptual generic PP legality and architecture novelty.
+4. Complete the bounded exact-page and known-address KV-prefetch mechanism screens.
+5. Review the depth-to-head KV ownership-handoff cost contract before considering a physical replay.
+6. Keep all pack, transfer, scatter, graph-pointer, and publication costs in that handoff model.
+7. Use the negative-scope overlay with earlier candidate dispositions. Do not turn unmeasured effects into disproven mechanisms.
+8. Keep candidate held-out quality untouched until a primary mechanism qualifies.
+9. Commit and push the next scoped evidence checkpoint after validation.
+10. Continue substantive research. About 6.83 coordinator hours are recorded, not ten hours.
+
+## Resume after the user-requested pause at 2026-10-19T17:07:51+00:00
+
+1. Read research_state.json and this section before new work.
+2. Do not count the paused interval as research time.
+3. Audit completed Base1.4B TP2xDP2 v4 ownership, timing, and cleanup records.
+4. Keep the SPT_NOENV=1 option job-local and preserve every strict lease check.
+5. Run the frozen Base2.6B TP2xDP2 counterpart only after checking device availability.
+6. Complete the interrupted independent-axis search and contract-completeness audit.
+7. Reconcile current Tables A-F with the negative-scope overlay and new ownership-cost screens.
+8. Preserve all failures and leave held-out quality untouched until a primary mechanism qualifies.
+9. Continue substantive research toward the minimum duration. About 7.25 hours are recorded.
+10. Push a scoped resume checkpoint after size, privacy, and preservation checks.
+
+No experiment is active. Owned burners remain on physical GPUs4/5/6/7 under the user's standing instruction.

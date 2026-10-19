@@ -175,6 +175,23 @@ The same-GPU Base 2.6B natural recheck produces identical token sequences for al
 Small calibration accuracy does not establish population equivalence.
 The held-out cohort remains untouched.
 
+## User-requested pause at 2026-10-19T17:07:51+00:00
+
+The user requests a model change and a pause.
+Recorded coordinator work is 26098.000409 seconds, or about 7.25 hours.
+Paused wall time must not count toward the ten-hour condition.
+No campaign GPU experiment remains active.
+The completed Base1.4B TP2xDP2 v4 guard restores owned burners on physical GPUs4/5/6/7.
+Foreign GPU jobs remain untouched.
+
+The v4 conventional baseline completes with strict leases unchanged.
+A job-local SPT_NOENV=1 option preserves the proc environment during process-title updates.
+Earlier v1/v2/v3 failures and CPU counterexamples remain intact.
+Raw timing awaits analysis and establishes no candidate speedup.
+The isolated regression passes 28 modules and 279 CPU tests.
+No candidate has qualified for held-out quality, live E2E, or a shortlist.
+Two active review workers are interrupted without removing their artifacts.
+Resume from research_state.json and the final next-actions section.
 External per-replay events place 97.8–99.0% of the defined local cached-decode window inside complete graph envelopes.
 That denominator excludes prefill and boundary sampling intervals.
 It is not an E2E component breakdown.
@@ -305,3 +322,34 @@ The earlier failed regression record remains intact.
 Held-out quality remains untouched.
 Scoped burners are active on physical GPUs 4/5/6/7 during CPU and source analysis.
 The predecessor-preservation check passes.
+# Checkpoint at 2026-10-19T16:42:46.945409+00:00
+
+The campaign remains active. Recorded coordinator time is 24593.945409 seconds, or about 6.83 hours.
+The ten-hour normal-completion condition is not met.
+Concurrent worker intervals do not multiply that duration.
+
+The Base1.4B adaptive outer-observer cell completed on physical GPU5.
+All four triplets preserve output IDs, depths, NFE, graph coverage, and observer lifecycle.
+Every triplet fails the frozen observer-overhead or clean-drift guard.
+Zero requests qualify for quantitative bottleneck attribution.
+The other three diagnostic cells remain unmeasured.
+The guard restores the GPU5 burner.
+
+An independent audit narrows all19 candidate dispositions by evidence type.
+Missing evidence is not a measured architecture failure.
+Stock native Ouro PP>1 lacks the required source contract in both Base configs.
+This does not invalidate a correctly implemented generic cyclic PP trace.
+Read-only metadata predicts restricted hardware-counter access under current credentials.
+No administrative change or target counter-profile run occurs.
+
+The isolated CPU regression passes 26 modules and 255 tests.
+Predecessor preservation checks pass.
+The current source index is `analysis/ledger_checkpoint_13`.
+Its counts include partial and metadata-only observations, not 85 complete paper reads.
+
+A conventional TP2xDP2 baseline is under source and CPU review.
+It is not a candidate or the protected adaptive CDB factorial experiment.
+Independent page-certificate, historical-KV prefetch, and phase-handoff cost screens continue.
+No candidate has measured E2E acceleration or free-running quality evidence.
+The held-out cohort remains untouched.
+

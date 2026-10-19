@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "status": "FROZEN_SOURCE_CONTRACT_ONLY",
+  "execution_authorized": false,
+  "source_audit_completed_utc": "2026-10-19 16:22:11 UTC",
+  "classification": "Original-gate CDB baseline hardware diagnosis. Not quality or a new architecture.",
+  "cdb_revision": "abdfae0adbdd12be8c6123ccb34eee98a38afb39",
+  "cdb_source_root": "/home/esjung/external/decode-first-cdb-upstream/src/looped_cdb",
+  "selection": {
+    "source": "artifacts/probe_protocol.json",
+    "source_sha256": "50dbb97cbe3e5928ffe3ab10010004d223308ab01967e53e6648387e9b0530c9",
+    "rule": "Filter campaign_partition == calibration. For each dataset in gsm8k,math500, sort id lexicographically and select the first two.",
+    "allowed_selection_fields": ["campaign_partition", "dataset", "id"],
+    "answer_or_outcome_selection": false,
+    "requests": [
+      {"dataset": "gsm8k", "id": "gsm8k/test/106", "prompt_utf8_sha256": "007393cabe5c0aec1abf2684bc0294d1d5f7d1a9495c45106dffd8a4da7c031f", "stop_strings": ["Q:", "</s>", "<|im_end|>"]},
+      {"dataset": "gsm8k", "id": "gsm8k/test/1074", "prompt_utf8_sha256": "f87229a6fdef682bdc3147cf3f2bfd17e8c7904eaf2984e21009286b35622d77", "stop_strings": ["Q:", "</s>", "<|im_end|>"]},
+      {"dataset": "math500", "id": "math500/test/142", "prompt_utf8_sha256": "2a33881b4ead24d258b3a4582df2912e5153a0d20b522cdb97bb1bd795206200", "stop_strings": []},
+      {"dataset": "math500", "id": "math500/test/156", "prompt_utf8_sha256": "884b322a24883dbb8e72360140c4f78f0faafe93a91818ad8f990748bea8862b", "stop_strings": []}
+    ]
+  },
+  "cells": [
+    {"size": "1.4B", "revision": "574fa66cb8bf5abdc979642d01cf2b79b16bfab1", "layers": 24, "mode": "fixed", "min_recurrent_steps": 4, "exit_threshold": 1.0},
+    {"size": "1.4B", "revision": "574fa66cb8bf5abdc979642d01cf2b79b16bfab1", "layers": 24, "mode": "adaptive", "min_recurrent_steps": 2, "exit_threshold": 0.5},
+    {"size": "2.6B", "revision": "1ed04250da1a9936042725d302e81c8fa2ab5abd", "layers": 48, "mode": "fixed", "min_recurrent_steps": 4, "exit_threshold": 1.0},
+    {"size": "2.6B", "revision": "1ed04250da1a9936042725d302e81c8fa2ab5abd", "layers": 48, "mode": "adaptive", "min_recurrent_steps": 2, "exit_threshold": 0.5}
+  ],
+  "engine": {
+    "constructor": "runtime.load_engine(size,mode,graphs=True,batch=1,blocks=640,max_model_len=10240,refill=False)",
+    "precision": "Original BF16",
+    "gate": "Original checkpoint early_exit_gate. Exact original sigmoid/float/item operation order.",
+    "kv_policy": "last_exited",
+    "max_recurrent_steps": 4,
+    "use_async_batching": false,
+    "delay_gate_consumption": false,
+    "synthetic_exit_replay": false,
+    "prefill_graphs": false,
+    "decode_graphs": true,
+    "new_engine_per_cell": true,
+    "engine_reused_within_cell": true,
+    "physical_gpu": "Main assigns one guarded GPU from 4,5,6,7 before launch and records UUID. This contract launches nothing."
+  },
+  "sequence": {
+    "request_order": ["gsm8k/test/106", "gsm8k/test/1074", "math500/test/142", "math500/test/156"],
+    "per_request": ["UNTIMED_SAME_REQUEST_WARM", "CLEAN_BEFORE", "TRACE", "CLEAN_AFTER"],
+    "max_new_tokens_per_request": 128,
+    "cap_applies_to_each_generation": true,
+    "sampling": "Native greedy, temperature zero. Preserve tokenizer EOS and original stop strings. No teacher forcing or allowed-token mask.",
+    "optional_native_warmup4": "Existing quality_pilot warmup only. Not a graph-OFF arm and not measured.",
+    "request_wall": "Existing request boundary synchronize, perf_counter_ns, native generate_batch, synchronize, end clock. Event export follows the end clock.",
+    "common_clean_observer": "Only the existing pilot-style CPU exit-position/depth recorder is common to all arms. No timing wrappers in clean arms.",
+    "parity": ["Prompt IDs", "Output token IDs", "Finish reason", "Per-position exit depths", "Generated token count", "Decode recurrent_steps and recurrent_batches", "Prefill batches/requests/recurrent_steps", "Coda token counts"],
+    "graph_requirement": "Reject every measured phase with any recurrent or stage graph capture. Require observed graph hits to match actual launches. Do not classify capture time as service.",
+    "failure_policy": "Retain all diagnostics. Reject attribution after any output/depth/NFE parity failure, capture, event-pool overflow, unknown stream, hook lifecycle failure, or CUDA failure. No automatic retries."
+  },
+  "observation_points": [
+    {"id": "recurrent_stage_device", "callable": "runner._run_recurrent_stage", "file": "continuous_depth_batching/model_runner.py", "line": 896, "clock": "Unique CUDA event pair on inputs_and_outputs.compute_stream", "scope": "One original graph replay: all physical layers, recurrent norm, original gate head, and native hidden_out/exit_signals copies. Excludes outer input staging and hidden-bank scatter. Includes possible host enqueue gaps.", "capture_body_modified": false},
+    {"id": "recurrent_batch_host", "callable": "runner.compute_recurrent_batch", "file": "continuous_depth_batching/model_runner.py", "line": 646, "clock": "perf_counter_ns before/after original bound method", "scope": "Containing metadata reuse wait, CPU preparation, H2D, hidden gather, graph launch, hidden scatter, and original compute-stream synchronization."},
+    {"id": "metadata_prepare_host", "callable": "runner._prepare_recurrent_stage_buffers", "file": "continuous_depth_batching/model_runner.py", "line": 704, "clock": "perf_counter_ns", "scope": "CPU lists and pinned metadata construction only. Nested within recurrent_batch_host. Not isolated H2D time."},
+    {"id": "exit_decision_host", "callable": "engine._should_exit", "file": "continuous_depth_batching/continuous_api.py", "line": 1656, "clock": "perf_counter_ns", "scope": "Original dispatch plus policy sigmoid, float, item readback, and host CDF update when reached. Forced final-step shortcut is separately labeled. Never change its caller stream."},
+    {"id": "publication_host_and_device", "callable": "engine._flush_exit_kv_copies", "file": "continuous_depth_batching/continuous_api.py", "line": 1210, "clock": "perf_counter_ns for every flush; one unique compute-stream CUDA event pair only when the original backlog is nonempty", "scope": "Whole terminal publication window, including grouping, row-index preparation and all source gathers/destination copies. Not pure copy-kernel busy time. Preserve native stream order before any next recurrent read."},
+    {"id": "coda_device", "callable": "runner._run_coda_forward", "file": "continuous_depth_batching/model_runner.py", "line": 1036, "clock": "Unique compute-stream CUDA event pair", "scope": "Native coda staging/gather plus graph containing LM head and argmax. Projection versus sampling is not separable with an outer hook."},
+    {"id": "coda_stage_host", "callable": "runner.stage_coda_batch", "file": "continuous_depth_batching/model_runner.py", "line": 973, "clock": "perf_counter_ns", "scope": "Containing synchronous coda launch, original stream wait and token readback on this async-OFF path. Overlaps coda_device."},
+    {"id": "coda_consume_host", "callable": "runner.consume_coda_result", "file": "continuous_depth_batching/model_runner.py", "line": 1154, "clock": "perf_counter_ns", "scope": "Original host token-list conversion and hidden-slot release. No newly added synchronization."}
+  ],
+  "events": {
+    "maximum_decode_passes": 508,
+    "pool_pairs": {"recurrent_stage": 512, "publication": 128, "coda": 128},
+    "maximum_event_objects": 1536,
+    "construction": "Preallocate and materialize all timing events outside measured phases on the existing compute stream. Synchronize only at the request boundary.",
+    "recording": "Use Event.record(explicit_compute_stream). Do not wrap the original call in a new stream context. Every observed invocation gets a distinct pair.",
+    "resolution": "Read elapsed_time only after the request boundary synchronization. Reuse a pair only after its result was resolved and archived.",
+    "inside_capture": false,
+    "forbidden": ["Per-layer synchronization", "Observer-added gate or stream waits", "Reading one last replay then multiplying by count", "Tensor content reads in hooks", "Global class or Torch monkeypatches", "Per-layer event pairs", "Precision/policy/hazard changes", "Delayed gate mode"]
+  },
+  "overhead": {
+    "metric": "Trace request wall divided by the mean of clean-before and clean-after request walls, minus one. Report raw signed value, not corrected service time.",
+    "clean_drift_metric": "Absolute clean-after minus clean-before wall divided by their mean.",
+    "preregistered_diagnostic_guard": "If clean drift exceeds 5 percent, or trace wall exceeds 105 percent of the larger clean wall, mark observer overhead or drift UNRESOLVED. Keep raw spans but make no quantitative bottleneck claim.",
+    "statistics": "One triplet per request. No timing confidence interval or population claim. No overhead subtraction from device intervals."
+  },
+  "accounting": {
+    "additive_e2e_breakdown": false,
+    "rules": ["Retain nested interval IDs and containing request wall", "Do not add CPU and CUDA intervals", "Do not subtract CUDA span from host wall to label a pure CPU remainder", "Do not convert span sums to a 100-percent E2E attribution", "No Amdahl speedup claim from these observations"],
+    "unresolved_separations": ["Pure exit-policy method wall without dispatch", "Pure H2D-only time", "Pure terminal copy-kernel busy time", "Coda LM-head versus argmax", "Isolated token D2H transfer time"]
+  },
+  "source_sha256": {
+    "scripts/quality_pilot.py": "e6a314959620a1f2fb01ac76222a7283b1a4506e7e39aa7d2d34efdbdb18bc01",
+    "runtime.py": "03d8164fb359477525ef29e295b18397412f79b13f8253a72d386050c26c8fff",
+    "continuous_depth_batching/continuous_api.py": "0f548918014e545456a15100547f6149663fddb249a1de3b324a862313faafbc",
+    "continuous_depth_batching/model_runner.py": "7a5e62c355f516233b432d1184da86e41b9880ad422c7aef94c0dab2e4572386",
+    "continuous_depth_batching/exit_policy.py": "46340237b2ba399fb38b814e0c7f6d0b65e915c554d404b148520f238860d948",
+    "continuous_depth_batching/cache.py": "55f86d798af6ad43da1e6092e4da29a0e7b30a2b406fc8e3500b9a0be7f7fddf",
+    "continuous_depth_batching/adapters/ouro.py": "dc1eaaf92a4cec1e2c0ae14323674005f4f60ecea70fbd15fbaf385044b8c2ea",
+    "continuous_batching/input_outputs.py": "383a6ea89a6744918a9df61eb08a795aa34994a501a6025be2ac8d31a00e02d7"
+  }
+}

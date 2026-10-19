@@ -1,0 +1,453 @@
+{
+  "schema_version": 1,
+  "status": "DESIGN_ONLY_NOT_IMPLEMENTED",
+  "evidence_class": "PHYSICAL_KV_LAYOUT_TRANSPOSE_REPLAY",
+  "gpu_execution": false,
+  "runtime_implementation": false,
+  "model_e2e": false,
+  "quality_claim": false,
+  "latency_measurement": false,
+  "time_record": {
+    "segment_start_utc": "2026-10-19 16:42:43 UTC",
+    "final_verification_utc": "2026-10-19 16:52:03 UTC",
+    "elapsed_seconds_through_verification": 560,
+    "gpu_seconds": 0
+  },
+  "model_pins": {
+    "1.4B": {
+      "revision": "574fa66cb8bf5abdc979642d01cf2b79b16bfab1",
+      "physical_layers": 24,
+      "config_sha256": "ce9cc13da41591b8b4deca053d7dfee06424c0228628ee862ea86d725bc163f3"
+    },
+    "2.6B": {
+      "revision": "1ed04250da1a9936042725d302e81c8fa2ab5abd",
+      "physical_layers": 48,
+      "config_sha256": "23b5c6942a9f0ca8619fb15acfaca93e02c169cdc4e03dbceb4d8a2df145697a"
+    }
+  },
+  "constants": {
+    "ranks": 4,
+    "recurrent_passes": 4,
+    "heads": 16,
+    "heads_per_decode_rank": 4,
+    "head_dimension": 128,
+    "kv_components": 2,
+    "bf16_bytes": 2,
+    "block_size_tokens": 16,
+    "reserved_null_blocks_per_slot": 1,
+    "primary_token_chunk": 1024,
+    "primary_layer_chunk": "L",
+    "prefix_lengths": [
+      1024,
+      8192,
+      32768
+    ],
+    "request_count": 1
+  },
+  "ownership": {
+    "source": "rank p owns r=p, ell=0..L-1, h=0..15",
+    "destination": "rank q owns r=0..3, ell=0..L-1, h=4q..4q+3",
+    "slot": "r*L+ell",
+    "source_epoch": "immutable until all readers complete",
+    "publication": "all destination GPU writes complete and all ranks succeed",
+    "rank_devices": [
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  "layout": {
+    "source_kind": "native-compatible full-head NHD; not an executed prefill engine",
+    "destination_kind": "native-compatible head-sharded NHD; not an executed native decode binding",
+    "source_logical_shape": [
+      "N/16+1",
+      16,
+      16,
+      256
+    ],
+    "source_separate_contiguous_stride": [
+      65536,
+      256,
+      4096,
+      1
+    ],
+    "destination_logical_shape": [
+      "N/16+1",
+      4,
+      16,
+      256
+    ],
+    "destination_separate_contiguous_stride": [
+      16384,
+      256,
+      1024,
+      1
+    ],
+    "physical_order": [
+      "block",
+      "token_within_block",
+      "head",
+      "packed_K_then_V"
+    ],
+    "page_mapping": "block=1+floor(t/16), offset=t%16",
+    "send_shape": [
+      4,
+      "L",
+      1024,
+      4,
+      256
+    ],
+    "receive_shape": [
+      4,
+      "L",
+      1024,
+      4,
+      256
+    ],
+    "send_first_axis": "destination rank",
+    "receive_first_axis": "source rank",
+    "cdb_alternative": "Separate K/V token-major arrays require charged interleaving; not initial replay"
+  },
+  "accounting": {
+    "piece_bytes": "C=2048*L*N",
+    "per_rank_source_or_destination_bytes": "S=4*C",
+    "remote_fraction_of_unique_prefix": 0.75,
+    "cluster_remote_payload": "12*C",
+    "endpoint_send_receive": "24*C; not physical wire bytes",
+    "primary_tensor_peak": "2*S+2*131072*L+16384*L*1024",
+    "monolithic_tensor_peak": "4*S+2*131072*L",
+    "peak_exclusions": [
+      "model weights",
+      "model activations",
+      "communicator workspace",
+      "allocator overhead",
+      "metadata",
+      "validation scratch"
+    ],
+    "explicit_pack_scatter_requested_io": "4*S per rank; not measured HBM traffic",
+    "capacity_change_unique_prefix_bytes": 0
+  },
+  "cells": [
+    {
+      "size": "1.4B",
+      "checkpoint_revision": "574fa66cb8bf5abdc979642d01cf2b79b16bfab1",
+      "physical_layers": 24,
+      "prefix_tokens": 1024,
+      "ordered_source_destination_piece_bytes": 50331648,
+      "source_prefix_payload_bytes_per_rank": 201326592,
+      "destination_prefix_payload_bytes_per_rank": 201326592,
+      "local_piece_bytes_per_rank": 50331648,
+      "remote_send_payload_bytes_per_rank": 150994944,
+      "remote_receive_payload_bytes_per_rank": 150994944,
+      "cluster_unique_prefix_bytes": 805306368,
+      "cluster_one_way_remote_payload_bytes": 603979776,
+      "cluster_endpoint_send_plus_receive_bytes": 1207959552,
+      "source_null_page_bytes_per_rank": 3145728,
+      "destination_null_page_bytes_per_rank": 3145728,
+      "source_reserved_prefix_and_null_bytes_per_rank": 204472320,
+      "destination_reserved_prefix_and_null_bytes_per_rank": 204472320,
+      "primary_send_buffer_bytes_per_rank": 201326592,
+      "primary_receive_buffer_bytes_per_rank": 201326592,
+      "primary_tensor_peak_bytes_per_rank": 811597824,
+      "monolithic_tensor_peak_bytes_per_rank": 811597824,
+      "collective_rounds": 1,
+      "pack_requested_read_plus_write_bytes_per_rank": 402653184,
+      "scatter_requested_read_plus_write_bytes_per_rank": 402653184,
+      "block_table_int32_bytes_per_side": 256,
+      "optional_destination_128_cached_position_reserve_bytes_per_rank": 25165824
+    },
+    {
+      "size": "1.4B",
+      "checkpoint_revision": "574fa66cb8bf5abdc979642d01cf2b79b16bfab1",
+      "physical_layers": 24,
+      "prefix_tokens": 8192,
+      "ordered_source_destination_piece_bytes": 402653184,
+      "source_prefix_payload_bytes_per_rank": 1610612736,
+      "destination_prefix_payload_bytes_per_rank": 1610612736,
+      "local_piece_bytes_per_rank": 402653184,
+      "remote_send_payload_bytes_per_rank": 1207959552,
+      "remote_receive_payload_bytes_per_rank": 1207959552,
+      "cluster_unique_prefix_bytes": 6442450944,
+      "cluster_one_way_remote_payload_bytes": 4831838208,
+      "cluster_endpoint_send_plus_receive_bytes": 9663676416,
+      "source_null_page_bytes_per_rank": 3145728,
+      "destination_null_page_bytes_per_rank": 3145728,
+      "source_reserved_prefix_and_null_bytes_per_rank": 1613758464,
+      "destination_reserved_prefix_and_null_bytes_per_rank": 1613758464,
+      "primary_send_buffer_bytes_per_rank": 201326592,
+      "primary_receive_buffer_bytes_per_rank": 201326592,
+      "primary_tensor_peak_bytes_per_rank": 3630170112,
+      "monolithic_tensor_peak_bytes_per_rank": 6448742400,
+      "collective_rounds": 8,
+      "pack_requested_read_plus_write_bytes_per_rank": 3221225472,
+      "scatter_requested_read_plus_write_bytes_per_rank": 3221225472,
+      "block_table_int32_bytes_per_side": 2048,
+      "optional_destination_128_cached_position_reserve_bytes_per_rank": 25165824
+    },
+    {
+      "size": "1.4B",
+      "checkpoint_revision": "574fa66cb8bf5abdc979642d01cf2b79b16bfab1",
+      "physical_layers": 24,
+      "prefix_tokens": 32768,
+      "ordered_source_destination_piece_bytes": 1610612736,
+      "source_prefix_payload_bytes_per_rank": 6442450944,
+      "destination_prefix_payload_bytes_per_rank": 6442450944,
+      "local_piece_bytes_per_rank": 1610612736,
+      "remote_send_payload_bytes_per_rank": 4831838208,
+      "remote_receive_payload_bytes_per_rank": 4831838208,
+      "cluster_unique_prefix_bytes": 25769803776,
+      "cluster_one_way_remote_payload_bytes": 19327352832,
+      "cluster_endpoint_send_plus_receive_bytes": 38654705664,
+      "source_null_page_bytes_per_rank": 3145728,
+      "destination_null_page_bytes_per_rank": 3145728,
+      "source_reserved_prefix_and_null_bytes_per_rank": 6445596672,
+      "destination_reserved_prefix_and_null_bytes_per_rank": 6445596672,
+      "primary_send_buffer_bytes_per_rank": 201326592,
+      "primary_receive_buffer_bytes_per_rank": 201326592,
+      "primary_tensor_peak_bytes_per_rank": 13293846528,
+      "monolithic_tensor_peak_bytes_per_rank": 25776095232,
+      "collective_rounds": 32,
+      "pack_requested_read_plus_write_bytes_per_rank": 12884901888,
+      "scatter_requested_read_plus_write_bytes_per_rank": 12884901888,
+      "block_table_int32_bytes_per_side": 8192,
+      "optional_destination_128_cached_position_reserve_bytes_per_rank": 25165824
+    },
+    {
+      "size": "2.6B",
+      "checkpoint_revision": "1ed04250da1a9936042725d302e81c8fa2ab5abd",
+      "physical_layers": 48,
+      "prefix_tokens": 1024,
+      "ordered_source_destination_piece_bytes": 100663296,
+      "source_prefix_payload_bytes_per_rank": 402653184,
+      "destination_prefix_payload_bytes_per_rank": 402653184,
+      "local_piece_bytes_per_rank": 100663296,
+      "remote_send_payload_bytes_per_rank": 301989888,
+      "remote_receive_payload_bytes_per_rank": 301989888,
+      "cluster_unique_prefix_bytes": 1610612736,
+      "cluster_one_way_remote_payload_bytes": 1207959552,
+      "cluster_endpoint_send_plus_receive_bytes": 2415919104,
+      "source_null_page_bytes_per_rank": 6291456,
+      "destination_null_page_bytes_per_rank": 6291456,
+      "source_reserved_prefix_and_null_bytes_per_rank": 408944640,
+      "destination_reserved_prefix_and_null_bytes_per_rank": 408944640,
+      "primary_send_buffer_bytes_per_rank": 402653184,
+      "primary_receive_buffer_bytes_per_rank": 402653184,
+      "primary_tensor_peak_bytes_per_rank": 1623195648,
+      "monolithic_tensor_peak_bytes_per_rank": 1623195648,
+      "collective_rounds": 1,
+      "pack_requested_read_plus_write_bytes_per_rank": 805306368,
+      "scatter_requested_read_plus_write_bytes_per_rank": 805306368,
+      "block_table_int32_bytes_per_side": 256,
+      "optional_destination_128_cached_position_reserve_bytes_per_rank": 50331648
+    },
+    {
+      "size": "2.6B",
+      "checkpoint_revision": "1ed04250da1a9936042725d302e81c8fa2ab5abd",
+      "physical_layers": 48,
+      "prefix_tokens": 8192,
+      "ordered_source_destination_piece_bytes": 805306368,
+      "source_prefix_payload_bytes_per_rank": 3221225472,
+      "destination_prefix_payload_bytes_per_rank": 3221225472,
+      "local_piece_bytes_per_rank": 805306368,
+      "remote_send_payload_bytes_per_rank": 2415919104,
+      "remote_receive_payload_bytes_per_rank": 2415919104,
+      "cluster_unique_prefix_bytes": 12884901888,
+      "cluster_one_way_remote_payload_bytes": 9663676416,
+      "cluster_endpoint_send_plus_receive_bytes": 19327352832,
+      "source_null_page_bytes_per_rank": 6291456,
+      "destination_null_page_bytes_per_rank": 6291456,
+      "source_reserved_prefix_and_null_bytes_per_rank": 3227516928,
+      "destination_reserved_prefix_and_null_bytes_per_rank": 3227516928,
+      "primary_send_buffer_bytes_per_rank": 402653184,
+      "primary_receive_buffer_bytes_per_rank": 402653184,
+      "primary_tensor_peak_bytes_per_rank": 7260340224,
+      "monolithic_tensor_peak_bytes_per_rank": 12897484800,
+      "collective_rounds": 8,
+      "pack_requested_read_plus_write_bytes_per_rank": 6442450944,
+      "scatter_requested_read_plus_write_bytes_per_rank": 6442450944,
+      "block_table_int32_bytes_per_side": 2048,
+      "optional_destination_128_cached_position_reserve_bytes_per_rank": 50331648
+    },
+    {
+      "size": "2.6B",
+      "checkpoint_revision": "1ed04250da1a9936042725d302e81c8fa2ab5abd",
+      "physical_layers": 48,
+      "prefix_tokens": 32768,
+      "ordered_source_destination_piece_bytes": 3221225472,
+      "source_prefix_payload_bytes_per_rank": 12884901888,
+      "destination_prefix_payload_bytes_per_rank": 12884901888,
+      "local_piece_bytes_per_rank": 3221225472,
+      "remote_send_payload_bytes_per_rank": 9663676416,
+      "remote_receive_payload_bytes_per_rank": 9663676416,
+      "cluster_unique_prefix_bytes": 51539607552,
+      "cluster_one_way_remote_payload_bytes": 38654705664,
+      "cluster_endpoint_send_plus_receive_bytes": 77309411328,
+      "source_null_page_bytes_per_rank": 6291456,
+      "destination_null_page_bytes_per_rank": 6291456,
+      "source_reserved_prefix_and_null_bytes_per_rank": 12891193344,
+      "destination_reserved_prefix_and_null_bytes_per_rank": 12891193344,
+      "primary_send_buffer_bytes_per_rank": 402653184,
+      "primary_receive_buffer_bytes_per_rank": 402653184,
+      "primary_tensor_peak_bytes_per_rank": 26587693056,
+      "monolithic_tensor_peak_bytes_per_rank": 51552190464,
+      "collective_rounds": 32,
+      "pack_requested_read_plus_write_bytes_per_rank": 25769803776,
+      "scatter_requested_read_plus_write_bytes_per_rank": 25769803776,
+      "block_table_int32_bytes_per_side": 8192,
+      "optional_destination_128_cached_position_reserve_bytes_per_rank": 50331648
+    }
+  ],
+  "protocol": {
+    "stages": [
+      "lease and epoch validation",
+      "strided head-group packing",
+      "NCCL all_to_all_single",
+      "NCCL-to-service-stream dependency",
+      "paged scatter including local piece",
+      "final completion event",
+      "all-rank ready acknowledgement"
+    ],
+    "arithmetic_reduction": false,
+    "dtype_conversion": false,
+    "source_destination_aliasing": false,
+    "local_piece_in_pack_scatter": true,
+    "graph_mode": "INITIAL_EAGER_TRANSPORT_ONLY",
+    "native_graph_binding_status": "NOT_VALIDATED",
+    "failure_action": "do not publish partial destination; preserve source; abort and clean owned processes",
+    "measured_window": "parent release through all-rank completed publication acknowledgement",
+    "separate_preparation": [
+      "communicator initialization",
+      "allocations",
+      "source pattern generation",
+      "full bitwise validation",
+      "optional weight transition"
+    ],
+    "no_inference": [
+      "wire bytes from endpoint counts",
+      "latency from payload bytes",
+      "native graph pointer identity from synthetic address checks",
+      "E2E speedup or quality from component replay"
+    ]
+  },
+  "correctness": {
+    "comparison": "full uint16 word identity with exact shape/dtype/count",
+    "finite_sources_only": true,
+    "signed_zeros": true,
+    "multiple_coordinate_patterns": true,
+    "source_unchanged": true,
+    "null_unused_guard_pages_unchanged": true,
+    "roundtrip": true,
+    "negative_controls": [
+      "depth swap",
+      "head-group swap",
+      "block shift",
+      "K/V swap",
+      "skipped local piece",
+      "signed-zero conversion"
+    ],
+    "per_trial_epoch": true,
+    "validation_outside_service_window": true
+  },
+  "generic_control": {
+    "name": "phase-specific full-head PP to head-sharded TP4",
+    "depth_owner_mapping": "r=p, ell=k",
+    "physical_layer_owner_mapping": "r=floor(k/(L/4)), ell=p*(L/4)+(k%(L/4))",
+    "matched_properties": [
+      "source strides",
+      "page fragmentation",
+      "chunk policy",
+      "buffer capacity",
+      "NCCL operation order",
+      "destination layout",
+      "allocation lifetime"
+    ],
+    "same_dag_alone_settles_cost": false,
+    "transpose_demonstrates_recurrence_specific_novelty": false,
+    "depth_owner_full_core_replication": "4 aggregate core copies absent an additional charged weight protocol",
+    "native_tp_or_balanced_physical_layer_pp_core_residency": "1 aggregate core copy excluding separately specified extras"
+  },
+  "source_ledger": [
+    {
+      "path": "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/model_executor/models/ouro.py",
+      "sha256": "cf0792c6c8024ded45dba10553b5f0d24b7b6542dd8f8f0e0e6899807ec0c4ff",
+      "locators": [
+        "OuroAttention.__init__:122-142",
+        "per-pass Attention construction:171-192",
+        "OuroModel.forward:367-374"
+      ]
+    },
+    {
+      "path": "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/model_executor/layers/linear.py",
+      "sha256": "10b1ebae493158ca1074aef37a9f466f4e8e536c5a71d91c5b66062095ce3a44",
+      "locators": [
+        "QKVParallelLinear KV head partition:1004-1009",
+        "weight_loader contiguous rank shard:1303-1313"
+      ]
+    },
+    {
+      "path": "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/v1/attention/backends/flash_attn.py",
+      "sha256": "7b5fac9b635b4dc138f24a07277569ab92e59ffd0a88a1d4c5d326039a880a51",
+      "locators": [
+        "get_kv_cache_shape:131-143",
+        "get_kv_cache_stride_order:146-168",
+        "KV read split:877-878",
+        "do_kv_cache_update:1071-1105"
+      ]
+    },
+    {
+      "path": "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/distributed/distributed_c10d.py",
+      "sha256": "796ffcd9664734a85c0045a1657cbecf282142744eed15ee8ca300cccdd06803",
+      "locators": [
+        "batch_isend_irecv:2847-2938",
+        "all_to_all_single:4694-4840"
+      ]
+    },
+    {
+      "path": "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/include/torch/csrc/distributed/c10d/ProcessGroupNCCL.hpp",
+      "sha256": "6e97c722c0fe6fc0e62cb883f8080fe2f63f875f0e1d59dd79a554662526d302",
+      "locators": [
+        "separate NCCL stream and required consumer wait:287-319",
+        "WorkNCCL wait/blockCurrentStream/synchronize:357-373"
+      ]
+    },
+    {
+      "path": "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/distributed/device_communicators/pynccl.py",
+      "sha256": "28596817ee9fb842026624a8a6c32b0637630b6b908ddb2a79ecccbeac531e35",
+      "locators": [
+        "disabled communicator:91-109",
+        "send:322-347",
+        "recv:349-374",
+        "group_start/group_end:402-406",
+        "batch_isend_irecv:422-435"
+      ]
+    },
+    {
+      "path": "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/distributed/parallel_state.py",
+      "sha256": "ecfa5eeda697e9982591c93eca835fcc53463267c1c22110700819efcecee74f",
+      "locators": [
+        "GroupCoordinator.graph_capture:598-639",
+        "graph_capture:1430-1455"
+      ]
+    },
+    {
+      "path": "/home/esjung/external/decode-first-cdb-upstream/src/looped_cdb/continuous_batching/cache.py",
+      "commit": "abdfae0adbdd12be8c6123ccb34eee98a38afb39",
+      "sha256": "6366337103c34a4243a55c03ecfc3c2f0c4dd4a6092c048e5264076f31f1f11b",
+      "locators": [
+        "separate K/V representation:40-51",
+        "allocation and static addresses:134-159"
+      ]
+    }
+  ],
+  "verification": {
+    "numeric_ledger_cpu_checks": "PASS: all six cells",
+    "source_hash_checks": "PASS: eight source hashes and two pinned config hashes",
+    "ownership_bijections": "PASS: depth-owner and physical-layer-owner maps in all six cells",
+    "sampled_boundary_scalar_address_checks": 221184,
+    "head_partition_check": "PASS: four disjoint contiguous groups cover all16 heads",
+    "report_file_links": "PASS: all resolve",
+    "report_lint": "PASS: zero violations",
+    "gpu_results": "NOT_RUN"
+  }
+}

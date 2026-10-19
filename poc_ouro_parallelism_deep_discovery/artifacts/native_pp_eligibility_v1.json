@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "role": "installed_native_ouro_PP_eligibility_source_audit",
+  "segment_start_utc": "2026-10-19T16:28:38Z",
+  "segment_end_utc": "2026-10-19T16:33:23Z",
+  "segment_elapsed_seconds": 285,
+  "time_scope": "Observed interval through validation. Final timestamp insertion and handoff follow the cutoff. Concurrent agents do not multiply campaign elapsed time.",
+  "GPU_execution": false,
+  "model_execution": false,
+  "engine_construction": false,
+  "native_registry_inspection_invoked": false,
+  "installed_source_changes": false,
+  "cache_changes": false,
+  "literature_search": false,
+  "new_candidate_or_architecture_claim": false,
+  "result": "STOCK_NATIVE_PP_GT1_UNSUPPORTED_BY_INSPECTED_CONTRACT",
+  "conclusion_type": "Source-derived eligibility and extracted CPU interface controls. Not an observed engine-start exception.",
+  "package": {
+    "environment": "/home/esjung/.venvs/cp-composition-vllm026",
+    "version": "0.26.0+cu129",
+    "metadata_method": "importlib.metadata.distribution, without importing vLLM",
+    "direct_url": "file:///tmp/vllm-0.26.0%2Bcu129-cp38-abi3-manylinux_2_28_x86_64.whl",
+    "wheel_sha256_from_installed_metadata": "7632856147650da3ed8d1652b1b05ffaadcc62ea8e910fdaa6f8ce055b201ebf",
+    "wheel_hash_limit": "Recorded metadata value. The original wheel is not read or independently rehashed."
+  },
+  "configs": [
+    {"model": "Base_Ouro_1p4B", "revision": "574fa66cb8bf5abdc979642d01cf2b79b16bfab1", "path": "/home/esjung/.cache/huggingface/hub/models--ByteDance--Ouro-1.4B/snapshots/574fa66cb8bf5abdc979642d01cf2b79b16bfab1/config.json", "sha256": "ce9cc13da41591b8b4deca053d7dfee06424c0228628ee862ea86d725bc163f3", "architectures": ["OuroForCausalLM"], "physical_layers": 24, "total_ut_steps": 4, "attention_heads": 16, "KV_heads": 16, "dtype": "bfloat16"},
+    {"model": "Base_Ouro_2p6B", "revision": "1ed04250da1a9936042725d302e81c8fa2ab5abd", "path": "/home/esjung/.cache/huggingface/hub/models--ByteDance--Ouro-2.6B/snapshots/1ed04250da1a9936042725d302e81c8fa2ab5abd/config.json", "sha256": "23b5c6942a9f0ca8619fb15acfaca93e02c169cdc4e03dbceb4d8a2df145697a", "architectures": ["OuroForCausalLM"], "physical_layers": 48, "total_ut_steps": 4, "attention_heads": 16, "KV_heads": 16, "dtype": "bfloat16"}
+  ],
+  "native_resolution": {
+    "registration": "registry.py:185, OuroForCausalLM -> ouro.OuroForCausalLM",
+    "known_architecture": "registry.py:1192–1198 retains registered architecture names",
+    "auto_fallback": "registry.py:1240–1247 requires all requested architectures absent from native models",
+    "selected_scope": "Native model or ordinary auto resolution of the pinned known architecture",
+    "excluded": ["explicit Transformers backend", "external registry overrides", "modified class", "future releases"]
+  },
+  "interface_semantics": {
+    "class_bases": ["nn.Module", "SupportsLoRA"],
+    "SupportsPP_in_native_bases": false,
+    "native_supports_pp_marker_defined": false,
+    "native_forward_accepts_intermediate_keyword": true,
+    "factory_assignment": "ouro.py:417–419, instance assignment from inner model",
+    "predicate": "interfaces.py:692–740, runtime protocol attributes AND forward keyword acceptance",
+    "attributes": "interfaces.py:623–681, PP marker plus intermediate factory and forward",
+    "flag_value_limit": "Runtime structural Protocol check does not validate the Literal[True] annotation's value in the extracted CPU controls.",
+    "modelinfo": "registry.py:795–812 records supports_pp(model)",
+    "registry_query": "registry.py:1356–1362 returns the inspected modelinfo.supports_pp",
+    "inspection_cache": "registry.py:894–989, module-hash-validated cache or subprocess inspection. Not invoked here.",
+    "config_guard": "config/model.py:1240–1247, PP>1 and unsupported -> NotImplementedError",
+    "config_guard_message": "Pipeline parallelism is not supported for this model. Supported models implement the `SupportsPP` interface."
+  },
+  "partition_vs_forward": {
+    "helper": "models/utils.py:798–830 partitions layers by PP rank and inserts PPMissingLayer outside the local interval",
+    "Ouro_helper_call": "ouro.py:333–342",
+    "core_forward": "ouro.py:355–374",
+    "core_reads_intermediate_tensors": false,
+    "core_first_last_rank_tests": false,
+    "core_local_embedding": true,
+    "core_local_outer_R4_loop": true,
+    "core_local_loop_norm_each_visit": true,
+    "core_PP_intermediate_return_path": false,
+    "required_missing_semantics": ["incoming stage state", "residual boundary representation", "full-stack loop norm placement", "last-to-first recurrent routing", "pass/depth identity", "depth-specific KV owners", "head/gate ownership"],
+    "interpretation": "Partition-aware allocation is insufficient for a correct cyclic recurrent forward. A marker/guard-only change is not a valid implementation."
+  },
+  "CPU_controls": {
+    "tool_chunk_id": "e13771",
+    "method": "Extract installed SupportsPP/_SupportsPPType, supports_pp helpers, and supports_kw helpers with Python AST. Execute only those nodes with standard-library dependencies and interface-only toy classes.",
+    "source_nodes": ["SupportsPP", "_SupportsPPType", "supports_pp at line692", "_supports_pp_attributes", "_supports_pp_inspect", "_supports_kw", "supports_kw"],
+    "external_libraries_imported": [],
+    "Torch_imported": false,
+    "vLLM_imported": false,
+    "native_model_class_instantiated": false,
+    "predicate_results": {
+      "signature_only_class": {"attributes": false, "signature": true, "supports_pp": false},
+      "signature_only_instance": {"attributes": false, "signature": true, "supports_pp": false},
+      "class_factory_no_marker": {"attributes": false, "signature": true, "supports_pp": false},
+      "declared_PP": {"attributes": true, "signature": true, "supports_pp": true},
+      "false_value_marker": {"attributes": true, "signature": true, "supports_pp": true}
+    },
+    "AST_assertions": {"outer_bases": ["nn.Module", "SupportsLoRA"], "core_forward_reads_intermediate_tensors": false, "core_has_first_or_last_rank_test": false},
+    "limit": "Interface contracts only. No module import side effects, real registry cache read, engine guard invocation, stage communication, or numerical model execution."
+  },
+  "source_root": "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm",
+  "source_sha256": {
+    "model_executor/models/ouro.py": "cf0792c6c8024ded45dba10553b5f0d24b7b6542dd8f8f0e0e6899807ec0c4ff",
+    "model_executor/models/interfaces.py": "f27bb3291aa1fa02850ff21f60313db53adceb5a4932f20ba5d031bb1aa3c0df",
+    "model_executor/models/registry.py": "27f6675a032ba82780c4b6038c05e6aad3988879b44f3582f6d5a273847da2f0",
+    "config/model.py": "7d52e060db54067a21591882bd6e3c2dd2486ac9041dde1117f97023e71bf89f",
+    "model_executor/models/utils.py": "f06d1a1a8d92e6ab39ebf7931d3eb3d6688d212606b1c409d7bed8eed5ba1fc2",
+    "utils/func_utils.py": "e19639221476911fd5c837981fa2666255ef73eba2fd199a8e009e4aa59ceff3"
+  },
+  "C14_boundary": {
+    "stock_native": "Unsupported PP>1 under the inspected installed contract",
+    "conceptual_trace": "A correct tied-aware generic cyclic physical trace remains legal under its stated causal/state assumptions",
+    "novelty": "Missing stock adapter support does not establish architectural novelty",
+    "performance": "No PP timing, capacity gain, quality, or runtime correctness measurement",
+    "predecessors_changed": false
+  },
+  "validation": {"JSON_parse": "PASS", "source_hashes": "PASS", "source_and_config_hashes_checked": 8, "config_fields": "PASS", "config_fields_checked": 12, "CPU_predicate_controls": 5, "report_lint": "PASS", "report_lint_findings": 0, "source_validation_tool_chunk_id": "0ba09e", "report_lint_tool_chunk_id": "58cba1", "validation_cutoff_utc": "2026-10-19T16:33:23Z"}
+}

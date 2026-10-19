@@ -1,0 +1,60 @@
+{
+  "actual_native_startup_reproduced": false,
+  "command": [
+    "/home/esjung/.venvs/cp-composition-vllm026/bin/python",
+    "-m",
+    "poc_ouro_parallelism_deep_discovery.scripts.process_lease_spawn_chain_cpu_v1",
+    "--output",
+    "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/artifacts/process_lease_spawn_chain_cpu_v1.json"
+  ],
+  "end_utc": "2026-10-19T16:53:16.847120+00:00",
+  "inherited_SPT_NOENV_present": false,
+  "limitation": "A passing chain does not diagnose the full native TP2 startup failure.",
+  "rows": [
+    {
+      "cuda_initialized": false,
+      "logical_guard_matches": true,
+      "mp_method": "spawn",
+      "pid": 3392361,
+      "ppid": 3392055,
+      "proc_guard_matches": true,
+      "role": "frontend",
+      "strict_lease_pass": true
+    },
+    {
+      "cuda_initialized": false,
+      "logical_guard_matches": true,
+      "mp_method": "spawn",
+      "pid": 3392517,
+      "ppid": 3392361,
+      "proc_guard_matches": true,
+      "role": "engine_core",
+      "strict_lease_pass": true
+    },
+    {
+      "cuda_initialized": false,
+      "logical_guard_matches": true,
+      "mp_method": "spawn",
+      "pid": 3392706,
+      "ppid": 3392517,
+      "proc_guard_matches": true,
+      "role": "rank",
+      "strict_lease_pass": true
+    }
+  ],
+  "scope": "Actual native spawn/title and strict self lease. No WorkerProc constructor, model, or CUDA context.",
+  "seam_passed": true,
+  "source_sha256_before_run": {
+    "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/utils/system_utils.py": "f22b8d420dcfde31f92114d7f5b916797d5dcce4b840bfddfc99d287ce185452",
+    "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/v1/engine/utils.py": "bc3fbc0fa6d8feb776b43ef008919ae4f28d732ce69bcd3b93649cd38795fc26",
+    "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/v1/executor/multiproc_executor.py": "fb279ff0e0a08681aa0078037d559351006b5453ecd1b1ea12277995925f3312",
+    "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/runtime.py": "03d8164fb359477525ef29e295b18397412f79b13f8253a72d386050c26c8fff",
+    "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/scripts/process_lease_spawn_chain_cpu_v1.py": "1841568cb6d529a8e99d7465758a9854558fdaa8954394643dded83efe9e3d97",
+    "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/tp2_dp2_cohort.py": "bdfd43857dab7b96e1749f7b6a99d14e82d7f7994de5d4bf0799582b89d1a7e5"
+  },
+  "start_utc": "2026-10-19T16:53:01.072237+00:00",
+  "stderr_line_count": 0,
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout": "[{\"role\": \"frontend\", \"pid\": 3392361, \"ppid\": 3392055, \"logical_guard_matches\": true, \"proc_guard_matches\": true, \"cuda_initialized\": false, \"mp_method\": \"spawn\", \"strict_lease_pass\": true}, {\"role\": \"engine_core\", \"pid\": 3392517, \"ppid\": 3392361, \"logical_guard_matches\": true, \"proc_guard_matches\": true, \"cuda_initialized\": false, \"mp_method\": \"spawn\", \"strict_lease_pass\": true}, {\"role\": \"rank\", \"pid\": 3392706, \"ppid\": 3392517, \"logical_guard_matches\": true, \"proc_guard_matches\": true, \"cuda_initialized\": false, \"mp_method\": \"spawn\", \"strict_lease_pass\": true}]\n",
+  "subprocess_returncode": 0
+}

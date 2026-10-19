@@ -1,0 +1,46 @@
+{
+  "scope": "Independent source and CPU review. No GPU or engine execution.",
+  "superseded_claim": "Earlier no-source-blocker statement was too broad because it inspected the inner executor but omitted frontend Msgpack serialization.",
+  "frozen_earlier_review": {
+    "path": "reports/process_lease_diagnostic_independent_review_v1.md",
+    "sha256": "57c6e7ec22371122e25042f2896cb83d0254cdaf2873fe79dc7093c9ce9dc8d1",
+    "modified": false
+  },
+  "v2_failure": {
+    "directory": "outputs/native_tp2_dp2_cohort_base14_v2_diagnostic",
+    "replica0_failure_sha256": "635f34a09ab5ced084aac1bc551b8877d9405a5cb71e58d45ad1d639438dc00c",
+    "replica1_failure_sha256": "635f34a09ab5ced084aac1bc551b8877d9405a5cb71e58d45ad1d639438dc00c",
+    "cause_of_this_failure": "Frontend MsgpackEncoder rejects the function with insecure serialization disabled.",
+    "original_missing_guard_cause": "UNRESOLVED"
+  },
+  "independent_cpu_regression": "artifacts/rpc_string_boundary_cpu_v1.json",
+  "independent_initial_inline_check": {
+    "function_accepted": false,
+    "function_error_type": "TypeError",
+    "method_string_accepted": true,
+    "encoded_frames": 1,
+    "encoded_bytes": 146,
+    "insecure_serialization_enabled": false,
+    "cuda_initialized": false
+  },
+  "new_source_sha256_at_review": {
+    "hybrid_cohort_probe.py": "a5ec1868147fecd59ab17485f144fa834bba48ac0d9af84b6c4e46e01808c510",
+    "scripts/native_tp2_dp2_cohort_worker.py": "a2b1ad6ee239260a2f1e38a267c75c4a5f8fbbafae706ee3e47380a5716b4e52",
+    "scripts/native_tp2_dp2_cohort_control.py": "42986e8d3c3ff8b233ea4b95f5dd4796ab3e10dab7f857740b9783d69e610853"
+  },
+  "cpu_suite": {
+    "command": "CUDA_VISIBLE_DEVICES='' VLLM_ALLOW_INSECURE_SERIALIZATION=0 /home/esjung/.venvs/cp-composition-vllm026/bin/python -m unittest poc_ouro_parallelism_deep_discovery.tests.test_process_lease_diagnostics_cpu poc_ouro_parallelism_deep_discovery.tests.test_native_tp2_dp2_cohort_cpu -q",
+    "tests": 23,
+    "seconds": 0.395,
+    "verdict": "PASS"
+  },
+  "authorization_unchanged": true,
+  "native_startup_proven": false,
+  "original_lease_problem_resolved": false,
+  "limits": [
+    "No socket transport or model worker initialization in this CPU regression.",
+    "No live dynamic extension mixin test.",
+    "No process lease proof or timing result.",
+    "No insecure serialization enabled."
+  ]
+}

@@ -1,0 +1,68 @@
+{
+  "status": "CPU_TESTED_READY_FOR_COORDINATOR_REVIEW_GPU_NOT_RUN",
+  "scope": "Conventional TP2xDP2 baseline. No candidate, adaptive CDB, or protected-factorial result.",
+  "commands": [
+    {"cwd": "/home/esjung/MLLM-EP-ouro-deep-discovery", "command": "python -m unittest poc_ouro_parallelism_deep_discovery.tests.test_native_tp2_dp2_cohort_cpu", "tests": 20, "passed": 20},
+    {"cwd": "/home/esjung/MLLM-EP-ouro-deep-discovery", "command": "/home/esjung/.venvs/ouro-deep-discovery/bin/python -m unittest poc_ouro_parallelism_deep_discovery.tests.test_native_tp2_dp2_cohort_cpu", "tests": 20, "passed": 20},
+    {"cwd": "/home/esjung/MLLM-EP-ouro-deep-discovery", "command": "python -m unittest poc_ouro_parallelism_deep_discovery.tests.test_native_tp2_dp2_cohort_cpu poc_ouro_parallelism_deep_discovery.tests.test_native_dp4_cohort_cpu", "tests": 34, "passed": 34},
+    {"cwd": "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery", "command": "python -m py_compile tp2_dp2_cohort.py scripts/native_tp2_dp2_cohort_control.py scripts/native_tp2_dp2_cohort_worker.py tests/test_native_tp2_dp2_cohort_cpu.py", "status": "PASS"},
+    {"command": "ste-lint.py reports/native_tp2_dp2_cohort_control_contract_v1.md --disable synonym-rotation --json", "findings": 0}
+  ],
+  "checks": {
+    "slot_coverage": "C1/2/4/8 assigned once by modulo2",
+    "group_membership": [[4, 5], [6, 7]],
+    "message_guards": "Worker identity, message kind, trial ID, wrong release, both READY before release",
+    "parent_clock_boundary": "Starts after READY, before sequential RELEASE sends. Ends after both DONE receipts.",
+    "local_interval_consistency": "Release/start/end inside parent interval. End minus start equals local wall. Idle endpoints both None.",
+    "output_consistency": "Slots, source_request_id, generated-token count, finish_reason length, and constant-token assertion",
+    "TP2_ownership": "Ordered rank-to-UUID mapping, distinct rank PIDs, world2, eight local Q/KV heads, 4L depth slots",
+    "CPU_process_lease": "Actual frontend-to-intermediate-to-rank CPU chain validates UID/PGID/SID and guard identity. Wrong ancestor fails.",
+    "imports": "Both new entrypoints import without Torch",
+    "source_template_equality": "Both sizes: exact TP1/TP2 input lists. Engine templates differ only in tensor_parallel_size.",
+    "freeze": "Eight cases, two workers,52GiB/rank, native TP2/DP1/PP1, token378, exact nativev2 protocol hash"
+  },
+  "perf_counter": {"implementation": "clock_gettime(CLOCK_MONOTONIC)", "monotonic": true, "adjustable": false, "resolution_seconds": 1e-9},
+  "new_file_sha256": {
+    "tp2_dp2_cohort.py": "edd4024458948755912f1e015645cfc7da6b0ae5499ba23d01825341cd1af5c8",
+    "scripts/native_tp2_dp2_cohort_control.py": "5d4ad870d24611d72ed6215043d912dddd91d4b07af32022988a9023d27f8dce",
+    "scripts/native_tp2_dp2_cohort_worker.py": "6f0ace0ebb2b4fe4df6aacc20b4c22e1138ca27b0d64b4350bf7797325c2a939",
+    "tests/test_native_tp2_dp2_cohort_cpu.py": "cb70cb7392f0c0de6dd879611d1a24594d30fcbc5e0f517417f1df5d65616f96",
+    "artifacts/native_tp2_dp2_cohort_protocol_v1.json": "46b7af3a5f3f86b6095c6a1d96b446f2e2ea246be29e849720904c390c7e7ab1",
+    "reports/native_tp2_dp2_cohort_control_contract_v1.md": "0ebba1e8c58e9966f1e9cd4ff69d78e5167cbe13cce1bd066318994b5994d07b"
+  },
+  "unchanged_existing_sha256": {
+    "scripts/native_dp4_cohort_control.py": "87ca8c2ce94d645fa01595f610ed22f5b15b6f32aee0bbcbdc03061d5260e8d8",
+    "scripts/native_dp4_cohort_worker.py": "0c268e6a83870184e99fb4f515469d4eadaddb9d7bdfc1fd152956adeb3fc0c9",
+    "scripts/native_cohort_control.py": "8a6a92c0c4bd80671bd2744f3db26bd1043b2cd5a332f450708bd54bd0b3f074",
+    "scripts/run_native_cohort_controls.py": "5f1de14af07c2bc53bb6c196b8a08a3e06a7646104d49832e83c81bdbce00155",
+    "dp4_cohort.py": "a149c6f8f36576df12ae318f41808f88c63978928a19eef5845e4a7de0b6af64",
+    "artifacts/native_cohort_protocol_v2.json": "240eb229b37734a532c38c7e08d008a3dc2cabb98ec3c7be7d0f64d46b7d42f9"
+  },
+  "source_locators_read": [
+    "scripts/native_dp4_cohort_control.py:freeze_plan,main,cleanup",
+    "scripts/native_dp4_cohort_worker.py:main,prepare,execute",
+    "scripts/native_cohort_control.py:main,generate",
+    "scripts/run_native_cohort_controls.py:main",
+    "dp4_cohort.py:collect_messages,serve_worker,run_cohort,aggregate",
+    "cohort_probe.py:CohortProbe",
+    "runtime.py:configure_native_imports",
+    "poc_looped_multigpu_kv_placement/worker_probe.py:inspect_worker",
+    "poc_ouro_reasoning_fidelity_multigpu/guard_cleanup.py:registered_launch,belongs,finish",
+    "installed vLLM v1/executor/multiproc_executor.py:161-201,671-712",
+    "installed vLLM v1/engine/utils.py:150-215",
+    "installed vLLM v1/metrics/stats.py:215-235,421-476"
+  ],
+  "worker_start_utc": "2026-10-19T16:31:45Z",
+  "implementation_authorized_observation_utc": "2026-10-19T16:34:16Z",
+  "validation_cutoff_utc": "2026-10-19T16:43:29Z",
+  "observed_interval_seconds": 704,
+  "time_limit": "Initial bounded source review is included. Final validation-record formatting and handoff follow the cutoff. Concurrent worker time does not add campaign elapsed time.",
+  "gpu_launches_by_implementer": 0,
+  "native_engine_initializations_by_implementer": 0,
+  "model_quality": "NOT_RUN",
+  "timing": "NOT_RUN",
+  "old_runner_or_raw_edits": false,
+  "package_changes": false,
+  "coordinator_state_edits": false,
+  "remaining": ["Coordinator source review", "Guarded concurrent native TP2 initialization", "Actual TP rank ancestry and UUID checks", "Native memory and clean timing", "Both runner and guard SUCCESS before analysis"]
+}

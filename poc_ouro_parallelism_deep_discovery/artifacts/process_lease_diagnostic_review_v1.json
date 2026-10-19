@@ -1,0 +1,53 @@
+{
+  "scope": "Independent CPU and installed-source review. No native engine or GPU run.",
+  "task_start_utc": "2026-10-19 16:48:03 UTC",
+  "observations_cutoff_utc": "2026-10-19 16:53:24 UTC",
+  "original_untimestamped_spawn_chain_stdout": [
+    {"role":"frontend","pid":3387908,"ppid":3387907,"logical_guard_matches":true,"proc_guard_matches":true,"cuda_initialized":false,"mp_method":"spawn","strict_lease_pass":true},
+    {"role":"engine_core","pid":3388075,"ppid":3387908,"logical_guard_matches":true,"proc_guard_matches":true,"cuda_initialized":false,"mp_method":"spawn","strict_lease_pass":true},
+    {"role":"rank","pid":3388178,"ppid":3388075,"logical_guard_matches":true,"proc_guard_matches":true,"cuda_initialized":false,"mp_method":"spawn","strict_lease_pass":true}
+  ],
+  "original_command": "Native Python stdin driver executed the CHAIN_CODE now retained in scripts/process_lease_spawn_chain_cpu_v1.py through subprocess.run([sys.executable, '-c', 'depth=0\\ncode='+repr(CHAIN_CODE)+'\\nexec(code)']). Exact invocation UTC and execution-time source hashes were not sampled.",
+  "timestamped_recheck": "artifacts/process_lease_spawn_chain_cpu_v1.json",
+  "original_v1_failure_reproduced": false,
+  "cpu_injected_failure": {
+    "definition": "An exec child starts without LOOPED_KV_OUTPUT. It assigns that variable through os.environ before snapshot and strict lease.",
+    "pid": 3393415,
+    "ppid": 3393414,
+    "uid": 1002,
+    "pgid": 3393247,
+    "sid": 3393247,
+    "start_time_ticks": 711610765,
+    "logical_guard_present": true,
+    "logical_guard_matches": true,
+    "initial_proc_guard_present": false,
+    "initial_proc_guard_matches": false,
+    "strict_error": "A declared process 3393415 lost its guard output identity.",
+    "command_returncode": 0,
+    "limitation": "Injected CPU failure, not a reproduction or cause of the native v1 failure. Exact invocation UTC was not sampled. It completed before observations_cutoff_utc."
+  },
+  "review_source_sha256": {
+    "process_lease_diagnostics.py": "3b99d3d83c113bac23104e6dddd5de9b8f4c99ea2a6986afd0af8410e78cb41f",
+    "tp2_dp2_cohort.py": "bdfd43857dab7b96e1749f7b6a99d14e82d7f7994de5d4bf0799582b89d1a7e5",
+    "scripts/native_tp2_dp2_cohort_worker.py": "4be7daa759f1f0c6a9ee8515d39ef6f8164206ac8afa75dada470baf6628119c",
+    "tests/test_native_tp2_dp2_cohort_cpu.py": "cb70cb7392f0c0de6dd879611d1a24594d30fcbc5e0f517417f1df5d65616f96",
+    "installed/vllm/v1/executor/multiproc_executor.py": "fb279ff0e0a08681aa0078037d559351006b5453ecd1b1ea12277995925f3312",
+    "installed/vllm/v1/engine/utils.py": "bc3fbc0fa6d8feb776b43ef008919ae4f28d732ce69bcd3b93649cd38795fc26",
+    "installed/vllm/utils/system_utils.py": "f22b8d420dcfde31f92114d7f5b916797d5dcce4b840bfddfc99d287ce185452"
+  },
+  "cpu_tests": {
+    "command": "/home/esjung/.venvs/cp-composition-vllm026/bin/python -m unittest poc_ouro_parallelism_deep_discovery.tests.test_process_lease_diagnostics_cpu poc_ouro_parallelism_deep_discovery.tests.test_native_tp2_dp2_cohort_cpu -q",
+    "cwd": "/home/esjung/MLLM-EP-ouro-deep-discovery",
+    "tests": 22,
+    "seconds": 0.524,
+    "verdict": "PASS"
+  },
+  "source_review": {
+    "callable_signature": "SUPPORTED by installed LLM.collective_rpc and MultiprocExecutor byte-callable dispatch.",
+    "privacy": "Only three permitted key names and presence/equality booleans are exported. No environment values are exported by snapshot.",
+    "authorization": "Diagnostic records authorize no process action. Existing strict lease checks remain required.",
+    "scope": "Inspected local multiprocess and EngineCore process constructors do not apply the Ray environment allowlist. This does not prove no other native startup code changes a value.",
+    "blocker_for_one_guarded_diagnostic_startup": false,
+    "root_cause": "UNRESOLVED"
+  }
+}

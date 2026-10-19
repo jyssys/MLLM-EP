@@ -1,0 +1,25 @@
+{
+  "status": "FROZEN_BEFORE_RESULTS",
+  "scope": "Conventional fixed-R4 TP2xDP2 closed-cohort baseline. No candidate, adaptive CDB, migration, or protected factorial run.",
+  "base_protocol": "artifacts/native_cohort_protocol_v2.json",
+  "base_protocol_sha256": "240eb229b37734a532c38c7e08d008a3dc2cabb98ec3c7be7d0f64d46b7d42f9",
+  "models": {
+    "1.4B": {"id": "ByteDance/Ouro-1.4B", "revision": "574fa66cb8bf5abdc979642d01cf2b79b16bfab1"},
+    "2.6B": {"id": "ByteDance/Ouro-2.6B", "revision": "1ed04250da1a9936042725d302e81c8fa2ab5abd"}
+  },
+  "replicas": 2,
+  "tensor_parallel_size_per_replica": 2,
+  "native_data_parallel_size_per_engine": 1,
+  "physical_groups": [[4, 5], [6, 7]],
+  "physical_gpus": [4, 5, 6, 7],
+  "assignment": "cohort_slot modulo 2. Static placement. Native scheduling inside each group remains unchanged.",
+  "kv_cache_memory_bytes_per_rank": 55834574848,
+  "barrier": "Both frontends READY before parent RELEASE, including an idle group. No per-token DP barrier.",
+  "metric": "Observed parent release-to-both-completed wall. Preserve local generate intervals and native request metrics separately.",
+  "startup_timeout_seconds": 1200,
+  "trial_timeout_seconds": 300,
+  "shutdown_timeout_seconds": 60,
+  "quality": "NOT_RUN",
+  "timing_status": "NOT_RUN",
+  "gpu_execution_by_implementer": false
+}

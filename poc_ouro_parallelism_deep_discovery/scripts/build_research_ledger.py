@@ -29,7 +29,10 @@ JSON_INPUTS=['coordinator_sources.json','independent_candidate_seeds.json',
     'long_context_capacity_source_audit.json','native_cohort_sampler_source_audit.json',
     'candidate_search_v7_source_observations.json','cuda_graph_argument_feasibility_v1.json',
     'lagged_ffn_component_source_screen_v1.json',
-    'candidate_search_v8_precomputed_arithmetic_sources.json']
+    'candidate_search_v8_precomputed_arithmetic_sources.json',
+    'hardware_counter_permission_sources_v1.json',
+    'candidate_search_v9_certified_kv_prefetch_sources.json',
+    'dp_attention_tp4_ffn_refinement_v1.json']
 
 def jsonl_kind(name, row):
     """Retain explicit types. Query-only ledgers do not create source observations."""
