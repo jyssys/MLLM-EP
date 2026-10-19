@@ -35,7 +35,11 @@ JSON_INPUTS=['coordinator_sources.json','independent_candidate_seeds.json',
     'dp_attention_tp4_ffn_refinement_v1.json',
     'adversarial_final_axis_search_v1.json',
     'primary_claim_reaudit_v1.json',
-    'setproctitle_noenv_source_review_v1.json']
+    'setproctitle_noenv_source_review_v1.json',
+    'native_fa3_tail_envelope_v1.json',
+    'vllm_rlt_runtime_source_observations_v1.json',
+    'rlt_final_source_search_v1.json',
+    'final_mechanism_negative_search_v1.json']
 
 def jsonl_kind(name, row):
     """Retain explicit types. Query-only ledgers do not create source observations."""
@@ -101,9 +105,14 @@ def main():
         path=ROOT/'artifacts'/name
         if not path.exists():continue
         value=read(path);provenance.append({'path':str(path.relative_to(ROOT)),'sha256':sha(path)})
-        for key in ['sources','external_sources','primary_sources','primary_observations','papers','code_blobs']:
+        for key in ['sources','external_sources','primary_sources','primary_observations','papers','code_blobs',
+                    'primary_numerical_documents','pinned_code']:
             for pointer,row in indexed_sources(value.get(key,[]),'/'+key):
                 source_records.append({'origin':str(path.relative_to(ROOT)),'json_pointer':pointer,'original':row})
+        if name=='native_fa3_tail_envelope_v1.json':
+            for index,query in enumerate(value.get('search_ledger',{}).get('queries',[])):
+                search_records.append({'origin':str(path.relative_to(ROOT)),
+                    'json_pointer':f'/search_ledger/queries/{index}','original':{'query':query}})
         for key in ['searches','search_batches','search_queries','source_searches']:
             entries=value.get(key,[])
             if not isinstance(entries,list):

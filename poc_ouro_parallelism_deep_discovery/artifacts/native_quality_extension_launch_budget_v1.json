@@ -1,0 +1,13 @@
+{
+  "status": "FROZEN_BEFORE_NATIVE_GPU_LAUNCH",
+  "source_contract": "artifacts/native_quality_extension_contract_v1.json",
+  "physical_gpus": [4, 5, 6, 7],
+  "execution": "Separate sequential guarded jobs. No concurrent TP4 arms.",
+  "model_order": ["1.4B", "2.6B"],
+  "outer_timeout_seconds_per_model": 3600,
+  "request_timeout_seconds": 1200,
+  "requests_required_per_model": 64,
+  "admission": "Native status success, all64 raw records, source and token/text checks, successful outer guard.",
+  "resource_rule": "Stop only verified owned utilization workers. Restore scoped burners after each arm. Do not affect other users or protected jobs.",
+  "scope": "Baseline natural-output robustness only. No architecture method or speedup claim."
+}

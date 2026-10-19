@@ -1,0 +1,55 @@
+INFO 10-20 03:26:24 [custom_all_reduce.py:213] Registering 32 cuda graph addresses
+INFO 10-20 03:26:24 [custom_all_reduce.py:213] Registering 32 cuda graph addresses
+PAIR 2 1 {'CUSTOM_AR_PAIR': 0.008817999623715878, 'STOCK_AG_RS_PAIR': 0.020746000111103058}
+INFO 10-20 03:26:26 [custom_all_reduce.py:213] Registering 32 cuda graph addresses
+INFO 10-20 03:26:26 [custom_all_reduce.py:213] Registering 32 cuda graph addresses
+PAIR 2 2 {'CUSTOM_AR_PAIR': 0.010963999666273594, 'STOCK_AG_RS_PAIR': 0.027661999687552452}
+INFO 10-20 03:26:26 [custom_all_reduce.py:213] Registering 32 cuda graph addresses
+INFO 10-20 03:26:26 [custom_all_reduce.py:213] Registering 32 cuda graph addresses
+PAIR 2 4 {'CUSTOM_AR_PAIR': 0.009627999737858772, 'STOCK_AG_RS_PAIR': 0.020495999604463577}
+INFO 10-20 03:26:26 [custom_all_reduce.py:213] Registering 32 cuda graph addresses
+INFO 10-20 03:26:26 [custom_all_reduce.py:213] Registering 32 cuda graph addresses
+PAIR 2 8 {'CUSTOM_AR_PAIR': 0.011114000342786312, 'STOCK_AG_RS_PAIR': 0.02350199967622757}
+INFO 10-20 03:26:27 [custom_all_reduce.py:213] Registering 32 cuda graph addresses
+INFO 10-20 03:26:27 [custom_all_reduce.py:213] Registering 32 cuda graph addresses
+PAIR 2 32 {'CUSTOM_AR_PAIR': 0.01075000036507845, 'STOCK_AG_RS_PAIR': 0.02281400002539158}
+INFO 10-20 03:26:27 [custom_all_reduce.py:213] Registering 32 cuda graph addresses
+INFO 10-20 03:26:27 [custom_all_reduce.py:213] Registering 32 cuda graph addresses
+PAIR 2 128 {'CUSTOM_AR_PAIR': 0.014436000026762486, 'STOCK_AG_RS_PAIR': 0.025690000504255295}
+W1020 03:31:03.371000 3594948 torch/distributed/elastic/agent/server/api.py:739] Received 15 death signal, shutting down workers
+W1020 03:31:03.372000 3594948 torch/distributed/elastic/multiprocessing/api.py:1012] Sending process 3595226 closing signal SIGTERM
+W1020 03:31:03.372000 3594948 torch/distributed/elastic/multiprocessing/api.py:1012] Sending process 3595227 closing signal SIGTERM
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/scripts/launch_components.py", line 6, in <module>
+    if __name__=='__main__':main()
+                            ~~~~^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py", line 362, in wrapper
+    return f(*args, **kwargs)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/distributed/run.py", line 990, in main
+    run(args)
+    ~~~^^^^^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/distributed/run.py", line 981, in run
+    elastic_launch(
+    ~~~~~~~~~~~~~~~
+        config=config,
+        ~~~~~~~~~~~~~~
+        entrypoint=cmd,
+        ~~~~~~~~~~~~~~~
+    )(*cmd_args)
+    ~^^^^^^^^^^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/distributed/launcher/api.py", line 170, in __call__
+    return launch_agent(self._config, self._entrypoint, list(args))
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/distributed/launcher/api.py", line 308, in launch_agent
+    result = agent.run()
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/distributed/elastic/metrics/api.py", line 134, in wrapper
+    result = f(*args, **kwargs)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/distributed/elastic/agent/server/api.py", line 731, in run
+    result = self._invoke_run(role)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/distributed/elastic/agent/server/api.py", line 908, in _invoke_run
+    time.sleep(monitor_interval)
+    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/distributed/elastic/multiprocessing/api.py", line 86, in _terminate_process_handler
+    raise SignalException(f"Process {os.getpid()} got signal: {sigval}", sigval=sigval)
+torch.distributed.elastic.multiprocessing.api.SignalException: Process 3594948 got signal: 15

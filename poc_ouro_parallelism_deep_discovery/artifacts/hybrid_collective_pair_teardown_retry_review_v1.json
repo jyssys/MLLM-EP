@@ -1,0 +1,132 @@
+{
+  "schema_version": 1,
+  "record_kind": "COLLECTIVE_PAIR_TEARDOWN_RETRY_CPU_REVIEW",
+  "status": "PASS_AFTER_DIAGNOSTIC_IO_REMEDY_RUNTIME_NOT_RUN",
+  "time_record": {
+    "segment_start_utc": "2026-10-19 18:31:53 UTC",
+    "verification_checkpoint_utc": "2026-10-19 18:34:29 UTC",
+    "active_seconds_through_checkpoint": 156,
+    "prior_pause_time_counted": false
+  },
+  "initial_retry_source_sha256": "0c617785debad9bb1a06c63ebcbf18d61e29349b2cde799c9edf5854c040df7d",
+  "final_retry_source_sha256": "d2746828ac401dc0497b752260b93da07ed5f21ab68ece2cbb556b4c2ebae3ba",
+  "preserved_v1_source_sha256": "36143ef03a69efe79ca470c54b943f4e9103e30d1632005bf04444e1d7e31b67",
+  "original_diagnostic_io_blocker": {
+    "initial_behavior": "Trace open, watchdog setup, and progress-write failures escaped the cleanup block before any NCCL/WORLD/AR teardown call.",
+    "initial_fake_cases": [
+      "trace_open_failure",
+      "watchdog_setup_failure",
+      "progress_write_failure"
+    ],
+    "red_result": "All three skipped every cleanup operation.",
+    "remedy": "Diagnostic setup and marker writes append errors. Teardown operations have separate protected attempts. Watchdog cancellation and trace close enter guaranteed finally.",
+    "final_status": "RESOLVED_FOR_TESTED_ORDINARY_EXCEPTIONS"
+  },
+  "source_checks": {
+    "frozen_v1_hash": "PASS",
+    "complete_per_C_loop_AST_identity": "PASS",
+    "unchanged_scope": "The identical AST includes payload initialization, pair bodies, warmup, capture, correctness, 31 trials, 16 pairs, order, event and host timing.",
+    "cleanup_order": [
+      "NCCL subgroup",
+      "Gloo WORLD",
+      "CustomAllreduce.close"
+    ],
+    "close_requires_live_group": false,
+    "close_group_limit": "Installed Python close passes rank explicitly and performs no dist query. Native teardown cause remains unproven."
+  },
+  "tests": {
+    "unit_tests": 4,
+    "unit_status": "PASS",
+    "extracted_actual_finally_cases": 10,
+    "fake_cases": [
+      {
+        "case": "normal",
+        "teardown_attempts": "NCCL/WORLD/AR",
+        "result": "SUCCESS_NO_CLEANUP_ERRORS"
+      },
+      {
+        "case": "trace_open_failure",
+        "teardown_attempts": "NCCL/WORLD/AR",
+        "result": "ERROR_RECORDED_FAILURE"
+      },
+      {
+        "case": "watchdog_setup_failure",
+        "teardown_attempts": "NCCL/WORLD/AR",
+        "result": "ERROR_RECORDED_FAILURE_TRACE_CLOSED"
+      },
+      {
+        "case": "progress_write_failure",
+        "teardown_attempts": "NCCL/WORLD/AR",
+        "result": "ALL_SIX_WRITE_ERRORS_RECORDED_FAILURE"
+      },
+      {
+        "case": "NCCL_failure",
+        "teardown_attempts": "NCCL/WORLD/AR",
+        "result": "ERROR_RECORDED_FAILURE"
+      },
+      {
+        "case": "WORLD_failure",
+        "teardown_attempts": "NCCL/WORLD/AR",
+        "result": "ERROR_RECORDED_FAILURE"
+      },
+      {
+        "case": "AR_failure",
+        "teardown_attempts": "NCCL/WORLD/AR",
+        "result": "ERROR_RECORDED_FAILURE"
+      },
+      {
+        "case": "watchdog_cancel_failure",
+        "teardown_attempts": "NCCL/WORLD/AR",
+        "result": "ERROR_RECORDED_FAILURE_TRACE_CLOSE_ATTEMPTED"
+      },
+      {
+        "case": "trace_close_failure",
+        "teardown_attempts": "NCCL/WORLD/AR",
+        "result": "ERROR_RECORDED_FAILURE"
+      },
+      {
+        "case": "local_status_write_failure",
+        "teardown_attempts": "NCCL/WORLD/AR",
+        "result": "IO_ERROR_AFTER_ALL_CLEANUP_ATTEMPTS_FAILS_CLOSED"
+      }
+    ],
+    "method": "Extract and compile the actual main finally AST. Inject fake dist, CustomAllreduce, faulthandler, file and write objects.",
+    "real_GPU_or_Torch_execution": false,
+    "limitation": "Synthetic local control flow cannot establish native completion, cross-rank ordering progress, or recovery from fatal CUDA errors."
+  },
+  "admission": [
+    "Fresh separately guarded output",
+    "All six functional/timing cells with frozen protocol",
+    "Successful outer guard",
+    "Every rank has local status with zero cleanup errors",
+    "v1 stays NOT_ADMITTED despite any retry success"
+  ],
+  "limits": [
+    "AFTER markers mean the attempt returned or raised into its handler. They are not success certificates.",
+    "UTC cleanup timestamps are CPU diagnostics, not communication timing or cross-rank clock alignment.",
+    "The final status write remains able to fail after all cleanup attempts. Such a failure must not be admitted.",
+    "AST identity does not establish identical measured timing.",
+    "A successful retry does not prove the cause of the v1 stall.",
+    "If this retry blocks, the contract stops the component investigation."
+  ],
+  "constraints": {
+    "reviewer_script_edits": false,
+    "GPU_execution": false,
+    "model_execution": false,
+    "process_actions": false,
+    "actual_outcomes_read": false,
+    "protected_result_inspection": false
+  },
+  "input_sha256": {
+    "scripts/hybrid_collective_pair_probe.py": "d2746828ac401dc0497b752260b93da07ed5f21ab68ece2cbb556b4c2ebae3ba",
+    "artifacts/hybrid_collective_pair_probe_v1.py": "36143ef03a69efe79ca470c54b943f4e9103e30d1632005bf04444e1d7e31b67",
+    "tests/test_hybrid_collective_pair_cpu.py": "48cdf1bf050d901fad8b82aa27bef91ae43d8aa8ee49e688df2b4ee7e5681174",
+    "reports/hybrid_collective_pair_teardown_retry_contract_v1.md": "95b5335890fc740a1375d1c5c8a6155192f012fc7ed47cb45e1e2ef049e9874e",
+    "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/distributed/device_communicators/custom_all_reduce.py": "3ed3ff9bbcaf361071ce6af77b879f5d269ba816366f56619cb3c21d486c52e7",
+    "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/distributed/parallel_state.py": "ecfa5eeda697e9982591c93eca835fcc53463267c1c22110700819efcecee74f"
+  },
+  "validation": {
+    "input_hashes": "PASS: six inputs",
+    "report_lint": "PASS: zero violations"
+  }
+}

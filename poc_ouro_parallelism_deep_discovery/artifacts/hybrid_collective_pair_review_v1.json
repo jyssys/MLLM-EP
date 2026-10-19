@@ -1,0 +1,160 @@
+{
+  "schema_version": 1,
+  "record_kind": "HYBRID_COLLECTIVE_PAIR_PRELAUNCH_CPU_SOURCE_REVIEW",
+  "status": "PASS_AFTER_FOUR_REMEDIES_RUNTIME_GATES_REQUIRED",
+  "time_record": {
+    "segment_start_utc": "2026-10-19 18:20:06 UTC",
+    "verification_checkpoint_utc": "2026-10-19 18:25:41 UTC",
+    "active_seconds_through_checkpoint": 335,
+    "prior_pause_time_counted": false,
+    "concurrent_worker_seconds_are_not_campaign_elapsed": true
+  },
+  "scope": {
+    "GPU_execution": false,
+    "model_execution": false,
+    "outcome_inspection": false,
+    "protected_result_inspection": false,
+    "script_edits_by_reviewer": false,
+    "package_changes": false,
+    "architecture_validation": "NOT_RUN",
+    "substitution_parity": "NOT_RUN"
+  },
+  "initial_source_sha256": {
+    "scripts/hybrid_collective_pair_probe.py": "3dfdc35b3698c3e78e72176e96e9d9f200b57d2bdbbcd4bab1d1e53c0c5d2d08",
+    "tests/test_hybrid_collective_pair_cpu.py": "a1b0f4433720a24449f16dbd01ac1b5fad3d35915ecc9c8b6f99f05fb348679e",
+    "reports/hybrid_collective_pair_contract_v1.md": "5501c397b7b2a1132c2f374a72172af972677673a8f22a95f4e3426662651e3a"
+  },
+  "findings": [
+    {
+      "id": "B1",
+      "initial": "Only allowed-mask membership and length were checked. Out-of-contract P2 masks and reordered P4 masks passed.",
+      "source": "scripts/hybrid_collective_pair_probe.py:27",
+      "remedy": "check_mask requires ordered [4,5] or [4,5,6,7].",
+      "status": "RESOLVED",
+      "CPU_evidence": "Current test_exact_masks passes. Earlier generic validate_mask accepted [4,6], [6,4], and [7,6,5,4]."
+    },
+    {
+      "id": "B2",
+      "initial": "Process-group setup and UUID checks preceded the cleanup try.",
+      "source": "scripts/hybrid_collective_pair_probe.py:59",
+      "remedy": "Setup enters try. Custom-AR close and process-group destruction have separate protected cleanup attempts.",
+      "status": "RESOLVED_FOR_ORDINARY_LOCAL_EXCEPTIONS",
+      "CPU_evidence": "Fake setup exception calls fake destroy_process_group and retains failure/local status records."
+    },
+    {
+      "id": "B3",
+      "initial": "Only PYTORCH_CUDA_ALLOC_CONF was pinned. The installed generic allocator header gives PYTORCH_ALLOC_CONF higher priority.",
+      "source": "scripts/hybrid_collective_pair_probe.py:43",
+      "remedy": "Both aliases are pinned before the first Torch import. A prior Torch import fails.",
+      "status": "RESOLVED_BY_SOURCE",
+      "CPU_evidence": "AST/source checks pass. No actual allocator or CUDA context queried."
+    },
+    {
+      "id": "B4",
+      "initial": "A mid-cell failure discarded already completed rank-local timing rows.",
+      "source": "scripts/hybrid_collective_pair_probe.py:186",
+      "remedy": "Each rank retains available CPU samples and phase in failure/local-status records without new CUDA queries in failure logging.",
+      "status": "RESOLVED_BY_SOURCE",
+      "CPU_evidence": "AST failure-handler check and fake setup-failure logging pass. No fake mid-graph recovery claim."
+    }
+  ],
+  "interface_checks": [
+    {
+      "subject": "Graph registration",
+      "source": "vllm/distributed/device_communicators/custom_all_reduce.py:196",
+      "assessment": "ar.capture encloses torch.cuda.graph and registers graph buffers on context exit. Captured calls use registered=True. Replay follows registration.",
+      "status": "SOURCE_SUPPORTED_RUNTIME_UNTESTED"
+    },
+    {
+      "subject": "Exact primitive selection",
+      "source": "scripts/hybrid_collective_pair_probe.py:69",
+      "assessment": "Disabled CustomAllreduce and either None return fail. All frozen payloads satisfy 16-byte divisibility and the default <8 MiB limit.",
+      "status": "PASS_SOURCE"
+    },
+    {
+      "subject": "Two groups",
+      "source": "scripts/hybrid_collective_pair_probe.py:61",
+      "assessment": "Gloo WORLD handles control and CustomAllreduce metadata. The separate all-rank NCCL group handles AG and SUM RS. Installed CustomAllreduce rejects NCCL as its metadata group.",
+      "status": "PASS_SOURCE"
+    },
+    {
+      "subject": "Stock collectives",
+      "source": "torch/distributed/distributed_c10d.py:4091",
+      "assessment": "Default async_op=False retains Work.wait stream ordering. reduce_scatter_tensor defaults to SUM. Runtime graph compatibility still needs capture and output gates.",
+      "status": "PASS_SOURCE"
+    },
+    {
+      "subject": "Padding and exact expectations",
+      "source": "scripts/hybrid_collective_pair_probe.py:128",
+      "assessment": "All 12 frozen P/C cases have consistent owner order, zero padding and RS=owned*P. AR first/second values are 3/6 at P2 and 10/40 at P4.",
+      "status": "PASS_CPU_INTEGER_MODEL"
+    },
+    {
+      "subject": "Buffer lifetime",
+      "source": "scripts/hybrid_collective_pair_probe.py:91",
+      "assessment": "Input/owner tensors remain unchanged during each cell. Graphs and final outputs remain referenced through all replays. Each cell finishes before the next shape. No replay is authorized after teardown.",
+      "status": "PASS_SOURCE_NOT_POINTER_MEASURED"
+    },
+    {
+      "subject": "Timing",
+      "source": "scripts/hybrid_collective_pair_probe.py:146",
+      "assessment": "Each event span encloses a graph with 16 complete serialized pairs. The summary selects the per-trial maximum rank-local duration. It does not combine component maxima or establish globally aligned makespan.",
+      "status": "PASS_NARROW_SCOPE"
+    }
+  ],
+  "tests": {
+    "initial_unit_tests": 3,
+    "current_unit_tests": 4,
+    "current_status": "PASS",
+    "frozen_integer_model_cases": 12,
+    "frozen_integer_model_status": "PASS",
+    "AST_lifecycle_checks": "PASS",
+    "fake_setup_failure_cleanup": "PASS",
+    "fake_failure_call_order": [
+      "set_device",
+      "init",
+      "destroy"
+    ],
+    "fake_retained_records": [
+      "failure_rank0.json",
+      "local_status_rank0.json"
+    ],
+    "harness_limit": "The first fake harness omitted the fake torch.distributed attribute and failed before setup. The corrected harness passes. This was a review-harness error, not a probe error.",
+    "CUDA_or_real_Torch_calls_in_fake_test": false
+  },
+  "admission_obligations": [
+    "Use a fresh guarded output directory and the exact ordered physical mask.",
+    "Require all captured functional fixture checks to pass on every rank before using timing.",
+    "Require successful outer guard, expected completed cells and rank-local cleanup records without errors.",
+    "Rank-0 status success alone is insufficient because it precedes cleanup.",
+    "Retain capture failures, partial CPU rows and failed guards. Do not relax the frozen protocol.",
+    "No claim of recovery from fatal CUDA errors or peer failure follows from local cleanup."
+  ],
+  "claim_limits": [
+    "Direct CustomAllreduce service is not the complete native TP dispatcher, model graph, or strongest native baseline.",
+    "AR/AR and AG/RS do not represent identical complete layer functions without omitted model operators.",
+    "Padding, launches and registered custom-AR graph operations are charged. Packing, attention, MLP, norms, gate, KV, scheduling and model state are absent.",
+    "Logical tensor capacities are not measured wire bytes, HBM reads, pure bandwidth, or critical-path shares.",
+    "Stock NCCL AG/RS does not exhaust fused or optimized hybrids.",
+    "A faster pair is a component opportunity. A slower pair is narrow evidence against the named stock service premise, not a universal architecture rejection.",
+    "Hidden-width compatibility does not validate either Base model or fixed/adaptive execution."
+  ],
+  "input_sha256": {
+    "scripts/hybrid_collective_pair_probe.py": "36143ef03a69efe79ca470c54b943f4e9103e30d1632005bf04444e1d7e31b67",
+    "tests/test_hybrid_collective_pair_cpu.py": "48cdf1bf050d901fad8b82aa27bef91ae43d8aa8ee49e688df2b4ee7e5681174",
+    "reports/hybrid_collective_pair_contract_v1.md": "60f41f8b9f77d00896a67115abc0788417baf616973c0f0e9a0753be0ce1c167",
+    "runtime.py": "03d8164fb359477525ef29e295b18397412f79b13f8253a72d386050c26c8fff",
+    "contract.py": "dc5dafe85aa5b8e3eb770f946bdaf34c7b730ca3a376245ee11d1488ac0f3492",
+    "scripts/launch_components.py": "1983eb539b4d33b4116b04e82849fae45f9b8093f47d3e1e63d820d790cb6825",
+    "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/distributed/device_communicators/custom_all_reduce.py": "3ed3ff9bbcaf361071ce6af77b879f5d269ba816366f56619cb3c21d486c52e7",
+    "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/cuda/graphs.py": "1f4cf2183a1ef1897787c0dc6d13d5afe3ab57de1dd76bb9345323fd64b742b0",
+    "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/distributed/distributed_c10d.py": "796ffcd9664734a85c0045a1657cbecf282142744eed15ee8ca300cccdd06803",
+    "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/include/c10/core/AllocatorConfig.h": "3253194bd557ee21319c16d9da5da62581e41af10d50a17a27a0422a9999acd5",
+    "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/include/c10/cuda/CUDAAllocatorConfig.h": "5886b1b5ec6337c41d5ed3826803db1422ef99e4130f9106db330b5d2b5759bb"
+  },
+  "validation": {
+    "input_hashes_rechecked": "PASS: 11 inputs",
+    "report_lint": "PASS: zero violations",
+    "no_remaining_source_blocker_within_scope": true
+  }
+}

@@ -1,0 +1,4509 @@
+{
+  "clean_E2E": "NOT_RUN",
+  "created_utc": "2026-10-19T18:34:17.691149+00:00",
+  "inner_pairs": 16,
+  "model_weights_loaded": false,
+  "ownership": [
+    {
+      "UUID": "6076e2f2-5b63-3761-5586-56ceb7df8139",
+      "custom_AR_enabled": true,
+      "model": "NVIDIA H100 80GB HBM3",
+      "physical_gpu": 4,
+      "rank": 0
+    },
+    {
+      "UUID": "a1a1cfcf-93a1-3544-9a5e-e58144b68730",
+      "custom_AR_enabled": true,
+      "model": "NVIDIA H100 80GB HBM3",
+      "physical_gpu": 5,
+      "rank": 1
+    }
+  ],
+  "purpose": "Test the named stock communication substitution,not a new architecture.",
+  "quality": "NOT_RUN",
+  "records": [
+    {
+      "C": 1,
+      "P": 2,
+      "boundary": "Maximum rank-local duration of each complete serialized pair. No absolute cross-GPU timestamp alignment.",
+      "collective_fixture_correctness": "PASS",
+      "evidence_class": "GPU_MICROBENCH",
+      "layout": {
+        "AG_input_bytes_per_rank": 4096,
+        "AG_output_bytes_per_rank": 8192,
+        "AR_input_bytes_per_rank_per_call": 4096,
+        "BF16_bytes": 2,
+        "RS_input_bytes_per_rank": 8192,
+        "RS_output_bytes_per_rank": 4096,
+        "hidden": 2048,
+        "local_rows": 1,
+        "note": "Tensor payload capacities,not measured link traffic. Padding remains charged.",
+        "padded_rows": 2,
+        "useful_rows": 1
+      },
+      "limitations": [
+        "No attention,MLP,norm,router,gate,KV,packing or row scheduling executes.",
+        "These pairs have different layouts/functions without the omitted model operators.",
+        "Pair timing is not full-layer parity,critical-path share or serving speedup.",
+        "Stock NCCL AG/RS does not cover every fused or optimized hybrid implementation.",
+        "Shape compatibility does not validate both model sizes or depth modes."
+      ],
+      "model_output_correctness": "NOT_RUN",
+      "per_rank": [
+        {
+          "rank": 0,
+          "samples": {
+            "CUSTOM_AR_PAIR": [
+              {
+                "event_ms_per_pair": 0.024601999670267105,
+                "host_ms_per_pair": 0.032529875,
+                "repeat": 0
+              },
+              {
+                "event_ms_per_pair": 0.009747999720275402,
+                "host_ms_per_pair": 0.0151558125,
+                "repeat": 1
+              },
+              {
+                "event_ms_per_pair": 0.018004000186920166,
+                "host_ms_per_pair": 0.0218846875,
+                "repeat": 2
+              },
+              {
+                "event_ms_per_pair": 0.013811999931931496,
+                "host_ms_per_pair": 0.0160389375,
+                "repeat": 3
+              },
+              {
+                "event_ms_per_pair": 0.009782000444829464,
+                "host_ms_per_pair": 0.011615375,
+                "repeat": 4
+              },
+              {
+                "event_ms_per_pair": 0.009995999746024609,
+                "host_ms_per_pair": 0.0119305,
+                "repeat": 5
+              },
+              {
+                "event_ms_per_pair": 0.00850799959152937,
+                "host_ms_per_pair": 0.0104558125,
+                "repeat": 6
+              },
+              {
+                "event_ms_per_pair": 0.009499999694526196,
+                "host_ms_per_pair": 0.01137575,
+                "repeat": 7
+              },
+              {
+                "event_ms_per_pair": 0.00875800009816885,
+                "host_ms_per_pair": 0.0106498125,
+                "repeat": 8
+              },
+              {
+                "event_ms_per_pair": 0.009176000021398067,
+                "host_ms_per_pair": 0.010944625,
+                "repeat": 9
+              },
+              {
+                "event_ms_per_pair": 0.008511999621987343,
+                "host_ms_per_pair": 0.0102834375,
+                "repeat": 10
+              },
+              {
+                "event_ms_per_pair": 0.00848000030964613,
+                "host_ms_per_pair": 0.010309375,
+                "repeat": 11
+              },
+              {
+                "event_ms_per_pair": 0.009333999827504158,
+                "host_ms_per_pair": 0.011569875,
+                "repeat": 12
+              },
+              {
+                "event_ms_per_pair": 0.00838799960911274,
+                "host_ms_per_pair": 0.0099899375,
+                "repeat": 13
+              },
+              {
+                "event_ms_per_pair": 0.008357999846339226,
+                "host_ms_per_pair": 0.00991025,
+                "repeat": 14
+              },
+              {
+                "event_ms_per_pair": 0.009833999909460545,
+                "host_ms_per_pair": 0.0113978125,
+                "repeat": 15
+              },
+              {
+                "event_ms_per_pair": 0.00838600005954504,
+                "host_ms_per_pair": 0.0099705625,
+                "repeat": 16
+              },
+              {
+                "event_ms_per_pair": 0.008332000114023685,
+                "host_ms_per_pair": 0.0098471875,
+                "repeat": 17
+              },
+              {
+                "event_ms_per_pair": 0.008345999754965305,
+                "host_ms_per_pair": 0.00989025,
+                "repeat": 18
+              },
+              {
+                "event_ms_per_pair": 0.008344000205397606,
+                "host_ms_per_pair": 0.00992825,
+                "repeat": 19
+              },
+              {
+                "event_ms_per_pair": 0.008340000174939632,
+                "host_ms_per_pair": 0.009923625,
+                "repeat": 20
+              },
+              {
+                "event_ms_per_pair": 0.008337999694049358,
+                "host_ms_per_pair": 0.0098096875,
+                "repeat": 21
+              },
+              {
+                "event_ms_per_pair": 0.00838799960911274,
+                "host_ms_per_pair": 0.010569,
+                "repeat": 22
+              },
+              {
+                "event_ms_per_pair": 0.008314000442624092,
+                "host_ms_per_pair": 0.0098355625,
+                "repeat": 23
+              },
+              {
+                "event_ms_per_pair": 0.008307999931275845,
+                "host_ms_per_pair": 0.0099414375,
+                "repeat": 24
+              },
+              {
+                "event_ms_per_pair": 0.009308000095188618,
+                "host_ms_per_pair": 0.0137575625,
+                "repeat": 25
+              },
+              {
+                "event_ms_per_pair": 0.012116000056266785,
+                "host_ms_per_pair": 0.0139160625,
+                "repeat": 26
+              },
+              {
+                "event_ms_per_pair": 0.009208000265061855,
+                "host_ms_per_pair": 0.013232875,
+                "repeat": 27
+              },
+              {
+                "event_ms_per_pair": 0.008875999599695206,
+                "host_ms_per_pair": 0.01192575,
+                "repeat": 28
+              },
+              {
+                "event_ms_per_pair": 0.009088000282645226,
+                "host_ms_per_pair": 0.01244275,
+                "repeat": 29
+              },
+              {
+                "event_ms_per_pair": 0.008778000250458717,
+                "host_ms_per_pair": 0.011542125,
+                "repeat": 30
+              }
+            ],
+            "STOCK_AG_RS_PAIR": [
+              {
+                "event_ms_per_pair": 0.018557999283075333,
+                "host_ms_per_pair": 0.021308,
+                "repeat": 0
+              },
+              {
+                "event_ms_per_pair": 0.017518000677227974,
+                "host_ms_per_pair": 0.020186875,
+                "repeat": 1
+              },
+              {
+                "event_ms_per_pair": 0.019842000678181648,
+                "host_ms_per_pair": 0.0255661875,
+                "repeat": 2
+              },
+              {
+                "event_ms_per_pair": 0.01964399963617325,
+                "host_ms_per_pair": 0.0246313125,
+                "repeat": 3
+              },
+              {
+                "event_ms_per_pair": 0.018185999244451523,
+                "host_ms_per_pair": 0.02013975,
+                "repeat": 4
+              },
+              {
+                "event_ms_per_pair": 0.017842000350356102,
+                "host_ms_per_pair": 0.0197756875,
+                "repeat": 5
+              },
+              {
+                "event_ms_per_pair": 0.017664000391960144,
+                "host_ms_per_pair": 0.01960975,
+                "repeat": 6
+              },
+              {
+                "event_ms_per_pair": 0.017934000119566917,
+                "host_ms_per_pair": 0.019798625,
+                "repeat": 7
+              },
+              {
+                "event_ms_per_pair": 0.01789199933409691,
+                "host_ms_per_pair": 0.020347375,
+                "repeat": 8
+              },
+              {
+                "event_ms_per_pair": 0.018279999494552612,
+                "host_ms_per_pair": 0.0201736875,
+                "repeat": 9
+              },
+              {
+                "event_ms_per_pair": 0.018588000908493996,
+                "host_ms_per_pair": 0.02039825,
+                "repeat": 10
+              },
+              {
+                "event_ms_per_pair": 0.01817999966442585,
+                "host_ms_per_pair": 0.02010925,
+                "repeat": 11
+              },
+              {
+                "event_ms_per_pair": 0.01819000020623207,
+                "host_ms_per_pair": 0.0197765625,
+                "repeat": 12
+              },
+              {
+                "event_ms_per_pair": 0.01919800043106079,
+                "host_ms_per_pair": 0.0207480625,
+                "repeat": 13
+              },
+              {
+                "event_ms_per_pair": 0.018578000366687775,
+                "host_ms_per_pair": 0.020194375,
+                "repeat": 14
+              },
+              {
+                "event_ms_per_pair": 0.018438000231981277,
+                "host_ms_per_pair": 0.0200024375,
+                "repeat": 15
+              },
+              {
+                "event_ms_per_pair": 0.01951799914240837,
+                "host_ms_per_pair": 0.0210559375,
+                "repeat": 16
+              },
+              {
+                "event_ms_per_pair": 0.018635999411344528,
+                "host_ms_per_pair": 0.02021675,
+                "repeat": 17
+              },
+              {
+                "event_ms_per_pair": 0.018397999927401543,
+                "host_ms_per_pair": 0.019956,
+                "repeat": 18
+              },
+              {
+                "event_ms_per_pair": 0.018370000645518303,
+                "host_ms_per_pair": 0.0198765625,
+                "repeat": 19
+              },
+              {
+                "event_ms_per_pair": 0.018516000360250473,
+                "host_ms_per_pair": 0.02001975,
+                "repeat": 20
+              },
+              {
+                "event_ms_per_pair": 0.018459999933838844,
+                "host_ms_per_pair": 0.0199720625,
+                "repeat": 21
+              },
+              {
+                "event_ms_per_pair": 0.018540000542998314,
+                "host_ms_per_pair": 0.0200945625,
+                "repeat": 22
+              },
+              {
+                "event_ms_per_pair": 0.020013999193906784,
+                "host_ms_per_pair": 0.021611125,
+                "repeat": 23
+              },
+              {
+                "event_ms_per_pair": 0.1754159927368164,
+                "host_ms_per_pair": 0.180268,
+                "repeat": 24
+              },
+              {
+                "event_ms_per_pair": 0.11765599995851517,
+                "host_ms_per_pair": 0.120159625,
+                "repeat": 25
+              },
+              {
+                "event_ms_per_pair": 0.018915999680757523,
+                "host_ms_per_pair": 0.0225256875,
+                "repeat": 26
+              },
+              {
+                "event_ms_per_pair": 0.017691999673843384,
+                "host_ms_per_pair": 0.0203398125,
+                "repeat": 27
+              },
+              {
+                "event_ms_per_pair": 0.019502000883221626,
+                "host_ms_per_pair": 0.02391775,
+                "repeat": 28
+              },
+              {
+                "event_ms_per_pair": 0.019802000373601913,
+                "host_ms_per_pair": 0.0250670625,
+                "repeat": 29
+              },
+              {
+                "event_ms_per_pair": 0.01785999909043312,
+                "host_ms_per_pair": 0.0208164375,
+                "repeat": 30
+              }
+            ]
+          }
+        },
+        {
+          "rank": 1,
+          "samples": {
+            "CUSTOM_AR_PAIR": [
+              {
+                "event_ms_per_pair": 0.029147999361157417,
+                "host_ms_per_pair": 0.037844375,
+                "repeat": 0
+              },
+              {
+                "event_ms_per_pair": 0.10602200031280518,
+                "host_ms_per_pair": 0.107836125,
+                "repeat": 1
+              },
+              {
+                "event_ms_per_pair": 0.009771999903023243,
+                "host_ms_per_pair": 0.015428375,
+                "repeat": 2
+              },
+              {
+                "event_ms_per_pair": 0.00952799990773201,
+                "host_ms_per_pair": 0.014074625,
+                "repeat": 3
+              },
+              {
+                "event_ms_per_pair": 0.008754000067710876,
+                "host_ms_per_pair": 0.0109910625,
+                "repeat": 4
+              },
+              {
+                "event_ms_per_pair": 0.008503999561071396,
+                "host_ms_per_pair": 0.010160625,
+                "repeat": 5
+              },
+              {
+                "event_ms_per_pair": 0.009986000135540962,
+                "host_ms_per_pair": 0.01160225,
+                "repeat": 6
+              },
+              {
+                "event_ms_per_pair": 0.008472000248730183,
+                "host_ms_per_pair": 0.0105848125,
+                "repeat": 7
+              },
+              {
+                "event_ms_per_pair": 0.008365999907255173,
+                "host_ms_per_pair": 0.0098873125,
+                "repeat": 8
+              },
+              {
+                "event_ms_per_pair": 0.008476000279188156,
+                "host_ms_per_pair": 0.0100406875,
+                "repeat": 9
+              },
+              {
+                "event_ms_per_pair": 0.008395999670028687,
+                "host_ms_per_pair": 0.009948125,
+                "repeat": 10
+              },
+              {
+                "event_ms_per_pair": 0.009014000184834003,
+                "host_ms_per_pair": 0.010592,
+                "repeat": 11
+              },
+              {
+                "event_ms_per_pair": 0.009712000377476215,
+                "host_ms_per_pair": 0.011301125,
+                "repeat": 12
+              },
+              {
+                "event_ms_per_pair": 0.011111999861896038,
+                "host_ms_per_pair": 0.0127458125,
+                "repeat": 13
+              },
+              {
+                "event_ms_per_pair": 0.008682000450789928,
+                "host_ms_per_pair": 0.01018925,
+                "repeat": 14
+              },
+              {
+                "event_ms_per_pair": 0.008440000005066395,
+                "host_ms_per_pair": 0.010015625,
+                "repeat": 15
+              },
+              {
+                "event_ms_per_pair": 0.009549999609589577,
+                "host_ms_per_pair": 0.0110321875,
+                "repeat": 16
+              },
+              {
+                "event_ms_per_pair": 0.00950200017541647,
+                "host_ms_per_pair": 0.011051375,
+                "repeat": 17
+              },
+              {
+                "event_ms_per_pair": 0.009402000345289707,
+                "host_ms_per_pair": 0.010866375,
+                "repeat": 18
+              },
+              {
+                "event_ms_per_pair": 0.008961999788880348,
+                "host_ms_per_pair": 0.011003625,
+                "repeat": 19
+              },
+              {
+                "event_ms_per_pair": 0.008910000324249268,
+                "host_ms_per_pair": 0.0104188125,
+                "repeat": 20
+              },
+              {
+                "event_ms_per_pair": 0.009147999808192253,
+                "host_ms_per_pair": 0.010614,
+                "repeat": 21
+              },
+              {
+                "event_ms_per_pair": 0.009933999739587307,
+                "host_ms_per_pair": 0.011354125,
+                "repeat": 22
+              },
+              {
+                "event_ms_per_pair": 0.008990000002086163,
+                "host_ms_per_pair": 0.0105434375,
+                "repeat": 23
+              },
+              {
+                "event_ms_per_pair": 0.009088000282645226,
+                "host_ms_per_pair": 0.0107104375,
+                "repeat": 24
+              },
+              {
+                "event_ms_per_pair": 0.009928000159561634,
+                "host_ms_per_pair": 0.0139448125,
+                "repeat": 25
+              },
+              {
+                "event_ms_per_pair": 0.008821999654173851,
+                "host_ms_per_pair": 0.01171075,
+                "repeat": 26
+              },
+              {
+                "event_ms_per_pair": 0.3144040107727051,
+                "host_ms_per_pair": 0.3201925625,
+                "repeat": 27
+              },
+              {
+                "event_ms_per_pair": 0.009730000048875809,
+                "host_ms_per_pair": 0.0119806875,
+                "repeat": 28
+              },
+              {
+                "event_ms_per_pair": 0.015297999605536461,
+                "host_ms_per_pair": 0.0173765625,
+                "repeat": 29
+              },
+              {
+                "event_ms_per_pair": 0.01080199982970953,
+                "host_ms_per_pair": 0.0136713125,
+                "repeat": 30
+              }
+            ],
+            "STOCK_AG_RS_PAIR": [
+              {
+                "event_ms_per_pair": 0.02412400022149086,
+                "host_ms_per_pair": 0.02626325,
+                "repeat": 0
+              },
+              {
+                "event_ms_per_pair": 0.01958400011062622,
+                "host_ms_per_pair": 0.0215854375,
+                "repeat": 1
+              },
+              {
+                "event_ms_per_pair": 0.07247000187635422,
+                "host_ms_per_pair": 0.0782019375,
+                "repeat": 2
+              },
+              {
+                "event_ms_per_pair": 0.028446000069379807,
+                "host_ms_per_pair": 0.03215925,
+                "repeat": 3
+              },
+              {
+                "event_ms_per_pair": 0.017513999715447426,
+                "host_ms_per_pair": 0.0193851875,
+                "repeat": 4
+              },
+              {
+                "event_ms_per_pair": 0.019492000341415405,
+                "host_ms_per_pair": 0.02131825,
+                "repeat": 5
+              },
+              {
+                "event_ms_per_pair": 0.018977999687194824,
+                "host_ms_per_pair": 0.0206171875,
+                "repeat": 6
+              },
+              {
+                "event_ms_per_pair": 0.01888200081884861,
+                "host_ms_per_pair": 0.0204473125,
+                "repeat": 7
+              },
+              {
+                "event_ms_per_pair": 0.018394000828266144,
+                "host_ms_per_pair": 0.0205160625,
+                "repeat": 8
+              },
+              {
+                "event_ms_per_pair": 0.020517999306321144,
+                "host_ms_per_pair": 0.0221033125,
+                "repeat": 9
+              },
+              {
+                "event_ms_per_pair": 0.018146000802516937,
+                "host_ms_per_pair": 0.01969025,
+                "repeat": 10
+              },
+              {
+                "event_ms_per_pair": 0.019290000200271606,
+                "host_ms_per_pair": 0.0209065625,
+                "repeat": 11
+              },
+              {
+                "event_ms_per_pair": 0.019001999869942665,
+                "host_ms_per_pair": 0.020578625,
+                "repeat": 12
+              },
+              {
+                "event_ms_per_pair": 0.018308000639081,
+                "host_ms_per_pair": 0.019856375,
+                "repeat": 13
+              },
+              {
+                "event_ms_per_pair": 0.01998399943113327,
+                "host_ms_per_pair": 0.021670375,
+                "repeat": 14
+              },
+              {
+                "event_ms_per_pair": 0.019293999299407005,
+                "host_ms_per_pair": 0.020851875,
+                "repeat": 15
+              },
+              {
+                "event_ms_per_pair": 0.01861399970948696,
+                "host_ms_per_pair": 0.0202169375,
+                "repeat": 16
+              },
+              {
+                "event_ms_per_pair": 0.01962600089609623,
+                "host_ms_per_pair": 0.0211841875,
+                "repeat": 17
+              },
+              {
+                "event_ms_per_pair": 0.019233999773859978,
+                "host_ms_per_pair": 0.020747375,
+                "repeat": 18
+              },
+              {
+                "event_ms_per_pair": 0.018438000231981277,
+                "host_ms_per_pair": 0.0199899375,
+                "repeat": 19
+              },
+              {
+                "event_ms_per_pair": 0.018743999302387238,
+                "host_ms_per_pair": 0.02025975,
+                "repeat": 20
+              },
+              {
+                "event_ms_per_pair": 0.018939999863505363,
+                "host_ms_per_pair": 0.02048475,
+                "repeat": 21
+              },
+              {
+                "event_ms_per_pair": 0.01914599910378456,
+                "host_ms_per_pair": 0.020654375,
+                "repeat": 22
+              },
+              {
+                "event_ms_per_pair": 0.01846799999475479,
+                "host_ms_per_pair": 0.0200314375,
+                "repeat": 23
+              },
+              {
+                "event_ms_per_pair": 0.01889199949800968,
+                "host_ms_per_pair": 0.021108,
+                "repeat": 24
+              },
+              {
+                "event_ms_per_pair": 0.019564000889658928,
+                "host_ms_per_pair": 0.025982,
+                "repeat": 25
+              },
+              {
+                "event_ms_per_pair": 0.02187800034880638,
+                "host_ms_per_pair": 0.02410125,
+                "repeat": 26
+              },
+              {
+                "event_ms_per_pair": 0.017392000183463097,
+                "host_ms_per_pair": 0.019608125,
+                "repeat": 27
+              },
+              {
+                "event_ms_per_pair": 0.02686000056564808,
+                "host_ms_per_pair": 0.029079625,
+                "repeat": 28
+              },
+              {
+                "event_ms_per_pair": 0.02828799933195114,
+                "host_ms_per_pair": 0.030451875,
+                "repeat": 29
+              },
+              {
+                "event_ms_per_pair": 0.01875399984419346,
+                "host_ms_per_pair": 0.020614875,
+                "repeat": 30
+              }
+            ]
+          }
+        }
+      ],
+      "physical_gpus": [
+        4,
+        5
+      ],
+      "timing": {
+        "CUSTOM_AR_PAIR": {
+          "critical_event_ms": [
+            0.029147999361157417,
+            0.10602200031280518,
+            0.018004000186920166,
+            0.013811999931931496,
+            0.009782000444829464,
+            0.009995999746024609,
+            0.009986000135540962,
+            0.009499999694526196,
+            0.00875800009816885,
+            0.009176000021398067,
+            0.008511999621987343,
+            0.009014000184834003,
+            0.009712000377476215,
+            0.011111999861896038,
+            0.008682000450789928,
+            0.009833999909460545,
+            0.009549999609589577,
+            0.00950200017541647,
+            0.009402000345289707,
+            0.008961999788880348,
+            0.008910000324249268,
+            0.009147999808192253,
+            0.009933999739587307,
+            0.008990000002086163,
+            0.009088000282645226,
+            0.009928000159561634,
+            0.012116000056266785,
+            0.3144040107727051,
+            0.009730000048875809,
+            0.015297999605536461,
+            0.01080199982970953
+          ],
+          "median_critical_event_ms": 0.009730000048875809
+        },
+        "STOCK_AG_RS_PAIR": {
+          "critical_event_ms": [
+            0.02412400022149086,
+            0.01958400011062622,
+            0.07247000187635422,
+            0.028446000069379807,
+            0.018185999244451523,
+            0.019492000341415405,
+            0.018977999687194824,
+            0.01888200081884861,
+            0.018394000828266144,
+            0.020517999306321144,
+            0.018588000908493996,
+            0.019290000200271606,
+            0.019001999869942665,
+            0.01919800043106079,
+            0.01998399943113327,
+            0.019293999299407005,
+            0.01951799914240837,
+            0.01962600089609623,
+            0.019233999773859978,
+            0.018438000231981277,
+            0.018743999302387238,
+            0.018939999863505363,
+            0.01914599910378456,
+            0.020013999193906784,
+            0.1754159927368164,
+            0.11765599995851517,
+            0.02187800034880638,
+            0.017691999673843384,
+            0.02686000056564808,
+            0.02828799933195114,
+            0.01875399984419346
+          ],
+          "median_critical_event_ms": 0.019293999299407005
+        }
+      },
+      "traffic_scope": "Logical tensor capacities. No physical link counter or pure bandwidth interval."
+    },
+    {
+      "C": 2,
+      "P": 2,
+      "boundary": "Maximum rank-local duration of each complete serialized pair. No absolute cross-GPU timestamp alignment.",
+      "collective_fixture_correctness": "PASS",
+      "evidence_class": "GPU_MICROBENCH",
+      "layout": {
+        "AG_input_bytes_per_rank": 4096,
+        "AG_output_bytes_per_rank": 8192,
+        "AR_input_bytes_per_rank_per_call": 8192,
+        "BF16_bytes": 2,
+        "RS_input_bytes_per_rank": 8192,
+        "RS_output_bytes_per_rank": 4096,
+        "hidden": 2048,
+        "local_rows": 1,
+        "note": "Tensor payload capacities,not measured link traffic. Padding remains charged.",
+        "padded_rows": 2,
+        "useful_rows": 2
+      },
+      "limitations": [
+        "No attention,MLP,norm,router,gate,KV,packing or row scheduling executes.",
+        "These pairs have different layouts/functions without the omitted model operators.",
+        "Pair timing is not full-layer parity,critical-path share or serving speedup.",
+        "Stock NCCL AG/RS does not cover every fused or optimized hybrid implementation.",
+        "Shape compatibility does not validate both model sizes or depth modes."
+      ],
+      "model_output_correctness": "NOT_RUN",
+      "per_rank": [
+        {
+          "rank": 0,
+          "samples": {
+            "CUSTOM_AR_PAIR": [
+              {
+                "event_ms_per_pair": 0.009291999973356724,
+                "host_ms_per_pair": 0.012701875,
+                "repeat": 0
+              },
+              {
+                "event_ms_per_pair": 0.00901199970394373,
+                "host_ms_per_pair": 0.0116895625,
+                "repeat": 1
+              },
+              {
+                "event_ms_per_pair": 0.008944000117480755,
+                "host_ms_per_pair": 0.011402875,
+                "repeat": 2
+              },
+              {
+                "event_ms_per_pair": 0.009093999862670898,
+                "host_ms_per_pair": 0.011714875,
+                "repeat": 3
+              },
+              {
+                "event_ms_per_pair": 0.009015999734401703,
+                "host_ms_per_pair": 0.0115725625,
+                "repeat": 4
+              },
+              {
+                "event_ms_per_pair": 0.009050000458955765,
+                "host_ms_per_pair": 0.0116065,
+                "repeat": 5
+              },
+              {
+                "event_ms_per_pair": 0.008949999697506428,
+                "host_ms_per_pair": 0.01142325,
+                "repeat": 6
+              },
+              {
+                "event_ms_per_pair": 0.011269999668002129,
+                "host_ms_per_pair": 0.0197525625,
+                "repeat": 7
+              },
+              {
+                "event_ms_per_pair": 0.010665999725461006,
+                "host_ms_per_pair": 0.0175688125,
+                "repeat": 8
+              },
+              {
+                "event_ms_per_pair": 0.010184000246226788,
+                "host_ms_per_pair": 0.0156654375,
+                "repeat": 9
+              },
+              {
+                "event_ms_per_pair": 0.010073999874293804,
+                "host_ms_per_pair": 0.016459625,
+                "repeat": 10
+              },
+              {
+                "event_ms_per_pair": 0.009801999665796757,
+                "host_ms_per_pair": 0.014160625,
+                "repeat": 11
+              },
+              {
+                "event_ms_per_pair": 0.009568000212311745,
+                "host_ms_per_pair": 0.0139075625,
+                "repeat": 12
+              },
+              {
+                "event_ms_per_pair": 0.009642000310122967,
+                "host_ms_per_pair": 0.013783875,
+                "repeat": 13
+              },
+              {
+                "event_ms_per_pair": 0.009437999688088894,
+                "host_ms_per_pair": 0.0138455,
+                "repeat": 14
+              },
+              {
+                "event_ms_per_pair": 0.009933999739587307,
+                "host_ms_per_pair": 0.0140233125,
+                "repeat": 15
+              },
+              {
+                "event_ms_per_pair": 0.009366000071167946,
+                "host_ms_per_pair": 0.0128934375,
+                "repeat": 16
+              },
+              {
+                "event_ms_per_pair": 0.009415999986231327,
+                "host_ms_per_pair": 0.0130608125,
+                "repeat": 17
+              },
+              {
+                "event_ms_per_pair": 0.009333999827504158,
+                "host_ms_per_pair": 0.0128315,
+                "repeat": 18
+              },
+              {
+                "event_ms_per_pair": 0.009251999668776989,
+                "host_ms_per_pair": 0.012492125,
+                "repeat": 19
+              },
+              {
+                "event_ms_per_pair": 0.009909999556839466,
+                "host_ms_per_pair": 0.0129329375,
+                "repeat": 20
+              },
+              {
+                "event_ms_per_pair": 0.009309999644756317,
+                "host_ms_per_pair": 0.0124255625,
+                "repeat": 21
+              },
+              {
+                "event_ms_per_pair": 0.009158000349998474,
+                "host_ms_per_pair": 0.0121614375,
+                "repeat": 22
+              },
+              {
+                "event_ms_per_pair": 0.00919399969279766,
+                "host_ms_per_pair": 0.0122115,
+                "repeat": 23
+              },
+              {
+                "event_ms_per_pair": 0.009135999716818333,
+                "host_ms_per_pair": 0.012107125,
+                "repeat": 24
+              },
+              {
+                "event_ms_per_pair": 0.00913199968636036,
+                "host_ms_per_pair": 0.011945125,
+                "repeat": 25
+              },
+              {
+                "event_ms_per_pair": 0.00911800004541874,
+                "host_ms_per_pair": 0.0118653125,
+                "repeat": 26
+              },
+              {
+                "event_ms_per_pair": 0.009108000434935093,
+                "host_ms_per_pair": 0.0118670625,
+                "repeat": 27
+              },
+              {
+                "event_ms_per_pair": 0.008973999880254269,
+                "host_ms_per_pair": 0.0115010625,
+                "repeat": 28
+              },
+              {
+                "event_ms_per_pair": 0.009115999564528465,
+                "host_ms_per_pair": 0.01191,
+                "repeat": 29
+              },
+              {
+                "event_ms_per_pair": 0.0096220001578331,
+                "host_ms_per_pair": 0.0121403125,
+                "repeat": 30
+              }
+            ],
+            "STOCK_AG_RS_PAIR": [
+              {
+                "event_ms_per_pair": 0.017952000722289085,
+                "host_ms_per_pair": 0.0205894375,
+                "repeat": 0
+              },
+              {
+                "event_ms_per_pair": 0.018626000732183456,
+                "host_ms_per_pair": 0.0212386875,
+                "repeat": 1
+              },
+              {
+                "event_ms_per_pair": 0.018479999154806137,
+                "host_ms_per_pair": 0.02099975,
+                "repeat": 2
+              },
+              {
+                "event_ms_per_pair": 0.018713999539613724,
+                "host_ms_per_pair": 0.021475375,
+                "repeat": 3
+              },
+              {
+                "event_ms_per_pair": 0.01878800056874752,
+                "host_ms_per_pair": 0.0213708125,
+                "repeat": 4
+              },
+              {
+                "event_ms_per_pair": 0.018347999081015587,
+                "host_ms_per_pair": 0.021057,
+                "repeat": 5
+              },
+              {
+                "event_ms_per_pair": 0.019091999158263206,
+                "host_ms_per_pair": 0.0216068125,
+                "repeat": 6
+              },
+              {
+                "event_ms_per_pair": 0.018060000613331795,
+                "host_ms_per_pair": 0.020700375,
+                "repeat": 7
+              },
+              {
+                "event_ms_per_pair": 0.02132200077176094,
+                "host_ms_per_pair": 0.028332,
+                "repeat": 8
+              },
+              {
+                "event_ms_per_pair": 0.01899000070989132,
+                "host_ms_per_pair": 0.0248126875,
+                "repeat": 9
+              },
+              {
+                "event_ms_per_pair": 0.018918000161647797,
+                "host_ms_per_pair": 0.0243864375,
+                "repeat": 10
+              },
+              {
+                "event_ms_per_pair": 0.019009999930858612,
+                "host_ms_per_pair": 0.0238085625,
+                "repeat": 11
+              },
+              {
+                "event_ms_per_pair": 0.018977999687194824,
+                "host_ms_per_pair": 0.023184625,
+                "repeat": 12
+              },
+              {
+                "event_ms_per_pair": 0.01895800046622753,
+                "host_ms_per_pair": 0.0249035,
+                "repeat": 13
+              },
+              {
+                "event_ms_per_pair": 0.018828000873327255,
+                "host_ms_per_pair": 0.0226565,
+                "repeat": 14
+              },
+              {
+                "event_ms_per_pair": 0.018890000879764557,
+                "host_ms_per_pair": 0.022609375,
+                "repeat": 15
+              },
+              {
+                "event_ms_per_pair": 0.019114000722765923,
+                "host_ms_per_pair": 0.0236031875,
+                "repeat": 16
+              },
+              {
+                "event_ms_per_pair": 0.01874000020325184,
+                "host_ms_per_pair": 0.0222863125,
+                "repeat": 17
+              },
+              {
+                "event_ms_per_pair": 0.019053999334573746,
+                "host_ms_per_pair": 0.022379625,
+                "repeat": 18
+              },
+              {
+                "event_ms_per_pair": 0.018807999789714813,
+                "host_ms_per_pair": 0.0222263125,
+                "repeat": 19
+              },
+              {
+                "event_ms_per_pair": 0.018904000520706177,
+                "host_ms_per_pair": 0.021783375,
+                "repeat": 20
+              },
+              {
+                "event_ms_per_pair": 0.01894799992442131,
+                "host_ms_per_pair": 0.0220620625,
+                "repeat": 21
+              },
+              {
+                "event_ms_per_pair": 0.01907999999821186,
+                "host_ms_per_pair": 0.0220265625,
+                "repeat": 22
+              },
+              {
+                "event_ms_per_pair": 0.01899999938905239,
+                "host_ms_per_pair": 0.0221505,
+                "repeat": 23
+              },
+              {
+                "event_ms_per_pair": 0.018959999084472656,
+                "host_ms_per_pair": 0.0216386875,
+                "repeat": 24
+              },
+              {
+                "event_ms_per_pair": 0.019020000472664833,
+                "host_ms_per_pair": 0.0221941875,
+                "repeat": 25
+              },
+              {
+                "event_ms_per_pair": 0.019077999517321587,
+                "host_ms_per_pair": 0.021840125,
+                "repeat": 26
+              },
+              {
+                "event_ms_per_pair": 0.018624000251293182,
+                "host_ms_per_pair": 0.02168875,
+                "repeat": 27
+              },
+              {
+                "event_ms_per_pair": 0.01893400028347969,
+                "host_ms_per_pair": 0.0216935,
+                "repeat": 28
+              },
+              {
+                "event_ms_per_pair": 0.019185999408364296,
+                "host_ms_per_pair": 0.02292175,
+                "repeat": 29
+              },
+              {
+                "event_ms_per_pair": 0.019166000187397003,
+                "host_ms_per_pair": 0.0218045,
+                "repeat": 30
+              }
+            ]
+          }
+        },
+        {
+          "rank": 1,
+          "samples": {
+            "CUSTOM_AR_PAIR": [
+              {
+                "event_ms_per_pair": 0.0098879998549819,
+                "host_ms_per_pair": 0.0128983125,
+                "repeat": 0
+              },
+              {
+                "event_ms_per_pair": 0.010479999706149101,
+                "host_ms_per_pair": 0.0122648125,
+                "repeat": 1
+              },
+              {
+                "event_ms_per_pair": 0.010553999803960323,
+                "host_ms_per_pair": 0.0121884375,
+                "repeat": 2
+              },
+              {
+                "event_ms_per_pair": 0.011587999761104584,
+                "host_ms_per_pair": 0.013174375,
+                "repeat": 3
+              },
+              {
+                "event_ms_per_pair": 0.01097199972718954,
+                "host_ms_per_pair": 0.012547625,
+                "repeat": 4
+              },
+              {
+                "event_ms_per_pair": 0.011668000370264053,
+                "host_ms_per_pair": 0.013214625,
+                "repeat": 5
+              },
+              {
+                "event_ms_per_pair": 0.00992400012910366,
+                "host_ms_per_pair": 0.0115953125,
+                "repeat": 6
+              },
+              {
+                "event_ms_per_pair": 0.02129399962723255,
+                "host_ms_per_pair": 0.023020375,
+                "repeat": 7
+              },
+              {
+                "event_ms_per_pair": 0.016628000885248184,
+                "host_ms_per_pair": 0.0181714375,
+                "repeat": 8
+              },
+              {
+                "event_ms_per_pair": 0.016434000805020332,
+                "host_ms_per_pair": 0.01800625,
+                "repeat": 9
+              },
+              {
+                "event_ms_per_pair": 0.015111999586224556,
+                "host_ms_per_pair": 0.016723,
+                "repeat": 10
+              },
+              {
+                "event_ms_per_pair": 0.014469999819993973,
+                "host_ms_per_pair": 0.0160605625,
+                "repeat": 11
+              },
+              {
+                "event_ms_per_pair": 0.012199999764561653,
+                "host_ms_per_pair": 0.013881375,
+                "repeat": 12
+              },
+              {
+                "event_ms_per_pair": 0.013291999697685242,
+                "host_ms_per_pair": 0.0148765,
+                "repeat": 13
+              },
+              {
+                "event_ms_per_pair": 0.01228800043463707,
+                "host_ms_per_pair": 0.0138733125,
+                "repeat": 14
+              },
+              {
+                "event_ms_per_pair": 0.014043999835848808,
+                "host_ms_per_pair": 0.015648,
+                "repeat": 15
+              },
+              {
+                "event_ms_per_pair": 0.010941999964416027,
+                "host_ms_per_pair": 0.0124869375,
+                "repeat": 16
+              },
+              {
+                "event_ms_per_pair": 0.01329800020903349,
+                "host_ms_per_pair": 0.0149093125,
+                "repeat": 17
+              },
+              {
+                "event_ms_per_pair": 0.011265999637544155,
+                "host_ms_per_pair": 0.01298975,
+                "repeat": 18
+              },
+              {
+                "event_ms_per_pair": 0.011562000028789043,
+                "host_ms_per_pair": 0.013115375,
+                "repeat": 19
+              },
+              {
+                "event_ms_per_pair": 0.011257999576628208,
+                "host_ms_per_pair": 0.0128803125,
+                "repeat": 20
+              },
+              {
+                "event_ms_per_pair": 0.0122079998254776,
+                "host_ms_per_pair": 0.0137538125,
+                "repeat": 21
+              },
+              {
+                "event_ms_per_pair": 0.010448000393807888,
+                "host_ms_per_pair": 0.011989875,
+                "repeat": 22
+              },
+              {
+                "event_ms_per_pair": 0.012264000251889229,
+                "host_ms_per_pair": 0.0138218125,
+                "repeat": 23
+              },
+              {
+                "event_ms_per_pair": 0.010521999560296535,
+                "host_ms_per_pair": 0.0120188125,
+                "repeat": 24
+              },
+              {
+                "event_ms_per_pair": 0.011963999830186367,
+                "host_ms_per_pair": 0.0134505625,
+                "repeat": 25
+              },
+              {
+                "event_ms_per_pair": 0.008550000376999378,
+                "host_ms_per_pair": 0.0100426875,
+                "repeat": 26
+              },
+              {
+                "event_ms_per_pair": 0.011912000365555286,
+                "host_ms_per_pair": 0.013343875,
+                "repeat": 27
+              },
+              {
+                "event_ms_per_pair": 0.009414000436663628,
+                "host_ms_per_pair": 0.010871125,
+                "repeat": 28
+              },
+              {
+                "event_ms_per_pair": 0.012292000465095043,
+                "host_ms_per_pair": 0.0137601875,
+                "repeat": 29
+              },
+              {
+                "event_ms_per_pair": 0.010758000425994396,
+                "host_ms_per_pair": 0.0123063125,
+                "repeat": 30
+              }
+            ],
+            "STOCK_AG_RS_PAIR": [
+              {
+                "event_ms_per_pair": 0.02059200033545494,
+                "host_ms_per_pair": 0.022435375,
+                "repeat": 0
+              },
+              {
+                "event_ms_per_pair": 0.021341999992728233,
+                "host_ms_per_pair": 0.0230415625,
+                "repeat": 1
+              },
+              {
+                "event_ms_per_pair": 0.020665999501943588,
+                "host_ms_per_pair": 0.02247075,
+                "repeat": 2
+              },
+              {
+                "event_ms_per_pair": 0.02135000005364418,
+                "host_ms_per_pair": 0.023032,
+                "repeat": 3
+              },
+              {
+                "event_ms_per_pair": 0.022019999101758003,
+                "host_ms_per_pair": 0.0236085625,
+                "repeat": 4
+              },
+              {
+                "event_ms_per_pair": 0.017906000837683678,
+                "host_ms_per_pair": 0.019474125,
+                "repeat": 5
+              },
+              {
+                "event_ms_per_pair": 0.02234400063753128,
+                "host_ms_per_pair": 0.023935,
+                "repeat": 6
+              },
+              {
+                "event_ms_per_pair": 0.017791999503970146,
+                "host_ms_per_pair": 0.01946925,
+                "repeat": 7
+              },
+              {
+                "event_ms_per_pair": 0.03134800121188164,
+                "host_ms_per_pair": 0.0328639375,
+                "repeat": 8
+              },
+              {
+                "event_ms_per_pair": 0.026677999645471573,
+                "host_ms_per_pair": 0.0282584375,
+                "repeat": 9
+              },
+              {
+                "event_ms_per_pair": 0.028006000444293022,
+                "host_ms_per_pair": 0.029819625,
+                "repeat": 10
+              },
+              {
+                "event_ms_per_pair": 0.02580600045621395,
+                "host_ms_per_pair": 0.0274415625,
+                "repeat": 11
+              },
+              {
+                "event_ms_per_pair": 0.02582000009715557,
+                "host_ms_per_pair": 0.0274070625,
+                "repeat": 12
+              },
+              {
+                "event_ms_per_pair": 0.026264000684022903,
+                "host_ms_per_pair": 0.0279000625,
+                "repeat": 13
+              },
+              {
+                "event_ms_per_pair": 0.0238220002502203,
+                "host_ms_per_pair": 0.0255128125,
+                "repeat": 14
+              },
+              {
+                "event_ms_per_pair": 0.022905999794602394,
+                "host_ms_per_pair": 0.0244856875,
+                "repeat": 15
+              },
+              {
+                "event_ms_per_pair": 0.02591799944639206,
+                "host_ms_per_pair": 0.0274289375,
+                "repeat": 16
+              },
+              {
+                "event_ms_per_pair": 0.021803999319672585,
+                "host_ms_per_pair": 0.02335975,
+                "repeat": 17
+              },
+              {
+                "event_ms_per_pair": 0.02413799986243248,
+                "host_ms_per_pair": 0.0257938125,
+                "repeat": 18
+              },
+              {
+                "event_ms_per_pair": 0.02422199957072735,
+                "host_ms_per_pair": 0.0258868125,
+                "repeat": 19
+              },
+              {
+                "event_ms_per_pair": 0.023097999393939972,
+                "host_ms_per_pair": 0.0246295625,
+                "repeat": 20
+              },
+              {
+                "event_ms_per_pair": 0.02332399971783161,
+                "host_ms_per_pair": 0.0253341875,
+                "repeat": 21
+              },
+              {
+                "event_ms_per_pair": 0.023787999525666237,
+                "host_ms_per_pair": 0.0252925,
+                "repeat": 22
+              },
+              {
+                "event_ms_per_pair": 0.02210400067269802,
+                "host_ms_per_pair": 0.0236565,
+                "repeat": 23
+              },
+              {
+                "event_ms_per_pair": 0.02297399938106537,
+                "host_ms_per_pair": 0.024452875,
+                "repeat": 24
+              },
+              {
+                "event_ms_per_pair": 0.022336000576615334,
+                "host_ms_per_pair": 0.0238435625,
+                "repeat": 25
+              },
+              {
+                "event_ms_per_pair": 0.023207999765872955,
+                "host_ms_per_pair": 0.024829375,
+                "repeat": 26
+              },
+              {
+                "event_ms_per_pair": 0.01960800029337406,
+                "host_ms_per_pair": 0.0210745,
+                "repeat": 27
+              },
+              {
+                "event_ms_per_pair": 0.022938000038266182,
+                "host_ms_per_pair": 0.0244120625,
+                "repeat": 28
+              },
+              {
+                "event_ms_per_pair": 0.022606000304222107,
+                "host_ms_per_pair": 0.0240686875,
+                "repeat": 29
+              },
+              {
+                "event_ms_per_pair": 0.02327200025320053,
+                "host_ms_per_pair": 0.024733625,
+                "repeat": 30
+              }
+            ]
+          }
+        }
+      ],
+      "physical_gpus": [
+        4,
+        5
+      ],
+      "timing": {
+        "CUSTOM_AR_PAIR": {
+          "critical_event_ms": [
+            0.0098879998549819,
+            0.010479999706149101,
+            0.010553999803960323,
+            0.011587999761104584,
+            0.01097199972718954,
+            0.011668000370264053,
+            0.00992400012910366,
+            0.02129399962723255,
+            0.016628000885248184,
+            0.016434000805020332,
+            0.015111999586224556,
+            0.014469999819993973,
+            0.012199999764561653,
+            0.013291999697685242,
+            0.01228800043463707,
+            0.014043999835848808,
+            0.010941999964416027,
+            0.01329800020903349,
+            0.011265999637544155,
+            0.011562000028789043,
+            0.011257999576628208,
+            0.0122079998254776,
+            0.010448000393807888,
+            0.012264000251889229,
+            0.010521999560296535,
+            0.011963999830186367,
+            0.00911800004541874,
+            0.011912000365555286,
+            0.009414000436663628,
+            0.012292000465095043,
+            0.010758000425994396
+          ],
+          "median_critical_event_ms": 0.011668000370264053
+        },
+        "STOCK_AG_RS_PAIR": {
+          "critical_event_ms": [
+            0.02059200033545494,
+            0.021341999992728233,
+            0.020665999501943588,
+            0.02135000005364418,
+            0.022019999101758003,
+            0.018347999081015587,
+            0.02234400063753128,
+            0.018060000613331795,
+            0.03134800121188164,
+            0.026677999645471573,
+            0.028006000444293022,
+            0.02580600045621395,
+            0.02582000009715557,
+            0.026264000684022903,
+            0.0238220002502203,
+            0.022905999794602394,
+            0.02591799944639206,
+            0.021803999319672585,
+            0.02413799986243248,
+            0.02422199957072735,
+            0.023097999393939972,
+            0.02332399971783161,
+            0.023787999525666237,
+            0.02210400067269802,
+            0.02297399938106537,
+            0.022336000576615334,
+            0.023207999765872955,
+            0.01960800029337406,
+            0.022938000038266182,
+            0.022606000304222107,
+            0.02327200025320053
+          ],
+          "median_critical_event_ms": 0.02297399938106537
+        }
+      },
+      "traffic_scope": "Logical tensor capacities. No physical link counter or pure bandwidth interval."
+    },
+    {
+      "C": 4,
+      "P": 2,
+      "boundary": "Maximum rank-local duration of each complete serialized pair. No absolute cross-GPU timestamp alignment.",
+      "collective_fixture_correctness": "PASS",
+      "evidence_class": "GPU_MICROBENCH",
+      "layout": {
+        "AG_input_bytes_per_rank": 8192,
+        "AG_output_bytes_per_rank": 16384,
+        "AR_input_bytes_per_rank_per_call": 16384,
+        "BF16_bytes": 2,
+        "RS_input_bytes_per_rank": 16384,
+        "RS_output_bytes_per_rank": 8192,
+        "hidden": 2048,
+        "local_rows": 2,
+        "note": "Tensor payload capacities,not measured link traffic. Padding remains charged.",
+        "padded_rows": 4,
+        "useful_rows": 4
+      },
+      "limitations": [
+        "No attention,MLP,norm,router,gate,KV,packing or row scheduling executes.",
+        "These pairs have different layouts/functions without the omitted model operators.",
+        "Pair timing is not full-layer parity,critical-path share or serving speedup.",
+        "Stock NCCL AG/RS does not cover every fused or optimized hybrid implementation.",
+        "Shape compatibility does not validate both model sizes or depth modes."
+      ],
+      "model_output_correctness": "NOT_RUN",
+      "per_rank": [
+        {
+          "rank": 0,
+          "samples": {
+            "CUSTOM_AR_PAIR": [
+              {
+                "event_ms_per_pair": 0.009716000407934189,
+                "host_ms_per_pair": 0.013227375,
+                "repeat": 0
+              },
+              {
+                "event_ms_per_pair": 0.00955399964004755,
+                "host_ms_per_pair": 0.013101625,
+                "repeat": 1
+              },
+              {
+                "event_ms_per_pair": 0.009456000290811062,
+                "host_ms_per_pair": 0.011944125,
+                "repeat": 2
+              },
+              {
+                "event_ms_per_pair": 0.009651999920606613,
+                "host_ms_per_pair": 0.013321375,
+                "repeat": 3
+              },
+              {
+                "event_ms_per_pair": 0.009469999931752682,
+                "host_ms_per_pair": 0.0120296875,
+                "repeat": 4
+              },
+              {
+                "event_ms_per_pair": 0.009507999755442142,
+                "host_ms_per_pair": 0.0123000625,
+                "repeat": 5
+              },
+              {
+                "event_ms_per_pair": 0.009353999979794025,
+                "host_ms_per_pair": 0.011756875,
+                "repeat": 6
+              },
+              {
+                "event_ms_per_pair": 0.009519999846816063,
+                "host_ms_per_pair": 0.0121804375,
+                "repeat": 7
+              },
+              {
+                "event_ms_per_pair": 0.009457999840378761,
+                "host_ms_per_pair": 0.012095125,
+                "repeat": 8
+              },
+              {
+                "event_ms_per_pair": 0.009506000205874443,
+                "host_ms_per_pair": 0.012308125,
+                "repeat": 9
+              },
+              {
+                "event_ms_per_pair": 0.009417999535799026,
+                "host_ms_per_pair": 0.0119170625,
+                "repeat": 10
+              },
+              {
+                "event_ms_per_pair": 0.009596000425517559,
+                "host_ms_per_pair": 0.0124568125,
+                "repeat": 11
+              },
+              {
+                "event_ms_per_pair": 0.009325999766588211,
+                "host_ms_per_pair": 0.0117679375,
+                "repeat": 12
+              },
+              {
+                "event_ms_per_pair": 0.00954199954867363,
+                "host_ms_per_pair": 0.012268875,
+                "repeat": 13
+              },
+              {
+                "event_ms_per_pair": 0.00944599974900484,
+                "host_ms_per_pair": 0.01190325,
+                "repeat": 14
+              },
+              {
+                "event_ms_per_pair": 0.009545999579131603,
+                "host_ms_per_pair": 0.0121580625,
+                "repeat": 15
+              },
+              {
+                "event_ms_per_pair": 0.009452000260353088,
+                "host_ms_per_pair": 0.011991125,
+                "repeat": 16
+              },
+              {
+                "event_ms_per_pair": 0.009460000321269035,
+                "host_ms_per_pair": 0.0121639375,
+                "repeat": 17
+              },
+              {
+                "event_ms_per_pair": 0.009417999535799026,
+                "host_ms_per_pair": 0.011893,
+                "repeat": 18
+              },
+              {
+                "event_ms_per_pair": 0.009511999785900116,
+                "host_ms_per_pair": 0.0122091875,
+                "repeat": 19
+              },
+              {
+                "event_ms_per_pair": 0.009436000138521194,
+                "host_ms_per_pair": 0.0118970625,
+                "repeat": 20
+              },
+              {
+                "event_ms_per_pair": 0.00951400026679039,
+                "host_ms_per_pair": 0.01214875,
+                "repeat": 21
+              },
+              {
+                "event_ms_per_pair": 0.00940799992531538,
+                "host_ms_per_pair": 0.0118005,
+                "repeat": 22
+              },
+              {
+                "event_ms_per_pair": 0.00952600035816431,
+                "host_ms_per_pair": 0.0122365625,
+                "repeat": 23
+              },
+              {
+                "event_ms_per_pair": 0.009366000071167946,
+                "host_ms_per_pair": 0.0118855625,
+                "repeat": 24
+              },
+              {
+                "event_ms_per_pair": 0.009486000053584576,
+                "host_ms_per_pair": 0.01213325,
+                "repeat": 25
+              },
+              {
+                "event_ms_per_pair": 0.009410000406205654,
+                "host_ms_per_pair": 0.011934375,
+                "repeat": 26
+              },
+              {
+                "event_ms_per_pair": 0.009544000029563904,
+                "host_ms_per_pair": 0.012195875,
+                "repeat": 27
+              },
+              {
+                "event_ms_per_pair": 0.009358000010251999,
+                "host_ms_per_pair": 0.0117491875,
+                "repeat": 28
+              },
+              {
+                "event_ms_per_pair": 0.009561999700963497,
+                "host_ms_per_pair": 0.012241,
+                "repeat": 29
+              },
+              {
+                "event_ms_per_pair": 0.009436000138521194,
+                "host_ms_per_pair": 0.0120570625,
+                "repeat": 30
+              }
+            ],
+            "STOCK_AG_RS_PAIR": [
+              {
+                "event_ms_per_pair": 0.01947000063955784,
+                "host_ms_per_pair": 0.0222723125,
+                "repeat": 0
+              },
+              {
+                "event_ms_per_pair": 0.02137400023639202,
+                "host_ms_per_pair": 0.024143875,
+                "repeat": 1
+              },
+              {
+                "event_ms_per_pair": 0.020819999277591705,
+                "host_ms_per_pair": 0.0233639375,
+                "repeat": 2
+              },
+              {
+                "event_ms_per_pair": 0.021571999415755272,
+                "host_ms_per_pair": 0.0243929375,
+                "repeat": 3
+              },
+              {
+                "event_ms_per_pair": 0.020762000232934952,
+                "host_ms_per_pair": 0.0235575,
+                "repeat": 4
+              },
+              {
+                "event_ms_per_pair": 0.02161400020122528,
+                "host_ms_per_pair": 0.024510375,
+                "repeat": 5
+              },
+              {
+                "event_ms_per_pair": 0.021487999707460403,
+                "host_ms_per_pair": 0.0242775625,
+                "repeat": 6
+              },
+              {
+                "event_ms_per_pair": 0.02155200019478798,
+                "host_ms_per_pair": 0.024258375,
+                "repeat": 7
+              },
+              {
+                "event_ms_per_pair": 0.02104399912059307,
+                "host_ms_per_pair": 0.0245575625,
+                "repeat": 8
+              },
+              {
+                "event_ms_per_pair": 0.021517999470233917,
+                "host_ms_per_pair": 0.02429275,
+                "repeat": 9
+              },
+              {
+                "event_ms_per_pair": 0.020748000591993332,
+                "host_ms_per_pair": 0.023335875,
+                "repeat": 10
+              },
+              {
+                "event_ms_per_pair": 0.021517999470233917,
+                "host_ms_per_pair": 0.02430375,
+                "repeat": 11
+              },
+              {
+                "event_ms_per_pair": 0.021643999963998795,
+                "host_ms_per_pair": 0.025213125,
+                "repeat": 12
+              },
+              {
+                "event_ms_per_pair": 0.021366000175476074,
+                "host_ms_per_pair": 0.02413925,
+                "repeat": 13
+              },
+              {
+                "event_ms_per_pair": 0.021004000678658485,
+                "host_ms_per_pair": 0.0236603125,
+                "repeat": 14
+              },
+              {
+                "event_ms_per_pair": 0.021428000181913376,
+                "host_ms_per_pair": 0.0242585625,
+                "repeat": 15
+              },
+              {
+                "event_ms_per_pair": 0.021436000242829323,
+                "host_ms_per_pair": 0.024169,
+                "repeat": 16
+              },
+              {
+                "event_ms_per_pair": 0.021633999422192574,
+                "host_ms_per_pair": 0.024589875,
+                "repeat": 17
+              },
+              {
+                "event_ms_per_pair": 0.020721999928355217,
+                "host_ms_per_pair": 0.0239675,
+                "repeat": 18
+              },
+              {
+                "event_ms_per_pair": 0.02152400091290474,
+                "host_ms_per_pair": 0.0242509375,
+                "repeat": 19
+              },
+              {
+                "event_ms_per_pair": 0.02060599997639656,
+                "host_ms_per_pair": 0.0232720625,
+                "repeat": 20
+              },
+              {
+                "event_ms_per_pair": 0.021522000432014465,
+                "host_ms_per_pair": 0.024355625,
+                "repeat": 21
+              },
+              {
+                "event_ms_per_pair": 0.021341999992728233,
+                "host_ms_per_pair": 0.0239849375,
+                "repeat": 22
+              },
+              {
+                "event_ms_per_pair": 0.0216279998421669,
+                "host_ms_per_pair": 0.0244556875,
+                "repeat": 23
+              },
+              {
+                "event_ms_per_pair": 0.021077999845147133,
+                "host_ms_per_pair": 0.023666375,
+                "repeat": 24
+              },
+              {
+                "event_ms_per_pair": 0.021609999239444733,
+                "host_ms_per_pair": 0.02444825,
+                "repeat": 25
+              },
+              {
+                "event_ms_per_pair": 0.021425999701023102,
+                "host_ms_per_pair": 0.024142375,
+                "repeat": 26
+              },
+              {
+                "event_ms_per_pair": 0.02139200083911419,
+                "host_ms_per_pair": 0.0241508125,
+                "repeat": 27
+              },
+              {
+                "event_ms_per_pair": 0.021662000566720963,
+                "host_ms_per_pair": 0.024583875,
+                "repeat": 28
+              },
+              {
+                "event_ms_per_pair": 0.021563999354839325,
+                "host_ms_per_pair": 0.0243639375,
+                "repeat": 29
+              },
+              {
+                "event_ms_per_pair": 0.021191999316215515,
+                "host_ms_per_pair": 0.023858,
+                "repeat": 30
+              }
+            ]
+          }
+        },
+        {
+          "rank": 1,
+          "samples": {
+            "CUSTOM_AR_PAIR": [
+              {
+                "event_ms_per_pair": 0.011215999722480774,
+                "host_ms_per_pair": 0.0136685625,
+                "repeat": 0
+              },
+              {
+                "event_ms_per_pair": 0.010831999592483044,
+                "host_ms_per_pair": 0.0122711875,
+                "repeat": 1
+              },
+              {
+                "event_ms_per_pair": 0.011815999634563923,
+                "host_ms_per_pair": 0.0132006875,
+                "repeat": 2
+              },
+              {
+                "event_ms_per_pair": 0.011710000224411488,
+                "host_ms_per_pair": 0.0131774375,
+                "repeat": 3
+              },
+              {
+                "event_ms_per_pair": 0.012137999758124352,
+                "host_ms_per_pair": 0.0134928125,
+                "repeat": 4
+              },
+              {
+                "event_ms_per_pair": 0.009581999853253365,
+                "host_ms_per_pair": 0.0110591875,
+                "repeat": 5
+              },
+              {
+                "event_ms_per_pair": 0.0117419995367527,
+                "host_ms_per_pair": 0.0131431875,
+                "repeat": 6
+              },
+              {
+                "event_ms_per_pair": 0.01058799959719181,
+                "host_ms_per_pair": 0.0119955625,
+                "repeat": 7
+              },
+              {
+                "event_ms_per_pair": 0.012260000221431255,
+                "host_ms_per_pair": 0.0136129375,
+                "repeat": 8
+              },
+              {
+                "event_ms_per_pair": 0.01063000038266182,
+                "host_ms_per_pair": 0.0119685625,
+                "repeat": 9
+              },
+              {
+                "event_ms_per_pair": 0.012265999801456928,
+                "host_ms_per_pair": 0.013582875,
+                "repeat": 10
+              },
+              {
+                "event_ms_per_pair": 0.011334000155329704,
+                "host_ms_per_pair": 0.012609375,
+                "repeat": 11
+              },
+              {
+                "event_ms_per_pair": 0.011992000043392181,
+                "host_ms_per_pair": 0.0132374375,
+                "repeat": 12
+              },
+              {
+                "event_ms_per_pair": 0.011057999916374683,
+                "host_ms_per_pair": 0.012358375,
+                "repeat": 13
+              },
+              {
+                "event_ms_per_pair": 0.012164000421762466,
+                "host_ms_per_pair": 0.0134805625,
+                "repeat": 14
+              },
+              {
+                "event_ms_per_pair": 0.010007999837398529,
+                "host_ms_per_pair": 0.011342875,
+                "repeat": 15
+              },
+              {
+                "event_ms_per_pair": 0.01216800045222044,
+                "host_ms_per_pair": 0.0134498125,
+                "repeat": 16
+              },
+              {
+                "event_ms_per_pair": 0.010944000445306301,
+                "host_ms_per_pair": 0.012425,
+                "repeat": 17
+              },
+              {
+                "event_ms_per_pair": 0.012927999719977379,
+                "host_ms_per_pair": 0.014185,
+                "repeat": 18
+              },
+              {
+                "event_ms_per_pair": 0.010882000438869,
+                "host_ms_per_pair": 0.012197,
+                "repeat": 19
+              },
+              {
+                "event_ms_per_pair": 0.01261799968779087,
+                "host_ms_per_pair": 0.013897125,
+                "repeat": 20
+              },
+              {
+                "event_ms_per_pair": 0.010395999997854233,
+                "host_ms_per_pair": 0.0116623125,
+                "repeat": 21
+              },
+              {
+                "event_ms_per_pair": 0.012343999929726124,
+                "host_ms_per_pair": 0.0136120625,
+                "repeat": 22
+              },
+              {
+                "event_ms_per_pair": 0.010784000158309937,
+                "host_ms_per_pair": 0.012063375,
+                "repeat": 23
+              },
+              {
+                "event_ms_per_pair": 0.01231599971652031,
+                "host_ms_per_pair": 0.013562375,
+                "repeat": 24
+              },
+              {
+                "event_ms_per_pair": 0.010065999813377857,
+                "host_ms_per_pair": 0.0113965,
+                "repeat": 25
+              },
+              {
+                "event_ms_per_pair": 0.012149999849498272,
+                "host_ms_per_pair": 0.013467625,
+                "repeat": 26
+              },
+              {
+                "event_ms_per_pair": 0.01053600013256073,
+                "host_ms_per_pair": 0.011835125,
+                "repeat": 27
+              },
+              {
+                "event_ms_per_pair": 0.012055999599397182,
+                "host_ms_per_pair": 0.0133230625,
+                "repeat": 28
+              },
+              {
+                "event_ms_per_pair": 0.010565999895334244,
+                "host_ms_per_pair": 0.0118653125,
+                "repeat": 29
+              },
+              {
+                "event_ms_per_pair": 0.012551999650895596,
+                "host_ms_per_pair": 0.013788,
+                "repeat": 30
+              }
+            ],
+            "STOCK_AG_RS_PAIR": [
+              {
+                "event_ms_per_pair": 0.020018000155687332,
+                "host_ms_per_pair": 0.02162575,
+                "repeat": 0
+              },
+              {
+                "event_ms_per_pair": 0.025092000141739845,
+                "host_ms_per_pair": 0.0265425625,
+                "repeat": 1
+              },
+              {
+                "event_ms_per_pair": 0.022929999977350235,
+                "host_ms_per_pair": 0.0244266875,
+                "repeat": 2
+              },
+              {
+                "event_ms_per_pair": 0.026122000068426132,
+                "host_ms_per_pair": 0.0275153125,
+                "repeat": 3
+              },
+              {
+                "event_ms_per_pair": 0.022366000339388847,
+                "host_ms_per_pair": 0.0238240625,
+                "repeat": 4
+              },
+              {
+                "event_ms_per_pair": 0.026343999430537224,
+                "host_ms_per_pair": 0.027757125,
+                "repeat": 5
+              },
+              {
+                "event_ms_per_pair": 0.024676000699400902,
+                "host_ms_per_pair": 0.02612575,
+                "repeat": 6
+              },
+              {
+                "event_ms_per_pair": 0.025815999135375023,
+                "host_ms_per_pair": 0.02715425,
+                "repeat": 7
+              },
+              {
+                "event_ms_per_pair": 0.02422199957072735,
+                "host_ms_per_pair": 0.025631,
+                "repeat": 8
+              },
+              {
+                "event_ms_per_pair": 0.025606000795960426,
+                "host_ms_per_pair": 0.026951,
+                "repeat": 9
+              },
+              {
+                "event_ms_per_pair": 0.02227799966931343,
+                "host_ms_per_pair": 0.0237125,
+                "repeat": 10
+              },
+              {
+                "event_ms_per_pair": 0.02600800059735775,
+                "host_ms_per_pair": 0.0273435625,
+                "repeat": 11
+              },
+              {
+                "event_ms_per_pair": 0.026475999504327774,
+                "host_ms_per_pair": 0.0278608125,
+                "repeat": 12
+              },
+              {
+                "event_ms_per_pair": 0.025105999782681465,
+                "host_ms_per_pair": 0.0264058125,
+                "repeat": 13
+              },
+              {
+                "event_ms_per_pair": 0.023585999384522438,
+                "host_ms_per_pair": 0.025167375,
+                "repeat": 14
+              },
+              {
+                "event_ms_per_pair": 0.026065999642014503,
+                "host_ms_per_pair": 0.02750175,
+                "repeat": 15
+              },
+              {
+                "event_ms_per_pair": 0.0256740003824234,
+                "host_ms_per_pair": 0.0271115625,
+                "repeat": 16
+              },
+              {
+                "event_ms_per_pair": 0.026156000792980194,
+                "host_ms_per_pair": 0.0274838125,
+                "repeat": 17
+              },
+              {
+                "event_ms_per_pair": 0.021671999245882034,
+                "host_ms_per_pair": 0.02305925,
+                "repeat": 18
+              },
+              {
+                "event_ms_per_pair": 0.026203999295830727,
+                "host_ms_per_pair": 0.027696375,
+                "repeat": 19
+              },
+              {
+                "event_ms_per_pair": 0.02153800055384636,
+                "host_ms_per_pair": 0.02285075,
+                "repeat": 20
+              },
+              {
+                "event_ms_per_pair": 0.02651200070977211,
+                "host_ms_per_pair": 0.02788175,
+                "repeat": 21
+              },
+              {
+                "event_ms_per_pair": 0.023708000779151917,
+                "host_ms_per_pair": 0.024991375,
+                "repeat": 22
+              },
+              {
+                "event_ms_per_pair": 0.026466000825166702,
+                "host_ms_per_pair": 0.027812625,
+                "repeat": 23
+              },
+              {
+                "event_ms_per_pair": 0.022393999621272087,
+                "host_ms_per_pair": 0.023692,
+                "repeat": 24
+              },
+              {
+                "event_ms_per_pair": 0.026038000360131264,
+                "host_ms_per_pair": 0.027409875,
+                "repeat": 25
+              },
+              {
+                "event_ms_per_pair": 0.02381799928843975,
+                "host_ms_per_pair": 0.0251551875,
+                "repeat": 26
+              },
+              {
+                "event_ms_per_pair": 0.025933999568223953,
+                "host_ms_per_pair": 0.027328875,
+                "repeat": 27
+              },
+              {
+                "event_ms_per_pair": 0.02512199990451336,
+                "host_ms_per_pair": 0.0264593125,
+                "repeat": 28
+              },
+              {
+                "event_ms_per_pair": 0.02607399970293045,
+                "host_ms_per_pair": 0.0274566875,
+                "repeat": 29
+              },
+              {
+                "event_ms_per_pair": 0.02316799946129322,
+                "host_ms_per_pair": 0.024514375,
+                "repeat": 30
+              }
+            ]
+          }
+        }
+      ],
+      "physical_gpus": [
+        4,
+        5
+      ],
+      "timing": {
+        "CUSTOM_AR_PAIR": {
+          "critical_event_ms": [
+            0.011215999722480774,
+            0.010831999592483044,
+            0.011815999634563923,
+            0.011710000224411488,
+            0.012137999758124352,
+            0.009581999853253365,
+            0.0117419995367527,
+            0.01058799959719181,
+            0.012260000221431255,
+            0.01063000038266182,
+            0.012265999801456928,
+            0.011334000155329704,
+            0.011992000043392181,
+            0.011057999916374683,
+            0.012164000421762466,
+            0.010007999837398529,
+            0.01216800045222044,
+            0.010944000445306301,
+            0.012927999719977379,
+            0.010882000438869,
+            0.01261799968779087,
+            0.010395999997854233,
+            0.012343999929726124,
+            0.010784000158309937,
+            0.01231599971652031,
+            0.010065999813377857,
+            0.012149999849498272,
+            0.01053600013256073,
+            0.012055999599397182,
+            0.010565999895334244,
+            0.012551999650895596
+          ],
+          "median_critical_event_ms": 0.011710000224411488
+        },
+        "STOCK_AG_RS_PAIR": {
+          "critical_event_ms": [
+            0.020018000155687332,
+            0.025092000141739845,
+            0.022929999977350235,
+            0.026122000068426132,
+            0.022366000339388847,
+            0.026343999430537224,
+            0.024676000699400902,
+            0.025815999135375023,
+            0.02422199957072735,
+            0.025606000795960426,
+            0.02227799966931343,
+            0.02600800059735775,
+            0.026475999504327774,
+            0.025105999782681465,
+            0.023585999384522438,
+            0.026065999642014503,
+            0.0256740003824234,
+            0.026156000792980194,
+            0.021671999245882034,
+            0.026203999295830727,
+            0.02153800055384636,
+            0.02651200070977211,
+            0.023708000779151917,
+            0.026466000825166702,
+            0.022393999621272087,
+            0.026038000360131264,
+            0.02381799928843975,
+            0.025933999568223953,
+            0.02512199990451336,
+            0.02607399970293045,
+            0.02316799946129322
+          ],
+          "median_critical_event_ms": 0.02512199990451336
+        }
+      },
+      "traffic_scope": "Logical tensor capacities. No physical link counter or pure bandwidth interval."
+    },
+    {
+      "C": 8,
+      "P": 2,
+      "boundary": "Maximum rank-local duration of each complete serialized pair. No absolute cross-GPU timestamp alignment.",
+      "collective_fixture_correctness": "PASS",
+      "evidence_class": "GPU_MICROBENCH",
+      "layout": {
+        "AG_input_bytes_per_rank": 16384,
+        "AG_output_bytes_per_rank": 32768,
+        "AR_input_bytes_per_rank_per_call": 32768,
+        "BF16_bytes": 2,
+        "RS_input_bytes_per_rank": 32768,
+        "RS_output_bytes_per_rank": 16384,
+        "hidden": 2048,
+        "local_rows": 4,
+        "note": "Tensor payload capacities,not measured link traffic. Padding remains charged.",
+        "padded_rows": 8,
+        "useful_rows": 8
+      },
+      "limitations": [
+        "No attention,MLP,norm,router,gate,KV,packing or row scheduling executes.",
+        "These pairs have different layouts/functions without the omitted model operators.",
+        "Pair timing is not full-layer parity,critical-path share or serving speedup.",
+        "Stock NCCL AG/RS does not cover every fused or optimized hybrid implementation.",
+        "Shape compatibility does not validate both model sizes or depth modes."
+      ],
+      "model_output_correctness": "NOT_RUN",
+      "per_rank": [
+        {
+          "rank": 0,
+          "samples": {
+            "CUSTOM_AR_PAIR": [
+              {
+                "event_ms_per_pair": 0.010397999547421932,
+                "host_ms_per_pair": 0.013434875,
+                "repeat": 0
+              },
+              {
+                "event_ms_per_pair": 0.009982000105082989,
+                "host_ms_per_pair": 0.012212125,
+                "repeat": 1
+              },
+              {
+                "event_ms_per_pair": 0.011416000314056873,
+                "host_ms_per_pair": 0.013508875,
+                "repeat": 2
+              },
+              {
+                "event_ms_per_pair": 0.009998000226914883,
+                "host_ms_per_pair": 0.0121771875,
+                "repeat": 3
+              },
+              {
+                "event_ms_per_pair": 0.009697999805212021,
+                "host_ms_per_pair": 0.01178425,
+                "repeat": 4
+              },
+              {
+                "event_ms_per_pair": 0.009606000036001205,
+                "host_ms_per_pair": 0.011676625,
+                "repeat": 5
+              },
+              {
+                "event_ms_per_pair": 0.01089600007981062,
+                "host_ms_per_pair": 0.01291975,
+                "repeat": 6
+              },
+              {
+                "event_ms_per_pair": 0.011661999858915806,
+                "host_ms_per_pair": 0.013769625,
+                "repeat": 7
+              },
+              {
+                "event_ms_per_pair": 0.012768000364303589,
+                "host_ms_per_pair": 0.0145759375,
+                "repeat": 8
+              },
+              {
+                "event_ms_per_pair": 0.011594000272452831,
+                "host_ms_per_pair": 0.013418625,
+                "repeat": 9
+              },
+              {
+                "event_ms_per_pair": 0.01640000008046627,
+                "host_ms_per_pair": 0.0181568125,
+                "repeat": 10
+              },
+              {
+                "event_ms_per_pair": 0.010432000271975994,
+                "host_ms_per_pair": 0.012203,
+                "repeat": 11
+              },
+              {
+                "event_ms_per_pair": 0.013526000082492828,
+                "host_ms_per_pair": 0.01524075,
+                "repeat": 12
+              },
+              {
+                "event_ms_per_pair": 0.011342000216245651,
+                "host_ms_per_pair": 0.013023875,
+                "repeat": 13
+              },
+              {
+                "event_ms_per_pair": 0.013504000380635262,
+                "host_ms_per_pair": 0.015161875,
+                "repeat": 14
+              },
+              {
+                "event_ms_per_pair": 0.010731999762356281,
+                "host_ms_per_pair": 0.0124464375,
+                "repeat": 15
+              },
+              {
+                "event_ms_per_pair": 0.012803999707102776,
+                "host_ms_per_pair": 0.0145001875,
+                "repeat": 16
+              },
+              {
+                "event_ms_per_pair": 0.010412000119686127,
+                "host_ms_per_pair": 0.0121559375,
+                "repeat": 17
+              },
+              {
+                "event_ms_per_pair": 0.013914000242948532,
+                "host_ms_per_pair": 0.0156105625,
+                "repeat": 18
+              },
+              {
+                "event_ms_per_pair": 0.010072000324726105,
+                "host_ms_per_pair": 0.0144123125,
+                "repeat": 19
+              },
+              {
+                "event_ms_per_pair": 0.01012600027024746,
+                "host_ms_per_pair": 0.0130896875,
+                "repeat": 20
+              },
+              {
+                "event_ms_per_pair": 0.009730000048875809,
+                "host_ms_per_pair": 0.012663625,
+                "repeat": 21
+              },
+              {
+                "event_ms_per_pair": 0.010064000263810158,
+                "host_ms_per_pair": 0.0127849375,
+                "repeat": 22
+              },
+              {
+                "event_ms_per_pair": 0.009623999707400799,
+                "host_ms_per_pair": 0.012415875,
+                "repeat": 23
+              },
+              {
+                "event_ms_per_pair": 0.010499999858438969,
+                "host_ms_per_pair": 0.0131640625,
+                "repeat": 24
+              },
+              {
+                "event_ms_per_pair": 0.009614000096917152,
+                "host_ms_per_pair": 0.012257875,
+                "repeat": 25
+              },
+              {
+                "event_ms_per_pair": 0.009618000127375126,
+                "host_ms_per_pair": 0.0123355625,
+                "repeat": 26
+              },
+              {
+                "event_ms_per_pair": 0.009615999646484852,
+                "host_ms_per_pair": 0.012274125,
+                "repeat": 27
+              },
+              {
+                "event_ms_per_pair": 0.009593999944627285,
+                "host_ms_per_pair": 0.012181,
+                "repeat": 28
+              },
+              {
+                "event_ms_per_pair": 0.009494000114500523,
+                "host_ms_per_pair": 0.01209575,
+                "repeat": 29
+              },
+              {
+                "event_ms_per_pair": 0.009564000181853771,
+                "host_ms_per_pair": 0.012294125,
+                "repeat": 30
+              }
+            ],
+            "STOCK_AG_RS_PAIR": [
+              {
+                "event_ms_per_pair": 0.018635999411344528,
+                "host_ms_per_pair": 0.0209154375,
+                "repeat": 0
+              },
+              {
+                "event_ms_per_pair": 0.019972000271081924,
+                "host_ms_per_pair": 0.0222941875,
+                "repeat": 1
+              },
+              {
+                "event_ms_per_pair": 0.018492000177502632,
+                "host_ms_per_pair": 0.0206426875,
+                "repeat": 2
+              },
+              {
+                "event_ms_per_pair": 0.020244000479578972,
+                "host_ms_per_pair": 0.0222951875,
+                "repeat": 3
+              },
+              {
+                "event_ms_per_pair": 0.01885399967432022,
+                "host_ms_per_pair": 0.02097175,
+                "repeat": 4
+              },
+              {
+                "event_ms_per_pair": 0.021781999617815018,
+                "host_ms_per_pair": 0.02381725,
+                "repeat": 5
+              },
+              {
+                "event_ms_per_pair": 0.01879199966788292,
+                "host_ms_per_pair": 0.0209071875,
+                "repeat": 6
+              },
+              {
+                "event_ms_per_pair": 0.02675599977374077,
+                "host_ms_per_pair": 0.0308461875,
+                "repeat": 7
+              },
+              {
+                "event_ms_per_pair": 0.022053999826312065,
+                "host_ms_per_pair": 0.02390875,
+                "repeat": 8
+              },
+              {
+                "event_ms_per_pair": 0.025925999507308006,
+                "host_ms_per_pair": 0.027859625,
+                "repeat": 9
+              },
+              {
+                "event_ms_per_pair": 0.02370000071823597,
+                "host_ms_per_pair": 0.0254495,
+                "repeat": 10
+              },
+              {
+                "event_ms_per_pair": 0.024342000484466553,
+                "host_ms_per_pair": 0.026364625,
+                "repeat": 11
+              },
+              {
+                "event_ms_per_pair": 0.02307399921119213,
+                "host_ms_per_pair": 0.024768375,
+                "repeat": 12
+              },
+              {
+                "event_ms_per_pair": 0.025793999433517456,
+                "host_ms_per_pair": 0.0275776875,
+                "repeat": 13
+              },
+              {
+                "event_ms_per_pair": 0.022366000339388847,
+                "host_ms_per_pair": 0.0241388125,
+                "repeat": 14
+              },
+              {
+                "event_ms_per_pair": 0.0259380005300045,
+                "host_ms_per_pair": 0.0277731875,
+                "repeat": 15
+              },
+              {
+                "event_ms_per_pair": 0.022926000878214836,
+                "host_ms_per_pair": 0.0246851875,
+                "repeat": 16
+              },
+              {
+                "event_ms_per_pair": 0.025567999109625816,
+                "host_ms_per_pair": 0.027309625,
+                "repeat": 17
+              },
+              {
+                "event_ms_per_pair": 0.019206000491976738,
+                "host_ms_per_pair": 0.0210751875,
+                "repeat": 18
+              },
+              {
+                "event_ms_per_pair": 0.024827999994158745,
+                "host_ms_per_pair": 0.0265995,
+                "repeat": 19
+              },
+              {
+                "event_ms_per_pair": 0.018758000805974007,
+                "host_ms_per_pair": 0.021722875,
+                "repeat": 20
+              },
+              {
+                "event_ms_per_pair": 0.018389999866485596,
+                "host_ms_per_pair": 0.021188,
+                "repeat": 21
+              },
+              {
+                "event_ms_per_pair": 0.019845999777317047,
+                "host_ms_per_pair": 0.0229661875,
+                "repeat": 22
+              },
+              {
+                "event_ms_per_pair": 0.020347999408841133,
+                "host_ms_per_pair": 0.02323725,
+                "repeat": 23
+              },
+              {
+                "event_ms_per_pair": 0.019627999514341354,
+                "host_ms_per_pair": 0.0225243125,
+                "repeat": 24
+              },
+              {
+                "event_ms_per_pair": 0.018813999369740486,
+                "host_ms_per_pair": 0.021858,
+                "repeat": 25
+              },
+              {
+                "event_ms_per_pair": 0.019060000777244568,
+                "host_ms_per_pair": 0.0216900625,
+                "repeat": 26
+              },
+              {
+                "event_ms_per_pair": 0.019247999414801598,
+                "host_ms_per_pair": 0.022379875,
+                "repeat": 27
+              },
+              {
+                "event_ms_per_pair": 0.01921200007200241,
+                "host_ms_per_pair": 0.0219205625,
+                "repeat": 28
+              },
+              {
+                "event_ms_per_pair": 0.019595999270677567,
+                "host_ms_per_pair": 0.022408,
+                "repeat": 29
+              },
+              {
+                "event_ms_per_pair": 0.019447999075055122,
+                "host_ms_per_pair": 0.0224331875,
+                "repeat": 30
+              }
+            ]
+          }
+        },
+        {
+          "rank": 1,
+          "samples": {
+            "CUSTOM_AR_PAIR": [
+              {
+                "event_ms_per_pair": 0.00977999996393919,
+                "host_ms_per_pair": 0.01315925,
+                "repeat": 0
+              },
+              {
+                "event_ms_per_pair": 0.009387999773025513,
+                "host_ms_per_pair": 0.011503625,
+                "repeat": 1
+              },
+              {
+                "event_ms_per_pair": 0.009308000095188618,
+                "host_ms_per_pair": 0.0115036875,
+                "repeat": 2
+              },
+              {
+                "event_ms_per_pair": 0.01000600028783083,
+                "host_ms_per_pair": 0.0121691875,
+                "repeat": 3
+              },
+              {
+                "event_ms_per_pair": 0.009282000362873077,
+                "host_ms_per_pair": 0.0113469375,
+                "repeat": 4
+              },
+              {
+                "event_ms_per_pair": 0.009282000362873077,
+                "host_ms_per_pair": 0.0113874375,
+                "repeat": 5
+              },
+              {
+                "event_ms_per_pair": 0.009270000271499157,
+                "host_ms_per_pair": 0.0113485625,
+                "repeat": 6
+              },
+              {
+                "event_ms_per_pair": 0.009603999555110931,
+                "host_ms_per_pair": 0.01227,
+                "repeat": 7
+              },
+              {
+                "event_ms_per_pair": 0.009436000138521194,
+                "host_ms_per_pair": 0.0120224375,
+                "repeat": 8
+              },
+              {
+                "event_ms_per_pair": 0.009593999944627285,
+                "host_ms_per_pair": 0.012467375,
+                "repeat": 9
+              },
+              {
+                "event_ms_per_pair": 0.009577999822795391,
+                "host_ms_per_pair": 0.0128873125,
+                "repeat": 10
+              },
+              {
+                "event_ms_per_pair": 0.009321999736130238,
+                "host_ms_per_pair": 0.0117343125,
+                "repeat": 11
+              },
+              {
+                "event_ms_per_pair": 0.009399999864399433,
+                "host_ms_per_pair": 0.0120733125,
+                "repeat": 12
+              },
+              {
+                "event_ms_per_pair": 0.0094200000166893,
+                "host_ms_per_pair": 0.01192125,
+                "repeat": 13
+              },
+              {
+                "event_ms_per_pair": 0.009425999596714973,
+                "host_ms_per_pair": 0.01200925,
+                "repeat": 14
+              },
+              {
+                "event_ms_per_pair": 0.009353999979794025,
+                "host_ms_per_pair": 0.0116765625,
+                "repeat": 15
+              },
+              {
+                "event_ms_per_pair": 0.009378000162541866,
+                "host_ms_per_pair": 0.01184125,
+                "repeat": 16
+              },
+              {
+                "event_ms_per_pair": 0.009344000369310379,
+                "host_ms_per_pair": 0.0117630625,
+                "repeat": 17
+              },
+              {
+                "event_ms_per_pair": 0.009453999809920788,
+                "host_ms_per_pair": 0.0121064375,
+                "repeat": 18
+              },
+              {
+                "event_ms_per_pair": 0.015424000099301338,
+                "host_ms_per_pair": 0.017810625,
+                "repeat": 19
+              },
+              {
+                "event_ms_per_pair": 0.009403999894857407,
+                "host_ms_per_pair": 0.011949125,
+                "repeat": 20
+              },
+              {
+                "event_ms_per_pair": 0.011517999693751335,
+                "host_ms_per_pair": 0.013885125,
+                "repeat": 21
+              },
+              {
+                "event_ms_per_pair": 0.009366000071167946,
+                "host_ms_per_pair": 0.0119873125,
+                "repeat": 22
+              },
+              {
+                "event_ms_per_pair": 0.011788000352680683,
+                "host_ms_per_pair": 0.014070875,
+                "repeat": 23
+              },
+              {
+                "event_ms_per_pair": 0.009332000277936459,
+                "host_ms_per_pair": 0.01180075,
+                "repeat": 24
+              },
+              {
+                "event_ms_per_pair": 0.011880000121891499,
+                "host_ms_per_pair": 0.0139965,
+                "repeat": 25
+              },
+              {
+                "event_ms_per_pair": 0.01065799966454506,
+                "host_ms_per_pair": 0.012934375,
+                "repeat": 26
+              },
+              {
+                "event_ms_per_pair": 0.011780000291764736,
+                "host_ms_per_pair": 0.013882375,
+                "repeat": 27
+              },
+              {
+                "event_ms_per_pair": 0.009403999894857407,
+                "host_ms_per_pair": 0.011695375,
+                "repeat": 28
+              },
+              {
+                "event_ms_per_pair": 0.011513999663293362,
+                "host_ms_per_pair": 0.0136911875,
+                "repeat": 29
+              },
+              {
+                "event_ms_per_pair": 0.010386000387370586,
+                "host_ms_per_pair": 0.0125250625,
+                "repeat": 30
+              }
+            ],
+            "STOCK_AG_RS_PAIR": [
+              {
+                "event_ms_per_pair": 0.018675999715924263,
+                "host_ms_per_pair": 0.0210463125,
+                "repeat": 0
+              },
+              {
+                "event_ms_per_pair": 0.018611999228596687,
+                "host_ms_per_pair": 0.0208361875,
+                "repeat": 1
+              },
+              {
+                "event_ms_per_pair": 0.018850000575184822,
+                "host_ms_per_pair": 0.0210000625,
+                "repeat": 2
+              },
+              {
+                "event_ms_per_pair": 0.01873200014233589,
+                "host_ms_per_pair": 0.0208975,
+                "repeat": 3
+              },
+              {
+                "event_ms_per_pair": 0.020031999796628952,
+                "host_ms_per_pair": 0.022011125,
+                "repeat": 4
+              },
+              {
+                "event_ms_per_pair": 0.019026000052690506,
+                "host_ms_per_pair": 0.021129,
+                "repeat": 5
+              },
+              {
+                "event_ms_per_pair": 0.019680000841617584,
+                "host_ms_per_pair": 0.0216300625,
+                "repeat": 6
+              },
+              {
+                "event_ms_per_pair": 0.02041799947619438,
+                "host_ms_per_pair": 0.025417,
+                "repeat": 7
+              },
+              {
+                "event_ms_per_pair": 0.01885800063610077,
+                "host_ms_per_pair": 0.02139025,
+                "repeat": 8
+              },
+              {
+                "event_ms_per_pair": 0.019509999081492424,
+                "host_ms_per_pair": 0.02262125,
+                "repeat": 9
+              },
+              {
+                "event_ms_per_pair": 0.019454000517725945,
+                "host_ms_per_pair": 0.022965625,
+                "repeat": 10
+              },
+              {
+                "event_ms_per_pair": 0.019287999719381332,
+                "host_ms_per_pair": 0.02187,
+                "repeat": 11
+              },
+              {
+                "event_ms_per_pair": 0.019037999212741852,
+                "host_ms_per_pair": 0.0222959375,
+                "repeat": 12
+              },
+              {
+                "event_ms_per_pair": 0.019395999610424042,
+                "host_ms_per_pair": 0.022181,
+                "repeat": 13
+              },
+              {
+                "event_ms_per_pair": 0.018991999328136444,
+                "host_ms_per_pair": 0.0214168125,
+                "repeat": 14
+              },
+              {
+                "event_ms_per_pair": 0.01937600038945675,
+                "host_ms_per_pair": 0.02219225,
+                "repeat": 15
+              },
+              {
+                "event_ms_per_pair": 0.019058000296354294,
+                "host_ms_per_pair": 0.0222289375,
+                "repeat": 16
+              },
+              {
+                "event_ms_per_pair": 0.01939000003039837,
+                "host_ms_per_pair": 0.022092625,
+                "repeat": 17
+              },
+              {
+                "event_ms_per_pair": 0.018017999827861786,
+                "host_ms_per_pair": 0.0204105,
+                "repeat": 18
+              },
+              {
+                "event_ms_per_pair": 0.019440000876784325,
+                "host_ms_per_pair": 0.022090625,
+                "repeat": 19
+              },
+              {
+                "event_ms_per_pair": 0.01876400038599968,
+                "host_ms_per_pair": 0.021039125,
+                "repeat": 20
+              },
+              {
+                "event_ms_per_pair": 0.01816999912261963,
+                "host_ms_per_pair": 0.020970625,
+                "repeat": 21
+              },
+              {
+                "event_ms_per_pair": 0.024504000321030617,
+                "host_ms_per_pair": 0.026858125,
+                "repeat": 22
+              },
+              {
+                "event_ms_per_pair": 0.018737999722361565,
+                "host_ms_per_pair": 0.021268,
+                "repeat": 23
+              },
+              {
+                "event_ms_per_pair": 0.0228240005671978,
+                "host_ms_per_pair": 0.0249466875,
+                "repeat": 24
+              },
+              {
+                "event_ms_per_pair": 0.018743999302387238,
+                "host_ms_per_pair": 0.0212783125,
+                "repeat": 25
+              },
+              {
+                "event_ms_per_pair": 0.01832599937915802,
+                "host_ms_per_pair": 0.020457875,
+                "repeat": 26
+              },
+              {
+                "event_ms_per_pair": 0.020481999963521957,
+                "host_ms_per_pair": 0.0228330625,
+                "repeat": 27
+              },
+              {
+                "event_ms_per_pair": 0.02163800038397312,
+                "host_ms_per_pair": 0.0236826875,
+                "repeat": 28
+              },
+              {
+                "event_ms_per_pair": 0.018689999356865883,
+                "host_ms_per_pair": 0.0210678125,
+                "repeat": 29
+              },
+              {
+                "event_ms_per_pair": 0.02234400063753128,
+                "host_ms_per_pair": 0.0243329375,
+                "repeat": 30
+              }
+            ]
+          }
+        }
+      ],
+      "physical_gpus": [
+        4,
+        5
+      ],
+      "timing": {
+        "CUSTOM_AR_PAIR": {
+          "critical_event_ms": [
+            0.010397999547421932,
+            0.009982000105082989,
+            0.011416000314056873,
+            0.01000600028783083,
+            0.009697999805212021,
+            0.009606000036001205,
+            0.01089600007981062,
+            0.011661999858915806,
+            0.012768000364303589,
+            0.011594000272452831,
+            0.01640000008046627,
+            0.010432000271975994,
+            0.013526000082492828,
+            0.011342000216245651,
+            0.013504000380635262,
+            0.010731999762356281,
+            0.012803999707102776,
+            0.010412000119686127,
+            0.013914000242948532,
+            0.015424000099301338,
+            0.01012600027024746,
+            0.011517999693751335,
+            0.010064000263810158,
+            0.011788000352680683,
+            0.010499999858438969,
+            0.011880000121891499,
+            0.01065799966454506,
+            0.011780000291764736,
+            0.009593999944627285,
+            0.011513999663293362,
+            0.010386000387370586
+          ],
+          "median_critical_event_ms": 0.011342000216245651
+        },
+        "STOCK_AG_RS_PAIR": {
+          "critical_event_ms": [
+            0.018675999715924263,
+            0.019972000271081924,
+            0.018850000575184822,
+            0.020244000479578972,
+            0.020031999796628952,
+            0.021781999617815018,
+            0.019680000841617584,
+            0.02675599977374077,
+            0.022053999826312065,
+            0.025925999507308006,
+            0.02370000071823597,
+            0.024342000484466553,
+            0.02307399921119213,
+            0.025793999433517456,
+            0.022366000339388847,
+            0.0259380005300045,
+            0.022926000878214836,
+            0.025567999109625816,
+            0.019206000491976738,
+            0.024827999994158745,
+            0.01876400038599968,
+            0.018389999866485596,
+            0.024504000321030617,
+            0.020347999408841133,
+            0.0228240005671978,
+            0.018813999369740486,
+            0.019060000777244568,
+            0.020481999963521957,
+            0.02163800038397312,
+            0.019595999270677567,
+            0.02234400063753128
+          ],
+          "median_critical_event_ms": 0.021781999617815018
+        }
+      },
+      "traffic_scope": "Logical tensor capacities. No physical link counter or pure bandwidth interval."
+    },
+    {
+      "C": 32,
+      "P": 2,
+      "boundary": "Maximum rank-local duration of each complete serialized pair. No absolute cross-GPU timestamp alignment.",
+      "collective_fixture_correctness": "PASS",
+      "evidence_class": "GPU_MICROBENCH",
+      "layout": {
+        "AG_input_bytes_per_rank": 65536,
+        "AG_output_bytes_per_rank": 131072,
+        "AR_input_bytes_per_rank_per_call": 131072,
+        "BF16_bytes": 2,
+        "RS_input_bytes_per_rank": 131072,
+        "RS_output_bytes_per_rank": 65536,
+        "hidden": 2048,
+        "local_rows": 16,
+        "note": "Tensor payload capacities,not measured link traffic. Padding remains charged.",
+        "padded_rows": 32,
+        "useful_rows": 32
+      },
+      "limitations": [
+        "No attention,MLP,norm,router,gate,KV,packing or row scheduling executes.",
+        "These pairs have different layouts/functions without the omitted model operators.",
+        "Pair timing is not full-layer parity,critical-path share or serving speedup.",
+        "Stock NCCL AG/RS does not cover every fused or optimized hybrid implementation.",
+        "Shape compatibility does not validate both model sizes or depth modes."
+      ],
+      "model_output_correctness": "NOT_RUN",
+      "per_rank": [
+        {
+          "rank": 0,
+          "samples": {
+            "CUSTOM_AR_PAIR": [
+              {
+                "event_ms_per_pair": 0.011095999740064144,
+                "host_ms_per_pair": 0.017538625,
+                "repeat": 0
+              },
+              {
+                "event_ms_per_pair": 0.010382000356912613,
+                "host_ms_per_pair": 0.0127045625,
+                "repeat": 1
+              },
+              {
+                "event_ms_per_pair": 0.010769999586045742,
+                "host_ms_per_pair": 0.0151738125,
+                "repeat": 2
+              },
+              {
+                "event_ms_per_pair": 0.01100200042128563,
+                "host_ms_per_pair": 0.0127751875,
+                "repeat": 3
+              },
+              {
+                "event_ms_per_pair": 0.009808000177145004,
+                "host_ms_per_pair": 0.0114295625,
+                "repeat": 4
+              },
+              {
+                "event_ms_per_pair": 0.012745999731123447,
+                "host_ms_per_pair": 0.0144205,
+                "repeat": 5
+              },
+              {
+                "event_ms_per_pair": 0.00976600032299757,
+                "host_ms_per_pair": 0.011286375,
+                "repeat": 6
+              },
+              {
+                "event_ms_per_pair": 0.011876000091433525,
+                "host_ms_per_pair": 0.0135050625,
+                "repeat": 7
+              },
+              {
+                "event_ms_per_pair": 0.01527199987322092,
+                "host_ms_per_pair": 0.0168239375,
+                "repeat": 8
+              },
+              {
+                "event_ms_per_pair": 0.009813999757170677,
+                "host_ms_per_pair": 0.011416,
+                "repeat": 9
+              },
+              {
+                "event_ms_per_pair": 0.010085999965667725,
+                "host_ms_per_pair": 0.01244425,
+                "repeat": 10
+              },
+              {
+                "event_ms_per_pair": 0.011669999919831753,
+                "host_ms_per_pair": 0.0139490625,
+                "repeat": 11
+              },
+              {
+                "event_ms_per_pair": 0.00991399958729744,
+                "host_ms_per_pair": 0.01199725,
+                "repeat": 12
+              },
+              {
+                "event_ms_per_pair": 0.010251999832689762,
+                "host_ms_per_pair": 0.0126378125,
+                "repeat": 13
+              },
+              {
+                "event_ms_per_pair": 0.010143999941647053,
+                "host_ms_per_pair": 0.012599375,
+                "repeat": 14
+              },
+              {
+                "event_ms_per_pair": 0.01024600025266409,
+                "host_ms_per_pair": 0.0129170625,
+                "repeat": 15
+              },
+              {
+                "event_ms_per_pair": 0.01044199988245964,
+                "host_ms_per_pair": 0.0131370625,
+                "repeat": 16
+              },
+              {
+                "event_ms_per_pair": 0.011467999778687954,
+                "host_ms_per_pair": 0.0128768125,
+                "repeat": 17
+              },
+              {
+                "event_ms_per_pair": 0.01065799966454506,
+                "host_ms_per_pair": 0.0119759375,
+                "repeat": 18
+              },
+              {
+                "event_ms_per_pair": 0.011748000048100948,
+                "host_ms_per_pair": 0.013122375,
+                "repeat": 19
+              },
+              {
+                "event_ms_per_pair": 0.013907999731600285,
+                "host_ms_per_pair": 0.0153285,
+                "repeat": 20
+              },
+              {
+                "event_ms_per_pair": 0.009701999835669994,
+                "host_ms_per_pair": 0.01106875,
+                "repeat": 21
+              },
+              {
+                "event_ms_per_pair": 0.010470000095665455,
+                "host_ms_per_pair": 0.0117775,
+                "repeat": 22
+              },
+              {
+                "event_ms_per_pair": 0.01013999991118908,
+                "host_ms_per_pair": 0.011540375,
+                "repeat": 23
+              },
+              {
+                "event_ms_per_pair": 0.011037999764084816,
+                "host_ms_per_pair": 0.0160544375,
+                "repeat": 24
+              },
+              {
+                "event_ms_per_pair": 0.014379999600350857,
+                "host_ms_per_pair": 0.015955875,
+                "repeat": 25
+              },
+              {
+                "event_ms_per_pair": 0.01674400083720684,
+                "host_ms_per_pair": 0.0182924375,
+                "repeat": 26
+              },
+              {
+                "event_ms_per_pair": 0.00980400014668703,
+                "host_ms_per_pair": 0.01154075,
+                "repeat": 27
+              },
+              {
+                "event_ms_per_pair": 0.011479999870061874,
+                "host_ms_per_pair": 0.012875125,
+                "repeat": 28
+              },
+              {
+                "event_ms_per_pair": 0.01232600025832653,
+                "host_ms_per_pair": 0.0137264375,
+                "repeat": 29
+              },
+              {
+                "event_ms_per_pair": 0.01143800001591444,
+                "host_ms_per_pair": 0.0129204375,
+                "repeat": 30
+              }
+            ],
+            "STOCK_AG_RS_PAIR": [
+              {
+                "event_ms_per_pair": 0.024075999855995178,
+                "host_ms_per_pair": 0.0272625625,
+                "repeat": 0
+              },
+              {
+                "event_ms_per_pair": 0.021268000826239586,
+                "host_ms_per_pair": 0.0265876875,
+                "repeat": 1
+              },
+              {
+                "event_ms_per_pair": 0.020541999489068985,
+                "host_ms_per_pair": 0.024918875,
+                "repeat": 2
+              },
+              {
+                "event_ms_per_pair": 0.019874000921845436,
+                "host_ms_per_pair": 0.0223381875,
+                "repeat": 3
+              },
+              {
+                "event_ms_per_pair": 0.02005000039935112,
+                "host_ms_per_pair": 0.021713375,
+                "repeat": 4
+              },
+              {
+                "event_ms_per_pair": 0.020090000703930855,
+                "host_ms_per_pair": 0.0216745,
+                "repeat": 5
+              },
+              {
+                "event_ms_per_pair": 0.021431999281048775,
+                "host_ms_per_pair": 0.023080625,
+                "repeat": 6
+              },
+              {
+                "event_ms_per_pair": 0.019937999546527863,
+                "host_ms_per_pair": 0.021549875,
+                "repeat": 7
+              },
+              {
+                "event_ms_per_pair": 0.02220200002193451,
+                "host_ms_per_pair": 0.023782125,
+                "repeat": 8
+              },
+              {
+                "event_ms_per_pair": 0.020829999819397926,
+                "host_ms_per_pair": 0.022545125,
+                "repeat": 9
+              },
+              {
+                "event_ms_per_pair": 0.020228000357747078,
+                "host_ms_per_pair": 0.0220309375,
+                "repeat": 10
+              },
+              {
+                "event_ms_per_pair": 0.03153400123119354,
+                "host_ms_per_pair": 0.0330921875,
+                "repeat": 11
+              },
+              {
+                "event_ms_per_pair": 0.01954999938607216,
+                "host_ms_per_pair": 0.021776875,
+                "repeat": 12
+              },
+              {
+                "event_ms_per_pair": 0.02007799968123436,
+                "host_ms_per_pair": 0.0222159375,
+                "repeat": 13
+              },
+              {
+                "event_ms_per_pair": 0.019967999309301376,
+                "host_ms_per_pair": 0.022443375,
+                "repeat": 14
+              },
+              {
+                "event_ms_per_pair": 0.02031400054693222,
+                "host_ms_per_pair": 0.023028125,
+                "repeat": 15
+              },
+              {
+                "event_ms_per_pair": 0.020447999238967896,
+                "host_ms_per_pair": 0.0226915,
+                "repeat": 16
+              },
+              {
+                "event_ms_per_pair": 0.019850000739097595,
+                "host_ms_per_pair": 0.0213333125,
+                "repeat": 17
+              },
+              {
+                "event_ms_per_pair": 0.02253199927508831,
+                "host_ms_per_pair": 0.023844,
+                "repeat": 18
+              },
+              {
+                "event_ms_per_pair": 0.020096000283956528,
+                "host_ms_per_pair": 0.0214498125,
+                "repeat": 19
+              },
+              {
+                "event_ms_per_pair": 0.02232000045478344,
+                "host_ms_per_pair": 0.023629125,
+                "repeat": 20
+              },
+              {
+                "event_ms_per_pair": 0.02048799954354763,
+                "host_ms_per_pair": 0.0220004375,
+                "repeat": 21
+              },
+              {
+                "event_ms_per_pair": 0.020225999876856804,
+                "host_ms_per_pair": 0.021558375,
+                "repeat": 22
+              },
+              {
+                "event_ms_per_pair": 0.020826000720262527,
+                "host_ms_per_pair": 0.022158,
+                "repeat": 23
+              },
+              {
+                "event_ms_per_pair": 0.0210999995470047,
+                "host_ms_per_pair": 0.025928,
+                "repeat": 24
+              },
+              {
+                "event_ms_per_pair": 0.01988999918103218,
+                "host_ms_per_pair": 0.022237125,
+                "repeat": 25
+              },
+              {
+                "event_ms_per_pair": 0.02385599911212921,
+                "host_ms_per_pair": 0.025386625,
+                "repeat": 26
+              },
+              {
+                "event_ms_per_pair": 0.021875999867916107,
+                "host_ms_per_pair": 0.0233436875,
+                "repeat": 27
+              },
+              {
+                "event_ms_per_pair": 0.022075999528169632,
+                "host_ms_per_pair": 0.0248071875,
+                "repeat": 28
+              },
+              {
+                "event_ms_per_pair": 0.022676000371575356,
+                "host_ms_per_pair": 0.024128,
+                "repeat": 29
+              },
+              {
+                "event_ms_per_pair": 0.02407200075685978,
+                "host_ms_per_pair": 0.02548075,
+                "repeat": 30
+              }
+            ]
+          }
+        },
+        {
+          "rank": 1,
+          "samples": {
+            "CUSTOM_AR_PAIR": [
+              {
+                "event_ms_per_pair": 0.015204000286757946,
+                "host_ms_per_pair": 0.0194529375,
+                "repeat": 0
+              },
+              {
+                "event_ms_per_pair": 0.011238000355660915,
+                "host_ms_per_pair": 0.0139023125,
+                "repeat": 1
+              },
+              {
+                "event_ms_per_pair": 0.06196599826216698,
+                "host_ms_per_pair": 0.066267625,
+                "repeat": 2
+              },
+              {
+                "event_ms_per_pair": 0.00993799977004528,
+                "host_ms_per_pair": 0.0115459375,
+                "repeat": 3
+              },
+              {
+                "event_ms_per_pair": 0.011090000160038471,
+                "host_ms_per_pair": 0.0125433125,
+                "repeat": 4
+              },
+              {
+                "event_ms_per_pair": 0.009701999835669994,
+                "host_ms_per_pair": 0.011142625,
+                "repeat": 5
+              },
+              {
+                "event_ms_per_pair": 0.01133000012487173,
+                "host_ms_per_pair": 0.012752625,
+                "repeat": 6
+              },
+              {
+                "event_ms_per_pair": 0.009916000068187714,
+                "host_ms_per_pair": 0.0119621875,
+                "repeat": 7
+              },
+              {
+                "event_ms_per_pair": 0.010727999731898308,
+                "host_ms_per_pair": 0.0153766875,
+                "repeat": 8
+              },
+              {
+                "event_ms_per_pair": 0.009828000329434872,
+                "host_ms_per_pair": 0.0112626875,
+                "repeat": 9
+              },
+              {
+                "event_ms_per_pair": 0.011130000464618206,
+                "host_ms_per_pair": 0.0125160625,
+                "repeat": 10
+              },
+              {
+                "event_ms_per_pair": 0.010312000289559364,
+                "host_ms_per_pair": 0.01272525,
+                "repeat": 11
+              },
+              {
+                "event_ms_per_pair": 0.011234000325202942,
+                "host_ms_per_pair": 0.0130525,
+                "repeat": 12
+              },
+              {
+                "event_ms_per_pair": 0.011739999987185001,
+                "host_ms_per_pair": 0.0134964375,
+                "repeat": 13
+              },
+              {
+                "event_ms_per_pair": 0.012174000032246113,
+                "host_ms_per_pair": 0.0138446875,
+                "repeat": 14
+              },
+              {
+                "event_ms_per_pair": 0.012037999927997589,
+                "host_ms_per_pair": 0.0139621875,
+                "repeat": 15
+              },
+              {
+                "event_ms_per_pair": 0.0132020004093647,
+                "host_ms_per_pair": 0.01491825,
+                "repeat": 16
+              },
+              {
+                "event_ms_per_pair": 0.009788000024855137,
+                "host_ms_per_pair": 0.011510625,
+                "repeat": 17
+              },
+              {
+                "event_ms_per_pair": 0.00980599969625473,
+                "host_ms_per_pair": 0.0114476875,
+                "repeat": 18
+              },
+              {
+                "event_ms_per_pair": 0.009813999757170677,
+                "host_ms_per_pair": 0.011528125,
+                "repeat": 19
+              },
+              {
+                "event_ms_per_pair": 0.009971999563276768,
+                "host_ms_per_pair": 0.012921875,
+                "repeat": 20
+              },
+              {
+                "event_ms_per_pair": 0.010491999797523022,
+                "host_ms_per_pair": 0.011804625,
+                "repeat": 21
+              },
+              {
+                "event_ms_per_pair": 0.009650000371038914,
+                "host_ms_per_pair": 0.010897625,
+                "repeat": 22
+              },
+              {
+                "event_ms_per_pair": 0.009693999774754047,
+                "host_ms_per_pair": 0.010968,
+                "repeat": 23
+              },
+              {
+                "event_ms_per_pair": 0.01105399988591671,
+                "host_ms_per_pair": 0.01636575,
+                "repeat": 24
+              },
+              {
+                "event_ms_per_pair": 0.010553999803960323,
+                "host_ms_per_pair": 0.01464425,
+                "repeat": 25
+              },
+              {
+                "event_ms_per_pair": 0.010676000267267227,
+                "host_ms_per_pair": 0.015693375,
+                "repeat": 26
+              },
+              {
+                "event_ms_per_pair": 0.010905999690294266,
+                "host_ms_per_pair": 0.0135093125,
+                "repeat": 27
+              },
+              {
+                "event_ms_per_pair": 0.01006999984383583,
+                "host_ms_per_pair": 0.0123065625,
+                "repeat": 28
+              },
+              {
+                "event_ms_per_pair": 0.0101500004529953,
+                "host_ms_per_pair": 0.012426625,
+                "repeat": 29
+              },
+              {
+                "event_ms_per_pair": 0.010098000057041645,
+                "host_ms_per_pair": 0.0122985625,
+                "repeat": 30
+              }
+            ],
+            "STOCK_AG_RS_PAIR": [
+              {
+                "event_ms_per_pair": 0.01962999999523163,
+                "host_ms_per_pair": 0.0246704375,
+                "repeat": 0
+              },
+              {
+                "event_ms_per_pair": 0.02869199961423874,
+                "host_ms_per_pair": 0.0343834375,
+                "repeat": 1
+              },
+              {
+                "event_ms_per_pair": 0.025275999680161476,
+                "host_ms_per_pair": 0.0287171875,
+                "repeat": 2
+              },
+              {
+                "event_ms_per_pair": 0.020878000184893608,
+                "host_ms_per_pair": 0.0241016875,
+                "repeat": 3
+              },
+              {
+                "event_ms_per_pair": 0.019721999764442444,
+                "host_ms_per_pair": 0.0212650625,
+                "repeat": 4
+              },
+              {
+                "event_ms_per_pair": 0.022110000252723694,
+                "host_ms_per_pair": 0.0237443125,
+                "repeat": 5
+              },
+              {
+                "event_ms_per_pair": 0.020191999152302742,
+                "host_ms_per_pair": 0.021609625,
+                "repeat": 6
+              },
+              {
+                "event_ms_per_pair": 0.02148200012743473,
+                "host_ms_per_pair": 0.02328025,
+                "repeat": 7
+              },
+              {
+                "event_ms_per_pair": 0.020312000066041946,
+                "host_ms_per_pair": 0.0223041875,
+                "repeat": 8
+              },
+              {
+                "event_ms_per_pair": 0.021889999508857727,
+                "host_ms_per_pair": 0.023293875,
+                "repeat": 9
+              },
+              {
+                "event_ms_per_pair": 0.02186400070786476,
+                "host_ms_per_pair": 0.023179,
+                "repeat": 10
+              },
+              {
+                "event_ms_per_pair": 0.02123199962079525,
+                "host_ms_per_pair": 0.0263414375,
+                "repeat": 11
+              },
+              {
+                "event_ms_per_pair": 0.021026000380516052,
+                "host_ms_per_pair": 0.0227808125,
+                "repeat": 12
+              },
+              {
+                "event_ms_per_pair": 0.019398000091314316,
+                "host_ms_per_pair": 0.0212660625,
+                "repeat": 13
+              },
+              {
+                "event_ms_per_pair": 0.0226259995251894,
+                "host_ms_per_pair": 0.024320875,
+                "repeat": 14
+              },
+              {
+                "event_ms_per_pair": 0.02307399921119213,
+                "host_ms_per_pair": 0.024810375,
+                "repeat": 15
+              },
+              {
+                "event_ms_per_pair": 0.022391999140381813,
+                "host_ms_per_pair": 0.0240379375,
+                "repeat": 16
+              },
+              {
+                "event_ms_per_pair": 0.01965400017797947,
+                "host_ms_per_pair": 0.0213925,
+                "repeat": 17
+              },
+              {
+                "event_ms_per_pair": 0.020093999803066254,
+                "host_ms_per_pair": 0.021771125,
+                "repeat": 18
+              },
+              {
+                "event_ms_per_pair": 0.019805999472737312,
+                "host_ms_per_pair": 0.0214471875,
+                "repeat": 19
+              },
+              {
+                "event_ms_per_pair": 0.02017199993133545,
+                "host_ms_per_pair": 0.0215021875,
+                "repeat": 20
+              },
+              {
+                "event_ms_per_pair": 0.0215620007365942,
+                "host_ms_per_pair": 0.022971,
+                "repeat": 21
+              },
+              {
+                "event_ms_per_pair": 0.020174000412225723,
+                "host_ms_per_pair": 0.021471875,
+                "repeat": 22
+              },
+              {
+                "event_ms_per_pair": 0.020268000662326813,
+                "host_ms_per_pair": 0.021558375,
+                "repeat": 23
+              },
+              {
+                "event_ms_per_pair": 0.3313100039958954,
+                "host_ms_per_pair": 0.3339185625,
+                "repeat": 24
+              },
+              {
+                "event_ms_per_pair": 0.020824000239372253,
+                "host_ms_per_pair": 0.02334975,
+                "repeat": 25
+              },
+              {
+                "event_ms_per_pair": 0.02027199976146221,
+                "host_ms_per_pair": 0.0231955625,
+                "repeat": 26
+              },
+              {
+                "event_ms_per_pair": 0.01959400065243244,
+                "host_ms_per_pair": 0.02222475,
+                "repeat": 27
+              },
+              {
+                "event_ms_per_pair": 0.01952200010418892,
+                "host_ms_per_pair": 0.021723375,
+                "repeat": 28
+              },
+              {
+                "event_ms_per_pair": 0.01995999924838543,
+                "host_ms_per_pair": 0.0222694375,
+                "repeat": 29
+              },
+              {
+                "event_ms_per_pair": 0.020193999633193016,
+                "host_ms_per_pair": 0.0225329375,
+                "repeat": 30
+              }
+            ]
+          }
+        }
+      ],
+      "physical_gpus": [
+        4,
+        5
+      ],
+      "timing": {
+        "CUSTOM_AR_PAIR": {
+          "critical_event_ms": [
+            0.015204000286757946,
+            0.011238000355660915,
+            0.06196599826216698,
+            0.01100200042128563,
+            0.011090000160038471,
+            0.012745999731123447,
+            0.01133000012487173,
+            0.011876000091433525,
+            0.01527199987322092,
+            0.009828000329434872,
+            0.011130000464618206,
+            0.011669999919831753,
+            0.011234000325202942,
+            0.011739999987185001,
+            0.012174000032246113,
+            0.012037999927997589,
+            0.0132020004093647,
+            0.011467999778687954,
+            0.01065799966454506,
+            0.011748000048100948,
+            0.013907999731600285,
+            0.010491999797523022,
+            0.010470000095665455,
+            0.01013999991118908,
+            0.01105399988591671,
+            0.014379999600350857,
+            0.01674400083720684,
+            0.010905999690294266,
+            0.011479999870061874,
+            0.01232600025832653,
+            0.01143800001591444
+          ],
+          "median_critical_event_ms": 0.011479999870061874
+        },
+        "STOCK_AG_RS_PAIR": {
+          "critical_event_ms": [
+            0.024075999855995178,
+            0.02869199961423874,
+            0.025275999680161476,
+            0.020878000184893608,
+            0.02005000039935112,
+            0.022110000252723694,
+            0.021431999281048775,
+            0.02148200012743473,
+            0.02220200002193451,
+            0.021889999508857727,
+            0.02186400070786476,
+            0.03153400123119354,
+            0.021026000380516052,
+            0.02007799968123436,
+            0.0226259995251894,
+            0.02307399921119213,
+            0.022391999140381813,
+            0.019850000739097595,
+            0.02253199927508831,
+            0.020096000283956528,
+            0.02232000045478344,
+            0.0215620007365942,
+            0.020225999876856804,
+            0.020826000720262527,
+            0.3313100039958954,
+            0.020824000239372253,
+            0.02385599911212921,
+            0.021875999867916107,
+            0.022075999528169632,
+            0.022676000371575356,
+            0.02407200075685978
+          ],
+          "median_critical_event_ms": 0.022075999528169632
+        }
+      },
+      "traffic_scope": "Logical tensor capacities. No physical link counter or pure bandwidth interval."
+    },
+    {
+      "C": 128,
+      "P": 2,
+      "boundary": "Maximum rank-local duration of each complete serialized pair. No absolute cross-GPU timestamp alignment.",
+      "collective_fixture_correctness": "PASS",
+      "evidence_class": "GPU_MICROBENCH",
+      "layout": {
+        "AG_input_bytes_per_rank": 262144,
+        "AG_output_bytes_per_rank": 524288,
+        "AR_input_bytes_per_rank_per_call": 524288,
+        "BF16_bytes": 2,
+        "RS_input_bytes_per_rank": 524288,
+        "RS_output_bytes_per_rank": 262144,
+        "hidden": 2048,
+        "local_rows": 64,
+        "note": "Tensor payload capacities,not measured link traffic. Padding remains charged.",
+        "padded_rows": 128,
+        "useful_rows": 128
+      },
+      "limitations": [
+        "No attention,MLP,norm,router,gate,KV,packing or row scheduling executes.",
+        "These pairs have different layouts/functions without the omitted model operators.",
+        "Pair timing is not full-layer parity,critical-path share or serving speedup.",
+        "Stock NCCL AG/RS does not cover every fused or optimized hybrid implementation.",
+        "Shape compatibility does not validate both model sizes or depth modes."
+      ],
+      "model_output_correctness": "NOT_RUN",
+      "per_rank": [
+        {
+          "rank": 0,
+          "samples": {
+            "CUSTOM_AR_PAIR": [
+              {
+                "event_ms_per_pair": 0.013980000279843807,
+                "host_ms_per_pair": 0.0168894375,
+                "repeat": 0
+              },
+              {
+                "event_ms_per_pair": 0.1423339992761612,
+                "host_ms_per_pair": 0.147579625,
+                "repeat": 1
+              },
+              {
+                "event_ms_per_pair": 0.01570199988782406,
+                "host_ms_per_pair": 0.0188476875,
+                "repeat": 2
+              },
+              {
+                "event_ms_per_pair": 0.013489999808371067,
+                "host_ms_per_pair": 0.0158565,
+                "repeat": 3
+              },
+              {
+                "event_ms_per_pair": 0.013116000220179558,
+                "host_ms_per_pair": 0.015453375,
+                "repeat": 4
+              },
+              {
+                "event_ms_per_pair": 0.022363999858498573,
+                "host_ms_per_pair": 0.024536875,
+                "repeat": 5
+              },
+              {
+                "event_ms_per_pair": 0.24727800488471985,
+                "host_ms_per_pair": 0.2496985,
+                "repeat": 6
+              },
+              {
+                "event_ms_per_pair": 0.013233999721705914,
+                "host_ms_per_pair": 0.0158685,
+                "repeat": 7
+              },
+              {
+                "event_ms_per_pair": 0.013078000396490097,
+                "host_ms_per_pair": 0.0153099375,
+                "repeat": 8
+              },
+              {
+                "event_ms_per_pair": 0.014677999541163445,
+                "host_ms_per_pair": 0.016560375,
+                "repeat": 9
+              },
+              {
+                "event_ms_per_pair": 0.013543999753892422,
+                "host_ms_per_pair": 0.0152691875,
+                "repeat": 10
+              },
+              {
+                "event_ms_per_pair": 0.013658000156283379,
+                "host_ms_per_pair": 0.0154610625,
+                "repeat": 11
+              },
+              {
+                "event_ms_per_pair": 0.014750000089406967,
+                "host_ms_per_pair": 0.0166700625,
+                "repeat": 12
+              },
+              {
+                "event_ms_per_pair": 0.012973999604582787,
+                "host_ms_per_pair": 0.0147404375,
+                "repeat": 13
+              },
+              {
+                "event_ms_per_pair": 0.013133999891579151,
+                "host_ms_per_pair": 0.01495825,
+                "repeat": 14
+              },
+              {
+                "event_ms_per_pair": 0.01317800022661686,
+                "host_ms_per_pair": 0.0149443125,
+                "repeat": 15
+              },
+              {
+                "event_ms_per_pair": 0.0137320002540946,
+                "host_ms_per_pair": 0.015334,
+                "repeat": 16
+              },
+              {
+                "event_ms_per_pair": 0.013290000148117542,
+                "host_ms_per_pair": 0.0149256875,
+                "repeat": 17
+              },
+              {
+                "event_ms_per_pair": 0.014030000194907188,
+                "host_ms_per_pair": 0.0155133125,
+                "repeat": 18
+              },
+              {
+                "event_ms_per_pair": 0.01283000037074089,
+                "host_ms_per_pair": 0.0144409375,
+                "repeat": 19
+              },
+              {
+                "event_ms_per_pair": 0.013269999995827675,
+                "host_ms_per_pair": 0.014851,
+                "repeat": 20
+              },
+              {
+                "event_ms_per_pair": 0.013043999671936035,
+                "host_ms_per_pair": 0.0148976875,
+                "repeat": 21
+              },
+              {
+                "event_ms_per_pair": 0.01296399999409914,
+                "host_ms_per_pair": 0.014444125,
+                "repeat": 22
+              },
+              {
+                "event_ms_per_pair": 0.01281999982893467,
+                "host_ms_per_pair": 0.0143993125,
+                "repeat": 23
+              },
+              {
+                "event_ms_per_pair": 0.012931999750435352,
+                "host_ms_per_pair": 0.014744375,
+                "repeat": 24
+              },
+              {
+                "event_ms_per_pair": 0.014125999994575977,
+                "host_ms_per_pair": 0.01563325,
+                "repeat": 25
+              },
+              {
+                "event_ms_per_pair": 0.013116000220179558,
+                "host_ms_per_pair": 0.0145853125,
+                "repeat": 26
+              },
+              {
+                "event_ms_per_pair": 0.014124000445008278,
+                "host_ms_per_pair": 0.0205156875,
+                "repeat": 27
+              },
+              {
+                "event_ms_per_pair": 0.013256000354886055,
+                "host_ms_per_pair": 0.015857,
+                "repeat": 28
+              },
+              {
+                "event_ms_per_pair": 0.013183999806642532,
+                "host_ms_per_pair": 0.0149634375,
+                "repeat": 29
+              },
+              {
+                "event_ms_per_pair": 0.012772000394761562,
+                "host_ms_per_pair": 0.0143563125,
+                "repeat": 30
+              }
+            ],
+            "STOCK_AG_RS_PAIR": [
+              {
+                "event_ms_per_pair": 0.02457199990749359,
+                "host_ms_per_pair": 0.0288415625,
+                "repeat": 0
+              },
+              {
+                "event_ms_per_pair": 0.024261999875307083,
+                "host_ms_per_pair": 0.02684175,
+                "repeat": 1
+              },
+              {
+                "event_ms_per_pair": 0.02817000076174736,
+                "host_ms_per_pair": 0.0312355,
+                "repeat": 2
+              },
+              {
+                "event_ms_per_pair": 0.05879800021648407,
+                "host_ms_per_pair": 0.061948375,
+                "repeat": 3
+              },
+              {
+                "event_ms_per_pair": 0.025348000228405,
+                "host_ms_per_pair": 0.0276354375,
+                "repeat": 4
+              },
+              {
+                "event_ms_per_pair": 0.025057999417185783,
+                "host_ms_per_pair": 0.027209375,
+                "repeat": 5
+              },
+              {
+                "event_ms_per_pair": 0.06803599745035172,
+                "host_ms_per_pair": 0.07034225,
+                "repeat": 6
+              },
+              {
+                "event_ms_per_pair": 0.029316000640392303,
+                "host_ms_per_pair": 0.0313943125,
+                "repeat": 7
+              },
+              {
+                "event_ms_per_pair": 0.030750000849366188,
+                "host_ms_per_pair": 0.032808125,
+                "repeat": 8
+              },
+              {
+                "event_ms_per_pair": 0.02551800012588501,
+                "host_ms_per_pair": 0.0274936875,
+                "repeat": 9
+              },
+              {
+                "event_ms_per_pair": 0.0245520006865263,
+                "host_ms_per_pair": 0.026300875,
+                "repeat": 10
+              },
+              {
+                "event_ms_per_pair": 0.02439199946820736,
+                "host_ms_per_pair": 0.0260744375,
+                "repeat": 11
+              },
+              {
+                "event_ms_per_pair": 0.024369999766349792,
+                "host_ms_per_pair": 0.026130125,
+                "repeat": 12
+              },
+              {
+                "event_ms_per_pair": 0.024536000564694405,
+                "host_ms_per_pair": 0.0262165,
+                "repeat": 13
+              },
+              {
+                "event_ms_per_pair": 0.02442000061273575,
+                "host_ms_per_pair": 0.0261825625,
+                "repeat": 14
+              },
+              {
+                "event_ms_per_pair": 0.02486399933695793,
+                "host_ms_per_pair": 0.026547,
+                "repeat": 15
+              },
+              {
+                "event_ms_per_pair": 0.024968000128865242,
+                "host_ms_per_pair": 0.0266224375,
+                "repeat": 16
+              },
+              {
+                "event_ms_per_pair": 0.025345999747514725,
+                "host_ms_per_pair": 0.0269768125,
+                "repeat": 17
+              },
+              {
+                "event_ms_per_pair": 0.02465599961578846,
+                "host_ms_per_pair": 0.0262689375,
+                "repeat": 18
+              },
+              {
+                "event_ms_per_pair": 0.025962000712752342,
+                "host_ms_per_pair": 0.027494875,
+                "repeat": 19
+              },
+              {
+                "event_ms_per_pair": 0.024700000882148743,
+                "host_ms_per_pair": 0.0263459375,
+                "repeat": 20
+              },
+              {
+                "event_ms_per_pair": 0.025019999593496323,
+                "host_ms_per_pair": 0.0264993125,
+                "repeat": 21
+              },
+              {
+                "event_ms_per_pair": 0.024782000109553337,
+                "host_ms_per_pair": 0.026221375,
+                "repeat": 22
+              },
+              {
+                "event_ms_per_pair": 0.02469000034034252,
+                "host_ms_per_pair": 0.0261193125,
+                "repeat": 23
+              },
+              {
+                "event_ms_per_pair": 0.02473199926316738,
+                "host_ms_per_pair": 0.0263224375,
+                "repeat": 24
+              },
+              {
+                "event_ms_per_pair": 0.02453400008380413,
+                "host_ms_per_pair": 0.026149375,
+                "repeat": 25
+              },
+              {
+                "event_ms_per_pair": 0.028961999341845512,
+                "host_ms_per_pair": 0.0305625625,
+                "repeat": 26
+              },
+              {
+                "event_ms_per_pair": 0.02612599916756153,
+                "host_ms_per_pair": 0.02750225,
+                "repeat": 27
+              },
+              {
+                "event_ms_per_pair": 0.025628000497817993,
+                "host_ms_per_pair": 0.027988,
+                "repeat": 28
+              },
+              {
+                "event_ms_per_pair": 0.025219999253749847,
+                "host_ms_per_pair": 0.028142,
+                "repeat": 29
+              },
+              {
+                "event_ms_per_pair": 0.024674000218510628,
+                "host_ms_per_pair": 0.026233375,
+                "repeat": 30
+              }
+            ]
+          }
+        },
+        {
+          "rank": 1,
+          "samples": {
+            "CUSTOM_AR_PAIR": [
+              {
+                "event_ms_per_pair": 0.013778000138700008,
+                "host_ms_per_pair": 0.017488625,
+                "repeat": 0
+              },
+              {
+                "event_ms_per_pair": 0.01374599989503622,
+                "host_ms_per_pair": 0.017668875,
+                "repeat": 1
+              },
+              {
+                "event_ms_per_pair": 0.014077999629080296,
+                "host_ms_per_pair": 0.019137375,
+                "repeat": 2
+              },
+              {
+                "event_ms_per_pair": 0.013113999739289284,
+                "host_ms_per_pair": 0.0149080625,
+                "repeat": 3
+              },
+              {
+                "event_ms_per_pair": 0.014197999611496925,
+                "host_ms_per_pair": 0.0156849375,
+                "repeat": 4
+              },
+              {
+                "event_ms_per_pair": 0.014349999837577343,
+                "host_ms_per_pair": 0.02009575,
+                "repeat": 5
+              },
+              {
+                "event_ms_per_pair": 0.013670000247657299,
+                "host_ms_per_pair": 0.0174653125,
+                "repeat": 6
+              },
+              {
+                "event_ms_per_pair": 0.01561999972909689,
+                "host_ms_per_pair": 0.017475625,
+                "repeat": 7
+              },
+              {
+                "event_ms_per_pair": 0.013845999725162983,
+                "host_ms_per_pair": 0.015476375,
+                "repeat": 8
+              },
+              {
+                "event_ms_per_pair": 0.01319000031799078,
+                "host_ms_per_pair": 0.0154963125,
+                "repeat": 9
+              },
+              {
+                "event_ms_per_pair": 0.013043999671936035,
+                "host_ms_per_pair": 0.0149974375,
+                "repeat": 10
+              },
+              {
+                "event_ms_per_pair": 0.01357400044798851,
+                "host_ms_per_pair": 0.015760875,
+                "repeat": 11
+              },
+              {
+                "event_ms_per_pair": 0.013187999837100506,
+                "host_ms_per_pair": 0.0155293125,
+                "repeat": 12
+              },
+              {
+                "event_ms_per_pair": 0.012919999659061432,
+                "host_ms_per_pair": 0.0148215625,
+                "repeat": 13
+              },
+              {
+                "event_ms_per_pair": 0.012935999780893326,
+                "host_ms_per_pair": 0.014912625,
+                "repeat": 14
+              },
+              {
+                "event_ms_per_pair": 0.01296399999409914,
+                "host_ms_per_pair": 0.0149093125,
+                "repeat": 15
+              },
+              {
+                "event_ms_per_pair": 0.012914000079035759,
+                "host_ms_per_pair": 0.014675,
+                "repeat": 16
+              },
+              {
+                "event_ms_per_pair": 0.012907999567687511,
+                "host_ms_per_pair": 0.01468875,
+                "repeat": 17
+              },
+              {
+                "event_ms_per_pair": 0.012876000255346298,
+                "host_ms_per_pair": 0.0145474375,
+                "repeat": 18
+              },
+              {
+                "event_ms_per_pair": 0.012914000079035759,
+                "host_ms_per_pair": 0.0146648125,
+                "repeat": 19
+              },
+              {
+                "event_ms_per_pair": 0.012877999804913998,
+                "host_ms_per_pair": 0.0145168125,
+                "repeat": 20
+              },
+              {
+                "event_ms_per_pair": 0.012877999804913998,
+                "host_ms_per_pair": 0.0149655,
+                "repeat": 21
+              },
+              {
+                "event_ms_per_pair": 0.012827999889850616,
+                "host_ms_per_pair": 0.014484,
+                "repeat": 22
+              },
+              {
+                "event_ms_per_pair": 0.012955999933183193,
+                "host_ms_per_pair": 0.014623,
+                "repeat": 23
+              },
+              {
+                "event_ms_per_pair": 0.012873999774456024,
+                "host_ms_per_pair": 0.0144450625,
+                "repeat": 24
+              },
+              {
+                "event_ms_per_pair": 0.01286999974399805,
+                "host_ms_per_pair": 0.0144574375,
+                "repeat": 25
+              },
+              {
+                "event_ms_per_pair": 0.012826000340282917,
+                "host_ms_per_pair": 0.014344875,
+                "repeat": 26
+              },
+              {
+                "event_ms_per_pair": 0.02140600048005581,
+                "host_ms_per_pair": 0.0232540625,
+                "repeat": 27
+              },
+              {
+                "event_ms_per_pair": 0.015866000205278397,
+                "host_ms_per_pair": 0.017572125,
+                "repeat": 28
+              },
+              {
+                "event_ms_per_pair": 0.01296599954366684,
+                "host_ms_per_pair": 0.0147383125,
+                "repeat": 29
+              },
+              {
+                "event_ms_per_pair": 0.012853999622166157,
+                "host_ms_per_pair": 0.0145024375,
+                "repeat": 30
+              }
+            ],
+            "STOCK_AG_RS_PAIR": [
+              {
+                "event_ms_per_pair": 0.026302000507712364,
+                "host_ms_per_pair": 0.0287714375,
+                "repeat": 0
+              },
+              {
+                "event_ms_per_pair": 0.025272000581026077,
+                "host_ms_per_pair": 0.0280329375,
+                "repeat": 1
+              },
+              {
+                "event_ms_per_pair": 0.02380800060927868,
+                "host_ms_per_pair": 0.028162125,
+                "repeat": 2
+              },
+              {
+                "event_ms_per_pair": 0.02559800073504448,
+                "host_ms_per_pair": 0.029554,
+                "repeat": 3
+              },
+              {
+                "event_ms_per_pair": 0.027615999802947044,
+                "host_ms_per_pair": 0.029128875,
+                "repeat": 4
+              },
+              {
+                "event_ms_per_pair": 0.026048000901937485,
+                "host_ms_per_pair": 0.027521875,
+                "repeat": 5
+              },
+              {
+                "event_ms_per_pair": 0.024752000346779823,
+                "host_ms_per_pair": 0.0292415,
+                "repeat": 6
+              },
+              {
+                "event_ms_per_pair": 0.02466999925673008,
+                "host_ms_per_pair": 0.02744475,
+                "repeat": 7
+              },
+              {
+                "event_ms_per_pair": 0.02502400055527687,
+                "host_ms_per_pair": 0.0292095625,
+                "repeat": 8
+              },
+              {
+                "event_ms_per_pair": 0.024156000465154648,
+                "host_ms_per_pair": 0.0264705,
+                "repeat": 9
+              },
+              {
+                "event_ms_per_pair": 0.023976000025868416,
+                "host_ms_per_pair": 0.025998,
+                "repeat": 10
+              },
+              {
+                "event_ms_per_pair": 0.02449199929833412,
+                "host_ms_per_pair": 0.026293,
+                "repeat": 11
+              },
+              {
+                "event_ms_per_pair": 0.024215999990701675,
+                "host_ms_per_pair": 0.0261465,
+                "repeat": 12
+              },
+              {
+                "event_ms_per_pair": 0.02418000064790249,
+                "host_ms_per_pair": 0.0259321875,
+                "repeat": 13
+              },
+              {
+                "event_ms_per_pair": 0.024178000167012215,
+                "host_ms_per_pair": 0.026009125,
+                "repeat": 14
+              },
+              {
+                "event_ms_per_pair": 0.024196000769734383,
+                "host_ms_per_pair": 0.0260089375,
+                "repeat": 15
+              },
+              {
+                "event_ms_per_pair": 0.0241480004042387,
+                "host_ms_per_pair": 0.0259568125,
+                "repeat": 16
+              },
+              {
+                "event_ms_per_pair": 0.02483000047504902,
+                "host_ms_per_pair": 0.0266343125,
+                "repeat": 17
+              },
+              {
+                "event_ms_per_pair": 0.025043999776244164,
+                "host_ms_per_pair": 0.026767,
+                "repeat": 18
+              },
+              {
+                "event_ms_per_pair": 0.024428000673651695,
+                "host_ms_per_pair": 0.0262408125,
+                "repeat": 19
+              },
+              {
+                "event_ms_per_pair": 0.024167999625205994,
+                "host_ms_per_pair": 0.0258815625,
+                "repeat": 20
+              },
+              {
+                "event_ms_per_pair": 0.024215999990701675,
+                "host_ms_per_pair": 0.0258595625,
+                "repeat": 21
+              },
+              {
+                "event_ms_per_pair": 0.024240000173449516,
+                "host_ms_per_pair": 0.025891625,
+                "repeat": 22
+              },
+              {
+                "event_ms_per_pair": 0.02440200001001358,
+                "host_ms_per_pair": 0.0260566875,
+                "repeat": 23
+              },
+              {
+                "event_ms_per_pair": 0.024361999705433846,
+                "host_ms_per_pair": 0.0259548125,
+                "repeat": 24
+              },
+              {
+                "event_ms_per_pair": 0.024461999535560608,
+                "host_ms_per_pair": 0.026195,
+                "repeat": 25
+              },
+              {
+                "event_ms_per_pair": 0.024987999349832535,
+                "host_ms_per_pair": 0.02777025,
+                "repeat": 26
+              },
+              {
+                "event_ms_per_pair": 0.024555999785661697,
+                "host_ms_per_pair": 0.0265264375,
+                "repeat": 27
+              },
+              {
+                "event_ms_per_pair": 0.028036000207066536,
+                "host_ms_per_pair": 0.029825,
+                "repeat": 28
+              },
+              {
+                "event_ms_per_pair": 0.025887999683618546,
+                "host_ms_per_pair": 0.028011375,
+                "repeat": 29
+              },
+              {
+                "event_ms_per_pair": 0.02432199940085411,
+                "host_ms_per_pair": 0.0262851875,
+                "repeat": 30
+              }
+            ]
+          }
+        }
+      ],
+      "physical_gpus": [
+        4,
+        5
+      ],
+      "timing": {
+        "CUSTOM_AR_PAIR": {
+          "critical_event_ms": [
+            0.013980000279843807,
+            0.1423339992761612,
+            0.01570199988782406,
+            0.013489999808371067,
+            0.014197999611496925,
+            0.022363999858498573,
+            0.24727800488471985,
+            0.01561999972909689,
+            0.013845999725162983,
+            0.014677999541163445,
+            0.013543999753892422,
+            0.013658000156283379,
+            0.014750000089406967,
+            0.012973999604582787,
+            0.013133999891579151,
+            0.01317800022661686,
+            0.0137320002540946,
+            0.013290000148117542,
+            0.014030000194907188,
+            0.012914000079035759,
+            0.013269999995827675,
+            0.013043999671936035,
+            0.01296399999409914,
+            0.012955999933183193,
+            0.012931999750435352,
+            0.014125999994575977,
+            0.013116000220179558,
+            0.02140600048005581,
+            0.015866000205278397,
+            0.013183999806642532,
+            0.012853999622166157
+          ],
+          "median_critical_event_ms": 0.013658000156283379
+        },
+        "STOCK_AG_RS_PAIR": {
+          "critical_event_ms": [
+            0.026302000507712364,
+            0.025272000581026077,
+            0.02817000076174736,
+            0.05879800021648407,
+            0.027615999802947044,
+            0.026048000901937485,
+            0.06803599745035172,
+            0.029316000640392303,
+            0.030750000849366188,
+            0.02551800012588501,
+            0.0245520006865263,
+            0.02449199929833412,
+            0.024369999766349792,
+            0.024536000564694405,
+            0.02442000061273575,
+            0.02486399933695793,
+            0.024968000128865242,
+            0.025345999747514725,
+            0.025043999776244164,
+            0.025962000712752342,
+            0.024700000882148743,
+            0.025019999593496323,
+            0.024782000109553337,
+            0.02469000034034252,
+            0.02473199926316738,
+            0.02453400008380413,
+            0.028961999341845512,
+            0.02612599916756153,
+            0.028036000207066536,
+            0.025887999683618546,
+            0.024674000218510628
+          ],
+          "median_critical_event_ms": 0.025272000581026077
+        }
+      },
+      "traffic_scope": "Logical tensor capacities. No physical link counter or pure bandwidth interval."
+    }
+  ],
+  "repeats": 31
+}

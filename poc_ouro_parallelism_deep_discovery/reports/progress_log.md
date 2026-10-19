@@ -1,5 +1,31 @@
 # Campaign progress
 
+## 2026-10-19 18:45 UTC checkpoint
+
+All four staged extension arms complete 64 requests each.
+The integrity validator admits all 256 records.
+The frozen scores, output differences, and declared unit-cost ownership screen cover both Base sizes.
+These are baseline and structural observations, not candidate speedups.
+
+Two bounded collective-pair probes complete timing cells but fail teardown admission.
+Their diagnostics remain available. Their timings do not enter an admitted comparison.
+The second stack identifies the blocked Python-to-native NCCL destruction call, not its root cause.
+No P4 retry follows.
+
+Independent reviews narrow the public RLT, nearest-prior, native FA3, and P8 claims.
+The ledger checkpoint15 indexes 264 observations, 88 arXiv keys, 230 work/document keys, and 193 searches.
+These are metadata counts, not complete-paper read counts.
+
+The first native TP4 extension launch stops for a late cache-provenance precaution.
+It supplies no admitted quality arm.
+The v2 contract freezes fresh per-job caches and named source receipts before new outcomes.
+The original held-out remains untouched and the shortlist remains empty.
+
+The ledger closes 31594.574150 coordinator seconds through 18:42:37.573741 UTC.
+This is approximately 8.776 hours.
+Substantive work continues from that timestamp.
+The ten-hour normal-completion gate remains unmet.
+
 ## Initial scope audit
 
 The coordinator read all 1135 lines of the authoritative specification before implementation.

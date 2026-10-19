@@ -1,0 +1,350 @@
+{
+  "schema_version": 1,
+  "record_kind": "NATIVE_TP4_BASELINE_EXTENSION_PRELAUNCH_CPU_REVIEW",
+  "time_record": {
+    "segment_start_utc": "2026-10-19 18:36:18 UTC",
+    "verification_checkpoint_utc": "2026-10-19 18:48:33 UTC",
+    "active_seconds_through_checkpoint": 735,
+    "prior_pause_time_counted": false
+  },
+  "scope": {
+    "GPU_execution": false,
+    "model_execution": false,
+    "actual_quality_outcomes_parsed": false,
+    "staged_reference_summary_hashed_only": true,
+    "protected_factorial_results_inspected": false,
+    "source_edits_by_reviewer": false,
+    "transitive_scorer_package_review": "SEPARATE_LITERATURE_AUDIT"
+  },
+  "initial_source_sha256": {
+    "scripts/native_quality_extension.py": "d22ad9fcb72c126fbbfd09b82d9aa8d44422e675da050c18e8c428b764109d5f",
+    "reports/native_quality_extension_contract_v1.md": "ee67ac6a5f3fc87cbf17779a696bdb25c3f7bbcf78fa897333d8a465e3877088"
+  },
+  "initial_freeze_snapshot": {
+    "sha256": "c5f3b44674e3c04e4407a9aed03f603f96ed7ff74480b4591ef75a0e300c0b01",
+    "value": {
+      "status": "FROZEN_BEFORE_NATIVE_EXTENSION_OUTCOMES",
+      "created_utc": "2026-10-19 18:41:14 UTC",
+      "source_sha256": {
+        "scripts/native_quality_extension.py": "3c31020acb96c496903f08f23e0b1330b911a20fc9d5d866110ba7f0789655b7",
+        "scripts/validate_native_quality_extension.py": "c4301e2a66696c7ec44853a958e623b5f03131ff42aba11ce9c36badd5bd599b",
+        "scripts/analyze_native_quality_extension.py": "9434232f3f5637283827a9317f8b02109d6a4befea2a2537ef71d8eb1569ba29",
+        "scripts/score_quality.py": "6a658c18820caf4d70d8b437dead7f11a9a4c4d39e28d74f9a484f2d0b30b912",
+        "scripts/baseline_output_comparison.py": "f46547dc0759b62194e833fbd64196faa229846e4baeaccb732b42cadc35dd40",
+        "runtime.py": "03d8164fb359477525ef29e295b18397412f79b13f8253a72d386050c26c8fff",
+        "contract.py": "dc5dafe85aa5b8e3eb770f946bdaf34c7b730ca3a376245ee11d1488ac0f3492",
+        "artifacts/baseline_extension_protocol_v1.json": "0f4e9290f37cd4afe5aa1b3881cff253790604ce4c7dc78b90527b9f6386d11e",
+        "analysis/baseline_extension_complete_v1/summary.json": "1a590508a221f00f7a7209b94322380fa533832bd69faed02db198a73664dc37",
+        "artifacts/baseline_extension_analysis_contract_v1.json": "60624122e1b8030ed30433032c6c73bd505c9e787e5c1e937c0197ad19407eae",
+        "../poc_async_recurrent_pp/scoring.py": "7226e350e01cfb36661377ea549c87834579524a81317f93811e98f7f8b39b35",
+        "../poc_looped_exact_depth_chunk_pipeline/scoring.py": "ddb94ddc472c4bc400d4f241861e170d21037b9da6e6a8d5c1ee2c25efea1c78",
+        "../poc_looped_multigpu_kv_placement/worker_probe.py": "4b792c9696a5d4e8a7c03654b0ba612c0bc6b47917ed5c5ece134c4f29266d7c",
+        "../../.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/model_executor/models/ouro.py": "cf0792c6c8024ded45dba10553b5f0d24b7b6542dd8f8f0e0e6899807ec0c4ff"
+      },
+      "requests_per_model": 64,
+      "per_domain": 32,
+      "models": [
+        "Base Ouro-1.4B",
+        "Base Ouro-2.6B"
+      ],
+      "mode": "Fixed R4",
+      "precision": "BF16",
+      "physical_gpus": [
+        4,
+        5,
+        6,
+        7
+      ],
+      "TP": 4,
+      "maximum_new_tokens": 8192,
+      "temperature": 0,
+      "EOS_allowed": true,
+      "prefix_caching": false,
+      "chunked_prefill": false,
+      "async_scheduling": true,
+      "model_order": [
+        "1.4B",
+        "2.6B"
+      ],
+      "analysis_rule": "Unchanged parser, completed-answer rule, 4000 request bootstrap resamples and seed2026101911. Require complete64-request arms and successful guards.",
+      "purpose": "Baseline whole-operating-point robustness, not candidate or independent held-out confirmation.",
+      "known_outcomes": "The staged-reference extension outcomes are already known. No native extension outcome exists at freeze.",
+      "held_out": "Original candidate held-out remains untouched.",
+      "limitations": "Native string-substring and staged token-suffix stops are different. Source hashes are not a complete binary build receipt or a bitwise function guarantee."
+    }
+  },
+  "findings": [
+    {
+      "id": "N1",
+      "issue": "FourModelProbe import activates tied_tape.install when POC4_FAMILY=tied. Inherited POC4_R can replace native fixed-R4 forward while cache metadata still reports four banks.",
+      "source": "../poc_looped_recurrence_tp_4models/worker_probe.py:6",
+      "resolution": "Runner rejects inherited POC4_* and OURO_CAMPAIGN_STORAGE_CONTROL, and uses read-only KVWorkerProbe directly.",
+      "status": "RESOLVED_BEFORE_NATIVE_OUTCOMES"
+    },
+    {
+      "id": "N2",
+      "issue": "Initial finish expression classified abort/error/unknown with stop_reason=None as EOS.",
+      "evidence": "Seven synthetic finish-expression cases included three unsupported reasons accepted as EOS.",
+      "resolution": "finish_reason requires native stop or length. The validator independently checks the normal completion set.",
+      "status": "RESOLVED_BEFORE_NATIVE_OUTCOMES"
+    },
+    {
+      "id": "N3",
+      "issue": "First validator admitted an 8192-token length result ending with EOS0, contrary to native scheduler EOS precedence.",
+      "initial_validator_sha256": "3d37f7333c4b6ba88e809d06185f2d7364e35b2be0e368a3c8cd0841044ea08c",
+      "evidence": "Synthetic EOS-at-cap record passed before the correction.",
+      "resolution": "Length now requires terminal token !=0. A new regression rejects the earlier counterexample.",
+      "status": "RESOLVED_BEFORE_NATIVE_OUTCOMES"
+    },
+    {
+      "id": "N4",
+      "issue": "A generate exception left the 1200-second alarm armed during teardown.",
+      "resolution": "Alarm cancellation enters finally around generate. Two extracted-AST fake cases show [1200,0] on normal and exception paths.",
+      "status": "RESOLVED_BEFORE_NATIVE_OUTCOMES"
+    },
+    {
+      "id": "N5",
+      "issue": "Validator demanded external .py keys from a guard receipt that only hashes campaign ROOT.rglob('*.py'). Four required external keys were absent in two inspected own historical guard metadata files.",
+      "source": "scripts/validate_native_quality_extension.py:75",
+      "status": "RESOLVED_IN_CURRENT_V2",
+      "archived_validator_sha256": "c4301e2a66696c7ec44853a958e623b5f03131ff42aba11ce9c36badd5bd599b",
+      "resolution": "Current validator limits legacy guard assertions to in-root .py keys and separately checks the runner's complete before-import source receipt."
+    },
+    {
+      "id": "N6",
+      "issue": "Initial native v1 did not establish fresh job-local compile-cache provenance.",
+      "resolution": "Main stopped v1 during compilation. Current v2 creates and records fresh VLLM, Inductor and Triton roots before native imports.",
+      "v1_status": "NOT_ADMITTED_MAIN_REPORTED",
+      "v1_stop_utc": "2026-10-19 18:43:54 UTC",
+      "causal_limit": "No incorrect compiled function or numerical discrepancy is established for v1.",
+      "status": "RESOLVED_FOR_V2_SOURCE_PLAN"
+    }
+  ],
+  "source_checks": {
+    "engine_config_comparison": {
+      "keywords": 19,
+      "status": "PASS",
+      "only_difference": "Read-only KVWorkerProbe replaces FourModelProbe",
+      "reference": "scripts/native_quality_pilot.py with TP4 and async enabled"
+    },
+    "ownership": {
+      "TP": 4,
+      "physical_gpus": [
+        4,
+        5,
+        6,
+        7
+      ],
+      "local_Q_heads": 4,
+      "local_KV_heads": 4,
+      "head_dim": 128,
+      "recurrent_slots": "4*L",
+      "physical_layers": [
+        24,
+        48
+      ],
+      "worker_calls": "Read-only inspect_ownership before generation",
+      "teacher_hook": "NOT_CALLED"
+    },
+    "scope_metadata": {
+      "requests_per_model": 64,
+      "requests_per_domain": 32,
+      "models": 2,
+      "depth_mode": "Fixed R4",
+      "sampling": "Native greedy, unchanged stop strings and 8192 cap",
+      "original_held_out": "EXCLUDED_BY_EXISTING_FROZEN_EXTENSION_PROTOCOL",
+      "fresh_held_out": false,
+      "candidate_validation": false
+    },
+    "canonical_text": "Pinned native tokenizer full decode of raw output IDs with skip_special_tokens=False. Native API text is retained separately.",
+    "stop_semantics": {
+      "native": "Incremental decoded-text substring matching. It can truncate API text inside the final token.",
+      "staged": "Exact encoded-token suffix matching.",
+      "parity_inference": "Matching stop strings do not establish identical terminal token sequences.",
+      "attribution": "Whole operating-point robustness comparison, not a numerical-core-only cause or architecture gain."
+    },
+    "cache_rule": "Fresh per-job VLLM_CACHE_ROOT, TORCHINDUCTOR_CACHE_DIR and TRITON_CACHE_DIR before native imports. Existence causes rejection.",
+    "timeout_rule": {
+      "request_seconds": 1200,
+      "outer_seconds": 3600,
+      "partial_arm_admission": "REJECTED"
+    },
+    "source_receipts": {
+      "guard": "Campaign in-root Python snapshot only",
+      "runner": "All 14 named manifest entries before native imports",
+      "validator": "Checks both receipts under their distinct namespaces"
+    }
+  },
+  "tests": {
+    "unit_tests": 9,
+    "status": "PASS",
+    "synthetic_analysis_cases": [
+      {
+        "case": "Complete 64-record native arm",
+        "result": "64 records and two 32-request domain summaries"
+      },
+      {
+        "case": "NOT_AVAILABLE integrity arm",
+        "result": "EXCLUDED"
+      },
+      {
+        "case": "Partial arm marked PASS",
+        "result": "REJECTED"
+      },
+      {
+        "case": "Changed native raw",
+        "result": "REJECTED"
+      },
+      {
+        "case": "Changed staged raw",
+        "result": "REJECTED"
+      }
+    ],
+    "watchdog_cases": 2,
+    "watchdog_result": "Both normal and generated-exception paths cancel alarm",
+    "actual_outcomes_read": false,
+    "receipt_AST_cases": {
+      "count": 7,
+      "status": "PASS",
+      "positive": "In-root guard plus full runner source receipt and exact job-local cache roots",
+      "rejections": [
+        "missing external full-receipt entry",
+        "wrong manifest digest",
+        "late cache flag",
+        "wrong cache path",
+        "missing in-root guard entry",
+        "late source-receipt flag"
+      ]
+    }
+  },
+  "launch_obligations": [
+    "Full frozen source/receipt agreement before generation",
+    "Fresh guarded output per model",
+    "Exact ordered mask 4/5/6/7",
+    "Declared outer arm timeout in guard contract",
+    "Fresh VLLM, Inductor and Triton cache roots before imports, retained as launch metadata",
+    "Only complete64-request native arms with successful native status and outer guard enter analysis"
+  ],
+  "limits": [
+    "No independent model re-execution or actual generation correctness was tested.",
+    "The validator checks recorded provenance and finish plausibility, not a per-token native detokenizer replay.",
+    "Native configuration and ownership artifacts are hash-bound local receipts, not signed execution attestations.",
+    "Source hashes are not a complete binary build receipt or a bitwise function guarantee.",
+    "The bootstrap remains request-level and descriptive for this frozen cohort.",
+    "No candidate E2E, free-running candidate quality, noninferiority, or new held-out confirmation follows."
+  ],
+  "status": "PASS_V2_SOURCE_AND_SYNTHETIC_CHECKS_RUNTIME_NOT_RUN",
+  "current_freeze": {
+    "status": "FROZEN_BEFORE_NATIVE_V2_OUTCOMES",
+    "created_utc": "2026-10-19 18:45:49 UTC",
+    "source_sha256": {
+      "scripts/native_quality_extension.py": "99104e7971ec8b5e26dbd304e6239b3e4c90f050141b7f727002770bd18d1ac9",
+      "scripts/validate_native_quality_extension.py": "0c49b1f0a125a91a3633361beae9b7a4a409d991924351047bddf116e8d50841",
+      "scripts/analyze_native_quality_extension.py": "9434232f3f5637283827a9317f8b02109d6a4befea2a2537ef71d8eb1569ba29",
+      "scripts/score_quality.py": "6a658c18820caf4d70d8b437dead7f11a9a4c4d39e28d74f9a484f2d0b30b912",
+      "scripts/baseline_output_comparison.py": "f46547dc0759b62194e833fbd64196faa229846e4baeaccb732b42cadc35dd40",
+      "runtime.py": "03d8164fb359477525ef29e295b18397412f79b13f8253a72d386050c26c8fff",
+      "contract.py": "dc5dafe85aa5b8e3eb770f946bdaf34c7b730ca3a376245ee11d1488ac0f3492",
+      "artifacts/baseline_extension_protocol_v1.json": "0f4e9290f37cd4afe5aa1b3881cff253790604ce4c7dc78b90527b9f6386d11e",
+      "analysis/baseline_extension_complete_v1/summary.json": "1a590508a221f00f7a7209b94322380fa533832bd69faed02db198a73664dc37",
+      "artifacts/baseline_extension_analysis_contract_v1.json": "60624122e1b8030ed30433032c6c73bd505c9e787e5c1e937c0197ad19407eae",
+      "../poc_async_recurrent_pp/scoring.py": "7226e350e01cfb36661377ea549c87834579524a81317f93811e98f7f8b39b35",
+      "../poc_looped_exact_depth_chunk_pipeline/scoring.py": "ddb94ddc472c4bc400d4f241861e170d21037b9da6e6a8d5c1ee2c25efea1c78",
+      "../poc_looped_multigpu_kv_placement/worker_probe.py": "4b792c9696a5d4e8a7c03654b0ba612c0bc6b47917ed5c5ece134c4f29266d7c",
+      "../../.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/model_executor/models/ouro.py": "cf0792c6c8024ded45dba10553b5f0d24b7b6542dd8f8f0e0e6899807ec0c4ff"
+    },
+    "supersedes_for_new_launches": "artifacts/native_quality_extension_contract_v1.json",
+    "initial_v1": "NOT_ADMITTED. Stopped before complete arm for cache-provenance precaution.",
+    "requests_per_model": 64,
+    "per_domain": 32,
+    "models": [
+      "Base Ouro-1.4B",
+      "Base Ouro-2.6B"
+    ],
+    "mode": "Fixed R4",
+    "precision": "BF16",
+    "physical_gpus": [
+      4,
+      5,
+      6,
+      7
+    ],
+    "TP": 4,
+    "maximum_new_tokens": 8192,
+    "temperature": 0,
+    "EOS_allowed": true,
+    "prefix_caching": false,
+    "chunked_prefill": false,
+    "async_scheduling": true,
+    "outer_timeout_seconds_per_arm": 3600,
+    "request_timeout_seconds": 1200,
+    "cache_rule": "Fresh job-local VLLM_CACHE_ROOT, TORCHINDUCTOR_CACHE_DIR and TRITON_CACHE_DIR before native imports.",
+    "source_rule": "Runner receipts all named sources before native imports. Legacy guard receipts in-root Python sources only.",
+    "model_order": [
+      "1.4B",
+      "2.6B"
+    ],
+    "analysis_rule": "Unchanged parser, completed-answer rule, 4000 request bootstrap resamples and seed2026101911. Require complete64-request arms and successful guards.",
+    "purpose": "Baseline whole-operating-point robustness, not candidate or independent held-out confirmation.",
+    "known_outcomes": "The staged-reference extension outcomes are already known. No native v2 extension outcome exists at freeze.",
+    "held_out": "Original candidate held-out remains untouched.",
+    "limitations": "Native string-substring and staged token-suffix stops differ. Source receipts are not a complete binary build receipt or a bitwise function guarantee."
+  },
+  "manifest_source_hash_checks": {
+    "v1_preserved": true,
+    "v2_entries": 14,
+    "v2_status": "PASS",
+    "staged_summary": "HASHED_ONLY_NOT_PARSED",
+    "binary_build_receipt": "NOT_ESTABLISHED"
+  },
+  "constraints": {
+    "GPU_execution": false,
+    "model_execution": false,
+    "source_edits": false,
+    "raw_changes": false,
+    "actual_quality_outcomes_read": false,
+    "protected_results_read": false
+  },
+  "input_sha256": {
+    "outputs/baseline_extension_base14_fixed_gpu4_v1/run_contract.json": "41846aac46eb41d516042a7076cc7deb708daad15d2b469165cf292534e9b102",
+    "outputs/hybrid_collective_pair_P2_v1/run_contract.json": "47c69b72e525ba6971ee3b8f4d1e07b03a07f62ebde9e3eb2005be55a3d31df3",
+    "scripts/native_quality_extension.py": "99104e7971ec8b5e26dbd304e6239b3e4c90f050141b7f727002770bd18d1ac9",
+    "scripts/validate_native_quality_extension.py": "0c49b1f0a125a91a3633361beae9b7a4a409d991924351047bddf116e8d50841",
+    "scripts/analyze_native_quality_extension.py": "9434232f3f5637283827a9317f8b02109d6a4befea2a2537ef71d8eb1569ba29",
+    "scripts/score_quality.py": "6a658c18820caf4d70d8b437dead7f11a9a4c4d39e28d74f9a484f2d0b30b912",
+    "scripts/baseline_output_comparison.py": "f46547dc0759b62194e833fbd64196faa229846e4baeaccb732b42cadc35dd40",
+    "runtime.py": "03d8164fb359477525ef29e295b18397412f79b13f8253a72d386050c26c8fff",
+    "contract.py": "dc5dafe85aa5b8e3eb770f946bdaf34c7b730ca3a376245ee11d1488ac0f3492",
+    "artifacts/baseline_extension_protocol_v1.json": "0f4e9290f37cd4afe5aa1b3881cff253790604ce4c7dc78b90527b9f6386d11e",
+    "analysis/baseline_extension_complete_v1/summary.json": "1a590508a221f00f7a7209b94322380fa533832bd69faed02db198a73664dc37",
+    "artifacts/baseline_extension_analysis_contract_v1.json": "60624122e1b8030ed30433032c6c73bd505c9e787e5c1e937c0197ad19407eae",
+    "../poc_async_recurrent_pp/scoring.py": "7226e350e01cfb36661377ea549c87834579524a81317f93811e98f7f8b39b35",
+    "../poc_looped_exact_depth_chunk_pipeline/scoring.py": "ddb94ddc472c4bc400d4f241861e170d21037b9da6e6a8d5c1ee2c25efea1c78",
+    "../poc_looped_multigpu_kv_placement/worker_probe.py": "4b792c9696a5d4e8a7c03654b0ba612c0bc6b47917ed5c5ece134c4f29266d7c",
+    "../../.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/model_executor/models/ouro.py": "cf0792c6c8024ded45dba10553b5f0d24b7b6542dd8f8f0e0e6899807ec0c4ff",
+    "artifacts/native_quality_extension_contract_v1.json": "c5f3b44674e3c04e4407a9aed03f603f96ed7ff74480b4591ef75a0e300c0b01",
+    "artifacts/native_quality_extension_contract_v2.json": "2f340b37ac6883b459b8ef2ef3f53df4199f13547820cb1e779040443aba701e",
+    "artifacts/native_quality_extension_launch_budget_v1.json": "6f149a5f1ed9de2b61f4089b347cede6e8f23814f8c02445df4fdc5e492d55a1",
+    "artifacts/native_quality_extension_pre_cache_isolation_v1.py": "3c31020acb96c496903f08f23e0b1330b911a20fc9d5d866110ba7f0789655b7",
+    "artifacts/validate_native_quality_extension_pre_cache_isolation_v1.py": "c4301e2a66696c7ec44853a958e623b5f03131ff42aba11ce9c36badd5bd599b",
+    "reports/native_quality_extension_contract_v1.md": "b54fcd3f5311966dcc4379d5d2b232afbf971fdd3a0f76d310694d8e7ff26836",
+    "tests/test_native_quality_extension_cpu.py": "941ec6c6b2afd1ca4e681be9bf664f00986ae20eb88530491c1d0fbf06f2a5e8",
+    "scripts/native_quality_pilot.py": "a27262704cf102ca3e048aeada097a748ade8d6e4189b0c2299c579459ca761a",
+    "../poc_looped_recurrence_tp_4models/worker_probe.py": "0ee368eeb6a9717dbbcd07f1b4e400831517c0b188240765991ee5b7cf88d738",
+    "../poc_looped_recurrence_tp_4models/tied_tape.py": "91de4271cb5f4701a03172ceaf1f86a2d42225e1651263ed28d69bef3f1d5b1a",
+    "scripts/gpu_session.py": "2ebe21c3c3260cf9ee555f776fd2f98cf9feb8d52753fdaca3ac61c245891fa9",
+    "../poc_async_recurrent_pp/scripts/gpu_session.py": "3d1d17847f9fbfc3fee5ba75d6f804a37582b338d63e7644fc2580403c25f9a1",
+    "../poc_looped_multigpu_kv_placement/scripts/gpu_session.py": "f53b366c518869f61adfc2b1ee533cb82ef02b0d6fdbbe608fbd4a9fd280c480",
+    "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/sampling_params.py": "d2f9789ba2b93819c4918159cfd29818eab3ba4f9098241e2febadcc690aa767",
+    "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/v1/core/sched/utils.py": "85e82eae555a03497ad2ac1540ed562a6c36fc26185aa6233725c914816aa1b3",
+    "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/v1/engine/detokenizer.py": "2c2a52ed10017ec8355e3728ec45c1b9ec72d4be79f998f25e4e6e82f1370474",
+    "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/v1/engine/output_processor.py": "ee10351275d90796c8b901a5f4b23d5a046ef6ee72fd2921aff2ae78ca58bd9b",
+    "/home/esjung/external/decode-first-cdb-upstream/src/looped_cdb/continuous_batching/requests.py": "1c2a3fc1016eced790d2a05d00e0ef1b0532c32ab3de6816e81ff3104c3b61be",
+    "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/transformers/__init__.py": "46d39e8433a965a6c1dba61129eb3ccbcd19fdcec13acd5dc978d10b12ae4625"
+  },
+  "validation": {
+    "input_hashes": "PASS: 35 named inputs",
+    "report_lint": "PASS: zero violations",
+    "no_remaining_source_blocker": true
+  }
+}

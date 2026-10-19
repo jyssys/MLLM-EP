@@ -1,0 +1,122 @@
+{
+  "schema_version": 1,
+  "record_kind": "P2_COLLECTIVE_PAIR_INCOMPLETE_CLEANUP_READ_ONLY_NOTE",
+  "status": "NOT_ADMITTED_CAUSE_UNRESOLVED",
+  "time_record": {
+    "segment_start_utc": "2026-10-19 18:27:43 UTC",
+    "verification_checkpoint_utc": "2026-10-19 18:31:33 UTC",
+    "active_seconds_through_checkpoint": 230,
+    "prior_pause_time_counted": false
+  },
+  "observation": {
+    "time_window_utc": [
+      "2026-10-19 18:27:43 UTC",
+      "2026-10-19 18:28:37 UTC"
+    ],
+    "source": "outputs/hybrid_collective_pair_P2_v1",
+    "PAIR_lines": 6,
+    "rank0_success": true,
+    "rank0_records": 6,
+    "guard_status_exists": false,
+    "local_status_files": [],
+    "main_reported_rank0_success_utc": "2026-10-19 18:26:27 UTC",
+    "worker_lifetime_source": "MAIN_REPORTED_NOT_REINSPECTED",
+    "read_only_signal": "RED_NOT_ADMITTED"
+  },
+  "active_file_snapshot_sha256_at_182914_UTC": {
+    "outputs/hybrid_collective_pair_P2_v1/status.json": "24d6f6fc7563b0bd16ef7fce1c013dabd7258df116e6573951460b65da8c717b",
+    "outputs/hybrid_collective_pair_P2_v1/console.log": "4eda6edd482c5b8a55425faf313c4eb186347def97858f6808d2b4c535c6cda9"
+  },
+  "source_locators": [
+    {
+      "path": "scripts/hybrid_collective_pair_probe.py",
+      "line": 191,
+      "fact": "close then WORLD destroy then local status"
+    },
+    {
+      "path": "vllm/distributed/device_communicators/custom_all_reduce.py",
+      "line": 282,
+      "fact": "dispose then local meta free then local staging free; no Python timeout"
+    },
+    {
+      "path": "vllm/_custom_ops.py",
+      "line": 2897,
+      "fact": "Opaque torch.ops native dispose wrapper"
+    },
+    {
+      "path": "torch/distributed/distributed_c10d.py",
+      "line": 2273,
+      "fact": "WORLD destruction shuts down all registered groups"
+    },
+    {
+      "path": "vllm/distributed/parallel_state.py",
+      "line": 1204,
+      "fact": "Device/CPU process groups precede device communicator destruction"
+    },
+    {
+      "path": "vllm/distributed/device_communicators/cuda_communicator.py",
+      "line": 558,
+      "fact": "Communicator destruction releases CustomAllreduce reference"
+    }
+  ],
+  "unresolved_locations": [
+    "custom-AR dispose",
+    "local metadata buffer release",
+    "local staging buffer release",
+    "process-group shutdown",
+    "final status I/O"
+  ],
+  "recommended_next_step": {
+    "kind": "ONE_TEARDOWN_ONLY_RETRY_WITH_CPU_MARKERS_AND_NATIVE_ORDER",
+    "change_measured_work": false,
+    "keep_initial_cleanup_order": false,
+    "boundaries": [
+      "NCCL_DESTROY_BEGIN/END",
+      "WORLD_DESTROY_BEGIN/END",
+      "AR_CLOSE_BEGIN/END",
+      "FINAL_STATUS_BEGIN/END"
+    ],
+    "watchdog": "Per-rank one-shot faulthandler.dump_traceback_later(30), cancelled after cleanup",
+    "GPU_queries_required": false,
+    "active_process_changes": false
+  },
+  "alternative_ordering_trial": {
+    "order": [
+      "destroy NCCL subgroup",
+      "destroy Gloo WORLD",
+      "CustomAllreduce.close"
+    ],
+    "support": "Closer to installed vLLM GroupCoordinator/communicator order",
+    "status": "MAIN_SELECTED_FUTURE_RETRY_NOT_A_PROVEN_FIX",
+    "source_compatibility": "close passes rank explicitly to buffer release and performs no process-group query",
+    "further_retry_authorized": false
+  },
+  "admission": [
+    "Successful outer guard",
+    "Every rank error-free local cleanup status",
+    "Expected six complete cells and functional checks",
+    "No retroactive admission of a failed first attempt"
+  ],
+  "constraints": {
+    "GPU_execution": false,
+    "process_signals": false,
+    "process_attachment": false,
+    "active_probe_changes": false,
+    "package_changes": false,
+    "model_execution": false,
+    "latency_analysis": false
+  },
+  "input_sha256": {
+    "scripts/hybrid_collective_pair_probe.py": "36143ef03a69efe79ca470c54b943f4e9103e30d1632005bf04444e1d7e31b67",
+    "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/distributed/device_communicators/custom_all_reduce.py": "3ed3ff9bbcaf361071ce6af77b879f5d269ba816366f56619cb3c21d486c52e7",
+    "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/_custom_ops.py": "16c78d17be2779361043e7a3a121bbc2d6d72cb631f5c267961bbd5971ca5336",
+    "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/distributed/parallel_state.py": "ecfa5eeda697e9982591c93eca835fcc53463267c1c22110700819efcecee74f",
+    "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/distributed/device_communicators/cuda_communicator.py": "e91777d5037b79cbfbc7930febd63b57baa5f27b15a7cabe33b3a2efc857ee40",
+    "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/distributed/distributed_c10d.py": "796ffcd9664734a85c0045a1657cbecf282142744eed15ee8ca300cccdd06803"
+  },
+  "validation": {
+    "source_hashes": "PASS_AT_RECORDING: six source files",
+    "report_lint": "PASS: zero violations"
+  },
+  "skill_limit": "No authorized GPU reproduction exists. The read-only completion predicate observes the exact incomplete-admission symptom but cannot reproduce native teardown or establish a cause."
+}

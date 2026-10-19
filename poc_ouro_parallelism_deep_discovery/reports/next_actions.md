@@ -1,5 +1,24 @@
 # Next actions
 
+## Current actions: 2026-10-19 18:45 UTC
+
+This list supersedes the historical snapshots below.
+
+1. Complete final source review of the fresh-cache native TP4 quality extension.
+2. Run Base 1.4B, then Base 2.6B in separate guarded jobs on physical GPUs 4/5/6/7.
+3. Admit only complete 64-request arms with successful cleanup and provenance checks.
+4. Keep both collective-probe failures and the stopped native v1 launch NOT_ADMITTED.
+5. Add no further teardown retry or new model engine.
+6. Finish the English dossier, Korean summary, reproduction index, and evidence navigation.
+7. Preserve the 19 scoped candidate records and the untouched original held-out cohort.
+8. Keep P8 capacity scenarios separate from unmeasured P8 latency.
+9. Run final CPU, preservation, link, and privacy checks.
+10. Continue substantive work until the ten-hour gate is met. Then commit and push only this campaign's files.
+
+No candidate live E2E gain or free-running candidate quality result exists.
+The current shortlist contains zero candidates.
+The latest closed duration is approximately 8.776 coordinator hours.
+
 1. Complete the fixed Base2.6B calibration pilot and score all four staged-reference arms.
 2. Complete native free-running baseline checks. Quantify divergence instead of declaring parity from four positions.
 3. Run P4 transport and alias/residency controls after every device is released.
