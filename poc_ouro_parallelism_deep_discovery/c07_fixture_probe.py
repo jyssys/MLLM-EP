@@ -6,7 +6,8 @@ import time
 
 from poc_ouro_parallelism_deep_discovery.c07_fixture import (
     C07ValidationError, check_local_validation, clone_metadata, compare_bf16_words,
-    lease_pages, payload_bytes, require_bitwise, selectors, token_addresses)
+    lease_pages, observe_dense_padding, payload_bytes, rejected_cpu_batch, require_bitwise, selectors,
+    select_decode_metadata, select_v2_padding, snapshot_v2_batch, token_addresses, v2_batch_rejection, V2CaptureHooks)
 from poc_ouro_parallelism_deep_discovery.contract import sha, write
 from poc_ouro_parallelism_deep_discovery.worker_probe import CampaignProbe
 
@@ -14,6 +15,7 @@ from poc_ouro_parallelism_deep_discovery.worker_probe import CampaignProbe
 class C07FixtureProbe(CampaignProbe):
     def c07_capture_start(self, position, row=0, depth=0):
         import torch
+        from vllm import envs
         from vllm.distributed import get_tensor_model_parallel_world_size
         runner = self.model_runner
         core = self.get_model().model
@@ -24,9 +26,26 @@ class C07FixtureProbe(CampaignProbe):
                 or core.total_ut_steps != 4 or core.start_layer != 0
                 or core.end_layer != len(core.layers)):
             raise RuntimeError('The fixture requires the complete eager R4 core and PP1.')
+        if type(runner).__module__ != 'vllm.v1.worker.gpu.model_runner':
+            raise RuntimeError('INFRASTRUCTURE_BLOCKED: this capture adapter requires the native V2 model runner.')
+        if type(core).__module__ != 'vllm.model_executor.models.ouro' or type(core).__name__ != 'OuroModel':
+            raise RuntimeError('The padding interpretation requires the original native dense Ouro core.')
+        if envs.VLLM_BATCH_INVARIANT:
+            raise RuntimeError('The bounded padding proof requires the original default unquantized GEMM route.')
         tp = get_tensor_model_parallel_world_size()
         selected = selectors(tp, row, depth)
         for layer in core.layers:
+            if (type(layer).__module__ != 'vllm.model_executor.models.ouro'
+                    or type(layer).__name__ != 'OuroDecoderLayer'
+                    or type(layer.mlp).__module__ != 'vllm.model_executor.models.ouro'
+                    or type(layer.mlp).__name__ != 'OuroMLP'):
+                raise RuntimeError('The padding interpretation does not accept a different decoder or MoE route.')
+            for projection in [layer.self_attn.qkv_proj, layer.self_attn.o_proj,
+                               layer.mlp.gate_up_proj, layer.mlp.down_proj]:
+                if (projection.quant_config is not None
+                        or type(projection.quant_method).__name__ != 'UnquantizedLinearMethod'
+                        or type(projection.quant_method).__module__ != 'vllm.model_executor.layers.linear'):
+                    raise RuntimeError('The padding interpretation requires original unquantized dense projections.')
             if len(layer.self_attn.attn) != 4:
                 raise RuntimeError('The physical layer does not retain all four original Attention objects.')
             for attention in layer.self_attn.attn:
@@ -37,8 +56,8 @@ class C07FixtureProbe(CampaignProbe):
                     raise RuntimeError('The fixture requires original BF16 FA3 cache allocations before capture.')
         self._c07 = state = dict(phase='ARMED', position=int(position), selected=selected,
                                 inputs=[], outputs=[], hooks=[], rejected=[], active=False,
-                                capture_host_enqueue_ns=0, calls_seen=0)
-        state['original'] = runner._model_forward
+                                capture_host_enqueue_ns=0, calls_seen=0, pending_batch=None,
+                                pending_padding=None, runner_class=f'{type(runner).__module__}.{type(runner).__qualname__}')
 
         def first_layer(module, args):
             if not state['active']:
@@ -64,11 +83,13 @@ class C07FixtureProbe(CampaignProbe):
             context = get_forward_context()
             metadata = context.attn_metadata
             positions = kwargs.get('positions', args[1] if len(args) > 1 else None)
+            batch, padding = state['pending_batch'], state['pending_padding']
+            state['pending_batch'], state['pending_padding'] = None, None
             state['calls_seen'] += 1
-            reason = self._c07_suitability(context, metadata, positions)
+            reason = self._c07_suitability(context, metadata, positions, batch, padding)
             if state['phase'] != 'ARMED' or reason is not None:
                 if state['phase'] == 'ARMED':
-                    state['rejected'].append(dict(call=state['calls_seen'], reason=reason))
+                    state['rejected'].append(rejected_cpu_batch(state['calls_seen'], reason, batch))
                 return state['original'](*args, **kwargs)
             start = time.perf_counter_ns()
             state['capture_call'] = state['calls_seen']
@@ -77,6 +98,7 @@ class C07FixtureProbe(CampaignProbe):
             state['context'] = replace(context,
                 attn_metadata=clone_metadata(context.attn_metadata, torch.is_tensor, memo),
                 slot_mapping=clone_metadata(context.slot_mapping, torch.is_tensor, memo),
+                is_padding=clone_metadata(context.is_padding, torch.is_tensor, memo),
                 additional_kwargs=clone_metadata(context.additional_kwargs, torch.is_tensor, memo))
             state['metadata_tensor_ownership'] = []
             seen = set()
@@ -107,8 +129,10 @@ class C07FixtureProbe(CampaignProbe):
 
             record_clones(context.attn_metadata, 'attn_metadata')
             record_clones(context.slot_mapping, 'slot_mapping')
+            record_clones(context.is_padding, 'is_padding')
             state['positions'] = positions.detach().clone()
-            state['request_ids'] = list(runner.input_batch.req_ids)
+            state['request_ids'] = list(batch['request_ids'])
+            state['captured_batch'] = batch
             state['native_metadata'] = state['context'].attn_metadata
             first = next(iter(state['native_metadata'].values()))
             state['source_table'] = first.block_table.detach().clone()
@@ -143,27 +167,41 @@ class C07FixtureProbe(CampaignProbe):
                 state['active'] = False
                 state['capture_host_enqueue_ns'] = time.perf_counter_ns() - start
 
-        runner._model_forward = observed
+        def prepared(batch):
+            state['pending_batch'] = snapshot_v2_batch(batch)
+            state['pending_padding'] = batch.is_padding
+
+        try:
+            state['capture_hooks'] = V2CaptureHooks(runner, prepared, observed)
+            state['original'] = state['capture_hooks'].original_forward
+            state['capture_hooks'].install()
+        except BaseException:
+            for hook in state['hooks']:
+                hook.remove()
+            state['hooks'] = []
+            raise
         return dict(phase=state['phase'], selected=selected, position=position,
                     scope='One actual native C4 cached decode. Fixture capture is not timing.')
 
-    def _c07_suitability(self, context, metadata, positions):
+    def _c07_suitability(self, context, metadata, positions, batch, padding):
         import torch
         from vllm.config import CUDAGraphMode
         from vllm.v1.attention.backends.flash_attn import FlashAttentionMetadata
         state = self._c07
-        runner = self.model_runner
         if (not isinstance(metadata, dict) or not metadata or not isinstance(context.slot_mapping, dict)
                 or context.cudagraph_runtime_mode != CUDAGraphMode.NONE or context.dp_metadata is not None
-                or context.ubatch_slices is not None or context.is_padding is not None
+                or context.ubatch_slices is not None
                 or context.all_moe_layers is not None or context.additional_kwargs):
             return 'UNSUPPORTED_FORWARD_CONTEXT'
-        if positions is None or tuple(positions.shape) != (4,) or len(runner.input_batch.req_ids) != 4:
+        batch_reason = v2_batch_rejection(batch, state['position'])
+        if batch_reason is not None:
+            return batch_reason
+        if positions is None or tuple(positions.shape) != (4,):
             return 'NOT_FOUR_UNPADDED_ROWS'
-        if len(set(runner.input_batch.req_ids)) != 4:
-            return 'REQUEST_IDS_NOT_DISTINCT'
-        if list(map(int, runner.input_batch.num_prompt_tokens[:4])) != [state['position']] * 4:
-            return 'NOT_THE_REQUIRED_PROMPT_LENGTH'
+        if (not torch.is_tensor(context.is_padding) or context.is_padding.dtype != torch.bool
+                or tuple(context.is_padding.shape) != (4,) or padding is None
+                or context.is_padding.data_ptr() != padding.data_ptr()):
+            return 'UNSUPPORTED_V2_PADDING_IDENTITY'
         for meta in metadata.values():
             if (not isinstance(meta, FlashAttentionMetadata) or meta.num_actual_tokens != 4
                     or meta.max_query_len != 1 or meta.max_seq_len != state['position'] + 1
@@ -184,7 +222,7 @@ class C07FixtureProbe(CampaignProbe):
         from vllm.distributed import get_tensor_model_parallel_rank
         state = self._c07
         runner = self.model_runner
-        runner._model_forward = state['original']
+        state['capture_hooks'].restore()
         for hook in state['hooks']:
             hook.remove()
         state['hooks'] = []
@@ -193,6 +231,7 @@ class C07FixtureProbe(CampaignProbe):
         if not driver_quiescent or getattr(runner, 'execute_model_state', None) is not None:
             raise RuntimeError('The driver and native worker must finish all serving work before the lease.')
         torch.cuda.synchronize()
+        state['padding_observation'] = observe_dense_padding(state['context'].is_padding.cpu().tolist())
         p = state['position']
         if state['positions'].cpu().tolist() != [p] * 4:
             raise RuntimeError('The captured positions differ from the selected cached-decode boundary.')
@@ -267,6 +306,8 @@ class C07FixtureProbe(CampaignProbe):
         return dict(phase=state['phase'], rank=get_tensor_model_parallel_rank(), calls_seen=state['calls_seen'],
                     rejected=state['rejected'], request_ids=state['request_ids'], selected=state['selected'],
                     cache_slots=len(cache_descriptions), all_depth_cache_pointers_distinct=True,
+                    runner_class=state['runner_class'], captured_batch=state['captured_batch'],
+                    padding_observation=state['padding_observation'],
                     capture_host_enqueue_ns=state['capture_host_enqueue_ns'],
                     clock_scope='Host enqueue interval. It is not completed device-copy time.')
 
@@ -325,7 +366,7 @@ class C07FixtureProbe(CampaignProbe):
                         layer=layer_index, token=token, block=block, offset=offset,
                         byte_address=expected_address))
         # TP4 preserves the captured FA3 schedule. TP1 rebuilds the smaller schedule with the native interface.
-        meta = replace(first, num_actual_tokens=len(selected), max_query_len=1,
+        meta = select_decode_metadata(first, num_rows=len(selected),
                        query_start_loc=torch.arange(len(selected) + 1, device=cache.device,
                                                     dtype=first.query_start_loc.dtype),
                        seq_lens=first.seq_lens.index_select(0, selected_rows).clone(),
@@ -343,6 +384,7 @@ class C07FixtureProbe(CampaignProbe):
         names = [layer.self_attn.attn[0].layer_name for layer in core.layers]
         state['fixture_context'] = replace(state['context'],
             attn_metadata={name: meta for name in names}, slot_mapping={name: mapping for name in names},
+            is_padding=select_v2_padding(state['context'].is_padding, selected_rows),
             batch_descriptor=None)
         state['fixture_input'] = torch.cat([state['inputs'][depth][row:row + 1].clone()
                                           for row, depth in selected])
@@ -355,6 +397,9 @@ class C07FixtureProbe(CampaignProbe):
         state['address_records'] = address_records
         state['fixture_metadata'] = meta
         torch.cuda.synchronize()
+        fixture_padding = state['fixture_context'].is_padding.cpu().tolist()
+        if fixture_padding != [state['padding_observation']['flags'][row] for row, _ in selected]:
+            raise C07ValidationError('The fixture padding does not select the original native row flags.')
         state['preparation'] = dict(phase='PREPARED', materialize_wall_ns=time.perf_counter_ns() - start,
             logical_payload_bytes=payload_bytes(len(core.layers), cache.shape[1], p, len(selected)),
             pages=pages, protected_pages=sorted(protected), reserved_null_page=0,
@@ -365,6 +410,8 @@ class C07FixtureProbe(CampaignProbe):
                 logical_depth=depth, prefix_start=0, prefix_end_exclusive=p,
                 current_position=p, capture_call=state['capture_call']) for row, depth in selected],
             input_reset_bytes=state['fixture_input'].numel() * state['fixture_input'].element_size(),
+            padding_observation=state['padding_observation'], fixture_is_padding=fixture_padding,
+            captured_batch=state['captured_batch'],
             lease='Exclusive manual lease after all requests finish. No subsequent serving call is permitted.',
             cost_scope='Completed materialization wall includes remap, address checks, and synchronization. Capture request and export are separate.')
         state['phase'] = 'PREPARED'
@@ -486,7 +533,7 @@ class C07FixtureProbe(CampaignProbe):
         from vllm.distributed import get_tensor_model_parallel_rank
         state = self._c07
         if state.get('hooks'):
-            self.model_runner._model_forward = state['original']
+            state['capture_hooks'].restore()
             for hook in state['hooks']:
                 hook.remove()
             state['hooks'] = []

@@ -225,8 +225,8 @@ The predecessor-preservation check passes.
 
 ## Context and frontier checkpoint, 15:24 UTC
 
-Coordinator segments cover19904.202438 seconds through2026-10-19T15:24:37.202438Z.
-This is about5.53 hours.
+Coordinator segments cover 19904.202438 seconds through 2026-10-19T15:24:37.202438Z.
+This is about 5.53 hours.
 The campaign remains active and does not satisfy the ten-hour completion condition.
 Concurrent worker intervals do not multiply campaign elapsed time.
 
@@ -237,14 +237,14 @@ It does not establish quality equivalence or candidate quality.
 
 The first long-context startup exposed a race between two owned guard lifetimes.
 The queue now waits for the final cleanup record.
-The next run completed24 clean trials but failed during a separate diagnostic export.
+The next run completed 24 clean trials but failed during a separate diagnostic export.
 The campaign-owned adapter corrects that missing metadata field without installing a sampler hook.
 The third queue continues the same frozen workload on both Base sizes and TP1/2/4.
-Completed Base1.4B TP1/2 runs include32768-token prompts and finite sampled captures.
+Completed Base 1.4B TP1/2 runs include 32768-token prompts and finite sampled captures.
 
-The source-graph inventory completed on physical GPU5.
+The source-graph inventory completed on physical GPU 5.
 It read zero argument values and leaves cached-decode weight identity unresolved.
-The default runtime getter rejected865 kernel nodes with error98.
+The default runtime getter rejected 865 kernel nodes with error 98.
 No pointer match or HBM claim follows from those records.
 
 The C07 review first corrected shape validation and parity-gate failure handling.
@@ -255,4 +255,53 @@ A bounded V2 hook adaptation requires review before any fixture GPU run.
 
 New exact-state-transform and tied-aware cyclic-prefill audits produce no qualifying architecture.
 The held-out cohort remains untouched.
+The predecessor-preservation check passes.
+
+## Completed controls and bounded failures, 16:11 UTC
+
+Coordinator segments cover 22726.884531 seconds through 2026-10-19T16:11:39.884531Z.
+This is about 6.31 hours, not ten hours.
+The campaign remains active with no qualifying architecture shortlist.
+The next active coordinator segment starts at this checkpoint time.
+
+All six native long-context jobs completed.
+The analysis validates 144 clean trials across 24 cells and finite selected captures.
+Both models complete controlled 32768-token prompts with native TP1/TP2/TP4.
+The TP4/TP1 ratios near 2.2× describe these conventional baselines, not a new method.
+The per-job peak-memory scope remains separate from per-context memory or HBM traffic.
+
+Both remaining TP2 natural calibration jobs completed.
+Baseline natural calibration now covers native TP1/TP2/TP4 for both sizes.
+Only eight requests per domain support each accuracy row.
+Token divergence and truncation remain explicit.
+No candidate quality or population-equivalence claim follows.
+
+The first C07 P1 attempt failed admission without sufficient batch-count evidence.
+The second attempt admits a real C4 source after a bounded native queue seal.
+Its selected input, reference, source histories, and copied histories pass their recorded checks.
+Its normalized output and current KV fail bitwise parity.
+The initial output differs in 1889/2048 BF16 words, with relative L2 0.01802657.
+The cause remains unresolved.
+Zero service trials qualify, and no further fixture GPU run follows this failure.
+The complete failed raw tensor remains local and in a byte-exact five-chunk archive.
+
+Independent arithmetic-table and repeated-coefficient screens add no candidate card.
+The new sparse-delta screen measures 2448 adjacent-pass row pairs from prior captures.
+Only 0.369–0.500% of coordinates remain numerically equal.
+No tested aligned tile remains unchanged.
+These are bounded structural observations, not task-quality or speedup results.
+
+The contract audit exposes three gaps in the original partial DAG checker.
+A separate identity supplement adds registered histories, token availability, and matching gate witnesses.
+Independent review identifies and then checks two additional declaration fixes.
+Thirty combined CPU tests pass.
+The supplement does not certify GPU values, complete hidden-state dependencies, or original-gate arithmetic.
+
+The native DCP source constraint rejects both MHA16 checkpoints at TP2/TP4 with DCP greater than one.
+No DCP GPU job or universal CP rejection follows.
+The isolated CPU regression suite passes after separating optional NumPy capture analysis from pure metric tests.
+The earlier failed regression record remains intact.
+
+Held-out quality remains untouched.
+Scoped burners are active on physical GPUs 4/5/6/7 during CPU and source analysis.
 The predecessor-preservation check passes.

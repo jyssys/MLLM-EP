@@ -85,3 +85,16 @@ No candidate runtime or architecture speedup is available.
 8. Complete the interim candidate evidence matrix without selecting a finalist from structural evidence alone.
 9. Preserve held-out quality until a primary candidate and protocol freeze.
 10. Continue substantive research. About5.53 coordinator hours are recorded, not ten hours.
+
+## Current actions after the 16:11 UTC checkpoint
+
+1. Review the original-gate CDB observation contract before another GPU diagnostic.
+2. Do not rerun graph-ON quality as a new control. The existing staged quality baseline already uses per-pass CUDA Graphs.
+3. Keep core event spans, containing host intervals, gate routing, terminal publication, and request wall time separate.
+4. Do not rescue the failed C07 fixture through looser parity or a new engine.
+5. Preserve failed attempts and the byte-exact raw archive.
+6. Reconcile current baseline tables with earlier checkpoint wording without rewriting frozen evidence.
+7. Continue independent mechanism falsification and complete candidate-specific cost/evidence maps.
+8. Keep source-only compatibility, physical components, modeled costs, and candidate live E2E distinct.
+9. Keep held-out quality untouched until a primary mechanism and protocol qualify.
+10. Continue substantive research. About 6.31 coordinator hours are recorded, not ten hours.

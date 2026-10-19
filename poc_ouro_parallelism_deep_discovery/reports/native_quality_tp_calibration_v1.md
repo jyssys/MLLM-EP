@@ -8,7 +8,7 @@ Each arm uses the frozen eight GSM8K and eight MATH-500 calibration requests.
 The held-out partition remains untouched.
 No candidate changes the computation in these runs.
 
-The raw generations use greedy sampling, native EOS, frozen text stops, and an8192-token cap.
+The raw generations use greedy sampling, native EOS, frozen text stops, and an 8192-token cap.
 The scorer requires a correct final answer and a completed output.
 A length-capped answer does not count as a correct completion.
 
@@ -21,8 +21,8 @@ A length-capped answer does not count as a correct completion.
 | Base2.6B | GSM8K | 7/8 | 7/8 | 7/8 | 0/0 |
 | Base2.6B | MATH-500 | 4/8 | 4/8 | 0/8 | 3/4 |
 
-The [comparison artifact](../artifacts/native_quality_tp1_tp4_calibration_v1.json) records request-level paired bootstrap95% CIs.
-It uses4000 resamples of eight paired requests per dataset and model.
+The [comparison artifact](../artifacts/native_quality_tp1_tp4_calibration_v1.json) records request-level paired bootstrap 95% CIs.
+It uses 4000 resamples of eight paired requests per dataset and model.
 It also records every first divergent token and both raw result paths.
 The [scored checkpoint](../artifacts/quality_checkpoint8.json) retains parser identity and request outcomes.
 

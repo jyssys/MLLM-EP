@@ -1,0 +1,44 @@
+%% Editable semantic dependencies, not a measured timeline or a new candidate.
+%% Source: reports/exact_frontier_contract.md and pinned modeling_ouro.py:535-608.
+flowchart TD
+  subgraph DECODE["Fixed-R4 reference: one current decode token"]
+    PREV["Predecessor selected logits and actual token decision"] --> EMB["Known token ID and embedding h0"]
+    EMB --> R1["R1 physical stack and loop norm"]
+    R1 --> R2["R2 physical stack and loop norm"]
+    R2 --> R3["R3 physical stack and loop norm"]
+    R3 --> R4["R4 physical stack and loop norm"]
+    K1["Committed historical KV at depth1 and matching layer"] --> R1
+    K2["Committed historical KV at depth2 and matching layer"] --> R2
+    K3["Committed historical KV at depth3 and matching layer"] --> R3
+    K4["Committed historical KV at depth4 and matching layer"] --> R4
+    R4 --> HEAD["Fixed-R4 head and token decision"]
+  end
+  subgraph ADAPT["Original adaptive gate: same-step policy, minR2/maxR4"]
+    AR1["Actual adaptive h1 after R1 and loop norm"] --> AR2["Mandatory adaptive R2 and loop norm"]
+    AR1 --> G1["Rounded hazard1, retain original order"]
+    AR2 --> G2["Rounded hazard2"]
+    G1 --> D2["R2 CDF decision"]
+    G2 --> D2
+    D2 -->|"continue guard, not a future known input"| AR3["Adaptive R3 with its matching depth history"]
+    AR2 -->|"actual normalized input"| AR3
+    D2 -->|"exit guard"| SEL2["Select h2 and retain its terminal KV"]
+    AR2 --> SEL2
+    SEL2 --> PUB["Publish only missing deeper rows before their next reader"]
+    PUB --> NEXTATT["Later token attention using those logical slots"]
+    SEL2 --> AH["Selected hidden to head and next token decision"]
+    AH --> NEXTATT
+  end
+  subgraph CHUNK["C14 generic cyclic control: schematic stage0/stage1 fork in R1"]
+    IDS["Known prompt IDs for chunks0 and1"] --> S00["stage0 chunk0: actual causal KV and output"]
+    IDS --> S01["stage0 chunk1: projections and actual causal prefix KV"]
+    S00 -->|"producer hidden transfer"| S10["stage1 chunk0"]
+    S00 -->|"earlier-position same-layer KV prerequisite"| S01
+    S10 --> S11["stage1 chunk1"]
+    S01 -->|"producer hidden transfer"| S11
+    S10 --> WRAP0["chunk0 loop norm before its next visit"]
+    S11 --> WRAP1["chunk1 loop norm before its next visit"]
+  end
+  %% stage0 and stage1 represent complete physical partitions, not exact kernel cuts.
+  %% A complete chunk graph expands every layer's causal KV edge.
+  %% Each stage owns its physical weights once and all required depth banks.
+  %% Give the tied-aware generic control identical aliases, owners, and schedule freedom.

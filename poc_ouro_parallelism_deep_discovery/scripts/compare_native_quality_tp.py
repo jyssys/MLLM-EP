@@ -10,6 +10,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--scored', required=True)
     parser.add_argument('--output', required=True)
+    parser.add_argument('--comparison-tp', type=int, choices=[2, 4], default=4)
     args = parser.parse_args()
     source, output = ROOT / args.scored, ROOT / args.output
     if output.exists():
@@ -19,7 +20,9 @@ def main():
     for size in MODELS:
         for domain in ['gsm8k', 'math500']:
             arms = []
-            for tp, runtime in [(1, 'native_vllm_async'), (4, 'native_vllm_async_tp4baseline')]:
+            target_tp = args.comparison_tp
+            for tp, runtime in [(1, 'native_vllm_async'),
+                                (target_tp, f'native_vllm_async_tp{target_tp}baseline')]:
                 selected = [r for r in records if (r['size'], r['dataset'], r['mode'], r['TP'], r['runtime'])
                             == (size, domain, 'fixed', tp, runtime)]
                 assert len(selected) == 8 and len({r['id'] for r in selected}) == 8
@@ -36,17 +39,18 @@ def main():
                 if first is None and len(x) != len(y):
                     first = min(len(x), len(y))
                 differences.append(int(right[key]['correct_completed']) - int(left[key]['correct_completed']))
-                details.append(dict(id=key, TP1_source=left[key]['source'], TP4_source=right[key]['source'],
+                details.append(dict(id=key, TP1_source=left[key]['source'], **{f'TP{target_tp}_source': right[key]['source']},
                     raw_token_ids_equal=x == y, first_divergence=first,
-                    TP1_correct=left[key]['correct_completed'], TP4_correct=right[key]['correct_completed'],
-                    TP1_tokens=len(x), TP4_tokens=len(y), TP1_finish=left[key]['finish_reason'],
-                    TP4_finish=right[key]['finish_reason'], TP1_wall_ms=a['wall_ms'], TP4_wall_ms=b['wall_ms']))
+                    TP1_correct=left[key]['correct_completed'], **{f'TP{target_tp}_correct': right[key]['correct_completed']},
+                    TP1_tokens=len(x), **{f'TP{target_tp}_tokens': len(y)}, TP1_finish=left[key]['finish_reason'],
+                    **{f'TP{target_tp}_finish': right[key]['finish_reason']}, TP1_wall_ms=a['wall_ms'],
+                    **{f'TP{target_tp}_wall_ms': b['wall_ms']}))
             comparisons.append(dict(size=size, dataset=domain, N=8,
                 TP1_correct=sum(left[k]['correct_completed'] for k in left),
-                TP4_correct=sum(right[k]['correct_completed'] for k in right),
+                **{f'TP{target_tp}_correct': sum(right[k]['correct_completed'] for k in right)},
                 TP1_truncations=sum(left[k]['truncated'] for k in left),
-                TP4_truncations=sum(right[k]['truncated'] for k in right),
-                TP4_minus_TP1_accuracy_pp=100 * statistics.mean(differences),
+                **{f'TP{target_tp}_truncations': sum(right[k]['truncated'] for k in right)},
+                **{f'TP{target_tp}_minus_TP1_accuracy_pp': 100 * statistics.mean(differences)},
                 paired_request_bootstrap_95_CI_pp=[100 * v for v in interval(differences)],
                 bootstrap_repeats=4000, raw_token_parity=sum(d['raw_token_ids_equal'] for d in details),
                 details=details))
@@ -55,7 +59,7 @@ def main():
         candidate='NONE', held_out='UNTOUCHED',
         scope='Native fixed-R4 calibration baselines. Eight requests/domain. No official reference-score reproduction.',
         caution='Small calibration N cannot establish population quality equivalence. Different output lengths invalidate unqualified natural speedup ratios.'))
-    print([(r['size'], r['dataset'], r['TP1_correct'], r['TP4_correct'], r['raw_token_parity'])
+    print([(r['size'], r['dataset'], r['TP1_correct'], r[f'TP{args.comparison_tp}_correct'], r['raw_token_parity'])
            for r in comparisons])
 
 

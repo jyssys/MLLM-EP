@@ -1,0 +1,163 @@
+{
+  "BF16_projection_counterexample": {
+    "head_dimension": 128,
+    "hidden_nonzero": [
+      1,
+      0.00390625
+    ],
+    "key_weight_nonzero": [
+      1,
+      1
+    ],
+    "native_BF16_output": 0.53125,
+    "native_BF16_projected_key": 1.0,
+    "native_probability": 0.5330971623944623,
+    "native_score": 0.13258252147247765,
+    "query_nonzero": 1.5,
+    "reordered_BF16_output": 0.53515625,
+    "reordered_probability": 0.5332260679809755,
+    "reordered_score": 0.13310042194697952,
+    "scope": "Toy softmax over two keys with one nonzero value. Not an actual Ouro attention result."
+  },
+  "candidate": "NONE. Refines existing KV-rematerialization and attention-summary screens.",
+  "exact_real_rope_control": {
+    "correct_position_dependent_pullback": [
+      1,
+      -1
+    ],
+    "invalid_position_independent_pullback": [
+      1,
+      2
+    ],
+    "native": [
+      1,
+      -1
+    ]
+  },
+  "interpretation": "Reconstruction from original per-layer inputs can preserve the source operations. Absorption that removes original projection/RoPE boundaries is a different operation order.",
+  "limits": "No pretrained output, quality, traffic, service time, or E2E speedup is measured. No universal rejection of all latent-cache methods.",
+  "model_or_GPU_execution": "NOT_RUN",
+  "status": "SCOPED_NEGATIVE_SCREEN",
+  "structural_shapes": [
+    {
+      "KV_projection_FLOPs": 402653184,
+      "KV_weight_payload_bytes": 402653184,
+      "all_layers_KV_BF16_bytes": 196608,
+      "all_layers_hidden_BF16_bytes": 98304,
+      "layers": 24,
+      "per_layer_KV_BF16_bytes": 8192,
+      "per_layer_normalized_hidden_BF16_bytes": 4096,
+      "rows": 1,
+      "size": "1.4B",
+      "source": "Loaded model geometry. Structural bytes/FLOPs, not HBM transactions or physical latency."
+    },
+    {
+      "KV_projection_FLOPs": 1610612736,
+      "KV_weight_payload_bytes": 402653184,
+      "all_layers_KV_BF16_bytes": 786432,
+      "all_layers_hidden_BF16_bytes": 393216,
+      "layers": 24,
+      "per_layer_KV_BF16_bytes": 32768,
+      "per_layer_normalized_hidden_BF16_bytes": 16384,
+      "rows": 4,
+      "size": "1.4B",
+      "source": "Loaded model geometry. Structural bytes/FLOPs, not HBM transactions or physical latency."
+    },
+    {
+      "KV_projection_FLOPs": 6442450944,
+      "KV_weight_payload_bytes": 402653184,
+      "all_layers_KV_BF16_bytes": 3145728,
+      "all_layers_hidden_BF16_bytes": 1572864,
+      "layers": 24,
+      "per_layer_KV_BF16_bytes": 131072,
+      "per_layer_normalized_hidden_BF16_bytes": 65536,
+      "rows": 16,
+      "size": "1.4B",
+      "source": "Loaded model geometry. Structural bytes/FLOPs, not HBM transactions or physical latency."
+    },
+    {
+      "KV_projection_FLOPs": 12884901888,
+      "KV_weight_payload_bytes": 402653184,
+      "all_layers_KV_BF16_bytes": 6291456,
+      "all_layers_hidden_BF16_bytes": 3145728,
+      "layers": 24,
+      "per_layer_KV_BF16_bytes": 262144,
+      "per_layer_normalized_hidden_BF16_bytes": 131072,
+      "rows": 32,
+      "size": "1.4B",
+      "source": "Loaded model geometry. Structural bytes/FLOPs, not HBM transactions or physical latency."
+    },
+    {
+      "KV_projection_FLOPs": 51539607552,
+      "KV_weight_payload_bytes": 402653184,
+      "all_layers_KV_BF16_bytes": 25165824,
+      "all_layers_hidden_BF16_bytes": 12582912,
+      "layers": 24,
+      "per_layer_KV_BF16_bytes": 1048576,
+      "per_layer_normalized_hidden_BF16_bytes": 524288,
+      "rows": 128,
+      "size": "1.4B",
+      "source": "Loaded model geometry. Structural bytes/FLOPs, not HBM transactions or physical latency."
+    },
+    {
+      "KV_projection_FLOPs": 805306368,
+      "KV_weight_payload_bytes": 805306368,
+      "all_layers_KV_BF16_bytes": 393216,
+      "all_layers_hidden_BF16_bytes": 196608,
+      "layers": 48,
+      "per_layer_KV_BF16_bytes": 8192,
+      "per_layer_normalized_hidden_BF16_bytes": 4096,
+      "rows": 1,
+      "size": "2.6B",
+      "source": "Loaded model geometry. Structural bytes/FLOPs, not HBM transactions or physical latency."
+    },
+    {
+      "KV_projection_FLOPs": 3221225472,
+      "KV_weight_payload_bytes": 805306368,
+      "all_layers_KV_BF16_bytes": 1572864,
+      "all_layers_hidden_BF16_bytes": 786432,
+      "layers": 48,
+      "per_layer_KV_BF16_bytes": 32768,
+      "per_layer_normalized_hidden_BF16_bytes": 16384,
+      "rows": 4,
+      "size": "2.6B",
+      "source": "Loaded model geometry. Structural bytes/FLOPs, not HBM transactions or physical latency."
+    },
+    {
+      "KV_projection_FLOPs": 12884901888,
+      "KV_weight_payload_bytes": 805306368,
+      "all_layers_KV_BF16_bytes": 6291456,
+      "all_layers_hidden_BF16_bytes": 3145728,
+      "layers": 48,
+      "per_layer_KV_BF16_bytes": 131072,
+      "per_layer_normalized_hidden_BF16_bytes": 65536,
+      "rows": 16,
+      "size": "2.6B",
+      "source": "Loaded model geometry. Structural bytes/FLOPs, not HBM transactions or physical latency."
+    },
+    {
+      "KV_projection_FLOPs": 25769803776,
+      "KV_weight_payload_bytes": 805306368,
+      "all_layers_KV_BF16_bytes": 12582912,
+      "all_layers_hidden_BF16_bytes": 6291456,
+      "layers": 48,
+      "per_layer_KV_BF16_bytes": 262144,
+      "per_layer_normalized_hidden_BF16_bytes": 131072,
+      "rows": 32,
+      "size": "2.6B",
+      "source": "Loaded model geometry. Structural bytes/FLOPs, not HBM transactions or physical latency."
+    },
+    {
+      "KV_projection_FLOPs": 103079215104,
+      "KV_weight_payload_bytes": 805306368,
+      "all_layers_KV_BF16_bytes": 50331648,
+      "all_layers_hidden_BF16_bytes": 25165824,
+      "layers": 48,
+      "per_layer_KV_BF16_bytes": 1048576,
+      "per_layer_normalized_hidden_BF16_bytes": 524288,
+      "rows": 128,
+      "size": "2.6B",
+      "source": "Loaded model geometry. Structural bytes/FLOPs, not HBM transactions or physical latency."
+    }
+  ]
+}

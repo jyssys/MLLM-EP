@@ -5,8 +5,6 @@ import math
 from pathlib import Path
 import statistics
 
-import numpy as np
-
 from poc_ouro_parallelism_deep_discovery.contract import ROOT, MODELS, read, sha, write
 from poc_ouro_parallelism_deep_discovery.scripts.analysis_and_plots import svg
 from poc_ouro_parallelism_deep_discovery.scripts.score_quality import interval
@@ -28,6 +26,7 @@ def request_metrics(row):
 
 
 def finite_capture(path):
+    import numpy as np
     result = []
     with np.load(path, allow_pickle=False) as data:
         assert set(data.files) == {'logits', 'hidden', 'KV'}
@@ -104,7 +103,7 @@ def main():
                 cell = dict(size=size, TP=tp, context=context, timing_trials=6, frozen_prompt_patterns=2)
                 for metric in ['wall_ms', 'native_first_token_latency_ms', 'native_decode_TPOT_ms', 'output_TPS']:
                     cell['median_' + metric] = statistics.median(r[metric] for r in selected)
-                cell['peak_allocated_max_rank_GiB'] = max(r['peak_allocated'] for r in memory) / 1024 ** 3
+                cell['job_peak_allocated_max_rank_GiB'] = max(r['peak_allocated'] for r in memory) / 1024 ** 3
                 cells.append(cell)
             runs.append(dict(size=size, TP=tp, status='VALIDATED_COMPLETED_CONTROL', clean_trials=24,
                              natural_quality='NOT_RUN', candidate_speedup='NOT_RUN'))
@@ -143,6 +142,7 @@ def main():
         input_sha256=inputs, evidence_class='LIVE_E2E', candidate='NONE', natural_quality='NOT_RUN',
         timing_boundary='Native generate API wall. Native timestamp submetrics retain their own explicit boundaries.',
         finiteness='Captured subset only. This does not establish full cache correctness or natural quality.',
+        memory_scope='Peak allocation spans the whole job and all context cases. It is not measured separately per context.',
         bootstrap='4000 paired request resamples after within-pattern medians. Only two frozen prompt patterns.'))
     print('LONG_CONTEXT_ANALYSIS', len(rows), 'trials', len(cells), 'cells', len(numeric), 'rank captures')
 

@@ -142,5 +142,8 @@ It checks input hashes again before publication.
 No raw card, status record, measurement, runner, or environment changes.
 
 Worker start: 2026-10-19 15:17:35 UTC.
-The validation record supplies the actual verification cutoff.
+Verification cutoff: 2026-10-19 15:26:55 UTC.
+The worker segment spans 560 seconds through that cutoff.
+The [validation record](../artifacts/interim_candidate_evidence_matrix_v1_validation.json) preserves checks and publication hashes.
+Metadata publication follows the cutoff.
 Concurrent worker intervals do not add campaign elapsed time.

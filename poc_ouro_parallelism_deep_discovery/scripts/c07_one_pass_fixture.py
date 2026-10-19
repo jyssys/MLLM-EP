@@ -8,7 +8,7 @@ import traceback
 
 from poc_ouro_parallelism_deep_discovery.contract import (
     ROOT, GPUS, UUIDS, MODELS, NATIVE_PYTHON, read, sha, validate_mask, write)
-from poc_ouro_parallelism_deep_discovery.c07_fixture import selectors
+from poc_ouro_parallelism_deep_discovery.c07_fixture import sealed_reference_cohort, selectors
 from poc_ouro_parallelism_deep_discovery.runtime import configure_native_imports
 
 
@@ -100,7 +100,10 @@ def main(argv=None):
         native_sources = {str(native_root / relative): sha(native_root / relative) for relative in [
             'vllm/model_executor/models/ouro.py', 'vllm/forward_context.py',
             'vllm/v1/attention/backends/flash_attn.py', 'vllm/distributed/parallel_state.py',
-            'vllm/v1/worker/gpu_model_runner.py']}
+            'vllm/v1/worker/gpu_model_runner.py', 'vllm/v1/worker/gpu/model_runner.py',
+            'vllm/v1/worker/gpu/input_batch.py', 'vllm/v1/engine/core.py',
+            'vllm/v1/engine/core_client.py', 'vllm/v1/core/sched/scheduler.py',
+            'vllm/entrypoints/llm.py', 'vllm/entrypoints/offline_utils.py']}
         write(output / 'pre_run_contract.json', dict(status='FROZEN_BEFORE_ENGINE_LOAD',
             model={key: str(value) if isinstance(value, Path) else value for key, value in MODELS[args.size].items()},
             tp=args.tp, physical_gpus=mask, selected=selectors(args.tp, args.row, args.depth),
@@ -109,6 +112,7 @@ def main(argv=None):
             source_workload_sha256=sha(source / 'workload.json'),
             runner_sha256=sha(Path(__file__)), worker_sha256=sha(ROOT / 'c07_fixture_probe.py'),
             helper_sha256=sha(ROOT / 'c07_fixture.py'), repeats=args.repeats,
+            source_cohort='Native pause_scheduler(keep,False), enqueue four, native resume, wait_for_completion. Untimed fixture construction.',
             native_sources_sha256=native_sources,
             parity='Bitwise BF16 output and current/history KV words. Any difference is UNRESOLVED.',
             lease='No serving calls after generation. Disjoint non-null pages in existing slot0 allocations.',
@@ -130,9 +134,14 @@ def main(argv=None):
         status['phase'] = 'CAPTURE_REQUEST'
         write(output / 'status.json', status)
         start = time.perf_counter_ns()
-        results = llm.generate([dict(prompt_token_ids=row['prompt_token_ids']) for row in request['requests']],
-            SamplingParams(temperature=0, max_tokens=2, ignore_eos=True,
-                           allowed_token_ids=[request['allowed_token_id']]), use_tqdm=False)
+        seal = {}
+        try:
+            results = sealed_reference_cohort(llm,
+                [dict(prompt_token_ids=row['prompt_token_ids']) for row in request['requests']],
+                SamplingParams(temperature=0, max_tokens=2, ignore_eos=True,
+                               allowed_token_ids=[request['allowed_token_id']]), seal)
+        finally:
+            write(output / 'source_cohort_seal.json', seal)
         capture_wall = time.perf_counter_ns() - start
         if (len(results) != 4 or any(list(row.outputs[0].token_ids) != [request['allowed_token_id']] * 2
                                     for row in results) or llm.llm_engine.has_unfinished_requests()):

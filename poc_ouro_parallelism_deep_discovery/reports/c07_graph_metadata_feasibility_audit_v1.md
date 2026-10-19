@@ -112,3 +112,11 @@ The helper hash is `56b7458c261aae24c5534328c05908967d52a18a2b6d4e4d4545b5a57e33
 The source audit segment ran from `2026-10-19 15:21:35 UTC` to `2026-10-19 15:24:50 UTC`.
 That interval is 195 seconds.
 This note precedes the separately authorized V2 port.
+
+## Later eager-only refinement
+
+The [V2 port contract](c07_v2_eager_capture_port_contract_v1.md) preserves the pre-port facts above.
+It documents the separately authorized hook adaptation and a source-backed padding refinement.
+That refinement preserves actual flags and uses exact native admission evidence for unquantized dense Ouro.
+An all-false flag tensor is not an independent admission requirement for that checked route.
+Graph execution remains blocked pending native graph-metadata ownership and replay parity evidence.

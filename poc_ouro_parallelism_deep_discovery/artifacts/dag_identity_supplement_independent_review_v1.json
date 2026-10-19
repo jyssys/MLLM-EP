@@ -1,0 +1,42 @@
+{
+  "status": "TWO_STATIC_INPUT_VALIDATION_GAPS_OBSERVED",
+  "source_sha256": {
+    "dag_identity_checks.py": "5d12e6a64addbd227cc3e7bfc8665c302a549dbfbf9716b5dd53f34af57f8136",
+    "tests/test_dag_identity_checks_cpu.py": "71ee87a5071aa421b42a5e199760df14273233bf400b411f6eff6eb2404d23df",
+    "scripts/verify_dag.py": "7a98059f0921c7a66bb0ef629a2c2e72a6a5672afa54ace4262a609577cda24c",
+    "tests/test_contract_validator_scope_v1.py": "7741219e662bd776adead7592407a3ec7de299d165986f5de1d25c03d8f89bcb"
+  },
+  "combined_cpu_tests": {"supplemental": 15, "retained_characterization": 5, "original": 8, "total": 28, "passed": 28},
+  "accepted_cases": [
+    {
+      "id": "external_current_key_collision",
+      "external_key": "history:shared",
+      "external_state": {"request_id": "q0", "generation": 0, "r": 0, "l": 0, "first_position": 0, "end_exclusive": 1, "version": "committed", "committed": true},
+      "producer": {"node_id": "p", "request_id": "q0", "token": 0, "r": 0, "l": 0, "operator": "norm_qkv", "predecessors": [], "writes": ["history:shared"], "committed": false, "scratch_version": "branch1"},
+      "consumer": {"node_id": "c", "request_id": "q0", "token": 1, "r": 0, "l": 0, "operator": "attention", "predecessors": [], "reads": ["history:shared"], "committed": true, "scratch_version": "committed"},
+      "known_tokens": [["q0", 0, 0, "PROMPT"], ["q0", 0, 1, "PRIOR_COMMITTED_SAMPLE"]],
+      "observed_return": true,
+      "expected_under_limited_contract": "REJECT_STATIC_EXTERNAL_WRITE_NAMESPACE_COLLISION",
+      "locators": "dag_identity_checks.py:61-79"
+    },
+    {
+      "id": "fractional_external_range",
+      "external_state": {"request_id": "q0", "generation": 0, "r": 0, "l": 0, "first_position": 0.5, "end_exclusive": 1.0, "version": "committed", "committed": true},
+      "consumer": {"node_id": "c", "request_id": "q0", "token": 1, "r": 0, "l": 0, "reads": ["history:fractional"]},
+      "known_tokens": [["q0", 0, 1, "PRIOR_COMMITTED_SAMPLE"]],
+      "observed_return": true,
+      "expected_under_limited_contract": "REJECT_NONINTEGER_TOKEN_RANGE",
+      "locators": "dag_identity_checks.py:46-49"
+    }
+  ],
+  "separate_additional_observation": "External generation/r/l=0.0 and range[0.5,1.0) also return True, because dataclass annotations do not enforce types.",
+  "counterexample_limit": "No existing generated graph is shown invalid. No runtime values or model execute.",
+  "worker_start_utc": "2026-10-19T16:07:36Z",
+  "validation_cutoff_utc": "2026-10-19T16:09:15Z",
+  "observed_interval_seconds": 99,
+  "time_limit": "Review-file formatting follows the cutoff. Concurrent worker time does not add campaign elapsed time.",
+  "checker_edits": false,
+  "previous_report_edits": false,
+  "gpu_execution": "NOT_RUN",
+  "model_execution": "NOT_RUN"
+}

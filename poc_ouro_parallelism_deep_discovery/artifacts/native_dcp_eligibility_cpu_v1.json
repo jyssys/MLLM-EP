@@ -1,0 +1,151 @@
+{
+  "GPU_execution": false,
+  "candidate": "NONE",
+  "conclusion": "The installed native DCP>1 flag is ineligible for these MHA16 checkpoints at TP2/TP4. This is not a theorem against a different exact CP layout.",
+  "model_configs": [
+    {
+      "KV_heads": 16,
+      "path": "/home/esjung/.cache/huggingface/hub/models--ByteDance--Ouro-1.4B/snapshots/574fa66cb8bf5abdc979642d01cf2b79b16bfab1/config.json",
+      "query_heads": 16,
+      "sha256": "ce9cc13da41591b8b4deca053d7dfee06424c0228628ee862ea86d725bc163f3",
+      "size": "1.4B"
+    },
+    {
+      "KV_heads": 16,
+      "path": "/home/esjung/.cache/huggingface/hub/models--ByteDance--Ouro-2.6B/snapshots/1ed04250da1a9936042725d302e81c8fa2ab5abd/config.json",
+      "query_heads": 16,
+      "sha256": "23b5c6942a9f0ca8619fb15acfaca93e02c169cdc4e03dbceb4d8a2df145697a",
+      "size": "2.6B"
+    }
+  ],
+  "model_execution": false,
+  "positive_and_negative_controls": [
+    {
+      "DCP": 2,
+      "KV_heads": 1,
+      "TP": 4,
+      "query_heads": 16,
+      "status": "PASS_THIS_CONSTRAINT_ONLY"
+    },
+    {
+      "DCP": 4,
+      "KV_heads": 1,
+      "TP": 4,
+      "query_heads": 16,
+      "status": "PASS_THIS_CONSTRAINT_ONLY"
+    },
+    {
+      "DCP": 2,
+      "KV_heads": 2,
+      "TP": 4,
+      "query_heads": 16,
+      "status": "PASS_THIS_CONSTRAINT_ONLY"
+    },
+    {
+      "DCP": 4,
+      "KV_heads": 2,
+      "TP": 4,
+      "query_heads": 16,
+      "reason": "decode context parallel size must less than or equal to (tensor parallel size 4 // total num kv heads 2) = 2, but got 4",
+      "status": "REJECTED_BY_NATIVE_CONSTRAINT"
+    }
+  ],
+  "provenance": {
+    "extracted_code": "if decode_context_parallel_size > 1 and (not self.use_mla):\n    total_num_kv_heads = self.get_total_num_kv_heads()\n    assert tensor_parallel_size > total_num_kv_heads, f'tensor parallel size {tensor_parallel_size} must be greater than total num kv heads {total_num_kv_heads} when enable decode context parallel for GQA/MQA'\n    max_dcp_size = tensor_parallel_size // total_num_kv_heads\n    assert decode_context_parallel_size <= max_dcp_size, f'decode context parallel size must less than or equal to (tensor parallel size {tensor_parallel_size} // total num kv heads {total_num_kv_heads}) = {max_dcp_size}, but got {decode_context_parallel_size}'\n    num_q_per_kv = total_num_attention_heads // total_num_kv_heads\n    assert num_q_per_kv % decode_context_parallel_size == 0, f'Total number of q per kv attn heads ({num_q_per_kv}) must be divisible by dcp world size when enable decode context parallel for GQA ({parallel_config.decode_context_parallel_size}).'",
+    "first_line": 1250,
+    "function": "verify_with_parallel_config",
+    "last_line": 1272,
+    "source_sha256": "7d52e060db54067a21591882bd6e3c2dd2486ac9041dde1117f97023e71bf89f"
+  },
+  "scope": "CPU execution of the exact inspected native eligibility block. Not full configuration validation or model execution.",
+  "source": "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/config/model.py",
+  "status": "SOURCE_CONSTRAINT_REPRODUCED",
+  "target_rows": [
+    {
+      "DCP": 1,
+      "KV_heads": 16,
+      "TP": 2,
+      "query_heads": 16,
+      "size": "1.4B",
+      "status": "PASS_THIS_CONSTRAINT_ONLY"
+    },
+    {
+      "DCP": 2,
+      "KV_heads": 16,
+      "TP": 2,
+      "query_heads": 16,
+      "reason": "tensor parallel size 2 must be greater than total num kv heads 16 when enable decode context parallel for GQA/MQA",
+      "size": "1.4B",
+      "status": "REJECTED_BY_NATIVE_CONSTRAINT"
+    },
+    {
+      "DCP": 1,
+      "KV_heads": 16,
+      "TP": 4,
+      "query_heads": 16,
+      "size": "1.4B",
+      "status": "PASS_THIS_CONSTRAINT_ONLY"
+    },
+    {
+      "DCP": 2,
+      "KV_heads": 16,
+      "TP": 4,
+      "query_heads": 16,
+      "reason": "tensor parallel size 4 must be greater than total num kv heads 16 when enable decode context parallel for GQA/MQA",
+      "size": "1.4B",
+      "status": "REJECTED_BY_NATIVE_CONSTRAINT"
+    },
+    {
+      "DCP": 4,
+      "KV_heads": 16,
+      "TP": 4,
+      "query_heads": 16,
+      "reason": "tensor parallel size 4 must be greater than total num kv heads 16 when enable decode context parallel for GQA/MQA",
+      "size": "1.4B",
+      "status": "REJECTED_BY_NATIVE_CONSTRAINT"
+    },
+    {
+      "DCP": 1,
+      "KV_heads": 16,
+      "TP": 2,
+      "query_heads": 16,
+      "size": "2.6B",
+      "status": "PASS_THIS_CONSTRAINT_ONLY"
+    },
+    {
+      "DCP": 2,
+      "KV_heads": 16,
+      "TP": 2,
+      "query_heads": 16,
+      "reason": "tensor parallel size 2 must be greater than total num kv heads 16 when enable decode context parallel for GQA/MQA",
+      "size": "2.6B",
+      "status": "REJECTED_BY_NATIVE_CONSTRAINT"
+    },
+    {
+      "DCP": 1,
+      "KV_heads": 16,
+      "TP": 4,
+      "query_heads": 16,
+      "size": "2.6B",
+      "status": "PASS_THIS_CONSTRAINT_ONLY"
+    },
+    {
+      "DCP": 2,
+      "KV_heads": 16,
+      "TP": 4,
+      "query_heads": 16,
+      "reason": "tensor parallel size 4 must be greater than total num kv heads 16 when enable decode context parallel for GQA/MQA",
+      "size": "2.6B",
+      "status": "REJECTED_BY_NATIVE_CONSTRAINT"
+    },
+    {
+      "DCP": 4,
+      "KV_heads": 16,
+      "TP": 4,
+      "query_heads": 16,
+      "reason": "tensor parallel size 4 must be greater than total num kv heads 16 when enable decode context parallel for GQA/MQA",
+      "size": "2.6B",
+      "status": "REJECTED_BY_NATIVE_CONSTRAINT"
+    }
+  ]
+}

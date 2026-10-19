@@ -1,0 +1,134 @@
+{
+  "schema_version": 1,
+  "role": "lagged_ffn_component_primary_source_screen",
+  "segment_start_utc": "2026-10-19T15:36:26Z",
+  "segment_end_utc": "2026-10-19T15:44:42Z",
+  "segment_elapsed_seconds": 496,
+  "time_scope": "One observed worker segment through validation. Excludes final timestamp insertion and handoff. Concurrent agent intervals do not multiply campaign elapsed time.",
+  "activity": "Read primary papers and pinned author code. Trace actual Ouro dependencies. Derive cache deadlines, terminal behavior, and structural payloads.",
+  "GPU_execution": false,
+  "model_execution": false,
+  "mechanism_execution": false,
+  "mechanism_implementation": false,
+  "CPU_quality_test": false,
+  "new_candidate_cards": 0,
+  "classification": "REJECT_GENERIC_APPROXIMATE_COMPONENT_BEFORE_QUALITY",
+  "decision": "Do not propose a GPU or quality run for this mechanism.",
+  "changed_assumption": {
+    "prior": "Whole-stage stale/delta hidden substitution. Prior pilot used Thinking-1.4B, not the current dense Base targets.",
+    "screened": "Recompute current attention, QKV, RoPE, current-token KV, and residual. Consume only the same-token same-layer prior-pass normalized FFN contribution.",
+    "remaining_approximation": "Current causal inputs differ from exact baseline inputs after the first stale FFN contribution.",
+    "prior_quality_result_transfer": "The prior QUALITY_FAIL is relevant negative evidence. It does not directly establish failure of this narrower proposal."
+  },
+  "exactness_class": "UNVERIFIED_COMPONENT_APPROXIMATION",
+  "scope": {
+    "models": ["Base_Ouro_1p4B", "Base_Ouro_2p6B"],
+    "fixed": "R4, per-token warmup1",
+    "adaptive": "Original gate, q0.5, minR2, maxR4, last_exited. Same gate arithmetic does not preserve exits after hidden approximation.",
+    "P": [2, 4, 8],
+    "P8": "Projection only. No hardware result.",
+    "C": [1, 2, 4, 8],
+    "precision": "BF16 model and cached branch words. No learned predictor."
+  },
+  "cache_contract": {
+    "object": "N4(MLP(N3(current attention residual)))",
+    "key": ["request", "token_position", "physical_layer", "producer_pass", "input_generation"],
+    "one_pass_lag": "Pass r consumes exactly producer pass r-1 for the same token and physical layer.",
+    "miss": "Wait. Selecting an older ready entry changes the contract to variable lag.",
+    "input_lifetime": "Retain immutable u until remote reads complete.",
+    "output_lifetime": "Do not overwrite a cached contribution before all consumers finish.",
+    "owners": {
+      "attention": ["residual", "historical_KV", "depth_identity", "original_gate", "commit_authority"],
+      "FFN": ["physical_FFN_weights", "optional_N4_weights", "versioned_input_and_output_queues"]
+    }
+  },
+  "critical_path": {
+    "abstraction": "One FIFO remote FFN owner. Service times are symbolic, not calibrated.",
+    "U": "U[r,l] = H[r,l] + a[r,l]",
+    "F": "F[r,l] = max(U[r,l] + s[r,l], Fprev) + f[r,l] + v[r,l]",
+    "warmup": "H[1,l+1] = max(U[1,l], F[1,l]) + i[1,l]",
+    "lagged": "H[r,l+1] = max(U[r,l], F[r-1,l]) + i[r,l], r=2,3,4",
+    "loop": "H[r+1,1] = H[r,L+1] + loop_norm[r] + required_control_wait[r]",
+    "costs": {
+      "a": "Current attention, current KV operations, and norms through u",
+      "s": "Input send",
+      "f": "FFN plus N4",
+      "v": "Branch return",
+      "i": "Cached branch access and residual integration"
+    },
+    "constant_cost_front_floor": "L(a+s+f+v+i)+n + 3[L(a+i)+n], before head/commit and only if all replacement deadlines succeed",
+    "lagged_R4_commit": "R4 consumes R3 contributions. R4 refresh results do not affect this output.",
+    "mandatory_drain": "max(front_done, max_l F[4,l]) if final refresh jobs must finish before buffer reuse",
+    "current_FFN_R4": "Use F[4,l] at every R4 layer. Restore the R4 FFN dependency chain but retain earlier approximate state/history.",
+    "repair_limit": "Late FFN results on approximate inputs cannot repair consumed downstream QKV/KV, norms, gates, or hidden states without a valid repair procedure.",
+    "FFN_evaluations": {
+      "all_refreshes": "4L",
+      "skip_unused_final_refresh": "3L for lagged R4 commit",
+      "interpretation": "Skipping final refreshes is generic approximate cache reuse, not exact asynchronous replacement."
+    }
+  },
+  "structural_payload_not_measured_traffic": {
+    "D": 2048,
+    "I": 5632,
+    "MHA_heads": 16,
+    "branch_row_bytes": 4096,
+    "per_layer_remote_input_plus_output_bytes": 8192,
+    "Base1p4": {
+      "L": 24,
+      "one_branch_bank_bytes": 98304,
+      "two_branch_banks_bytes_by_C": {"1": 196608, "2": 393216, "4": 786432, "8": 1572864},
+      "one_input_snapshot_bank_bytes": 98304,
+      "physical_FFN_weight_bytes_excluding_norms": 1660944384,
+      "all_4L_remote_payload_bytes_per_token": 786432
+    },
+    "Base2p6": {
+      "L": 48,
+      "one_branch_bank_bytes": 196608,
+      "two_branch_banks_bytes_by_C": {"1": 393216, "2": 786432, "4": 1572864, "8": 3145728},
+      "one_input_snapshot_bank_bytes": 196608,
+      "physical_FFN_weight_bytes_excluding_norms": 3321888768,
+      "all_4L_remote_payload_bytes_per_token": 1572864
+    },
+    "full_layer_FFN_weight_bytes": 69206016,
+    "observed_L2_bytes_per_GPU": 52428800,
+    "capacity_source": "outputs/components_base14_P2_graph_v1/components.json:13,22,250",
+    "excluded": ["allocator_padding", "descriptors", "events", "TP_collectives", "link_contention", "duplicated_work"],
+    "HBM_reads": "Not measured. Logical matrix use does not establish physical HBM traffic."
+  },
+  "baseline_contract": [
+    "Same-P native asynchronous TP and whole-R4 graph replay",
+    "Generic exact AFD with ready requests or microbatches where applicable",
+    "Generic one-pass-lag FFN caching with identical owners, gates, and queue policy for any approximate comparison",
+    "Native TP already stores one aggregate physical-weight copy. Do not compare against a four-copy unroll."
+  ],
+  "source_searches": [
+    {"phase_window_utc": ["2026-10-19T15:36:26Z", "2026-10-19T15:37:26Z"], "query": "Pyramid Attention Broadcast diffusion MLP broadcast feed forward cache"},
+    {"phase_window_utc": ["2026-10-19T15:36:26Z", "2026-10-19T15:37:26Z"], "query": "attention feed forward disaggregation inference FFN asynchronous LLM"},
+    {"phase_window_utc": ["2026-10-19T15:36:26Z", "2026-10-19T15:37:26Z"], "query": "recurrent transformer feed forward cache previous iteration MLP caching"},
+    {"phase_window_utc": ["2026-10-19T15:36:26Z", "2026-10-19T15:37:26Z"], "query": "Pyramid Attention Broadcast MLP broadcast arxiv official code"},
+    {"phase_window_utc": ["2026-10-19T15:36:26Z", "2026-10-19T15:37:26Z"], "query": "FORA Fast-Forward Caching diffusion transformer feed forward 2024 arxiv"},
+    {"phase_window_utc": ["2026-10-19T15:36:26Z", "2026-10-19T15:37:26Z"], "query": "AsyncDiff asynchronous diffusion parallel model stale features warmup final 2024"},
+    {"phase_window_utc": ["2026-10-19T15:36:26Z", "2026-10-19T15:37:26Z"], "query": "recurrent transformer MLP output caching previous iteration inference"},
+    {"phase_window_utc": ["2026-10-19T15:39:46Z", "2026-10-19T15:40:24Z"], "query": "\"feed forward\" \"cache\" \"recurrent\" transformer inference"},
+    {"phase_window_utc": ["2026-10-19T15:39:46Z", "2026-10-19T15:40:24Z"], "query": "\"MLP caching\" transformer \"iteration\""},
+    {"phase_window_utc": ["2026-10-19T15:39:46Z", "2026-10-19T15:40:24Z"], "query": "\"asynchronous\" \"FFN\" \"stale\" inference"}
+  ],
+  "search_time_precision": "Recorded phase windows, not invented exact query timestamps.",
+  "primary_observations": [
+    {"source": "FORA", "paper": "https://arxiv.org/html/2407.01425v1", "paper_locator": "Section3.2, Fig3, initialization/recompute/reuse algorithm", "revision": "acde628eb1c9605015542c91040c401919369487", "code": "https://github.com/pratheba/FORA/blob/acde628eb1c9605015542c91040c401919369487/src/models.py#L145-L152", "sha256": "784ab48d2360991c31cd8b19751b12606e66e64539f05d84cd3833cb198e0883", "observation": "Adds cached MLP output to the current residual on reuse steps.", "limit": "Diffusion, not Ouro R4 quality or remote refresh evidence."},
+    {"source": "PAB", "paper": "https://arxiv.org/html/2408.12588v2", "paper_locator": "Section2.3, AppendixA.2.2/Table7, AppendixB.2", "revision": "4cce477878b0683b5c05cd001ce45ac0e2fc3034", "code": "https://github.com/NUS-HPC-AI-Lab/VideoSys/blob/4cce477878b0683b5c05cd001ce45ac0e2fc3034/videosys/models/transformers/open_sora_transformer_3d.py#L242-L284", "sha256": "e1b8d18bc23661909149eea8cf01cbd5d70b72c06928deda029b47ff70b06def", "observation": "Caches the gated FFN residual contribution. Adds that contribution to the current residual.", "limit": "Selected diffusion blocks/steps. No universal FFN redundancy claim."},
+    {"source": "PAB cache manager", "code": "https://github.com/NUS-HPC-AI-Lab/VideoSys/blob/4cce477878b0683b5c05cd001ce45ac0e2fc3034/videosys/core/pab/pab_mgr.py#L108-L174", "sha256": "3faaee8c4f4776684e3b19ebed48ab2f005d3b3d0ea5063323bfab76c255f41f", "observation": "Timestep/block skip policy, output storage, retrieval, and expiration."},
+    {"source": "AsyncDiff", "paper": "https://arxiv.org/html/2406.06911v1", "paper_locator": "Section3.2, Eq4–8, warmup and previous-step component input", "revision": "47cae2b021ec14a75eac8c37b14f69baf7f5cd07", "code": "https://github.com/czg1225/AsyncDiff/blob/47cae2b021ec14a75eac8c37b14f69baf7f5cd07/asyncdiff/async_sd3.py#L15-L40", "sha256": "e798fd9962a8592bd615c129f175e8c30ed3f5767322e8d662da3f9a73a6de52", "observation": "Warmup, module output cache, owner-selected computation, and distributed broadcast.", "limit": "Not the identical FFN-only Ouro DAG. Diffusion quality does not transfer."},
+    {"source": "Official vLLM AFD RemoteFFNProxy", "revision": "0fff229b592bc489c8857cdabc39f247687acaf5", "code": "https://github.com/vllm-project/afd-plugin/blob/0fff229b592bc489c8857cdabc39f247687acaf5/afd_plugin/model_executor/models/deepseek_v2.py#L117-L158", "sha256": "18929d37d538ea5aaa6bddc793f12972f53703a448a8b9e2c31eeb343ec0a3c1", "observation": "Sends current input, permits a DBO yield, then receives the current FFN result before return.", "limit": "Does not implement lagged FFN reuse for dense Ouro. MoE-specific engine evidence is not target-model evidence."},
+    {"source": "Official vLLM GPU AFD connector", "revision": "0fff229b592bc489c8857cdabc39f247687acaf5", "code": "https://github.com/vllm-project/afd-plugin/blob/0fff229b592bc489c8857cdabc39f247687acaf5/afd_plugin/connectors/gpu/p2p.py#L320-L423", "sha256": "4106b860afaf8b5b12b8688b1273096cb7e05a04ea926d969cb007bf702a2575", "observation": "Current hidden send and FFN output receive with stable graph buffers and metadata."}
+  ],
+  "local_primary_sources": [
+    {"path": "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/model_executor/models/ouro.py", "sha256": "cf0792c6c8024ded45dba10553b5f0d24b7b6542dd8f8f0e0e6899807ec0c4ff", "locators": ["198–209 current QKV/RoPE/depth attention", "260–281 four norms and separate residual", "367–374 pass/loop norm ordering"]},
+    {"path": "/home/esjung/.cache/huggingface/hub/models--ByteDance--Ouro-1.4B/snapshots/574fa66cb8bf5abdc979642d01cf2b79b16bfab1/modeling_ouro.py", "sha256": "c5c68fbb368ce2909c257ae2afc50719be8c91539333d3295e19312c4316f413", "locators": ["401–423 explicit attention and FFN residual additions", "606–608 loop norm"]},
+    {"root": "/home/esjung/external/decode-first-cdb-upstream", "revision": "abdfae0adbdd12be8c6123ccb34eee98a38afb39", "path": "src/looped_cdb/continuous_depth_batching/exit_policy.py", "locator": "161–166 BF16 sigmoid before promotion and recurrent-order hazard accumulation"},
+    {"root": "/home/esjung/external/decode-first-cdb-upstream", "revision": "abdfae0adbdd12be8c6123ccb34eee98a38afb39", "path": "src/looped_cdb/continuous_depth_batching/adapters/ouro.py", "locator": "248–264 current stack, loop norm, original gate"}
+  ],
+  "rejection_scope": "This screen finds known component caching plus generic disaggregation. It does not prove every approximate FFN policy or every remote ownership layout loses.",
+  "reopen_condition": "Identify a concrete ownership discriminator against matched generic lagged FFN caching plus AFD, then specify a quality or verification contract.",
+  "validation": {"json_parse": "PASS", "structural_arithmetic": "PASS", "structural_arithmetic_checks": 19, "query_count": 10, "report_lint": "PASS", "report_lint_findings": 0, "tool_chunk_id": "306117", "validation_end_utc": "2026-10-19T15:44:42Z"}
+}

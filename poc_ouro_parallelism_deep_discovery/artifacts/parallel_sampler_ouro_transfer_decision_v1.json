@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "decision": "NO_TRANSFER_ESTABLISHED_UNCHANGED_TARGET",
+  "new_candidate_count": 0,
+  "source_family": "arXiv:2510.14961v1 diffusion-forcing recurrent-depth sampler",
+  "source_already_audited": true,
+  "target_models": ["ByteDance/Ouro-1.4B Base", "ByteDance/Ouro-2.6B Base"],
+  "target_modes": ["fixed R4", "original adaptive gate q0.5/minR2/maxR4/last_exited"],
+  "constraints": ["unchanged weights", "BF16", "no new trained input adapter", "no cross-depth KV approximation"],
+  "prerequisite_screen": [
+    {"property": "separate token conditioning injected each recurrence", "paper_requirement": "NECESSARY", "Huginn_code": "learned adapter(cat(state, embedding))", "unchanged_Ouro": "ABSENT_IN_INSPECTED_RECURRENCE"},
+    {"property": "useful intermediate readouts under evolving draft conditioning", "paper_requirement": "NECESSARY", "unchanged_Ouro": "NOT_ESTABLISHED", "qualification": "Exposed intermediate LM readouts do not prove or refute this property."},
+    {"property": "random initial state", "paper_requirement": "OPTIONAL", "decision_effect": "NOT_A_BLOCKER_BY_ITSELF"},
+    {"property": "cross-recurrence KV sharing", "paper_requirement": "BENEFICIAL_NOT_NECESSARY", "unchanged_Ouro": "NOT_LICENSED_FOR_COMPUTED_DEPTHS", "qualification": "last_exited fills only skipped deeper rows of already exited tokens."},
+    {"property": "exact original-gate preservation", "paper_requirement": "NOT_PROVIDED", "unchanged_Ouro": "REQUIRED"}
+  ],
+  "required_missing_operand_transformation": "U_k(H_k(x_old,K_old),x_old,x_new,K_old,K_new)=H_k(x_new,K_new), plus authoritative internal KV and original gate inputs",
+  "known_family_if_exact_repair_added": ["C05 exact correction", "C07 provisional branch verification"],
+  "not_proved": ["universal impossibility of alternative exact samplers", "unusable Ouro intermediate logits", "Ouro noncontractivity", "Ouro quality failure", "Ouro latency gain"],
+  "camera_ready_body": "UNAUDITED_READER_CONTENT_TYPE_LIMIT",
+  "model_execution": "NOT_RUN",
+  "gpu_execution": "NOT_RUN",
+  "new_engine": false,
+  "earlier_artifacts_modified": false,
+  "reopen_only_if": ["distinct exact state-and-KV transformation or certificate", "matched original-gate semantics", "charged work reduction against ordinary TP on identical ready frontier", "or separately authorized target change"]
+}

@@ -2,10 +2,10 @@
 
 ## Result
 
-The guarded Base1.4B TP1 probe completed on physical GPU5.
+The guarded Base 1.4B TP1 probe completed on physical GPU 5.
 It observed three cached-decode replays from one four-token controlled request.
-The retained source graph contains1154 top-level nodes.
-The read-only getter inspected1153 kernel nodes.
+The retained source graph contains 1154 top-level nodes.
+The read-only getter inspected 1153 kernel nodes.
 It read zero argument values.
 
 | Node result | Count |
@@ -14,8 +14,8 @@ It read zero argument values.
 | Name resolved, ABI unknown | 288 |
 | Non-kernel node excluded | 1 |
 
-All865 failed queries returned CUDA error98, `invalid device function`.
-The288 named kernels comprise96 KV-update kernels,96 FA3 attention kernels, and96 FA3 combine kernels.
+All 865 failed queries returned CUDA error 98, `invalid device function`.
+The 288 named kernels comprise 96 KV-update kernels, 96 FA3 attention kernels, and 96 FA3 combine kernels.
 An empty explicit ABI policy correctly excluded all argument-value reads.
 No code converts a runtime function pointer into a driver function handle.
 
@@ -23,7 +23,7 @@ No code converts a runtime function pointer into a driver function handle.
 
 Raw evidence resides in `outputs/native_graph_argument_inventory_base14_P1_v1/1.4B_R4_TP1`.
 Its `argument_observations.json` identifies the observed graph, replay count, and node record path.
-The runtime is the Torch-linked CUDA12.9 library.
+The runtime is the Torch-linked CUDA 12.9 library.
 The guard and the diagnostic status both report success.
 Success means that the bounded inventory completed, not that it resolved weight identity.
 

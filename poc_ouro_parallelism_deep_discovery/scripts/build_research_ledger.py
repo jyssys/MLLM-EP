@@ -16,7 +16,9 @@ JSONL_INPUTS=['literature_sources.jsonl','parallel_sampling_sources.jsonl',
     'hydragen_transfer_observations.jsonl','depth_sharded_verifier_sources.jsonl',
     'depth_sharded_verifier_searches.jsonl',
     'c14_cyclic_prefill_sources_v1.jsonl','c14_cyclic_prefill_searches_v1.jsonl',
-    'state_transform_frontier_sources_v1.jsonl','state_transform_frontier_searches_v1.jsonl']
+    'state_transform_frontier_sources_v1.jsonl','state_transform_frontier_searches_v1.jsonl',
+    'parallel_sampler_ouro_transfer_sources_v1.jsonl','parallel_sampler_ouro_transfer_searches_v1.jsonl',
+    'hidden_kv_reconstruction_sources_v1.jsonl','hidden_kv_reconstruction_searches_v1.jsonl']
 JSON_INPUTS=['coordinator_sources.json','independent_candidate_seeds.json',
     'persistent_execution_audit.json','layout_residual_cpu.json',
     'certified_decision_cpu.json','branch_ownership_cost_ledger.json',
@@ -25,7 +27,9 @@ JSON_INPUTS=['coordinator_sources.json','independent_candidate_seeds.json',
     'dwdp_dense_observations_v1.json','candidate_search_v5_source_observations.json',
     'candidate_search_v6_source_observations.json','pipeline_alias_source_observations_v1.json',
     'long_context_capacity_source_audit.json','native_cohort_sampler_source_audit.json',
-    'candidate_search_v7_source_observations.json','cuda_graph_argument_feasibility_v1.json']
+    'candidate_search_v7_source_observations.json','cuda_graph_argument_feasibility_v1.json',
+    'lagged_ffn_component_source_screen_v1.json',
+    'candidate_search_v8_precomputed_arithmetic_sources.json']
 
 def jsonl_kind(name, row):
     """Retain explicit types. Query-only ledgers do not create source observations."""
@@ -33,11 +37,12 @@ def jsonl_kind(name, row):
     return row.get('record_type', row.get('type', default))
 
 def canonical(record):
-    text=' '.join(str(record.get(k,'')) for k in ['identifier','url','URL','paper_url','pdf_url'])
+    text=' '.join(str(record.get(k,'')) for k in ['identifier','url','URL','paper_url','pdf_url','paper'])
     # A DOI suffix can resemble an arXiv number. Require a valid YYMM month.
     found=re.search(r'(?<!\d)(\d{2}(?:0[1-9]|1[0-2])\.\d{4,5})(?:v\d+)?(?!\d)',text)
     if found:return 'arxiv:'+found.group(1)
-    url=record.get('url') or record.get('URL') or record.get('primary_url') or record.get('official_URL') or record.get('code_url')
+    url=(record.get('url') or record.get('URL') or record.get('primary_url')
+         or record.get('official_URL') or record.get('code_url') or record.get('paper') or record.get('code'))
     if url:
         parts=urlsplit(url)
         return 'url:'+urlunsplit((parts.scheme,parts.netloc,parts.path.rstrip('/'),'',''))
@@ -46,7 +51,7 @@ def canonical(record):
 def indexed_sources(value,pointer):
     """Extract actual source objects from heterogeneous, explicitly selected containers."""
     if isinstance(value,dict):
-        if any(k in value for k in ['url','URL','primary_url','official_URL','paper_url','identifier']):
+        if any(k in value for k in ['url','URL','primary_url','official_URL','paper_url','identifier','paper','code']):
             yield pointer,value
         else:
             for key,child in value.items():yield from indexed_sources(child,pointer+'/'+str(key))
@@ -79,10 +84,10 @@ def main():
         path=ROOT/'artifacts'/name
         if not path.exists():continue
         value=read(path);provenance.append({'path':str(path.relative_to(ROOT)),'sha256':sha(path)})
-        for key in ['sources','external_sources','primary_sources']:
+        for key in ['sources','external_sources','primary_sources','primary_observations']:
             for pointer,row in indexed_sources(value.get(key,[]),'/'+key):
                 source_records.append({'origin':str(path.relative_to(ROOT)),'json_pointer':pointer,'original':row})
-        for key in ['searches','search_batches','search_queries']:
+        for key in ['searches','search_batches','search_queries','source_searches']:
             entries=value.get(key,[])
             if not isinstance(entries,list):
                 entries=[{'description':entries,'scope':'Direct retrieval statement, not an executed search count.'}]
