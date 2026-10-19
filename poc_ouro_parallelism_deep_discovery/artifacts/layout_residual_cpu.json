@@ -1,0 +1,568 @@
+{
+  "checks": {
+    "bf16_addition_reordering": {
+      "inputs": [
+        256,
+        1,
+        -256
+      ],
+      "left_associated": 0,
+      "right_associated": 1
+    },
+    "bf16_norm_fusion_counterexamples": [
+      {
+        "a": [
+          0.2001953125,
+          1.296875,
+          -0.69921875,
+          0.0400390625
+        ],
+        "compound_max_abs_error": 0.001953125,
+        "gamma_a": [
+          1,
+          0.75,
+          1.25,
+          0.5
+        ],
+        "gamma_next": [
+          0.8984375,
+          1.1015625,
+          0.69921875,
+          1.296875
+        ],
+        "loop_chain_max_abs_error": 0.00048828125,
+        "native_compound": [
+          0.4453125,
+          1.1171875,
+          0.72265625,
+          1.671875
+        ],
+        "native_loop_chain": [
+          0.08740234375,
+          -0.3203125,
+          1.3515625,
+          0.50390625
+        ],
+        "real_loop_fusion_then_bf16": [
+          0.0869140625,
+          -0.3203125,
+          1.3515625,
+          0.50390625
+        ],
+        "real_moment_fusion_then_bf16": [
+          0.443359375,
+          1.1171875,
+          0.72265625,
+          1.671875
+        ],
+        "x": [
+          0.125,
+          -0.5,
+          2,
+          1
+        ]
+      },
+      {
+        "a": [
+          0.5,
+          0.25,
+          -0.75,
+          0.125
+        ],
+        "compound_max_abs_error": 0.00390625,
+        "gamma_a": [
+          1,
+          0.75,
+          1.25,
+          0.5
+        ],
+        "gamma_next": [
+          0.75,
+          1.25,
+          0.5,
+          1
+        ],
+        "loop_chain_max_abs_error": 0,
+        "native_compound": [
+          0.7578125,
+          -0.09765625,
+          -0.28125,
+          1.6328125
+        ],
+        "native_loop_chain": [
+          0.1962890625,
+          -0.490234375,
+          0.8203125,
+          1.046875
+        ],
+        "real_loop_fusion_then_bf16": [
+          0.1962890625,
+          -0.490234375,
+          0.8203125,
+          1.046875
+        ],
+        "real_moment_fusion_then_bf16": [
+          0.75390625,
+          -0.09814453125,
+          -0.28125,
+          1.6328125
+        ],
+        "x": [
+          0.25,
+          -0.5,
+          1.25,
+          2
+        ]
+      },
+      {
+        "a": [
+          4,
+          3,
+          2,
+          1
+        ],
+        "compound_max_abs_error": 0.00390625,
+        "gamma_a": [
+          0.75,
+          1.25,
+          0.5,
+          1
+        ],
+        "gamma_next": [
+          1.25,
+          0.5,
+          1,
+          0.75
+        ],
+        "loop_chain_max_abs_error": 0.0078125,
+        "native_compound": [
+          0.7734375,
+          0.49609375,
+          0.98828125,
+          0.96875
+        ],
+        "native_loop_chain": [
+          0.373046875,
+          0.5,
+          0.59765625,
+          1.203125
+        ],
+        "real_loop_fusion_then_bf16": [
+          0.375,
+          0.5,
+          0.59765625,
+          1.1953125
+        ],
+        "real_moment_fusion_then_bf16": [
+          0.76953125,
+          0.49609375,
+          0.9921875,
+          0.96484375
+        ],
+        "x": [
+          1,
+          2,
+          3,
+          4
+        ]
+      }
+    ],
+    "bf16_normalized_two_projection_reordering": {
+      "W": [
+        [
+          1,
+          1
+        ]
+      ],
+      "a": [
+        -256,
+        0
+      ],
+      "abs_error": 1.4140625,
+      "cached_base_plus_scaled_delta": [
+        2
+      ],
+      "cached_formula_abs_error": 0.5859375,
+      "cached_normalized_base": [
+        1.421875
+      ],
+      "direct_software_source_order": [
+        1.4140625
+      ],
+      "gamma": [
+        1,
+        1
+      ],
+      "two_rounded_projections_then_norm_scalar": [
+        0
+      ],
+      "x": [
+        256,
+        1
+      ]
+    },
+    "float64_norm_moment_fusion": {
+      "compound_chain_four_moments": [
+        0.890625,
+        5.875,
+        -1.015625,
+        1.16796875
+      ],
+      "compound_chain_max_abs_error": 0,
+      "loop_norm_chain_max_abs_error": 0,
+      "scope": "Real-arithmetic identities checked with float64. No native BF16 equivalence follows."
+    },
+    "float64_normalized_base_plus_delta": {
+      "W": [
+        [
+          1,
+          0,
+          0.5,
+          -0.25
+        ],
+        [
+          0.25,
+          -0.5,
+          1,
+          0.75
+        ],
+        [
+          -0.5,
+          1,
+          0.25,
+          0
+        ]
+      ],
+      "a": [
+        0.5,
+        0.25,
+        -0.75,
+        0.125
+      ],
+      "cached_base_formula": [
+        0.6864366704462551,
+        1.467090138796898,
+        -0.34994810650201247
+      ],
+      "cached_max_abs_error": 4.440892098500626e-16,
+      "direct": [
+        0.6864366704462552,
+        1.4670901387968984,
+        -0.34994810650201247
+      ],
+      "gamma": [
+        1,
+        0.75,
+        1.25,
+        0.5
+      ],
+      "norm_square_via_cross_term_error": 0,
+      "s_x": 0.8251367161094771,
+      "s_y": 0.8614107236972615,
+      "two_projection_formula": [
+        0.6864366704462552,
+        1.4670901387968984,
+        -0.34994810650201247
+      ],
+      "two_projection_max_abs_error": 0,
+      "x": [
+        0.25,
+        -0.5,
+        1.25,
+        2
+      ]
+    },
+    "missing_cross_rank_norm_moment": {
+      "missing_cross_term": 2,
+      "square_of_sum": 17,
+      "sum_of_local_squares": 15
+    },
+    "nonlinear_partial_norm": {
+      "correct": [
+        0.999999500000375,
+        0.999999500000375
+      ],
+      "max_abs_error": 0.4142126481612789,
+      "sum_of_separate_norms": [
+        1.4142121481616539,
+        1.4142121481616539
+      ]
+    },
+    "nonlinear_partial_softmax": {
+      "max_abs_error": 0.1561893289560662,
+      "mean_of_local_softmax": [
+        0.5748692496739387,
+        0.42513075032606124
+      ],
+      "softmax_after_score_reduce": [
+        0.7310585786300049,
+        0.26894142136999516
+      ]
+    },
+    "nonlinear_partial_swiglu": {
+      "abs_error": 0.6552928931500245,
+      "after_preactivation_reduce": 0,
+      "sum_of_local_swiglu": 0.6552928931500245
+    },
+    "two_layer_two_loop_float64": {
+      "KV_scope": "Each logical layer/depth computes separate K/V from its matching input states.",
+      "boundary_errors": [
+        {
+          "boundary": "block_output",
+          "feature_layout_max_abs_error": 4.440892098500626e-16,
+          "l": 0,
+          "r": 0,
+          "replicated_TP_max_abs_error": 2.220446049250313e-16
+        },
+        {
+          "boundary": "block_output",
+          "feature_layout_max_abs_error": 8.881784197001252e-16,
+          "l": 1,
+          "r": 0,
+          "replicated_TP_max_abs_error": 8.881784197001252e-16
+        },
+        {
+          "boundary": "loop_norm",
+          "feature_layout_max_abs_error": 2.220446049250313e-16,
+          "l": null,
+          "r": 0,
+          "replicated_TP_max_abs_error": 2.220446049250313e-16
+        },
+        {
+          "boundary": "block_output",
+          "feature_layout_max_abs_error": 8.881784197001252e-16,
+          "l": 0,
+          "r": 1,
+          "replicated_TP_max_abs_error": 4.440892098500626e-16
+        },
+        {
+          "boundary": "block_output",
+          "feature_layout_max_abs_error": 1.7763568394002505e-15,
+          "l": 1,
+          "r": 1,
+          "replicated_TP_max_abs_error": 1.7763568394002505e-15
+        },
+        {
+          "boundary": "loop_norm",
+          "feature_layout_max_abs_error": 4.440892098500626e-16,
+          "l": null,
+          "r": 1,
+          "replicated_TP_max_abs_error": 6.661338147750939e-16
+        }
+      ],
+      "max_abs_error": 1.7763568394002505e-15,
+      "norm_calls_per_token": 18,
+      "physical_layer_order": [
+        0,
+        1,
+        0,
+        1
+      ],
+      "reference_final_hidden": [
+        [
+          1.2362499852632691,
+          0.15180489500468344,
+          1.9460274546586653,
+          -0.04190085293035946
+        ],
+        [
+          1.4610363047087627,
+          0.21208036694250135,
+          1.6414179138907785,
+          -0.12358186021739215
+        ]
+      ],
+      "scope": "Central CPU arithmetic representation. No distributed runtime or resource schedule ran.",
+      "shape": {
+        "head_width": 2,
+        "heads": 2,
+        "hidden": 4,
+        "loops": 2,
+        "mlp_width": 6,
+        "physical_layers": 2,
+        "ranks_simulated": 2,
+        "tokens": 2
+      },
+      "stage": "Two-token causal prefill. No cached decode is simulated."
+    }
+  },
+  "conclusions": [
+    "Local nonlinear evaluation of unreduced row-TP partials is not the original graph.",
+    "Disjoint feature shards can propagate with correct global norm statistics and explicit projection communication.",
+    "Real-arithmetic moment fusion is a positive control, not native BF16 graph equivalence.",
+    "Dense base-plus-delta projection does not reduce dense projection work without extra structure.",
+    "These failures do not reject all communication-avoiding algorithms."
+  ],
+  "environment": {
+    "float_mantissa_bits": 53,
+    "float_max_exponent": 1024,
+    "implementation": "CPython",
+    "python": "3.14.6"
+  },
+  "evidence_class": "ANALYTIC_BOUND",
+  "evidence_subtype": "EXECUTED_CONSTRUCTED_CPU_ALGEBRA",
+  "execution_end_utc": "2026-10-19T10:20:14.159902+00:00",
+  "execution_start_utc": "2026-10-19T10:20:14.158235+00:00",
+  "layout_collective_counts_for_two_layers_two_loops": {
+    "count_scope": "One illustrative layout. No minimum-communication theorem or timing estimate.",
+    "feature_layout_unfused": {
+      "scalar_stat_allreduces": 18,
+      "vector_allgathers": 8,
+      "vector_reduce_scatters": 8
+    },
+    "replicated_1D_TP": {
+      "scalar_allreduces": 0,
+      "vector_allreduces": 8
+    }
+  },
+  "layout_contract": {
+    "feature_sharded": [
+      "N1 statistic allreduce",
+      "normalized-input allgather",
+      "head-local attention",
+      "O row-partials",
+      "vector reduce-scatter",
+      "N2 statistic allreduce",
+      "feature-local residual",
+      "N3 statistic allreduce",
+      "normalized-input allgather",
+      "gate/up column shards",
+      "local SwiGLU",
+      "down row-partials",
+      "vector reduce-scatter",
+      "N4 statistic allreduce",
+      "feature-local residual"
+    ],
+    "loop_boundary": "Shared physical weights retain their layout. Feature-sharded loop RMSNorm still needs global statistics.",
+    "replicated": [
+      "N1 local",
+      "head-local attention",
+      "O row-partials",
+      "vector allreduce",
+      "N2 local",
+      "residual",
+      "N3 local",
+      "gate/up column shards",
+      "local SwiGLU",
+      "down row-partials",
+      "vector allreduce",
+      "N4 local",
+      "residual"
+    ]
+  },
+  "precision_contract": {
+    "bf16": "Software FP32-to-BF16 round-to-nearest, ties-to-even. FP32 products/accumulations use struct rounding.",
+    "float64": "Python binary64 operations with the explicitly coded evaluation order.",
+    "normalization": "The software path follows FP32 norm statistics, BF16 normalized-value cast, then BF16 gamma multiplication.",
+    "not_gpu_equivalence": "No H100, CUDA, PyTorch kernel, NCCL reduction, or backend-equivalence claim."
+  },
+  "projection_costs": [
+    {
+      "cached_base_incremental_dense_flop_per_token": 25165824,
+      "direct_dense_flop_per_token": 25165824,
+      "extra_scalar_and_vector_work_excluded_from_flop_columns": true,
+      "input_width": 2048,
+      "operator": "QKV_stack",
+      "output_width": 6144,
+      "uncached_base_plus_delta_dense_flop_per_token": 50331648
+    },
+    {
+      "cached_base_incremental_dense_flop_per_token": 46137344,
+      "direct_dense_flop_per_token": 46137344,
+      "extra_scalar_and_vector_work_excluded_from_flop_columns": true,
+      "input_width": 2048,
+      "operator": "gate_up_stack",
+      "output_width": 11264,
+      "uncached_base_plus_delta_dense_flop_per_token": 92274688
+    },
+    {
+      "cached_base_incremental_dense_flop_per_token": 8388608,
+      "direct_dense_flop_per_token": 8388608,
+      "extra_scalar_and_vector_work_excluded_from_flop_columns": true,
+      "input_width": 2048,
+      "operator": "attention_output",
+      "output_width": 2048,
+      "uncached_base_plus_delta_dense_flop_per_token": 16777216
+    },
+    {
+      "cached_base_incremental_dense_flop_per_token": 23068672,
+      "direct_dense_flop_per_token": 23068672,
+      "extra_scalar_and_vector_work_excluded_from_flop_columns": true,
+      "input_width": 5632,
+      "operator": "MLP_down",
+      "output_width": 2048,
+      "uncached_base_plus_delta_dense_flop_per_token": 46137344
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "checkpoint_loaded": false,
+    "gpu_used": false,
+    "performance_measurement": false,
+    "quality_measurement": false,
+    "random_weights_used": false,
+    "target_model_shape_emulated": false
+  },
+  "segment_start_utc": "2026-10-19T10:12:07Z",
+  "sources": {
+    "functions": [
+      "OuroMLP.forward",
+      "OuroAttention.forward",
+      "OuroRMSNorm.forward",
+      "OuroDecoderLayer.forward",
+      "OuroModel.forward"
+    ],
+    "generic_controls": [
+      {
+        "locator": "Section 3",
+        "title": "Megatron-LM",
+        "url": "https://arxiv.org/html/1909.08053v4",
+        "version": "arXiv:1909.08053v4"
+      },
+      {
+        "locator": "ColwiseParallel, RowwiseParallel, SequenceParallel, PrepareModuleInput",
+        "title": "PyTorch TP",
+        "url": "https://docs.pytorch.org/docs/2.14/distributed.tensor.parallel.html",
+        "version": "2.14 documentation"
+      },
+      {
+        "locator": "Unified AllReduce Fusion API",
+        "title": "FlashInfer communication",
+        "url": "https://docs.flashinfer.ai/api/comm.html",
+        "version": "0.7.2 documentation"
+      },
+      {
+        "locator": "AllReduce, ReduceScatter, AllGather",
+        "title": "NCCL collectives",
+        "url": "https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/usage/collectives.html",
+        "version": "2.32.3 documentation"
+      }
+    ],
+    "model_revision": "574fa66cb8bf5abdc979642d01cf2b79b16bfab1",
+    "model_source": "https://huggingface.co/ByteDance/Ouro-1.4B/blob/574fa66cb8bf5abdc979642d01cf2b79b16bfab1/modeling_ouro.py"
+  },
+  "status": "PASS_CPU_ALGEBRA_CONTROLS",
+  "provenance": {
+    "command": "python poc_ouro_parallelism_deep_discovery/scripts/layout_residual_cpu.py",
+    "cwd": "/home/esjung/MLLM-EP-ouro-deep-discovery",
+    "script_sha256": "a8e65e9b25a6bac6f19caad4a163335b368a89e3152d96732e5f40bf74c3e2db",
+    "original_tool_output_id": "4ef190",
+    "report": "reports/layout_and_structured_residual_redteam.md",
+    "segment_checkpoint_utc": "2026-10-19T10:20:14Z",
+    "recorded_segment_wall_seconds": 487,
+    "checkpoint_note": "Artifact and timestamp annotations followed the checkpoint.",
+    "direct_primary_read_window_utc": {
+      "start": "2026-10-19T10:12:07Z",
+      "last_observed_checkpoint": "2026-10-19T10:17:34Z",
+      "individual_exact_access_times_available": false
+    },
+    "environment_probe": {
+      "command": "python -c 'import torch; ...'",
+      "result": "ModuleNotFoundError: No module named torch",
+      "action": "No install. Use the dependency-free checker."
+    },
+    "external_mutations": false,
+    "prior_artifacts_edited": false,
+    "report_lint_exit_code": 0
+  }
+}

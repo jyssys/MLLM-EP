@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "role": "exact_frontier_contract",
+  "segment_start_utc": "2026-10-19T10:30:08Z",
+  "segment_end_utc": "2026-10-19T10:37:51Z",
+  "segment_elapsed_seconds": 463,
+  "time_scope": "Observed worker segment. Concurrent worker intervals do not multiply campaign elapsed time.",
+  "validation": {"manifest_json": "PASS", "script_hash": "PASS", "case_summaries_reproduced": "PASS", "report_lint_hard_violations": 0},
+  "activity": "Read-only source inspection, exact frontier derivation, bounded CPU DAG checks, and report synthesis",
+  "gpu_execution": false,
+  "shared_code_changes": false,
+  "model_execution": false,
+  "scope": {"models": ["ByteDance/Ouro-1.4B", "ByteDance/Ouro-2.6B"], "L": [24,48], "R": 4, "adaptive_gate": "original_early_exit", "q": 0.5, "min_R": 2, "max_R": 4, "adaptive_KV": "last_exited", "prefill": "full_R4"},
+  "sources": {
+    "official_base_modeling": {"revision_1p4b": "574fa66cb8bf5abdc979642d01cf2b79b16bfab1", "revision_2p6b": "1ed04250da1a9936042725d302e81c8fa2ab5abd", "sha256": "c5c68fbb368ce2909c257ae2afc50719be8c91539333d3295e19312c4316f413", "locators": ["OuroDecoderLayer.forward:401-423", "OuroModel.forward:592-608"]},
+    "cdb": {"root": "/home/esjung/external/decode-first-cdb-upstream", "revision": "abdfae0adbdd12be8c6123ccb34eee98a38afb39", "locators": {"stream_creation": "src/looped_cdb/continuous_batching/input_outputs.py:518-524", "synchronous_gate_boundary": "src/looped_cdb/continuous_depth_batching/model_runner.py:695-699", "hidden_bank_overwrite": "src/looped_cdb/continuous_depth_batching/model_runner.py:689-693", "gate_D2H_events": "src/looped_cdb/continuous_depth_batching/model_runner.py:796-821", "graph_compute_stream": "src/looped_cdb/continuous_depth_batching/model_runner.py:908-938", "coda_D2H_events": "src/looped_cdb/continuous_depth_batching/model_runner.py:1007-1034", "minimum_depth_gate_rule": "src/looped_cdb/continuous_depth_batching/exit_policy.py:141-169", "same_step_routing": "src/looped_cdb/continuous_depth_batching/continuous_api.py:1156-1166", "delayed_consumption": "src/looped_cdb/continuous_depth_batching/continuous_api.py:1116-1122,1232-1246", "terminal_copy_order": "src/looped_cdb/continuous_depth_batching/continuous_api.py:1210-1230"}},
+    "native_vllm": {"root": "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm", "ouro_sha256": "cf0792c6c8024ded45dba10553b5f0d24b7b6542dd8f8f0e0e6899807ec0c4ff", "linear_sha256": "10b1ebae493158ca1074aef37a9f466f4e8e536c5a71d91c5b66062095ce3a44", "pynccl_sha256": "28596817ee9fb842026624a8a6c32b0637630b6b908ddb2a79ecccbeac531e35", "cuda_communicator_sha256": "e91777d5037b79cbfbc7930febd63b57baa5f27b15a7cabe33b3a2efc857ee40", "parallel_state_sha256": "ecfa5eeda697e9982591c93eca835fcc53463267c1c22110700819efcecee74f", "locators": {"fused_residual_representation": "model_executor/models/ouro.py:260-281", "loop_boundary": "model_executor/models/ouro.py:367-374", "row_projection_reduction": "model_executor/layers/linear.py:1688-1697", "TP_group_dispatch": "distributed/communication_op.py:12-14", "collective_selection": "distributed/device_communicators/cuda_communicator.py:273-338", "NCCL_current_stream": "distributed/device_communicators/pynccl.py:186-196", "capture_stream": "distributed/parallel_state.py:632-639", "logit_gather": "model_executor/layers/logits_processor.py:138-153"}}
+  },
+  "frontier_conditions": ["All predecessor values exist.", "Required weight and state versions are resident or transferred.", "Every read matches request, token, depth, layer, and version.", "Every write has an exclusive lease.", "The device/copy/collective resource is available.", "The launch cannot publish an unresolved branch as authoritative."],
+  "schedule_constraints": ["finish(v)=start(v)+c(v)", "start(v)>=max(finish(p) for p in predecessors(v))", "start(v)>=each required weight/state readiness time", "Concurrent leases cannot exceed resource capacity"],
+  "cost_status": "No measured node costs or physical latency prediction. A longest weighted path is only a conditional lower bound when its node costs apply.",
+  "adjacent_RMSNorm_real_identity": {"definitions": "a,b are loop/input norm weights. e0,e1 are their epsilons. m0=mean(x*x). m1=mean((a*x)*(a*x)).", "expression": "N_input(N_loop(x))=(a*b*x)/sqrt(m1+e1*(m0+e0))", "assumptions": "Real arithmetic and positive denominators", "BF16_status": "Does not reproduce the original sequence of BF16 rounding operations. Numerically reordered, untested."},
+  "gate_cases": {
+    "fixed_R4": "All four passes are mandatory. The selected output is h_R4. No online gate dependency is required.",
+    "adaptive_mandatory_R2": "R2 may execute before host consumption of the actual R1 hazard. Retain that hazard for the R2 cumulative decision.",
+    "adaptive_eligible_exit": "A nonprovisional next pass waits for continuation. A provisional next pass may use known h_r but needs separate hidden/state versions and a discard/commit protocol.",
+    "existing_delayed_CDB": "Consumes a prior gate after current-pass computation and selects the current-pass output on exit. It is not an exact implementation of the selected same-step overlap contract.",
+    "R4": "Maximum depth forces exit. The final gate is unnecessary for the routing decision."
+  },
+  "ownership_rules": {"weights": "Immutable shard or tile owned by model/operator worker.", "hidden": "Complete semantic hidden/residual value, immutable after publication for each version.", "historical_KV": "Committed request/depth/layer state on declared KV owner.", "current_KV": "Exclusive append-row lease for one request/token/depth/version.", "provisional_KV": "Private or exclusively leased unpublished append rows. Immutable history may be shared.", "gate": "Actual hazards consumed in recurrent order by request/token policy owner.", "sampling": "Request-local greedy or declared RNG-counter contract.", "TP": "Matching operation order, rank participation, shape, and dtype across one TP group.", "streams": "Producer event precedes consumer. Completion precedes buffer or lease reuse."},
+  "overlap_classification": [
+    {"mechanism": "Q/K/V or MLP branch overlap", "class": "GENERIC_OPERATOR_OR_TP", "recurrence_specific_axis": false},
+    {"mechanism": "Independent ready requests at different recurrent phases", "class": "CDB_OR_PHYSICAL_WEIGHT_OPERATOR_POOL", "fixed_R4_possible": true, "requires_ready_work": true, "new_axis_established": false},
+    {"mechanism": "Mandatory-prefix gate transport overlap", "class": "EXACT_ADAPTIVE_PREFIX_SCHEDULING", "min_R": 2, "fixed_R4_gate_headroom": false},
+    {"mechanism": "Eligible gate and provisional next pass", "class": "GUARDED_CONTROL_FLOW_SPECULATION", "known_input": true, "requires_versioned_hidden_KV": true, "future_token_available": false},
+    {"mechanism": "Stationary KV and shared physical-weight workers", "class": "CONDITIONAL_RECURRENCE_HYBRID", "requires_explicit_messages": true, "same_P_advantage": "UNMEASURED"},
+    {"mechanism": "RMSNorm linear-numerator/statistics fork", "class": "NUMERICALLY_REORDERED_ALGEBRAIC_TRACK", "real_arithmetic_identity": true, "BF16_equivalence": "UNVALIDATED", "nearest_generic_control": "Norm/GEMM fusion"}
+  ],
+  "structural_counts": {"fixed_R4_row_projection_reductions_TP_gt1": {"L24": 192, "L48": 384}, "excludes": ["embedding_reduction", "logit_gather", "optional_gate"], "performance_evidence": "NOT_RUN"},
+  "cpu_check": {
+    "command": "python /home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/scripts/check_exact_frontier.py",
+    "script_sha256": "66130f5e0177b1686a0457a4edd5de32d8ffd6aff115c848787b25ad6ee2f3d9",
+    "completed_utc": "2026-10-19T10:33:44Z",
+    "tool_chunk_id": "001fa2",
+    "evidence_class": "ANALYTIC_BOUND",
+    "evidence_subtype": "EXECUTABLE_CPU_SYMBOLIC_DEPENDENCY_CHECK",
+    "case_count": 16,
+    "all_status": "PASS",
+    "dimensions": {"layers": [24,48], "requests": [1,3], "tokens_per_request": 2, "fixed_R": [4], "adaptive_declared_exit_depths": [2,3,4], "multi_request_adaptive": "Different declared depths across requests and tokens"},
+    "case_node_edge_summaries": [[24,1,"fixed",4,4048,5105],[24,1,"adaptive",2,2132,2761],[24,1,"adaptive",3,3098,3947],[24,1,"adaptive",4,4060,5125],[24,3,"fixed",4,12144,15315],[24,3,"adaptive",2,6396,8283],[24,3,"adaptive",3,7845,10074],[24,3,"adaptive",4,9290,11833],[48,1,"fixed",4,8080,10193],[48,1,"adaptive",2,4244,5497],[48,1,"adaptive",3,6170,7859],[48,1,"adaptive",4,8092,10213],[48,3,"fixed",4,24240,30579],[48,3,"adaptive",2,12732,16491],[48,3,"adaptive",3,15621,20058],[48,3,"adaptive",4,18506,23569]],
+    "summary_fields": ["physical_layers", "requests", "mode", "maximum_executed_passes", "nodes", "edges"],
+    "checks": ["acyclic_predecessor_construction", "loop_norm_before_next_pass", "minR2_R1_gate_not_needed_before_R2", "eligible_exit_guard_before_nonprovisional_next_pass", "token_sampling_before_next_embedding", "Q_K_independence", "MLP_gate_up_independence", "TP_reduction_before_postprojection_norm", "correct_previous_token_KV_provider", "no_crossrequest_data_barrier"],
+    "limitations": ["Declared exit traces define test graphs. They are not supplied as online scheduler knowledge.", "The graph contains symbolic identity reductions at TP1.", "Role/device owner tags do not create independent hardware lanes.", "No resource schedule or hardware-overlap proof is produced.", "No gate values, BF16 numerics, model outputs, concurrent allocator, or speculative commit implementation executes."]
+  },
+  "claim_scope": "The inspected unchanged-operator DAG constrains schedules. It is not a universal impossibility theorem for every algebraic, validated speculative, or quality-controlled method.",
+  "next_probe": "Mandatory-R2 prefix routing with unchanged original hazards, output selection, and terminal KV. Check correctness before timing. Classify any gain as adaptive scheduling, not a new axis."
+}

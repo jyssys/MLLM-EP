@@ -1,0 +1,88 @@
+"""Publish scoped candidate dispositions without changing the initial freeze."""
+import datetime as dt
+from poc_ouro_parallelism_deep_discovery.contract import *
+
+ROWS=[
+ ('C01','GENERIC_ONLY','Ready physical-operator workers','Source/DAG screen',
+  ['reports/operator_ownership_nearest_audit.md','reports/persistent_execution_redteam.md'],
+  'NanoFlow and alias-aware batching already supply the current mechanism. Full on-chip core residence fails the stated capacity screen.',
+  'A measured ownership benefit beyond an alias-aware generic executor.'),
+ ('C02','NO_NET_HEADROOM','KV-stationary remote MLP','Tested isolated-source layout only',
+  ['reports/cost_and_headroom.md','analysis/checkpoint_03/operators.csv'],
+  'Remote full-MLP round trips lose to local/TP controls at the tested shapes. Other batching regimes are not rejected.',
+  'A legal independent frontier and a different ownership layout that beats matched local batching.'),
+ ('C03','GENERIC_ONLY','Versioned depth-address arena','Terminal-alias policy and address mapping',
+  ['reports/kv_indirection_redteam.md','reports/dynamic_runtime_prior_boundary.md'],
+  'Enabling Dynamic Computation already specifies terminal-depth aliases. Fixed R4 has no terminal-copy saving.',
+  'An additional exact state representation with fixed-mode benefit beyond the primary prior.'),
+ ('C04','GENERIC_ONLY','Loop-closed distributed layout','Audited algebra and conventional layouts',
+  ['reports/layout_and_structured_residual_redteam.md'],
+  'Correct norm/softmax consumers retain the required global values. Valid feature-layout propagation overlaps generic work.',
+  'A named removed message whose necessary consumer no longer waits for equivalent data elsewhere.'),
+ ('C05','NO_NET_HEADROOM','Finite-trajectory correction','Tested exact-recovery schedule',
+  ['reports/parallel_sampling_nearest_audit.md','reports/cost_and_headroom.md'],
+  'Bounded actual-model probes need four ideal expensive rounds for complete state recovery. Approximate variants remain quality unresolved.',
+  'A cheaper causal correction with verified current KV and a charged advantage over same-P TP.'),
+ ('C06','NO_NET_HEADROOM','Base-plus-fresh-residual projections','Full dense exact residual formulation',
+  ['reports/layout_and_structured_residual_redteam.md'],
+  'The exact identity adds a dense fresh-residual projection unless another proved structure reduces work. BF16 cast points also matter.',
+  'Measured fresh structure plus numerical and natural quality evidence, without training.'),
+ ('C07','GENERIC_ONLY','Verified shared-depth branch ownership','Current replica/branch construction',
+  ['reports/branch_ownership_cost_contract.md','reports/literature_nearest_audit.md'],
+  'LoopSpec/WaveFront cover mixed-depth verification. Replica placement must charge tentative ancestor KV, not only winner cache.',
+  'A distinct ownership protocol that beats ordinary TP on the identical verified branch batch.'),
+ ('C08','NO_NET_HEADROOM','Lossless recurrent-difference transport','Measured unfused small-message implementation',
+  ['reports/cost_and_headroom.md','artifacts/lossless_base14.json','artifacts/lossless_base26.json'],
+  'Encoded-size reduction is not a measured link saving. Unfused transform cost is comparable to raw startup at small payloads.',
+  'An exact fused codec plus a real critical-path communication opportunity.'),
+ ('C09','GENERIC_ONLY','Certified partial-head decisions','Actual known final hidden and greedy certificate',
+  ['reports/certified_decision_redteam.md','reports/certified_operator_screen.md'],
+  'Generic exact MIPS already uses the bound. Earlier-hidden similarity does not certify the selected later hidden or BF16 argmax.',
+  'A separate recurrence-specific certificate with complete charged cost and numerical proof.'),
+ ('C10','GENERIC_ONLY','Historical KV rematerialization','Stored projection-input restoration',
+  ['reports/independent_axes_redteam.md','reports/residual_input_reassociation_redteam.md'],
+  'Generic restoration already covers the representation. Historical recomputation and publication remain real costs.',
+  'An Ouro-specific operator reuse unavailable to generic restoration and stationary KV.'),
+ ('C11','GENERIC_ONLY','Quorum linear workers','Coded linear projection formulation',
+  ['reports/independent_axes_redteam.md'],
+  'Coded matrix multiplication is generic. Native BF16 decode stragglers and net gain are not measured.',
+  'Measured removable tail plus a numerical contract and coding/decoding cost below that tail.'),
+ ('C12','CONDITIONAL_MECHANISM','Attention feature summaries','No qualifying implementation',
+  ['reports/independent_axes_redteam.md'],
+  'No small exact query-independent summary is established for the current softmax graph. Generic approximate features remain untested.',
+  'A new representation with an explicit approximation class and a decisive quality/cost test.'),
+ ('C13','GENERIC_ONLY','Exact-input work beside the gate','Adaptive-only baseline opportunity',
+  ['reports/original_gate_overlap_contract.md'],
+  'Mandatory R2 can overlap R1 gate transport. Correct hazard precision and state lifetime are required. Fixed R4 offers no such gate saving.',
+  'Treat this as a stronger original-gate baseline before any architecture gain.'),
+ ('C14','GENERIC_ONLY','Depth/chunk frontier','Tested exact causal DAG',
+  ['artifacts/dag_checks/structural_matrix.json','reports/exact_frontier_contract.md'],
+  'The tested graph maps to ordinary causal PP with aliased weights and retained loop norms.',
+  'A changed dependency or state mechanism, not another partition of the same graph.'),
+ ('C15','NO_NET_HEADROOM','Projection-input reassociation','Audited direct contractions',
+  ['reports/residual_input_reassociation_redteam.md'],
+  'Static RoPE absorption fails. Correct alternatives restore dense historical contractions or retain equivalent storage.',
+  'A different proved contraction or representation that survives head-TP and RoPE costs.'),
+ ('C16','GENERIC_ONLY','Mixed-depth ready unions','Source and CPU frontier controls',
+  ['reports/mixed_depth_frontier_redteam.md'],
+  'WaveFront already batches full-depth KV unions. Local CDB slot homogeneity is an implementation restriction, not a new axis.',
+  'A physical cross-owner benefit beyond generic full-KV union on identical online ready traces.'),
+]
+
+def main():
+    records=[];stamp=dt.datetime.now(dt.timezone.utc).isoformat()
+    for id,status,mechanism,scope,evidence,reason,reopen in ROWS:
+        assert all((ROOT/p).exists() for p in evidence),(id,evidence)
+        records.append(dict(id=id,status=status,mechanism=mechanism,scope=scope,evidence=evidence,
+            reason=reason,reopening_fact=reopen,updated_utc=stamp,
+            candidate_live_E2E='NOT_RUN',candidate_free_running_quality='NOT_RUN',
+            normal_campaign_completion=False))
+    target=ROOT/'artifacts/candidate_status.jsonl'
+    target.write_text(''.join(json.dumps(r,sort_keys=True)+'\n' for r in records))
+    write(ROOT/'artifacts/candidate_checkpoint.json',dict(updated_utc=stamp,records=records,
+        verdict='NO_FINAL_CAMPAIGN_VERDICT',shortlist_count=0,
+        duration='The ten-hour normal-completion condition is not met.',
+        scope='Current dispositions. No general impossibility result for Ouro. Preserve the initial candidate freeze separately.'))
+    print('CANDIDATE_CHECKPOINT',len(records),'NO_FINALIST')
+
+if __name__=='__main__':main()

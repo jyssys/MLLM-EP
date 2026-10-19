@@ -1,0 +1,52 @@
+Failed: Cuda error /workspace/csrc/custom_all_reduce.cuh:455 'invalid argument'
+Failed: Cuda error /workspace/csrc/custom_all_reduce.cuh:455 'invalid argument'
+W1019 19:24:08.736000 2397135 torch/distributed/elastic/multiprocessing/api.py:1012] Sending process 2398076 closing signal SIGTERM
+E1019 19:24:08.754000 2397135 torch/distributed/elastic/multiprocessing/api.py:986] failed (exitcode: 1) local_rank: 0 (pid: 2398074) of binary: /home/esjung/.venvs/cp-composition-vllm026/bin/python
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/distributed/run.py", line 994, in <module>
+    main()
+    ~~~~^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py", line 362, in wrapper
+    return f(*args, **kwargs)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/distributed/run.py", line 990, in main
+    run(args)
+    ~~~^^^^^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/distributed/run.py", line 981, in run
+    elastic_launch(
+    ~~~~~~~~~~~~~~~
+        config=config,
+        ~~~~~~~~~~~~~~
+        entrypoint=cmd,
+        ~~~~~~~~~~~~~~~
+    )(*cmd_args)
+    ~^^^^^^^^^^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/distributed/launcher/api.py", line 170, in __call__
+    return launch_agent(self._config, self._entrypoint, list(args))
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/distributed/launcher/api.py", line 317, in launch_agent
+    raise ChildFailedError(
+    ...<2 lines>...
+    )
+torch.distributed.elastic.multiprocessing.errors.ChildFailedError: 
+============================================================
+poc_ouro_parallelism_deep_discovery.scripts.custom_ar_repro FAILED
+------------------------------------------------------------
+Failures:
+[1]:
+  time      : 2026-10-19_19:24:08
+  host      : cloud-0n58xq
+  rank      : 1 (local_rank: 1)
+  exitcode  : 1 (pid: 2398076)
+  error_file: <N/A>
+  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+------------------------------------------------------------
+Root Cause (first observed failure):
+[0]:
+  time      : 2026-10-19_19:24:08
+  host      : cloud-0n58xq
+  rank      : 0 (local_rank: 0)
+  exitcode  : 1 (pid: 2398074)
+  error_file: <N/A>
+  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+============================================================

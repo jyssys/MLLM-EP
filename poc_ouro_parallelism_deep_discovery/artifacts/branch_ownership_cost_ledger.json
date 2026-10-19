@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "candidate": "C07",
+  "role": "branch_ownership_cost_contract",
+  "segment_start_utc": "2026-10-19T10:44:08Z",
+  "segment_end_utc": "2026-10-19T10:52:08Z",
+  "segment_elapsed_seconds": 480,
+  "time_scope": "Observed worker elapsed segment. Concurrent worker intervals do not multiply campaign elapsed time.",
+  "validation": {"ledger_json": "PASS", "all_payload_formulas": "PASS", "wire_ABI_bytes": "PASS", "vocabulary_vector_bytes": "PASS", "report_lint_hard_violations": 0, "validation_tool_chunk_id": "44d212"},
+  "activity": "Pinned-source ownership review, read-only Base checkpoint header accounting, symbolic message/state ledger, and skeptical synthesis",
+  "gpu_execution": false,
+  "model_execution": false,
+  "shared_code_changes": false,
+  "comparison": {"candidate": "P2/P4 replica-owned verified branches", "control": "Ordinary TP2/TP4 applied to the same LoopSpec branch batch", "must_match": ["target_checkpoint", "target_depth_mode", "original_gate_q_min_max_KV_policy", "proposal_rules", "branch_DAG", "prefix_sharing", "verification_rule", "sampling_contract", "precision", "natural_output_policy"], "internal_branches_are_user_requests": false, "control_implementation_status": "NOT_AVAILABLE_IN_INSPECTED_LOOPSPEC_CHECKOUT", "control_status_reason": "Pinned server CLI rejects parallel sizes other than one."},
+  "sources": {
+    "loopspec": {"revision": "41aa710ed7c9ce908cffa03597be5d1df19d7b56", "provenance": "Campaign literature worker's pinned official source inspection and supplied excerpts", "locators": {"prefix_borrow_and_release": "sglang_recurrent/loopspec/branching/manager.py:106-144,207-250", "batched_lane_execution": "sglang_recurrent/loopspec/executor.py:293-339", "parallelism_restrictions": "sglang_recurrent/server/cli.py:88-118", "fixed_gate_scope": "sglang_recurrent/modeling/ouro.py:85-98"}, "distributed_winner_commit_function_independently_inspected": false, "full_rejection_implementation_independently_inspected": false},
+    "wavefront": {"revision": "434520932897fcc1e26898891c7e2feaa6ab099f", "provenance": "Campaign pinned source excerpts", "locators": {"per_row_depth_address": "src/decoding/ouro_blocks.py:264-267,294-297", "terminal_fill": "src/decoding/ouro_blocks.py:128-132,381-397", "ordered_verify_and_rollback": "src/decoding/scheduler.py:155-224"}, "adaptive_equivalence": "UNVALIDATED"},
+    "cdb": {"revision": "abdfae0adbdd12be8c6123ccb34eee98a38afb39", "root": "/home/esjung/external/decode-first-cdb-upstream", "locators": ["src/looped_cdb/kv_cache_policy.py:53-74", "src/looped_cdb/continuous_depth_batching/continuous_api.py:1190-1230", "src/looped_cdb/continuous_depth_batching/cache.py:105-113"]},
+    "base_1p4b": {"revision": "574fa66cb8bf5abdc979642d01cf2b79b16bfab1", "header_path": "/home/esjung/.cache/huggingface/hub/models--ByteDance--Ouro-1.4B/snapshots/574fa66cb8bf5abdc979642d01cf2b79b16bfab1/model.safetensors", "inspection": "Read only the 8-byte header length and JSON header."},
+    "base_2p6b": {"revision": "1ed04250da1a9936042725d302e81c8fa2ab5abd", "header_path": "/home/esjung/.cache/huggingface/hub/models--ByteDance--Ouro-2.6B/snapshots/1ed04250da1a9936042725d302e81c8fa2ab5abd/model.safetensors", "inspection": "Read only the 8-byte header length and JSON header after coordinator acquisition. No Thinking substitution."}
+  },
+  "state_identity": ["request_generation", "round_epoch", "branch_lineage", "input_position", "recurrent_depth", "physical_layer", "version", "owner"],
+  "ownership": {"authoritative_generation": "Request coordinator", "immutable_history": "Each declared local replica version or TP head-shard owner", "private_append": "Branch owner with an exclusive row lease", "verification": "Declared target verifier on the accepted conditional prefix", "winner": "Only the lineage/interval allowed by target verification, not a confidence winner", "commit": "Publish an epoch after the required payload and metadata complete on that receiver", "rollback": "Discard losing private suffixes after readers finish. Retain borrowed prefixes until all references finish.", "future_lane_dependency": "Send matching tentative ancestor depth KV before the dependent attention read. A replicated committed prefix does not contain those new tentative states."},
+  "wire_ABI": {"status": "PROPOSED_SYMBOLIC_CONTRACT_NOT_EXISTING_LOOPSPEC_ABI", "header_fields_u64": ["request_generation", "round_epoch", "branch_id", "parent_id", "input_begin", "input_count", "depth_mask", "opcode"], "header_bytes": 64, "token_id_bytes": 8, "adaptive_terminal_depth_bytes_per_position": 1, "BF16_bytes_per_element": 2, "metadata_is_information_theoretic_minimum": false},
+  "messages": [
+    {"kind": "FORK", "from": "coordinator", "to": "branch_owner", "bytes": "64+8*input_count+optional_boundary_hidden+missing_parent_state", "precondition": "Correct parent lineage and input IDs exist."},
+    {"kind": "HISTORY", "from": "existing_KV_owner", "to": "new_replica_owner", "bytes": "64+missing_committed_BF16_payload+required_depth_metadata", "precondition": "Source version is committed. Receiver completes placement before reading."},
+    {"kind": "DEPENDENCY", "from": "producing_branch_owner", "to": "consuming_branch_owner", "bytes": "64+missing_tentative_BF16_payload+optional_boundary_hidden", "precondition": "Actual ancestor depth/layer state exists. No stale or other-lineage substitution."},
+    {"kind": "VERIFY_RESULT", "from": "target_verifier", "to": "coordinator", "bytes": "64+8*decision_count+any_required_sampling_data", "precondition": "Target evaluation uses the accepted conditional prefix."},
+    {"kind": "COMMIT", "from": "verified_state_owner", "to": "each_missing_replica", "bytes": "64+8*cached_input_count+adaptive_depth_metadata+missing_accepted_BF16_payload", "precondition": "Only accepted input positions and valid target state can publish."},
+    {"kind": "ACK", "from": "receiving_owner", "to": "coordinator_or_source", "bytes": 64, "precondition": "Payload/metadata completion. Reader leases can still delay release."},
+    {"kind": "PRUNE", "from": "coordinator", "to": "losing_owner", "bytes": "64+8*additional_branch_ids", "precondition": "No remaining readers or descendants of the released private rows."}
+  ],
+  "formulas": {
+    "wire_lower_bound_scope": "Declared uncompressed BF16 representation, one initial copy per state item, no receiver recomputation. Adaptive terminal-copy deduplication is separately declared.",
+    "B": "2*L*16*128*2 bytes per cached input position/pass across all physical layers",
+    "K": "4*B bytes per cached full-depth input position",
+    "replicated_prefix_state": "P*K*N",
+    "TP_prefix_state_cluster": "K*N",
+    "valid_private_state": "B*U, U counts unique computed token/pass states after prefix deduplication",
+    "expanded_private_capacity": "K*F, F counts private input positions in the expanded four-slot layout",
+    "initial_fixed_replication_wire": "(P-1)*K*N, assuming one initial state copy and no recomputation",
+    "fixed_accepted_commit_wire": "(P-1)*K*k, k counts newly cached accepted input positions",
+    "adaptive_wire_history": "B*(4*N_prompt+sum_decode D(t)), with known completed terminal depths and local copy reconstruction",
+    "adaptive_accepted_commit_wire": "(P-1)*B*sum_new_cached_positions D(t)",
+    "missing_version_delivery": "Sum payload_bytes(state) once for every receiver lacking that exact version",
+    "no_double_count": "Tentative accepted-state deliveries count toward later commit replication. Losing-lineage deliveries remain extra.",
+    "TP_fixed_weight_payload": "W/P+(norm_bytes+2)*(1-1/P), ideal unpadded linear sharding with replicated norms and native gate bias",
+    "TP_adaptive_weight_payload": "W/P+(norm_bytes+gate_bytes)*(1-1/P), one possible ideal layout with replicated original gate",
+    "capacity_example": "C=1,N=8192,J=P,k=4 private full-depth input positions per branch. Replica rank=W+K*N+k*K. TP rank=TP_weight+K*N/P+k*K."
+  },
+  "models": {
+    "base_1p4b": {"L": 24, "R": 4, "weight_payload_bytes": 2869305346, "norm_payload_bytes": 397312, "gate_payload_bytes": 4098, "B": 196608, "K": 786432, "full_prefix_GiB": {"1024": 0.75, "4096": 3.0, "8192": 6.0}, "four_new_full_depth_positions_MiB": 3.0, "P2": {"initial_fixed_prefix_wire_N8192_bytes": 6442450944, "fixed_k4_commit_bytes": 3145728, "adaptive_all_D2_k4_commit_bytes": 1572864, "replica_rank_payload_GiB": 8.675178529694676, "TP_fixed_rank_payload_GiB": 4.339239122346044}, "P4": {"initial_fixed_prefix_wire_N8192_bytes": 19327352832, "fixed_k4_commit_bytes": 9437184, "adaptive_all_D2_k4_commit_bytes": 4718592, "replica_rank_payload_GiB": 8.675178529694676, "TP_fixed_rank_payload_GiB": 2.171269418671727}},
+    "base_2p6b": {"L": 48, "R": 4, "weight_payload_bytes": 5335949314, "norm_payload_bytes": 790528, "gate_payload_bytes": 4098, "B": 393216, "K": 1572864, "full_prefix_GiB": {"1024": 1.5, "4096": 6.0, "8192": 12.0}, "four_new_full_depth_positions_MiB": 6.0, "P2": {"initial_fixed_prefix_wire_N8192_bytes": 12884901888, "fixed_k4_commit_bytes": 6291456, "adaptive_all_D2_k4_commit_bytes": 3145728, "replica_rank_payload_GiB": 16.975349428132176, "TP_fixed_rank_payload_GiB": 8.490972520783544}, "P4": {"initial_fixed_prefix_wire_N8192_bytes": 38654705664, "fixed_k4_commit_bytes": 18874368, "adaptive_all_D2_k4_commit_bytes": 9437184, "replica_rank_payload_GiB": 16.975349428132176, "TP_fixed_rank_payload_GiB": 4.248784067109227}}
+  },
+  "sampling_costs": {"greedy_target_decision_id_bytes": 8, "FP32_full_vocab_vector_bytes": 196608, "full_vector_required_in_all_designs": false, "condition": "A residual sampler needs both required distributions. Co-location avoids transfer. Otherwise send the missing distribution or charge recomputation.", "RNG_contract": "Request-local counters and decisions must not change with rank scheduling."},
+  "CPU_checks": {"timestamp_utc": "2026-10-19T10:47:55Z", "tool_chunk_id": "f8845c", "command_description": "Python stdlib binary-header parse plus exact integer payload formulas and symbolic per-receiver state-version accounting", "evidence_class": "ANALYTIC_BOUND", "evidence_subtype": "STRUCTURAL_PAYLOAD_AND_SYMBOLIC_OWNERSHIP_ACCOUNTING", "raw_status": {"symbolic_no_double_count_and_loser_exclusion": "PASS", "gpu_execution": false, "model_execution": false}, "limitations": "No bandwidth, HBM traffic, physical allocation, branch validation, sampler, concurrent rollback, or distributed engine executes."},
+  "evidence_separation": {"checkpoint_counts": "Read-only binary header accounting", "capacity_and_wire_bytes": "Structural conditional arithmetic", "prior_algorithm_guarantee": "Source-reported under stated assumptions", "candidate_correctness": "UNTESTED", "candidate_performance": "NOT_RUN", "candidate_adaptive_original_gate": "UNVALIDATED"},
+  "verdict": "GENERIC_ONLY_AS_CURRENT_REPLICA_PLACEMENT",
+  "reopen_condition": "Provide a concrete recurrence-specific ownership change that reduces a measured exposed cost beyond TP of the same verified branch batch. Charge initial history, tentative dependencies, rejected work, commit, and state capacity."
+}

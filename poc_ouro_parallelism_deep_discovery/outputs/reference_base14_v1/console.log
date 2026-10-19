@@ -1,0 +1,56 @@
+Loading weights:   0%|          | 0/269 [00:00<?, ?it/s]Loading weights: 100%|██████████| 269/269 [00:00<00:00, 8758.01it/s]
+[transformers] [1mOuroForCausalLM LOAD REPORT[0m from: /home/esjung/.cache/huggingface/hub/models--ByteDance--Ouro-1.4B/snapshots/574fa66cb8bf5abdc979642d01cf2b79b16bfab1
+Key                              | Status  | 
+---------------------------------+---------+-
+model.lookahead_exit_gate.bias   | MISSING | 
+model.lookahead_exit_gate.weight | MISSING | 
+model.preloop_exit_gate.bias     | MISSING | 
+model.preloop_exit_gate.weight   | MISSING | 
+
+Notes:
+- MISSING:	those params were newly initialized because missing from the checkpoint. Consider training on your downstream task.
+/home/esjung/external/decode-first-depth-dp-assets/cdb_dependencies/transformers/modeling_rope_utils.py:1034: FutureWarning: `rope_config_validation` is deprecated and has been removed. Its functionality has been moved to RotaryEmbeddingConfigMixin.validate_rope method. PreTrainedConfig inherits this class, so please call self.validate_rope() instead. Also, make sure to use the new rope_parameters syntax. You can call self.standardize_rope_params() in the meantime.
+  warnings.warn(
+[transformers] `layer_type_validation` is deprecated and will be removed in v5.20. Use `PreTrainedConfig.validate_layer_type` instead
+[transformers] `layer_type_validation` is deprecated and will be removed in v5.20. Use `PreTrainedConfig.validate_layer_type` instead
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/scripts/reference_capture.py", line 60, in <module>
+    if __name__=='__main__':main()
+                            ~~~~^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/utils/_contextlib.py", line 124, in decorate_context
+    return func(*args, **kwargs)
+  File "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/scripts/reference_capture.py", line 39, in main
+    result=engine.generate_batch([workload['prompt_ids'][str(N)]],max_new_tokens=4,eos_token_id=None,warmup=False)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/utils/_contextlib.py", line 124, in decorate_context
+    return func(*args, **kwargs)
+  File "/home/esjung/external/decode-first-cdb-upstream/src/looped_cdb/continuous_depth_batching/continuous_api.py", line 435, in generate_batch
+    self._run_no_refill_loop(model_kwargs=model_kwargs, arrivals=arrivals)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/external/decode-first-cdb-upstream/src/looped_cdb/continuous_depth_batching/continuous_api.py", line 653, in _run_no_refill_loop
+    if not self._run_no_refill_prefill_batch(recurrent_kwargs, boundary):
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/external/decode-first-cdb-upstream/src/looped_cdb/continuous_depth_batching/continuous_api.py", line 740, in _run_no_refill_prefill_batch
+    pending = self.runner.stage_prefill_batch(
+        self.model,
+    ...<3 lines>...
+        allow_async=self.cdb_config.use_async_batching,
+    )
+  File "/home/esjung/external/decode-first-cdb-upstream/src/looped_cdb/continuous_depth_batching/model_runner.py", line 359, in stage_prefill_batch
+    self.compute_batch(model, batch_data)
+    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/external/decode-first-cdb-upstream/src/looped_cdb/continuous_batching/model_runner.py", line 188, in compute_batch
+    forward_fn(model, batch_data, carry_over_ids, prev_output_ids, output_ids)
+    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/external/decode-first-cdb-upstream/src/looped_cdb/continuous_batching/model_runner.py", line 330, in _forward_process_and_sample
+    self._sample_pregathered(model(**batch_data).logits, output_ids)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/scripts/reference_capture.py", line 34, in pregather
+    originals['_sample_pregathered'](*values,**kwargs);force(values[-1])
+                                                       ~~~~~^^^^^^^^^^^^
+  File "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/scripts/reference_capture.py", line 29, in force
+    assert tensor.numel()==1 and index[0]<len(teacher)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError

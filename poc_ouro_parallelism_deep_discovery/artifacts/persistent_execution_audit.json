@@ -1,0 +1,140 @@
+{
+  "schema": "ouro_persistent_execution_audit_v1",
+  "worker": "/root/independent_axes",
+  "scope": "Read-only source audit, CPU integer arithmetic, and new local reports",
+  "candidate": "IAX09",
+  "secondary_screen": "IAX10 repeated program descriptors",
+  "verdicts": {
+    "complete_BF16_core_on_chip_P2_P4_P8": "CAPACITY_REJECTED_UNDER_STATED_REPRESENTATION",
+    "streamed_persistent_execution": "GENERIC_ONLY_WITH_UNMEASURED_HEADROOM",
+    "descriptor_compression": "GENERIC_ONLY",
+    "new_parallel_axis": "NOT_ESTABLISHED",
+    "model_quality": "NOT_RUN",
+    "worker_GPU_execution": "NOT_RUN",
+    "HBM_traffic": "NOT_MEASURED"
+  },
+  "time": {
+    "segment_start_UTC": "2026-10-19 10:30:01 UTC",
+    "recorded_checkpoint_UTC": "2026-10-19 10:41:23 UTC",
+    "checkpoint_span_seconds": 682,
+    "segment_end_UTC": "2026-10-19 10:41:23 UTC",
+    "end_note": "Recorded end checkpoint follows arithmetic and prose validation. Final ledger publication and handoff follow this checkpoint.",
+    "work_types": ["Primary-source reading", "Targeted local source inspection", "CPU arithmetic", "Candidate derivation", "Report synthesis"],
+    "concurrency_rule": "This worker overlaps coordinator activity. Do not add its span to campaign wall-clock elapsed time.",
+    "search_timing_precision": "The first two query batches occurred between the observed 10:30:01 and 10:32:54 UTC clocks. Exact per-query timestamps were not captured."
+  },
+  "dimensions": {
+    "hidden": 2048,
+    "intermediate": 5632,
+    "attention_heads": 16,
+    "KV_heads": 16,
+    "head_dim": 128,
+    "BF16_bytes": 2,
+    "fixed_R": 4,
+    "physical_layers_1p4B": 24,
+    "physical_layers_2p6B": 48,
+    "source": "artifacts/semantics_manifest.json and pinned installed Ouro source"
+  },
+  "actual_hardware_read_only_evidence": {
+    "path": "outputs/components_base14_P2_graph_v1/components.json",
+    "artifact_UTC": "2026-10-19T10:34:52.088103+00:00",
+    "measurement_owner": "Coordinator, not this worker",
+    "devices": [
+      {"physical_gpu": 4, "UUID": "6076e2f2-5b63-3761-5586-56ceb7df8139", "name": "NVIDIA H100 80GB HBM3", "SM_count": 132, "L2_bytes": 52428800, "total_memory_bytes": 85028372480},
+      {"physical_gpu": 6, "UUID": "e3f3998e-0f1a-e94a-b97c-4abb0e8c2c28", "name": "NVIDIA H100 80GB HBM3", "SM_count": 132, "L2_bytes": 52428800, "total_memory_bytes": 85028372480}
+    ],
+    "use": "Hardware capacity only. No warm microbenchmark timing enters the full-stack residency argument."
+  },
+  "capacity_arithmetic": {
+    "evidence_class": "ANALYTIC_BOUND",
+    "dense_block_elements_formula": "4*d*d + 3*d*intermediate",
+    "dense_block_elements": 51380224,
+    "dense_block_bytes": 102760448,
+    "dense_block_MiB": 98,
+    "excluded_storage": ["Four block RMSNorm scales", "Loop norm", "Embedding", "LM head", "Exit gate", "Activations", "KV", "Accumulators", "Task state", "Communication buffers"],
+    "actual132_resource_sum": {
+      "register_bytes_per_SM": 262144,
+      "shared_bytes_per_SM_documented_limit": 233472,
+      "register_MiB_all_SMs": 33,
+      "shared_MiB_all_SMs": 29.390625,
+      "L2_MiB": 50,
+      "non_unified_sum_MiB": 112.390625,
+      "interpretation": "A deliberately generous bound. These resources are not one pool and runtime storage is not free."
+    },
+    "full_GH100_counterfactual": {
+      "documented_SMs": 144,
+      "register_MiB": 36,
+      "shared_MiB": 32.0625,
+      "L2_MiB_generous": 60,
+      "non_unified_sum_MiB": 128.0625,
+      "not_installed_hardware_claim": true
+    },
+    "rows": [
+      {"model": "1.4B", "layers": 24, "P": 2, "dense_core_MiB_per_rank": 1176, "dense_block_MiB_per_rank": 49, "other_layers_between_revisits_MiB": 1127},
+      {"model": "1.4B", "layers": 24, "P": 4, "dense_core_MiB_per_rank": 588, "dense_block_MiB_per_rank": 24.5, "other_layers_between_revisits_MiB": 563.5},
+      {"model": "1.4B", "layers": 24, "P": 8, "dense_core_MiB_per_rank": 294, "dense_block_MiB_per_rank": 12.25, "other_layers_between_revisits_MiB": 281.75},
+      {"model": "2.6B", "layers": 48, "P": 2, "dense_core_MiB_per_rank": 2352, "dense_block_MiB_per_rank": 49, "other_layers_between_revisits_MiB": 2303},
+      {"model": "2.6B", "layers": 48, "P": 4, "dense_core_MiB_per_rank": 1176, "dense_block_MiB_per_rank": 24.5, "other_layers_between_revisits_MiB": 1151.5},
+      {"model": "2.6B", "layers": 48, "P": 8, "dense_core_MiB_per_rank": 588, "dense_block_MiB_per_rank": 12.25, "other_layers_between_revisits_MiB": 575.75}
+    ],
+    "reproduction": "d=2048; i=5632; b=2*(4*d*d+3*d*i); core=L*b/P; revisit=(L-1)*b/P; divide bytes by 2**20 for MiB.",
+    "scope_limit": "This rejects complete ordinary uncompressed BF16 core residency. It does not reject partial residency, streaming, or all communication-avoiding algorithms."
+  },
+  "KV_capacity": {
+    "formula": "2*L*4*N*16*128*2 bytes before sharding",
+    "bytes_per_token_1p4B": 786432,
+    "bytes_per_token_2p6B": 1572864,
+    "N1024_GiB_1p4B": 0.75,
+    "N1024_GiB_2p6B": 1.5,
+    "N16384_GiB_1p4B": 12,
+    "N16384_GiB_2p6B": 24,
+    "not_traffic": true
+  },
+  "local_sources": [
+    {"path": "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/model_executor/models/ouro.py", "sha256": "cf0792c6c8024ded45dba10553b5f0d24b7b6542dd8f8f0e0e6899807ec0c4ff", "locator": "Ouro model forward, outer recurrent loop and physical layers", "supports": "Aliased weights, sequential recurrence, TP projections, gate definition distinct from use"},
+    {"path": "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/model_executor/layers/linear.py", "locator": "UnquantizedLinearMethod.apply", "supports": "Dispatch to the default unquantized GEMM path unless a separate batch-invariant path applies"},
+    {"path": "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/model_executor/layers/utils.py", "sha256": "8d732d33cbc9ebcf18eba9ec3ef3ecedd46d0fc1405beff97d2854fadb7532fd", "locator": "default_unquantized_gemm, dispatch_unquantized_gemm", "supports": "Inspected default CUDA path calls torch.nn.functional.linear. Runtime kernel selection was not traced."},
+    {"path": "/home/esjung/external/decode-first-cdb-upstream/src/looped_cdb/continuous_depth_batching/model_runner.py", "revision": "abdfae0adbdd12be8c6123ccb34eee98a38afb39", "locator": "Lines 230-330 and 870-960, recurrent graph cache and replay", "supports": "Ready stage graph replay is already a baseline option"},
+    {"path": "/home/esjung/external/decode-first-cdb-upstream/src/looped_cdb/continuous_depth_batching/exit_policy.py", "sha256": "46340237b2ba399fb38b814e0c7f6d0b65e915c554d404b148520f238860d948", "locator": "should_exit, lines 150-168", "supports": "Host-visible .item gate signal and Python survival/CDF arithmetic"},
+    {"path": "/home/esjung/external/decode-first-cdb-upstream/src/looped_cdb/continuous_depth_batching/continuous_api.py", "locator": "No-refill wave launch and delayed gate consumption", "supports": "Gate readiness and routing remain part of the runtime contract"},
+    {"path": "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/flashinfer/gemm/kernels/cutile/mm_bf16_cutile.py", "sha256": "70d38f667a983a8ab94faf88ff255028badb3e82e695ba21bb7aa0a68f41a10a", "locator": "Persistent program loop, inner K loads, and SM90 default configuration", "supports": "Persistent GEMM scheduling does not imply cross-stack weight residency"},
+    {"path": "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/flashinfer/data/csrc/tinygemm2.cu", "sha256": "c4e2a06bc4f271e2c6513683c7d8c7173dc244cda8713a07d2ba58326ec879f2", "locator": "Lines 140-255 and 425-545, DMA loads and shared-memory pipeline", "supports": "16-stage pipeline uses 196608 bytes before other shared storage. It loads weight tiles from global memory."},
+    {"path": "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/flashinfer/data/include/flashinfer/attention/persistent_template.cuh", "sha256": "799679baadcc25b8d844a33ed9b23850aaa7071b30f3d0f030da3a5f92e0936a", "locator": "Two runners and cooperative grid sync", "supports": "Generic persistent attention mechanism exists"},
+    {"path": "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/flashinfer/gemm/routergemm.py", "locator": "TinyGEMM BF16 shape checks and PDL documentation", "supports": "Small-row BF16 implementation and launch-chain safety constraints"}
+  ],
+  "external_sources": [
+    {"id": "P01", "title": "Hopper Tuning Guide", "authors": "NVIDIA", "version": "Live CUDA 13.4 documentation", "url": "https://docs.nvidia.com/cuda/hopper-tuning-guide/index.html", "locator": "1.4.1 occupancy and 1.4.2 memory", "access_UTC_window": "2026-10-19 10:30-10:39", "supports": "Per-SM register/shared resource limits and H100 L2 capacity", "evidence": "SOURCE_REPORTED"},
+    {"id": "P02", "title": "NVIDIA Hopper Architecture In-Depth", "authors": "Michael Andersch, Greg Palmer, Ronny Krashinsky, Nick Stam, Vishal Mehta, Gonzalo Brito, Sridhar Ramaswamy", "publication_date": "2022-03-22", "url": "https://developer.nvidia.com/blog/nvidia-hopper-architecture-in-depth/", "locator": "Full GH100 and SXM5 unit lists", "access_UTC_window": "2026-10-19 10:30-10:39", "supports": "144-SM full implementation has 60 MB L2. H100 SXM5 has 132 SMs and 50 MB L2.", "evidence": "SOURCE_REPORTED"},
+    {"id": "P03", "title": "L2 Cache Control", "authors": "NVIDIA", "version": "Live CUDA Programming Guide, page updated 2026-09-10", "url": "https://docs.nvidia.com/cuda/cuda-programming-guide/04-special-topics/l2-cache-control.html", "locator": "Access-policy windows, set-aside competition, graph kernel node example", "access_UTC_window": "2026-10-19 10:30-10:39", "supports": "Prioritized retention is capacity-limited. Graph nodes can use the same cache policy.", "evidence": "SOURCE_REPORTED"},
+    {"id": "P04", "title": "CUDA Graphs", "authors": "NVIDIA", "url": "https://docs.nvidia.com/cuda/cuda-programming-guide/04-special-topics/cuda-graphs.html", "locator": "Conditional nodes and their restrictions", "access_UTC_window": "2026-10-19 10:30-10:39", "supports": "Generic device conditional loops exist. Conditional bodies remain single-device.", "evidence": "SOURCE_REPORTED"},
+    {"id": "P05", "title": "Persistent RNNs: Stashing Recurrent Weights On-Chip", "authors": "Greg Diamos, Shubho Sengupta, Bryan Catanzaro, Mike Chrzanowski, Adam Coates, Erich Elsen, Jesse Engel, Awni Hannun, Sanjeev Satheesh", "identifier": "PMLR 48:2024-2033", "publication_year": 2016, "url": "https://proceedings.mlr.press/v48/diamos16.pdf", "locator": "Sections 3 and 4.1-4.3", "access_UTC_window": "2026-10-19 10:30-10:39", "supports": "Recurrent weight retention in registers requires a feasible memory mapping. It is not an Ouro result.", "scope": "Training and RNN kernels, not unchanged dense Ouro inference", "evidence": "SOURCE_REPORTED"},
+    {"id": "P06", "title": "MPK: A Compiler and Runtime for Mega-Kernelizing Tensor Programs", "authors": "Xinhao Cheng, Zhihao Zhang, Yu Zhou, Jianan Ji, Jinchen Jiang, Zepeng Zhao, Ziruo Xiao, Zihao Ye, Yingyi Huang, Ruihang Lai, Hongyi Jin, Bohan Hou, Mengdi Wu, Yixin Dong, Anthony Yip, Zihao Ye, Songting Wang, Wenqin Yang, Xupeng Miao, Tianqi Chen, Zhihao Jia", "author_metadata_note": "The primary arXiv page lists Zihao Ye twice. This record preserves that list.", "identifier": "arXiv:2512.22219v2", "version_date": "2026-06-10", "url": "https://arxiv.org/html/2512.22219v2", "locator": "Sections 3-6, especially 5.3, 6.1-6.3", "access_UTC_window": "2026-10-19 10:30-10:39", "supports": "Generic persistent task execution, device control, paged shared memory, and multi-GPU communication", "experiment_scope": "BF16, paged attention, continuous batching, 64-token prompts, 1024-token outputs, offline batches. No Ouro result.", "code_url": "https://github.com/mirage-project/mirage/blob/ca58a02d110a278bffaed503be5e66494db2597d/include/mirage/persistent_kernel/persistent_kernel.cuh", "code_revision": "ca58a02d110a278bffaed503be5e66494db2597d", "code_commit_date": "2026-10-17T00:46:59Z", "code_inspection": "Selected runtime sections, not a complete repository audit. No build or execution.", "evidence": "SOURCE_REPORTED"},
+    {"id": "P07", "title": "Fast Matrix Multiplications for Lookup Table-Quantized LLMs", "authors": "Han Guo, William Brandon, Radostin Cholakov, Jonathan Ragan-Kelley, Eric P. Xing, Yoon Kim", "identifier": "arXiv:2407.10960v4", "version_date": "2025-01-17", "url": "https://arxiv.org/abs/2407.10960v4", "locator": "Abstract, method, and author repository", "access_UTC_window": "2026-10-19 10:30-10:39", "supports": "FLUTE targets lookup-table quantized GEMM, not unchanged BF16 core residency", "code_url": "https://github.com/HanGuo97/flute/tree/9eb83a12d56949bbe7fe9c836ba97a67bd1e3761", "code_revision": "9eb83a12d56949bbe7fe9c836ba97a67bd1e3761", "code_commit_date": "2025-04-13T13:15:39Z", "eligibility": "Quantization cannot supply the main gain under this campaign contract.", "evidence": "SOURCE_REPORTED"},
+    {"id": "P08", "title": "FlashInfer mm_bf16 API", "authors": "FlashInfer project", "version": "Live documentation 0.7.2, distinct from installed 0.6.14", "url": "https://docs.flashinfer.ai/generated/flashinfer.gemm.mm_bf16.html", "locator": "Backend descriptions and PDL options", "access_UTC_window": "2026-10-19 10:30-10:39", "supports": "Persistent cuTile scheduling is a generic BF16 GEMM option", "installed_revision": "19f1a41e6b21f0c422d775e377b6fdf9a1fc9d23", "evidence": "SOURCE_REPORTED"}
+  ],
+  "searches": [
+    {"batch": 1, "UTC_window": "2026-10-19 10:30:01 to 10:32:54", "queries": ["FLUTE fast lookup table engine quantized LLM GPU inference official arxiv", "H100 persistent kernel LLM inference weight resident GEMV CUDA graph official", "NVIDIA Hopper tuning guide register file shared memory L2 H100 50 MB", "FlashInfer persistent GEMM PDL CUDA graph BF16 documentation"]},
+    {"batch": 2, "UTC_window": "2026-10-19 10:30:01 to 10:32:54", "queries": ["persistent RNN kernel register weights persistent LSTM Diamos 2016 arxiv", "persistent transformer inference full model kernel H100 Megakernel official arxiv", "site:docs.nvidia.com cuda persisting L2 access policy window eviction weights", "site:github.com flashinfer tinygemm bf16 tgv persistent kernel"]}
+  ],
+  "diagnostic_failures": [
+    "An rg pattern had an unclosed group. A literal-pattern retry replaced it.",
+    "The initial unquantized.py path did not exist. Targeted rg --files identified layers/linear.py and layers/utils.py.",
+    "The initial continuous_api.py path omitted continuous_depth_batching. Targeted rg --files resolved it.",
+    "The campaign templates/candidate_card.md file did not exist. The new card preserves the specification's 20 mandatory fields.",
+    "The web tool could not open GitHub API commit endpoints. Read-only curl retrieved their metadata."
+  ],
+  "validation": {
+    "JSON_parse": "PASS",
+    "CPU_capacity_rows": 6,
+    "CPU_arithmetic": "PASS",
+    "prose_lint_findings": 0,
+    "prose_lint_hard_findings": 0,
+    "scope": "No model execution. No GPU calls. No quality inference."
+  },
+  "next_probe": {
+    "action": "Measure exposed dispatch and original gate waits after graph replay before an engine build.",
+    "controls": ["Same-P correct TP", "Same BF16 weights and gate policy", "Aliased logical unrolling", "Generic loop-capable persistent runtime", "Same cache policy for any named protected tile subset"],
+    "stop": "Reject a recurrence-specific claim if a generic control explains the benefit. Stop engine work if optimistic exposed savings cannot cover added costs.",
+    "P8": "Projected only. No device authorization or measurement."
+  }
+}
