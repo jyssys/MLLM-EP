@@ -11,6 +11,10 @@ from poc_ouro_parallelism_deep_discovery.cuda_graph_event_nodes import (
     Cudart, EventGraph, chain_order, validate_native_dot)
 from poc_ouro_parallelism_deep_discovery.worker_probe import CampaignProbe
 
+if os.environ.get('OURO_CUDA_GRAPH_TYPED_EVENT_DIAGNOSTIC') == '1':
+    from poc_ouro_parallelism_deep_discovery.cuda_graph_typed_event_nodes import (
+        TypedCudart as Cudart, TypedEventGraph as EventGraph)
+
 _graphs, _timers, _observed = {}, {}, {}
 _armed, _runtime, _settings = False, None, None
 _original_new = torch.cuda.CUDAGraph.__new__

@@ -1,0 +1,155 @@
+{
+  "schema_version": 1,
+  "worker": "independent_axes",
+  "round": 7,
+  "segment_start_UTC": "2026-10-19T14:29:42Z",
+  "segment_end_UTC": "2026-10-19T14:38:37Z",
+  "elapsed_seconds": 535,
+  "time_scope": "One worker's observed interval through report validation. Later metadata publication is outside this interval. Concurrent worker intervals do not add campaign elapsed time.",
+  "activity": "Derive projected current-query attention-state ownership. Inspect primary merge/fusion sources and native output dtype. Run deterministic CPU algebra and BF16 controls. Compare C01–C19 and generic execution.",
+  "GPU_execution": false,
+  "model_execution": false,
+  "runner_or_package_changes": false,
+  "installed_components": false,
+  "trained_components": false,
+  "new_candidate_cards": 0,
+  "mechanism": {
+    "proposal": "Project a completed local KV-partition attention state before the complete attention merge.",
+    "causal_input": "Actual current query, matching depth/layer KV partition, local normalized head output, and Wo head block.",
+    "concurrent_unit": "A ready head/partition projection while other head/partition attention tasks remain incomplete.",
+    "ownership": "Direct plan keeps sequence-partitioned KV and complete Wo at each sequence worker. Other layouts need separate complete accounting.",
+    "preserved": "Q/K/V projections, RoPE, historical KV contents, request/depth/layer identities, original gates and publication semantics.",
+    "barrier": "Global partition weights differ by head. A single scalar merge after head mixing is generally invalid.",
+    "valid_real_arithmetic_path": "Retain projected vectors separately by head, then apply the actual per-head global coefficients.",
+    "charged_direct_costs": "16-fold vector-state expansion, S-fold aggregate Wo contractions and replicas, query/current-KV distribution, state merges, scratch, and synchronization.",
+    "BF16_scope": "Removing the native merged-attention BF16 cast changes the deterministic control. Model quality remains NOT_RUN.",
+    "not_an_impossibility_theorem": "Invertible Wo permits a dense change-of-basis merge. The positive control demonstrates that route. This audit does not claim all compact representations fail.",
+    "verdict": "Reject cheap mixed-state scalar merge. Valid completed-head streaming remains generic engineering. No engine or new card.",
+    "changed_fact_for_reopening": "A specified representation or ownership plan removes the named costs under a matched numerical contract and beats relevant same-P controls."
+  },
+  "search_window_UTC": ["2026-10-19T14:29:42Z", "2026-10-19T14:36:56Z"],
+  "individual_query_times": "Not recorded. The window bounds the observed primary lookup segment.",
+  "search_queries": [
+    "attention output projection before merge split KV softmax distributed",
+    "FlashInfer merge attention states logsumexp output projection",
+    "fused attention output projection distributed inference softmax heads",
+    "ClusterFusion fused QKV attention output projection arxiv",
+    "site:docs.flashinfer.ai merge_state attention states",
+    "site:arxiv.org attention output projection fusion head parallel online softmax"
+  ],
+  "search_interpretation": "Queries omit Ouro. Search snippets are leads only. Technical claims use inspected primary documents and code.",
+  "primary_sources": [
+    {
+      "title": "Attention States and Recursive Attention",
+      "authors": ["FlashInfer contributors"],
+      "version": "0.7.2 documentation",
+      "publication_date": "Not identified on the inspected page",
+      "URL": "https://docs.flashinfer.ai/tutorials/recursive_attention.html",
+      "locators": ["Attention-state definition and n-ary merge", "KV Sequence Parallelism", "HTML lines558–586"],
+      "observation": "Current-query partial attention states merge through their LSE coefficients. The documented sequence-partition work is already generic.",
+      "transfer_limit": "Mathematical merge equivalence does not guarantee unchanged BF16 operation order or Ouro performance."
+    },
+    {
+      "title": "flashinfer.cascade.merge_state",
+      "authors": ["FlashInfer contributors"],
+      "URL": "https://docs.flashinfer.ai/generated/flashinfer.cascade.merge_state.html",
+      "version": "0.7.2 documentation",
+      "locators": ["Parameters and return types", "HTML lines558–576"],
+      "observation": "The value state preserves head and head-dimension axes. LSE has a per-head FP32 shape."
+    },
+    {
+      "title": "FlashInfer official cascade implementation",
+      "URL": "https://github.com/flashinfer-ai/flashinfer/blob/f64b4ba8762ded12a4f4b9a2092974c9a395e7ca/flashinfer/cascade.py#L42-L95",
+      "observed_HEAD": "f64b4ba8762ded12a4f4b9a2092974c9a395e7ca",
+      "commit_time_UTC": "2026-10-19T10:50:33Z",
+      "sha256": "2dac61f570e85950073e628037e1654bb823331d6e99131d09bf9997abdabb0e",
+      "locators": ["merge_state lines42–95"],
+      "observation": "The wrapper allocates output like its value input and converts LSE inputs to FP32.",
+      "execution": "SOURCE_ONLY. No FlashInfer invocation or build."
+    },
+    {
+      "title": "ClusterFusion: Expanding Operator Fusion Scope for LLM Inference via Cluster-Level Collective Primitive",
+      "authors": ["Xinhao Luo", "Zihan Liu", "Yangjie Zhou", "Shihan Fang", "Ziyu Huang", "Yu Feng", "Chen Zhang", "Shixuan Sun", "Zhenzhe Zheng", "Jingwen Leng", "Minyi Guo"],
+      "identifier": "arXiv:2508.18850v1",
+      "arxiv_submission_UTC": "2025-08-26T09:29:23Z",
+      "paper_URL": "https://papers.neurips.cc/paper_files/paper/2025/file/3760d0ea4709a913a4804f4b4c073836-Paper-Conference.pdf",
+      "metadata_URL": "https://arxiv.org/abs/2508.18850v1",
+      "locators": ["Section3.2, printed page6", "Algorithm3, printed page7", "Section4 experimental setup", "PDF text lines341–450"],
+      "observation": "Head-local cluster collectives connect QKV, attention, and output projection. The displayed algorithm completes attention statistics and reduction before projection.",
+      "scope": "Single-H100 FP16 evaluation on other model families. No transferred distributed BF16 Ouro result."
+    },
+    {
+      "title": "ClusterFusion official H100 kernel",
+      "URL": "https://github.com/xinhao-luo/ClusterFusion/blob/8755446cb495a09e8bbaaf62fdda333c82ee7ade/include/H100/llama/kernel.cuh#L507-L618",
+      "observed_HEAD": "8755446cb495a09e8bbaaf62fdda333c82ee7ade",
+      "commit_time_UTC": "2026-08-08T15:51:07Z",
+      "sha256": "9cedfde06c00a12a509de1f31227bd12e8941025e362f3378bf2285c13437642",
+      "locators": ["lines507–568", "lines570–618"],
+      "observation": "The source rescales and reduces attention before loading Wo. It uses half intermediates and half output atomics.",
+      "execution": "SOURCE_ONLY. No install, compilation, or kernel run.",
+      "transfer_limit": "Intracluster communication is not a verified cross-GPU ownership protocol."
+    }
+  ],
+  "local_sources": [
+    {
+      "path": "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/model_executor/models/ouro.py",
+      "sha256": "cf0792c6c8024ded45dba10553b5f0d24b7b6542dd8f8f0e0e6899807ec0c4ff",
+      "locators": ["attention forward lines200–212"],
+      "observation": "The model passes current-depth attention output directly to its row-parallel output projection."
+    },
+    {
+      "path": "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/model_executor/layers/attention/attention.py",
+      "sha256": "04fa9a1acb71217c7b9815e193198f6b69f12019c84a8a989b8d7e87544f8bda",
+      "locators": ["lines490–545"],
+      "observation": "The default attention output dtype is query.dtype. A tensor of that dtype supplies the subsequent projection."
+    },
+    {
+      "path": "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/flashinfer/cascade.py",
+      "sha256": "e9017fbb894e8fa75a7b00773e2f4bf2c3805362e42831774c107edf304636c3",
+      "locators": ["lines42–95"],
+      "observation": "Installed merge_state preserves the same head-aware interface and value output allocation rule.",
+      "same_whole_file_hash_as_current_official_HEAD": false
+    },
+    {"path": "reports/alias_equivalence_interpretation.md", "role": "Representation does not alone reject a physical optimum."},
+    {"path": "reports/candidate_register.md", "role": "Initial card identities."},
+    {"path": "candidates/C04.md", "role": "Generic layout comparison."},
+    {"path": "candidates/C11.md", "role": "Quorum work comparison."},
+    {"path": "candidates/C12.md", "role": "Committed feature comparison."},
+    {"path": "candidates/C15_residual_input_reassociation.md", "role": "Historical-X reassociation distinction."},
+    {"path": "reports/candidate_round3_independent_axes.md", "role": "C17/C18 distinction."}
+  ],
+  "CPU_control": {
+    "script": "scripts/attention_projection_merge_cpu_v1.py",
+    "script_sha256": "3a505ee2cb290c0414ab8df4f4d93554d0fcce1a853515a8a8d1e28ead0a197c",
+    "artifact": "artifacts/attention_projection_merge_cpu_v1.json",
+    "artifact_sha256": "24caf26e059099830075848ea8dbc7bef65ba4ce22baa3b86142d71c2c9911f5",
+    "start_UTC": "2026-10-19T14:33:56.191410+00:00",
+    "end_UTC": "2026-10-19T14:33:56.191629+00:00",
+    "evidence_class": "CPU_ALGEBRA_CONTROL",
+    "exit_code": 0,
+    "head_preserving_identity_max_abs_error": 0.0,
+    "single_scalar_merge_best_L2_scalar_max_abs_error": 0.0547945205479452,
+    "invertible_basis_positive_control_max_abs_error": 0.0,
+    "rank_deficient_example": "Same compact projected states and LSE metadata need outputs [0.5,1] versus [0,0]. No checkpoint-rank claim.",
+    "BF16_cast_counterexample_outputs": [0.0, 0.00390625],
+    "random_model_weights": false,
+    "model_quality_claim": false,
+    "FP32_state_bytes_per_row_per_partition": [8192, 131072],
+    "LSE_bytes_per_row_per_partition": 64,
+    "direct_state_vector_expansion_factor": 16,
+    "direct_contraction_work_factors_S2_S4_S8": [2, 4, 8],
+    "structural_counts_are_latency_or_HBM_measurements": false
+  },
+  "coverage": {
+    "Base_1p4B_fixed_R4": "Source/algebra only",
+    "Base_1p4B_original_adaptive": "Source/algebra only. No gate or quality run.",
+    "Base_2p6B_fixed_R4": "Source/algebra only",
+    "Base_2p6B_original_adaptive": "ADAPTIVE_2P6B_UNVALIDATED",
+    "C1_C2_C4_C8": "Current-query head/partition work only. No fourfold future-depth ready frontier.",
+    "P2_P4": "NOT_RUN for this transformation",
+    "P8": "Structural accounting only. No latency projection.",
+    "C01_C19": "Report table compares every existing card ID. No old card changed."
+  },
+  "validation": {"CPU_assertions": "PASS", "report_lint": {"hard_count": 0, "all_findings": 0, "exit_code": 0}, "JSON_hash_AST_card_scope_assertions": "PASS"},
+  "outputs": ["reports/candidate_search_v7_projected_attention_states.md", "artifacts/candidate_search_v7_source_observations.json", "scripts/attention_projection_merge_cpu_v1.py", "artifacts/attention_projection_merge_cpu_v1.json"]
+}

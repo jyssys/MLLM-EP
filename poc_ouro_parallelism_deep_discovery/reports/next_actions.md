@@ -59,3 +59,16 @@ No final campaign verdict is available at this checkpoint.
 
 The fully isolated v4 queue, both binding probes, and the same-arm repeat finished.
 No candidate runtime or architecture speedup is available.
+
+## Active checkpoint at 2026-10-19T14:40:35.158016+00:00
+
+1. Finish the native Base1.4B TP4 natural calibration job, session 83514.
+2. Run the same frozen native calibration on Base2.6B TP4 after resource release.
+3. Keep both actual DP4 controls and native TP controls as generic baselines.
+4. Inspect the C07 one-pass mixed-depth fixture boundary before any physical adapter.
+5. Charge fixture KV copies, extra pages, norms, and control costs separately.
+6. Continue independent execution-axis searches and direct-prior checks.
+7. Consider the bounded long-context C1 native preflight. Do not infer a capacity gap from an old local context cap.
+8. Keep all candidate quality and the untouched held-out cohort separate from baseline calibration.
+9. Commit and push only this campaign's scoped evidence.
+10. Continue substantive research. About 4.80 coordinator hours are recorded, not ten hours.

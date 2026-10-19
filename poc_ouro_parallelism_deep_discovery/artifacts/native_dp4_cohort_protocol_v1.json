@@ -1,0 +1,23 @@
+{
+  "status": "FROZEN_BEFORE_RESULTS",
+  "scope": "Generic native fixed-R4 static DP4 cohort baseline. Not adaptive CDB or a candidate engine.",
+  "base_protocol": "artifacts/native_cohort_protocol_v2.json",
+  "base_protocol_sha256": "240eb229b37734a532c38c7e08d008a3dc2cabb98ec3c7be7d0f64d46b7d42f9",
+  "models": {
+    "1.4B": {"id": "ByteDance/Ouro-1.4B", "revision": "574fa66cb8bf5abdc979642d01cf2b79b16bfab1"},
+    "2.6B": {"id": "ByteDance/Ouro-2.6B", "revision": "1ed04250da1a9936042725d302e81c8fa2ab5abd"}
+  },
+  "replicas": 4,
+  "tensor_parallel_size_per_replica": 1,
+  "physical_gpus": [4, 5, 6, 7],
+  "assignment": "cohort_slot modulo 4. Static round-robin. No migration or refill.",
+  "barrier": "All four workers report READY before each parent RELEASE, including idle workers.",
+  "metric": "Observed parent release-to-all-completed wall. Includes release IPC, completion IPC, and control overhead.",
+  "worker_wall": "Native generate call only. Retain separately from the parent makespan.",
+  "startup_timeout_seconds": 1200,
+  "trial_timeout_seconds": 300,
+  "shutdown_timeout_seconds": 60,
+  "quality": "NOT_RUN",
+  "timing_status": "NOT_RUN",
+  "gpu_execution_by_implementer": false
+}

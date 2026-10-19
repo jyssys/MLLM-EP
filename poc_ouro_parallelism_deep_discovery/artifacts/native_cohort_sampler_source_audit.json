@@ -1,0 +1,148 @@
+{
+  "schema_version": 1,
+  "audit": "native_cohort_sampler_source_audit",
+  "decision": "NO_BLOCKING_SOURCE_ISSUE_FOR_STATED_CONTROL",
+  "scope": "Read-only installed-source and CPU-stub audit. No GPU execution or result inspection.",
+  "time": {
+    "segment_start_utc": "2026-10-19 13:56:35 UTC",
+    "segment_end_utc": "2026-10-19 14:06:36 UTC",
+    "elapsed_seconds": 601
+  },
+  "live_source_edits": false,
+  "gpu_commands": false,
+  "cpu_tests": {
+    "command": "python -m unittest poc_ouro_parallelism_deep_discovery.tests.test_native_cohort_cpu -v",
+    "source_sha256": "cc85448a56112f69b5401f4b937fce1e53258869ad8da0b991a031e519d36817",
+    "tests": 7,
+    "status": "PASS",
+    "reported_test_seconds": 0.005,
+    "limitation": "Stubs and source inspection only. No native sampler or CUDA execution."
+  },
+  "protocol": {
+    "path": "poc_ouro_parallelism_deep_discovery/artifacts/native_cohort_protocol_v2.json",
+    "sha256": "240eb229b37734a532c38c7e08d008a3dc2cabb98ec3c7be7d0f64d46b7d42f9",
+    "C": [1, 2, 4, 8],
+    "contexts": [1024, 4096],
+    "outputs_per_request": 128,
+    "max_num_batched_tokens": 32768,
+    "kv_pool_bytes_per_rank": 55834574848,
+    "C_meaning": "Submitted closed-cohort size, not asserted active batch size.",
+    "output_policy": "Native greedy sampler with one allowed non-EOS token. No custom teacher hook."
+  },
+  "source_root": "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm",
+  "sources": [
+    {
+      "path": "v1/sample/sampler.py",
+      "sha256": "315af950ef4c35fced53dc3a5df49a80af20b47e417e8f12bf315f535769bab2",
+      "locators": ["Sampler.forward:72-148", "Sampler.greedy_sample:240-241", "Sampler.sample:243-271", "Sampler.apply_logits_processors:371-417"]
+    },
+    {
+      "path": "v1/worker/gpu_input_batch.py",
+      "sha256": "ca9b8a627cb8e5109c804970a09597c6aa019a78957df399e8b3022bd493ecfc",
+      "locators": ["InputBatch.add_request:429-450", "InputBatch.remove_request:561-564", "InputBatch.swap_states:672-679", "InputBatch.condense:797-800", "InputBatch.refresh_metadata:814-832", "InputBatch._make_sampling_metadata:880-906", "InputBatch.update_async_output_token_ids:1021-1046"]
+    },
+    {
+      "path": "v1/worker/gpu_model_runner.py",
+      "sha256": "81b7627fbe81f7aaa2f77b4bf085faa353c69d03662ebfe369536a9773bb70d0",
+      "locators": ["GPUModelRunner._prepare_inputs:2077-2082,2210-2218", "GPUModelRunner._sample:3637-3651", "GPUModelRunner._bookkeeping_sync:3688-3791", "GPUModelRunner.execute_model:4428-4429,4460-4471", "GPUModelRunner.sample_tokens:4497-4536"]
+    },
+    {
+      "path": "entrypoints/offline_utils.py",
+      "sha256": "688fbad0af9c2180b83aa77dcd0dbda85ca076a6c72bffa61840896d950cf458",
+      "locators": ["_render_and_run_requests:504-511", "_render_and_add_requests:523-550", "_add_request:552-570"]
+    },
+    {
+      "path": "v1/engine/core_client.py",
+      "sha256": "2d83952580e23abca33c3bb5f93edc349ea0e10da358bcb41b385f8d066e2a0b",
+      "locators": ["SyncMPClient.add_request:886-889"]
+    },
+    {
+      "path": "v1/engine/core.py",
+      "sha256": "3ae1381a6af841e21058c825702382dc66faae45c950ac5acb8495d2d3d05aad",
+      "locators": ["EngineCore.step_with_batch_queue:617-679", "EngineCoreProc.run_busy_loop:1358-1364", "EngineCoreProc._process_input_queue:1368-1397"]
+    },
+    {
+      "path": "v1/core/sched/async_scheduler.py",
+      "sha256": "da6343d7e7c394a1738cf72905cbecc208003ffa461ccb441268333a3eb9f884",
+      "locators": ["AsyncScheduler._update_after_schedule:19-49", "AsyncScheduler._update_request_with_output:51-75"]
+    },
+    {
+      "path": "v1/core/sched/scheduler.py",
+      "sha256": "2ed2a550b6558b2495eda845a97ae38bcf0225027b9e25fbf00fc3880c1d3941",
+      "locators": ["Scheduler.schedule:435-514,665-674", "Scheduler._preempt_request:1212-1234", "Scheduler._make_cached_request_data:1373-1385"]
+    },
+    {
+      "path": "sampling_params.py",
+      "sha256": "d2f9789ba2b93819c4918159cfd29818eab3ba4f9098241e2febadcc690aa767",
+      "locators": ["SamplingParams:213-270", "SamplingParams.update_from_generation_config:629-657", "SamplingParams._validate_allowed_token_ids:844-868"]
+    },
+    {
+      "path": "model_executor/models/ouro.py",
+      "sha256": "cf0792c6c8024ded45dba10553b5f0d24b7b6542dd8f8f0e0e6899807ec0c4ff",
+      "locators": ["OuroAttention.__init__:122-137,170-188", "OuroModel.forward:355-374"]
+    }
+  ],
+  "campaign_sources": [
+    {
+      "path": "poc_ouro_parallelism_deep_discovery/cohort_probe.py",
+      "sha256": "cb34d84c62b49b0d16532c6929a7e36281b5c5cedac14d0ea2a05d58c3e8c763",
+      "locators": ["CohortProbe.cohort_trace_start:6-36", "CohortProbe.cohort_trace_finish:38-47"]
+    },
+    {
+      "path": "poc_ouro_parallelism_deep_discovery/scripts/native_cohort_control.py",
+      "sha256": "8a6a92c0c4bd80671bd2744f3db26bd1043b2cd5a332f450708bd54bd0b3f074",
+      "locators": ["main:24-28,49-64", "generate:66-82", "headline_trials:84-103", "separate_trace_lane:104-111"]
+    }
+  ],
+  "checkpoint_configs": [
+    {
+      "path": "/home/esjung/.cache/huggingface/hub/models--ByteDance--Ouro-1.4B/snapshots/574fa66cb8bf5abdc979642d01cf2b79b16bfab1/config.json",
+      "sha256": "ce9cc13da41591b8b4deca053d7dfee06424c0228628ee862ea86d725bc163f3",
+      "layers": 24,
+      "kv_heads": 16,
+      "head_dim": 128,
+      "eos_token_id": 0
+    },
+    {
+      "path": "/home/esjung/.cache/huggingface/hub/models--ByteDance--Ouro-2.6B/snapshots/1ed04250da1a9936042725d302e81c8fa2ab5abd/config.json",
+      "sha256": "23b5c6942a9f0ca8619fb15acfaca93e02c169cdc4e03dbceb4d8a2df145697a",
+      "layers": 48,
+      "kv_heads": 16,
+      "head_dim": 128,
+      "eos_token_id": 0
+    }
+  ],
+  "source_backed_findings": {
+    "global_counter_needed": false,
+    "mask_follows_native_row_movement": true,
+    "allowed_ids_alone_require_output_history": false,
+    "native_model_or_lm_head_bypassed": false,
+    "list_submission_is_atomic_admission_barrier": false,
+    "stable_decode_implies_cpu_mask_copy_each_iteration": false,
+    "ordinary_sample_output_shape": "[num_requests] before Sampler.forward unsqueeze",
+    "mask_operation": "FP32 logits masked_fill_ with negative infinity before greedy argmax"
+  },
+  "trace_scope": {
+    "scheduled_request_ids": true,
+    "scheduled_tokens_by_request": true,
+    "sample_tensor_shape_and_numel": true,
+    "ordered_sample_request_ids": false,
+    "sample_output_ordinals": false,
+    "discard_mask": false,
+    "preemption_or_resume_ids": false,
+    "same_batch_sequence_as_clean_trials_proven": false,
+    "sum_logical_batches_across_tp_ranks": false
+  },
+  "structural_accounting": {
+    "evidence_class": "SOURCE_BACKED_CAPACITY_NOT_MEASURED_MEMORY",
+    "kv_bytes_per_rank_formula": "2 * L * 4 * C * (N + 128) * 16 * 128 * 2 / TP",
+    "position_reserve": "N+128 positions per request. This is not an actual KV-write count.",
+    "C": 8,
+    "N": 4096,
+    "base14_GiB_per_rank_by_TP": {"1": 24.75, "2": 12.375, "4": 6.1875},
+    "base26_GiB_per_rank_by_TP": {"1": 49.5, "2": 24.75, "4": 12.375},
+    "mask_bytes_per_cpu_or_gpu_tensor": 393216,
+    "runtime_allocations_or_zero_preemption_proven": false
+  },
+  "not_run": ["GPU correctness", "task quality", "mask latency", "candidate speedup", "adaptive gate behavior"]
+}

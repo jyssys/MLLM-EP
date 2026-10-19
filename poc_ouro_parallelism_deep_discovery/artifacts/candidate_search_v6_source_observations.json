@@ -1,0 +1,161 @@
+{
+  "schema_version": 1,
+  "round": 6,
+  "worker": "independent_axes",
+  "segment_start_UTC": "2026-10-19T13:57:08Z",
+  "segment_end_UTC": "2026-10-19T14:06:02Z",
+  "elapsed_seconds": 534,
+  "time_scope": "One worker's observed elapsed interval through report validation. Later metadata publication is outside this interval. Concurrent worker intervals do not add campaign elapsed time.",
+  "activity": "Read the spec and alias caution. Derive a redundant-compute island. Audit primary generic controls and local source. Analyze frozen component records. Write bounded conclusions.",
+  "GPU_execution": false,
+  "model_execution": false,
+  "installs_or_environment_changes": false,
+  "downloaded_weights": false,
+  "trained_components": false,
+  "new_candidate_cards": 0,
+  "mechanism": {
+    "label": "Replicated complete MLP inside TP attention",
+    "causal_input": "Complete current N3 output and residual after the attention reduction and preceding norms.",
+    "concurrent_unit": "The same complete ready-row MLP runs on each rank. Each rank obtains its required complete local output.",
+    "ownership_change": "Every rank retains full physical MLP weights. Attention weights and depth/layer KV retain ordinary TP ownership.",
+    "removed_cost": "The MLP-output reduction only.",
+    "added_cost": "P-fold aggregate MLP arithmetic and logical weight operands, extra weight capacity, full-width local scratch, loading and graph changes.",
+    "exactness": "Same real-arithmetic function. BF16 shard boundaries can change results. No bitwise or task-quality claim.",
+    "frontier": "At most C ready rows for one physical operator at C1/2/4/8. R4 does not multiply independent current-token work.",
+    "Fixed_R4": "All four passes execute. Remove 96 or 192 MLP reductions structurally.",
+    "original_adaptive": "Retain original q=.5, minR2, maxR4, gate ordering, selected output, and last_exited publication. No future gate oracle.",
+    "Base_2p6B_adaptive": "ADAPTIVE_2P6B_UNVALIDATED",
+    "alias_caution": "An aliased executor can retain the same physical replicas. Representability alone does not reject an ownership optimum.",
+    "current_missing_fact": "No capacity boundary or low-row incremental latency advantage establishes a recurrence-specific optimum.",
+    "verdict": ["GENERIC_ONLY", "NO_NET_HEADROOM_FOR_TESTED_UNCHANGED_LOW_ROW_COMPONENT"],
+    "universal_rejection": false
+  },
+  "search_window_UTC": {
+    "lower_bound": "2026-10-19T13:58:47Z",
+    "upper_bound": "2026-10-19T14:04:47Z",
+    "individual_query_timestamps": "Not recorded. The bounds locate the observed tool calls, not per-query precision."
+  },
+  "search_queries": [
+    "\"tensor parallel\" \"replicated\" \"MLP\" inference communication",
+    "transformer inference selective replication feed forward tensor parallel all reduce replication computation communication",
+    "LLM inference replicated FFN eliminate all reduce tensor parallel",
+    "\"replicated MLP\" inference",
+    "\"selective\" \"tensor parallelism\" inference replication",
+    "\"replication\" \"communication\" \"LLM inference\" \"FFN\"",
+    "\"replicate\" \"computation\" \"communication\" \"Alpa\" sharding",
+    "\"replicated\" \"FFN\" \"all-reduce\" inference -site:reddit.com",
+    "\"replicated MLP\" \"attention\"",
+    "\"redundant computation\" \"tensor parallel\" inference"
+  ],
+  "search_interpretation": "Queries omit Ouro. Search snippets are leads only. The evidence below uses primary publications, official documentation, and actual local source.",
+  "primary_sources": [
+    {
+      "title": "GSPMD: General and Scalable Parallelization for ML Computation Graphs",
+      "authors": ["Yuanzhong Xu", "HyoukJoong Lee", "Dehao Chen", "Blake Hechtman", "Yanping Huang", "Rahul Joshi", "Maxim Krikun", "Dmitry Lepikhin", "Andy Ly", "Marcello Maggioni", "Ruoming Pang", "Noam Shazeer", "Shibo Wang", "Tao Wang", "Yonghui Wu", "Zhifeng Chen"],
+      "identifier": "arXiv:2105.04663v2",
+      "version_date": "2021-12-23",
+      "URL": "https://arxiv.org/html/2105.04663v2",
+      "locators": ["Section 1", "Sections 3.1 and 3.2", "HTML lines 129–145"],
+      "observation": "Replicated tensors coexist with tiled and partially replicated tensors. Different operators can use different partitioning choices.",
+      "classification": "Generic compiler and training examples. Not an Ouro inference result.",
+      "transfer_limit": "Generic representation does not establish a measured ownership optimum or an existing efficient Ouro serving implementation."
+    },
+    {
+      "title": "Efficient Distributed LLM Inference with Dynamic Partitioning",
+      "authors": ["Isaac Ong"],
+      "identifier": "UCB/EECS-2024-108",
+      "version_date": "2024-05-16",
+      "URL": "https://www2.eecs.berkeley.edu/Pubs/TechRpts/2024/EECS-2024-108.pdf",
+      "metadata_URL": "https://www2.eecs.berkeley.edu/Pubs/TechRpts/2024/EECS-2024-108.html",
+      "locators": ["Section 4.3, printed page15, PDF page24", "Section 4.4, printed pages16–17", "Section 5.1, printed page18", "PDF text lines352–433"],
+      "observation": "Projection replication trades extra local compute and memory for different communication. Weight-gathered MLP uses transient full weights with row-partitioned input, not duplicate complete rows.",
+      "classification": "Generic Llama2 inference. No transferred speedup claim.",
+      "code_status": "No exact-island official code verified in this bounded audit."
+    },
+    {
+      "title": "Tensor Parallelism - torch.distributed.tensor.parallel",
+      "authors": ["PyTorch contributors"],
+      "version": "2.14 documentation",
+      "publication_date": "Not identified on the inspected page",
+      "URL": "https://docs.pytorch.org/docs/2.14/distributed.tensor.parallel.html",
+      "locators": ["parallelize_module", "HTML lines3741–3784"],
+      "observation": "A user plan can assign different parallel styles to named submodules.",
+      "classification": "Official API control. No engine benchmark.",
+      "transfer_limit": "This supports composition, not a verified Ouro adapter or optimized placement policy."
+    }
+  ],
+  "other_opened_leads_not_used_as_evidence": [
+    {
+      "URL": "https://github.com/whitecircle/halo/blob/main/src/distributed/tensor_parallel/parallelize_attention.py",
+      "reason": "Author repository lead for attention-only TP. No pinned implementation claim enters the verdict."
+    }
+  ],
+  "local_sources": [
+    {
+      "path": "reports/spec_snapshot.md",
+      "role": "Research scope and reporting contract. Read all ranges across the round."
+    },
+    {
+      "path": "reports/alias_equivalence_interpretation.md",
+      "role": "Do not confuse graph representability with a physical ownership rejection."
+    },
+    {
+      "path": "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/model_executor/models/ouro.py",
+      "sha256": "cf0792c6c8024ded45dba10553b5f0d24b7b6542dd8f8f0e0e6899807ec0c4ff",
+      "locators": ["lines68–102", "lines260–281", "lines367–374"],
+      "observation": "Native MLP uses merged column projection, SiluAndMul, and a row projection. Four norms and split residuals remain."
+    },
+    {
+      "path": "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/model_executor/layers/linear.py",
+      "sha256": "10b1ebae493158ca1074aef37a9f466f4e8e536c5a71d91c5b66062095ce3a44",
+      "locators": ["lines1680–1697"],
+      "observation": "RowParallelLinear reduces partial outputs when reduce_results is true and TP exceeds one."
+    },
+    {
+      "path": "/home/esjung/.cache/huggingface/hub/models--ByteDance--Ouro-1.4B/snapshots/574fa66cb8bf5abdc979642d01cf2b79b16bfab1/modeling_ouro.py",
+      "locators": ["lines370–423"],
+      "observation": "The actual block has four distinct RMSNorms around attention, MLP, and residual operations."
+    },
+    {
+      "path": "/home/esjung/external/decode-first-cdb-upstream/src/looped_cdb/continuous_depth_batching/exit_policy.py",
+      "locators": ["lines141–169"],
+      "observation": "The original hazard accumulates in order. Minimum depth controls whether that current hazard can terminate the token."
+    },
+    {
+      "path": "scripts/component_probe.py",
+      "sha256": "2254867cb4e7d4b46b50d455cd7c375680066ee3798bb2a73245cae6d1619629",
+      "locators": ["lines21–51", "lines74–96"],
+      "observation": "The full-local arm runs complete MLPs on every rank. The TP arm slices weights and reduces its output. Both use the same isolated graph timing protocol.",
+      "native_difference": "The component uses separate gate/up linears and F.silu. Native Ouro uses merged projection and SiluAndMul."
+    },
+    {
+      "path": "reports/native_graph_observation.md",
+      "role": "Strong fixed baseline retains native async scheduling and whole-R4 graph replay. Its graph fraction is a local cached-decode denominator, not E2E."
+    }
+  ],
+  "CPU_result": {
+    "script": "scripts/candidate_round6_replica_screen.py",
+    "artifact": "artifacts/candidate_round6_replica_screen_v1.json",
+    "start_UTC": "2026-10-19T14:02:39.420149+00:00",
+    "end_UTC": "2026-10-19T14:02:39.436628+00:00",
+    "target_comparisons": 16,
+    "full_local_faster_at_target_median": 0,
+    "target_TP_over_full_local_latency_ratio_range": [0.7396994727772103, 0.8076819618536057],
+    "all_shapes_retained": 32,
+    "outside_target_positive_shapes": "Rows512 P2, both Base checkpoints. Ratios 1.099924698153494 and 1.1004170854078743.",
+    "numerical_control": "Constructed BF16 shard-boundary example yields full output 1 versus TP output 0. No random model, GPU, or model-quality evidence.",
+    "scope": "CPU arithmetic and analysis of existing GPU_MICROBENCH records only. No native fused or full-stack disproof."
+  },
+  "validation": {
+    "CPU_script_exit_code": 0,
+    "CPU_artifact_JSON_parse": "PASS",
+    "script_AST_parse": "PASS",
+    "report_lint_final": {"hard_count": 0, "all_findings": 0, "exit_code": 0}
+  },
+  "outputs": [
+    "reports/candidate_search_v6_independent_axes.md",
+    "artifacts/candidate_search_v6_source_observations.json",
+    "scripts/candidate_round6_replica_screen.py",
+    "artifacts/candidate_round6_replica_screen_v1.json"
+  ]
+}

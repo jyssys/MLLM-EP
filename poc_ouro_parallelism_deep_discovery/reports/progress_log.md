@@ -127,6 +127,38 @@ Nineteen candidate dispositions still produce no shortlist.
 
 The untouched held-out cohort remains unused.
 The predecessor-preservation check passes.
+
+## Checkpoint at 2026-10-19T14:40:35.158016+00:00
+
+Recorded coordinator time is 17262.158016 seconds, or about 4.80 hours.
+Concurrent worker time does not multiply this duration.
+Normal campaign completion still requires at least ten substantive hours.
+
+Both model sizes completed native TP1/TP2/TP4 constant-token cohort controls.
+Both also completed actual four-replica DP4 controls.
+The [comparison snapshot](../analysis/native_tp_dp_cohorts_v1/summary.json) contains320 clean trials and64 configuration cells.
+It separates the TP API boundary from the DP parent-release boundary.
+It does not establish candidate gain, natural task quality, or adaptive CDB performance.
+
+The [typed event diagnostic](../artifacts/typed_graph_event_observation_base14_P1_v1.json) preserves 96 programmatic dependencies.
+Before/during/after captures match logits, hidden states, and sampled KV bitwise.
+The last observed replay has four kernel-group intervals near 1.93 ms each.
+The cuts are not exact semantic pass boundaries.
+Two later observed replay envelopes differ from four nearby clean envelopes by a median ratio of 1.00237×.
+This tiny observer cohort does not establish population overhead or a request breakdown.
+
+The [isolated CPU run](../artifacts/cpu_tests_isolated_checkpoint_v1.json) passes 100 tests across 13 modules.
+Earlier combined invocations failed because of interpreter and import-isolation assumptions.
+Those failures remain recorded rather than hidden.
+
+The long-context source audit supports a bounded 16K/32K C1 preflight within configured limits.
+It is not a long-context GPU or quality result.
+Independent search round 7 adds no candidate card.
+The direct distributed-verification audit preserves a conditional ownership question, not a measured advantage.
+
+Native TP4 natural calibration is running on physical 4/5/6/7.
+The held-out cohort remains untouched.
+No qualifying candidate or candidate E2E result exists.
 Checkpoint a1dcf761ef57a905417257c416d3d929b74ee382 is pushed.
 New evidence remains scoped to this campaign directory.
 

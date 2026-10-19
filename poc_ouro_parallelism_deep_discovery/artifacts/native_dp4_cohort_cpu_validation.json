@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "status": "CPU_IMPLEMENTATION_READY_FOR_MAIN_REVIEW",
+  "gpu_execution": "NOT_RUN",
+  "timing": "NOT_RUN",
+  "task_quality": "NOT_RUN",
+  "candidate_speedup": "NOT_RUN",
+  "segment_start_utc": "2026-10-19 14:12:00 UTC",
+  "segment_end_utc": "2026-10-19 14:21:33 UTC",
+  "elapsed_seconds": 573,
+  "implementation": {
+    "dp4_cohort.py": "a149c6f8f36576df12ae318f41808f88c63978928a19eef5845e4a7de0b6af64",
+    "scripts/native_dp4_cohort_control.py": "87ca8c2ce94d645fa01595f610ed22f5b15b6f32aee0bbcbdc03061d5260e8d8",
+    "scripts/native_dp4_cohort_worker.py": "0c268e6a83870184e99fb4f515469d4eadaddb9d7bdfc1fd152956adeb3fc0c9",
+    "tests/test_native_dp4_cohort_cpu.py": "e492020ad5bbb626bb4ad3b598aa7a2a2b41b9279e8cd9189428978482c98cfe",
+    "artifacts/native_dp4_cohort_protocol_v1.json": "2480d57006aca60289e1354218969df36d65f1a809b53b99982c105064d3bac6",
+    "reports/native_dp4_cohort_control_contract.md": "d2b8e97fe5bac7f206996469340d2418bd73f0e1502cd5c345dedf681e7b8a3d"
+  },
+  "tests": [
+    {
+      "command": "python -m unittest poc_ouro_parallelism_deep_discovery.tests.test_native_dp4_cohort_cpu -v",
+      "status": "PASS",
+      "tests": 14,
+      "reported_seconds": 0.395
+    },
+    {
+      "command": "/home/esjung/.venvs/ouro-deep-discovery/bin/python -m unittest poc_ouro_parallelism_deep_discovery.tests.test_native_dp4_cohort_cpu -v",
+      "status": "PASS",
+      "tests": 14,
+      "reported_seconds": 0.380
+    }
+  ],
+  "cpu_coverage": [
+    "Static round-robin placement for C1/2/4/8",
+    "Idle replicas retain readiness and completion obligations",
+    "All four readiness responses precede every execution callback",
+    "Warm-worker protocol reuse across cohorts",
+    "Stale release, invalid identity, invalid kind, deadline, and EOF rejection",
+    "Observed parent makespan rather than inferred worker timing",
+    "Output denominators and cohort-slot ownership",
+    "Frozen CPU metadata for both pinned checkpoint sizes",
+    "Job-local compiler-cache paths and explicit TP1/PP1/native-DP1 configurations",
+    "Real CPU subprocess control-FD inheritance and singleton mask",
+    "Graceful child exit and forced known-child timeout cleanup",
+    "Entrypoint imports without Torch"
+  ],
+  "frozen_token_cpu_inspection": {
+    "Base1.4B_TP1": 378,
+    "Base1.4B_TP2": 378,
+    "Base1.4B_TP4": 378,
+    "Base2.6B_TP1": 378,
+    "Base2.6B_TP2": 378,
+    "Base2.6B_TP4": 378
+  },
+  "guard_contract": {
+    "physical_gpus": [4, 5, 6, 7],
+    "one_outer_guard": true,
+    "child_cuda_mask": "Exactly one physical GPU per child",
+    "shared_guard_output_identity": true,
+    "shared_guard_process_group": true,
+    "per_replica_model_and_kv_retained": true,
+    "runtime_uuid_and_4L_assertions": "IMPLEMENTED_NOT_EXECUTED"
+  },
+  "metric_contract": {
+    "global": "Observed parent first-release-to-all-completed interval",
+    "includes": ["release IPC", "native generate calls", "output assertions", "completion IPC", "control overhead"],
+    "excludes": ["engine startup", "request preparation", "readiness wait", "result-file writes after completion"],
+    "worker_wall": "Native generate call only, retained separately",
+    "native_request_metrics": "Retained separately by worker and cohort slot",
+    "trace_timing": "EXCLUDED_FROM_HEADLINE"
+  },
+  "limitations": [
+    "No native engine load, CUDA execution, GPU teardown, or timing validation occurred.",
+    "The external guard supplies final owned-session cleanup after failure.",
+    "Native admission inside each replica remains asynchronous.",
+    "The separate schedule trace does not establish the exact batch sequence of every clean repetition.",
+    "The DP4 release boundary differs from the native TP single-API boundary.",
+    "Repeated frozen prompts and constant-token outputs do not measure natural task quality."
+  ],
+  "existing_runtime_or_raw_file_changes": false,
+  "main_review_required_before_gpu_run": true
+}

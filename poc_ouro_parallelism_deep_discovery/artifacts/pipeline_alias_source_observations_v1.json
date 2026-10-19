@@ -1,0 +1,137 @@
+{
+  "schema_version": 1,
+  "worker": "independent_axes",
+  "purpose": "Bounded generic-baseline assumption audit. No new candidate count.",
+  "segment_start_UTC": "2026-10-19T14:12:45Z",
+  "segment_end_UTC": "2026-10-19T14:20:46Z",
+  "elapsed_seconds": 481,
+  "time_scope": "One worker's observed interval through report validation. Later metadata publication is outside this interval. Concurrent worker intervals do not add campaign elapsed time.",
+  "GPU_execution": false,
+  "CUDA_initialization": false,
+  "model_checkpoint_execution": false,
+  "distributed_worker_execution": false,
+  "installed_package_changes": false,
+  "new_candidate_cards": 0,
+  "primary_sources": [
+    {
+      "title": "PiPPy Technical Architecture",
+      "URL": "https://github.com/pytorch/PiPPy/blob/1bcb2bfb2d6cc4ac2125c0edb37c35585bb9695f/ARCHITECTURE.md",
+      "raw_URL": "https://raw.githubusercontent.com/pytorch/PiPPy/1bcb2bfb2d6cc4ac2125c0edb37c35585bb9695f/ARCHITECTURE.md",
+      "observed_HEAD": "1bcb2bfb2d6cc4ac2125c0edb37c35585bb9695f",
+      "HEAD_observation_method": "Live GitHub commits/HEAD API",
+      "commit_time_UTC": "2024-08-21T16:31:24Z",
+      "repository_archival_date": "2025-08-05",
+      "raw_sha256": "fce8c1f3415ff538d220469b50a5654c6859d3b1511437893bb00750f6aa36b4",
+      "raw_bytes": 26856,
+      "locators": ["raw lines13–20", "raw lines104–122"],
+      "observation": "The document describes parameter transmission, stage-local replication, nonlocal dependencies, and replication bookkeeping.",
+      "caveat": "Its default-TRANSMIT example does not match the pinned public tracing path."
+    },
+    {
+      "title": "Archived PiPPy pipeline IR",
+      "URL": "https://github.com/pytorch/PiPPy/blob/1bcb2bfb2d6cc4ac2125c0edb37c35585bb9695f/pippy/_IR.py",
+      "sha256": "64f14afdee8d312d32233bb510715d4fcaba8c47647a658d7d2441a5972a0fbe",
+      "locators": ["lines345–352", "lines578–584", "lines909–1047", "lines1148–1193", "lines1350–1395"],
+      "observation": "Internal handling contains both policies. Public from_tracing selects REPLICATE. The public wrapper uses that path.",
+      "execution_status": "SOURCE_ONLY. Archived PiPPy was not installed or executed."
+    },
+    {
+      "title": "Installed PyTorch pipeline IR",
+      "local_path": "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/distributed/pipelining/_IR.py",
+      "official_URL": "https://github.com/pytorch/pytorch/blob/70d99e998b4955e0049d13a98d77ae1b14db1f45/torch/distributed/pipelining/_IR.py",
+      "torch_version": "2.11.0+cu129",
+      "torch_git_version": "70d99e998b4955e0049d13a98d77ae1b14db1f45",
+      "IR_sha256": "c4c47afeeeaa86aa6833a66a521ad737c5aec0f186715833e304f04099eb31f6",
+      "version_py_sha256": "d4bee3a648409aad6353dc569cbe40d1ed8b07e683b46cb70d08117510d27056",
+      "official_raw_matches_installed_hash": true,
+      "locators": ["lines583–605", "lines684–1017", "lines1054–1079", "lines1225–1283"],
+      "observation": "The constructor deep-copies parameters shared across stages. Public pipeline tracing selects REPLICATE. No public multi_use_param_spec option appears.",
+      "AST_observation": "The private _from_traced argument multi_use_param_spec has zero ast.Name load sites in this installed source.",
+      "caveat": "The enum alone does not establish a supported public TRANSMIT path. No private override test occurred."
+    },
+    {
+      "title": "PyTorch 2.11 Pipeline Parallelism documentation",
+      "URL": "https://docs.pytorch.org/docs/2.11/distributed.pipelining.html",
+      "role": "Official versioned documentation lead. Exact storage claims use code and the CPU test, not documentation snippets."
+    }
+  ],
+  "source_access_window_UTC": ["2026-10-19T14:12:45Z", "2026-10-19T14:17:31Z"],
+  "searches": "Direct primary URLs and the GitHub HEAD API. No general search query was necessary for the supplied sources.",
+  "CPU_test": {
+    "script": "scripts/pipeline_alias_cpu_v1.py",
+    "script_sha256": "2f14db9fa3a229e284a777ad02340155dcef7a76363e407b2ac3761c25a565f1",
+    "artifact": "artifacts/pipeline_alias_cpu_v1.json",
+    "artifact_sha256": "ee987dbc1bab34ebaea0d897706eac0d82936d4443c30756d455b410ce5a06d2",
+    "artifact_bytes": 202704,
+    "start_UTC": "2026-10-19T14:16:17.825716+00:00",
+    "end_UTC": "2026-10-19T14:16:18.953326+00:00",
+    "time_scope": "Python main test body. Interpreter and import startup are outside these timestamps.",
+    "exit_code": 0,
+    "evidence_class": "CPU_TOY_IR_STORAGE_CONTROL",
+    "input_shape": [2, 4],
+    "dtype": "CPU float64",
+    "physical_blocks": 4,
+    "recurrent_passes": 4,
+    "logical_block_calls": 16,
+    "random_initialization": false,
+    "parameter_requires_grad": false,
+    "original_parameter_storages": 8,
+    "original_parameter_bytes": 640,
+    "aliased_unroll_parameter_bytes": 640,
+    "exported_state_parameter_bytes": 640,
+    "split_policies": ["Four logical-depth stages", "Sixteen block-call stages"],
+    "default_each_arm": {
+      "registered_parameter_references": 56,
+      "registered_unique_parameter_objects": 40,
+      "registered_unique_storages": 40,
+      "registered_unique_storage_bytes": 3200,
+      "active_parameter_read_objects": 32,
+      "active_parameter_read_storages": 32,
+      "active_parameter_read_storage_bytes": 2560,
+      "active_original_storage_intersection": 0,
+      "output_equal": true,
+      "max_abs_output_error": 0.0
+    },
+    "manual_alias_control": {
+      "scope": "Explicit rebinding of new local toy objects. All stages remain on CPU. Conceptual owners are labels only.",
+      "registered_and_active_unique_storages": 8,
+      "registered_and_active_unique_storage_bytes": 640,
+      "output_equal": true,
+      "stock_public_pipeline_alias_preservation_claim": false
+    },
+    "initial_failure": {
+      "observation_window_UTC": ["2026-10-19T14:13:49Z", "2026-10-19T14:15:02Z"],
+      "exact_run_start_end": "Not recorded for the failed attempt",
+      "failure": "An assertion expected 2560 registered bytes. Actual storage included unused parameter registrations, so that assertion failed.",
+      "resolution": "Separate reachable parameter reads from all registered storage. Retain both counts.",
+      "failed_artifact_created": false
+    },
+    "warning": "The installed serializer emitted a LeafSpec deprecation FutureWarning. The final assertions passed.",
+    "CUDA_initialized_after_test": false,
+    "limitations": ["No BF16 or Ouro quality result", "No distributed ownership protocol", "No real communication or latency measurement", "No extrapolation of unused toy registrations to production memory"]
+  },
+  "structural_accounting": {
+    "definition_W": "Unique BF16 dense matrices in the physical core only. Norms, embeddings, LM head, gate, KV, buffers, and overhead are excluded.",
+    "Base_1p4B_W_MiB": 2352,
+    "Base_2p6B_W_MiB": 4704,
+    "logical_depth_PP_aggregate_W_multiples_P2_P4_P8": [2, 4, 4],
+    "physical_cyclic_PP_aggregate_W_multiples_P2_P4_P8": [1, 1, 1],
+    "native_TP_aggregate_W_multiples_P2_P4_P8": [1, 1, 1],
+    "fixed_R4_cyclic_core_boundaries_P2_P4_P8": [7, 15, 31],
+    "readiness_bound": "At most min(P,C) distinct cyclic workers have one current-token stage per independent request. Alignment can reduce this bound.",
+    "performance_claim": "None. Storage equality and boundary counts do not supply a speedup."
+  },
+  "interpretation": {
+    "expressibility": "An aliased unroll can represent the same function with shared physical storage.",
+    "installed_behavior": "The tested public conversion instead makes active stage-local copies.",
+    "not_proved": "Efficient distributed alias preservation, ready future states, actual cost, or architecture-wide impossibility.",
+    "baseline_requirement": "Compare physical cyclic ownership with a relevant alias-aware control and native TP's existing one-aggregate-copy dense residency."
+  },
+  "validation": {
+    "CPU_assertions": "PASS",
+    "CUDA_not_initialized": "PASS",
+    "official_installed_IR_hash_match": "PASS",
+    "report_lint": {"hard_count": 0, "all_findings": 0, "exit_code": 0},
+    "JSON_hash_AST_and_scope_assertions": "PASS"
+  }
+}

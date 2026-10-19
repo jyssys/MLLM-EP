@@ -53,3 +53,12 @@ Do not use these results as a broad request-level confidence claim.
 The new constant-token output differs from the earlier changing-teacher workload.
 Do not interpret their latency difference as a system speedup.
 Natural quality, candidate performance, and adaptive behavior remain `NOT_RUN` in this control.
+
+## Implementation observation after the first jobs
+
+C1 uses the first frozen calibration prompt pattern.
+C2/C4/C8 alternate both frozen patterns.
+This pattern change limits content-matched scaling claims.
+All rows still have the same declared token-count shape and fixed R4 work.
+The separate trace records scheduled membership and sampler tensor sizes.
+It does not identify each committed sample row or prove equal output progress.

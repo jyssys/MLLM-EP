@@ -11,20 +11,26 @@ JSONL_INPUTS=['literature_sources.jsonl','parallel_sampling_sources.jsonl',
     'operator_ownership_sources.jsonl','dynamic_runtime_sources.jsonl','certified_operator_sources.jsonl',
     'tile_dataflow_sources.jsonl','lossless_kv_reopening_sources.jsonl',
     'shared_weights_selected_computations_sources.jsonl','loopahead_sources.jsonl',
-    'loopahead_searches.jsonl','folded_layout_sources.jsonl']
+    'loopahead_searches.jsonl','folded_layout_sources.jsonl',
+    'cuda_graph_event_node_sources.jsonl','typed_graph_edge_export_sources.jsonl',
+    'hydragen_transfer_observations.jsonl','depth_sharded_verifier_sources.jsonl',
+    'depth_sharded_verifier_searches.jsonl']
 JSON_INPUTS=['coordinator_sources.json','independent_candidate_seeds.json',
     'persistent_execution_audit.json','layout_residual_cpu.json',
     'certified_decision_cpu.json','branch_ownership_cost_ledger.json',
     'candidate_round3_source_observations.json','candidate_search_v4_source_observations.json',
     'parallel_track_breadth_first_observations_v1.json','device_launched_graph_observations_v1.json',
-    'dwdp_dense_observations_v1.json','candidate_search_v5_source_observations.json']
+    'dwdp_dense_observations_v1.json','candidate_search_v5_source_observations.json',
+    'candidate_search_v6_source_observations.json','pipeline_alias_source_observations_v1.json',
+    'long_context_capacity_source_audit.json','native_cohort_sampler_source_audit.json',
+    'candidate_search_v7_source_observations.json']
 
 def canonical(record):
-    text=' '.join(str(record.get(k,'')) for k in ['identifier','url','paper_url','pdf_url'])
+    text=' '.join(str(record.get(k,'')) for k in ['identifier','url','URL','paper_url','pdf_url'])
     # A DOI suffix can resemble an arXiv number. Require a valid YYMM month.
     found=re.search(r'(?<!\d)(\d{2}(?:0[1-9]|1[0-2])\.\d{4,5})(?:v\d+)?(?!\d)',text)
     if found:return 'arxiv:'+found.group(1)
-    url=record.get('url') or record.get('primary_url') or record.get('code_url')
+    url=record.get('url') or record.get('URL') or record.get('primary_url') or record.get('official_URL') or record.get('code_url')
     if url:
         parts=urlsplit(url)
         return 'url:'+urlunsplit((parts.scheme,parts.netloc,parts.path.rstrip('/'),'',''))
@@ -33,7 +39,7 @@ def canonical(record):
 def indexed_sources(value,pointer):
     """Extract actual source objects from heterogeneous, explicitly selected containers."""
     if isinstance(value,dict):
-        if any(k in value for k in ['url','primary_url','paper_url','identifier']):
+        if any(k in value for k in ['url','URL','primary_url','official_URL','paper_url','identifier']):
             yield pointer,value
         else:
             for key,child in value.items():yield from indexed_sources(child,pointer+'/'+str(key))
@@ -69,8 +75,11 @@ def main():
         for key in ['sources','external_sources','primary_sources']:
             for pointer,row in indexed_sources(value.get(key,[]),'/'+key):
                 source_records.append({'origin':str(path.relative_to(ROOT)),'json_pointer':pointer,'original':row})
-        for key in ['searches','search_batches']:
-            for number,row in enumerate(value.get(key,[])):
+        for key in ['searches','search_batches','search_queries']:
+            entries=value.get(key,[])
+            if not isinstance(entries,list):
+                entries=[{'description':entries,'scope':'Direct retrieval statement, not an executed search count.'}]
+            for number,row in enumerate(entries):
                 search_records.append({'origin':str(path.relative_to(ROOT)),'json_pointer':f'/{key}/{number}','original':row})
         # Some audit records keep sources beneath their own metadata object.
         meta=value.get('audit_metadata',{})
@@ -96,7 +105,7 @@ def main():
              'files':[{ 'path':str(p.relative_to(ROOT)),'sha256':sha(p)}
                 for p in sorted(directory.rglob('*.json'))
                 if p.name!='clean_start.json' and not set(p.parts)&{
-                    'compile_cache','vllm_cache','inductor_cache','triton_cache'}]}
+                    'compile_cache','vllm_cache','inductor_cache','triton_cache','torch_extensions'}]}
         # Avoid publishing process environment inventories from the guard.
         if row['run_contract'] is not None:
             row['run_contract'].pop('environment',None)
