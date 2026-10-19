@@ -1,0 +1,80 @@
+{
+  "GPU_process_policy": "Only owned burners remain on physical GPUs 4,5,6,7. Other users were not signalled.",
+  "all_125_primary_cohorts_measured": true,
+  "base_commit": "0eb9c04d1eef6af33c30a0ca2c0244fb26e41950",
+  "branch": "flashvep/depth-cdb-factorial-hindsight-poc",
+  "burners_restored": [
+    {
+      "context_pid": 2259043,
+      "physical_GPU": 4,
+      "worker_pid": 2258643
+    },
+    {
+      "context_pid": 2259001,
+      "physical_GPU": 5,
+      "worker_pid": 2258634
+    },
+    {
+      "context_pid": 2258994,
+      "physical_GPU": 6,
+      "worker_pid": 2258637
+    },
+    {
+      "context_pid": 2259036,
+      "physical_GPU": 7,
+      "worker_pid": 2258640
+    }
+  ],
+  "final_decision": {
+    "RL_training": "NOT_RUN",
+    "bounded_primary_decision": "NO_GO_INCREMENTAL_HEADROOM",
+    "direct_answers": [
+      "1. Local refill utility: at C64, T(A1)/T(A3) is 0.183\u00d7 and T(A2)/T(A4) is 0.190\u00d7. Thus refill is slower in this selected configuration. Median active core batches are 12.465 for A1 and 1.915 for A3. In the separate C64 trace, completion-critical core intervals are 5854.51 ms for A1 and 34146.20 ms for A3. Exit-KV copy intervals are 487.07 ms and 2337.85 ms. These are stream brackets from one trace, not exclusive kernel shares or a paper-performance reproduction.",
+      "2. Hindsight without refill: C64 gives 0.997\u00d7 [0.997, 1.038] over A1. A single shuffled-order control gives 0.994\u00d7 [0.991, 0.996]. The bounded primary does not establish a large incremental gain over the faster local mode. C4 already shows 1.046\u00d7 from remapping one request per rank. That low-load effect is not evidence of queue-work balancing, and its causes are not isolated.",
+      "3. Hindsight with refill: C32 gives 1.158\u00d7 [1.106, 1.165], while C64 gives 1.038\u00d7 [0.986, 1.098]. With the fixed shuffled order, C32 reverses to 0.962\u00d7 and C64 gives 1.056\u00d7. Thus there is no universal additive gain or monotonic saturation trend. The natural-answer aggregate gives 1.571\u00d7 [1.178, 2.006], but that diagnostic lacks matched output quality and a strong length-aware natural-workload control.",
+      "4. Global scope: the authors' CDB scheduler uses one local cache and local queues. It does not inspect another replica's queue or move its requests. The outer run.py controller performs initial DP placement. No request changes GPU after prefill. Any change in rank finish balance from refill is an indirect local-service effect, not CDB global coordination.",
+      "5. Work balance versus time: C64 actual depth-work CV decreases from 0.04634 in A1 to 0.02133 in A2. Rank-finish CV decreases from 0.04223 to 0.03536. Yet median makespan changes from 7.304 s to 7.323 s. Under refill, work CV decreases from 0.06021 to 0.01825, but the timing gain is only 1.038\u00d7. Batched execution, depth-slot fragmentation, boundary stages, KV copies, and changed trajectories prevent a depth-work sum from being a complete physical cost model.",
+      "6. C32 versus C64: the original request order cycles domains and therefore segregates them under round-robin placement. At C32, the rank-summed no-local-request tail decreases from 21.828 to 7.893 rank-seconds under hindsight. At C64 it decreases from 23.645 to 14.392 rank-seconds. These sums are not removable serial wall time. The shuffled-order C32 reversal confirms order dependence.\n\nCDB queue ordering and realized token/depth changes also differ. These data do not establish a single isolated causal explanation.",
+      "7. Historical v3: the preserved 4.410% result is a reduction in mean P95 latency, equivalent to 1.046\u00d7. It is not the new cohort-makespan statistic.\n\nWith both historical placements reused, refill gives 1.061\u00d7 mean-P95 speedup but 1.032\u00d7 makespan speedup. Without refill, the same historical plan gives 1.085\u00d7 mean-P95 speedup but only 0.616\u00d7 makespan speedup. The old search optimized P95, not cohort completion. The 12.77% model also conditions on frozen traces that can change after new batching. This experiment does not identify the exact causal contribution of every mismatch.",
+      "8. Quality and interaction: A3 versus A4 has exact token outputs for 134/256 requests and exact depth traces for 46/256. A4 minus A3 is \u22122.344 pp on GSM8K and +3.906 pp on MATH-500. Their paired 95% intervals are [\u22125.469, 0.781] pp and [\u22122.344, 9.375] pp. Neither interval establishes equivalence.\n\nThe selected settings show local fragmentation rather than universal absorption of global scheduling headroom. The no-refill natural-answer diagnostic is 1.288\u00d7 [0.922, 1.505]. These exploratory natural-workload signals remain conditional, not evidence for an implemented or quality-preserving depth-aware RL policy."
+    ],
+    "findings": [
+      "The placement and refill switches are orthogonal in code. Their measured performance effects are not reliably additive.",
+      "CDB is LOCAL_ONLY. The outer controller assigns requests across four independent replicas before prefill.",
+      "At C64, hindsight gives 0.997\u00d7 without refill and 1.038\u00d7 with refill. Both five-repeat 95% intervals include 1.000\u00d7.",
+      "The selected synchronous last_exited refill path fragments active core batches. It is not the paper's best shared-KV asynchronous configuration.",
+      "The bounded speed repeats preserve all 2480 paired token and depth traces within each configuration. Full-answer parity between configurations does not hold.",
+      "A1 and A4 each score GSM8K 97/128 versus A0 101/128. Each paired difference is \u22123.125 pp, with 95% CI [\u22126.25, \u22120.78125] pp.",
+      "Natural-answer diagnostics retain conditional timing headroom. Ratios of four summed C64 serving intervals are 1.288\u00d7 without refill and 1.571\u00d7 with refill.",
+      "Those diagnostics change generated work and answers. They do not isolate depth information from future length or establish matched quality.",
+      "The current evidence does not justify RL training. It also does not prove that all natural-workload placement headroom is absent."
+    ],
+    "natural_workload_status": "CONDITIONAL_HEADROOM_NOT_QUALITY_MATCHED_OR_DEPTH_ISOLATED",
+    "next_action": "Do not train an RL placement policy yet. First run a small teacher-aligned batch-shape fidelity probe on the same token prefixes and native depth-indexed KV states. Compare B1/B3/B16, no-refill/refill, gate logits, greedy logits, and the first differing token. This probe must separate numerical batch effects from a cache or graph-state defect. If fidelity is credible, the next scheduling test needs a strong causal length-aware control on fresh natural-EOS requests.",
+    "verdict": "QUALITY_CONFOUNDED"
+  },
+  "guards": {
+    "order_control_DP4_v1": true,
+    "quality_A0_v1": true,
+    "quality_DP4_v1": true,
+    "sensitivity_DP4_v1": true,
+    "smoke_validation_v1": true,
+    "speed_A0_r0_v1": true,
+    "speed_A0_r1_v1": true,
+    "speed_A0_r2_v1": true,
+    "speed_A0_r3_v1": true,
+    "speed_A0_r4_v1": true,
+    "speed_DP4_r0_v1": true,
+    "speed_DP4_r1_v1": true,
+    "speed_DP4_r2_v1": true,
+    "speed_DP4_r3_v1": true,
+    "speed_DP4_r4_v1": true,
+    "trace_A0_v1": true,
+    "trace_DP4_v1": true
+  },
+  "original_dirty_staged_preserved": true,
+  "preceding_evidence_preserved": true,
+  "quality_questions_per_arm_per_domain": 128,
+  "tests": "test_LPT_uses_only_work (poc_depth_cdb_factorial.tests.test_contract.ContractTests.test_LPT_uses_only_work) ... ok\ntest_all_required_cells (poc_depth_cdb_factorial.tests.test_contract.ContractTests.test_all_required_cells) ... ok\ntest_complete_precision_extension (poc_depth_cdb_factorial.tests.test_contract.ContractTests.test_complete_precision_extension) ... ok\ntest_masks (poc_depth_cdb_factorial.tests.test_contract.ContractTests.test_masks) ... ok\ntest_prior_sources_unchanged (poc_depth_cdb_factorial.tests.test_contract.ContractTests.test_prior_sources_unchanged) ... ok\ntest_published_gzip_case_discovery (poc_depth_cdb_factorial.tests.test_contract.ContractTests.test_published_gzip_case_discovery) ... ok\ntest_published_gzip_reader (poc_depth_cdb_factorial.tests.test_contract.ContractTests.test_published_gzip_reader) ... ok\ntest_quality_counts (poc_depth_cdb_factorial.tests.test_contract.ContractTests.test_quality_counts) ... ok\ntest_ratio_direction (poc_depth_cdb_factorial.tests.test_contract.ContractTests.test_ratio_direction) ... ok\ntest_real_native_branch (poc_depth_cdb_factorial.tests.test_contract.ContractTests.test_real_native_branch) ... ok\ntest_token_parity_length_penalty (poc_depth_cdb_factorial.tests.test_contract.ContractTests.test_token_parity_length_penalty) ... ok\n\n----------------------------------------------------------------------\nRan 11 tests in 0.020s\n\nOK\n",
+  "utc": "2026-10-19T09:36:33.979734+00:00"
+}
