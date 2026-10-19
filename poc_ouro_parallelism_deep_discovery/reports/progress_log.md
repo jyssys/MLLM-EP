@@ -1,5 +1,70 @@
 # Campaign progress
 
+## Research closure: 2026-10-19 19:56:11 UTC
+
+The endpoint-derived coordinator ledger reaches36008.456322 seconds.
+The explicit user pause remains excluded.
+Concurrent worker durations do not increase that total.
+
+Both cache-isolated native quality arms complete and pass admission.
+All128 native and256 staged outputs retain frozen grading and raw tokens.
+They reuse64 distinct extension problem IDs, not384 independent problems.
+Original candidate held-out outcomes remain unused.
+
+The final index contains275 observations,238 work/document keys,88 arXiv keys,193 searches, and136 experiment directories.
+These counts do not mean full-paper reads or successful experiments.
+The final CPU receipt passes44 modules and376 tests with211 stable source hashes.
+No candidate numerical or latency claim follows.
+
+The late composition control supplies affine closure but no qualified unchanged-Ouro transition.
+The output review preserves the EOS qualifier:78 of79 unequal pairs first differ before both terminal positions.
+One pair first differs at native EOS.
+Adaptive terminal-alias row models retain5.478–25.336% mean committed-payload savings.
+The sealed page16 model retains1.472–6.599%.
+Neither is measured HBM, admission, traffic, or speedup.
+
+The shortlist is empty under the combined mechanism/state/cost/numerical rule.
+The verdict is NO_QUALIFYING_CANDIDATE_IN_SEARCHED_SPACE.
+P8 projections, exact effort fractions, valid component attribution, and several physical qualifiers remain incomplete.
+No negative becomes a global impossibility claim.
+
+The19:53:59UTC receipt confirms owned burners on4/5/6/7 through their session leaders.
+The earlier child-argv-only test was insufficient and signaled no process.
+Git transport remains the final separate verification step.
+
+## 2026-10-19 19:22 UTC checkpoint
+
+Closed coordinator time is 33962.793687 seconds, approximately 9.434 hours.
+The active segment starts at 19:22:05.793278 UTC.
+The earlier user pause remains excluded.
+The minimum ten-hour normal-completion gate remains unmet.
+
+Native Base 1.4B TP4 v2 completes 64 requests and passes integrity admission.
+Its GSM8K score is 25/32. Its MATH-500 score is 16/32.
+Native Base 2.6B TP4 v2 remains active on physical GPUs4/5/6/7.
+Both v2 launches use fresh job-local caches and the frozen 14-source contract.
+The stopped v1 launch and both failed collective-pair probes remain non-admitted.
+
+The completed staged 256-record grading repeats identically except for its creation timestamp.
+The new descriptive adaptive profile uses 128 request traces, not independent depth events.
+Its relative quarters use future final length and are not causal predictor inputs.
+The isolated v12 CPU suite passes 39 modules and 332 tests.
+Ten additional final-dossier tests pass after that suite.
+
+Independent audits check 667 closed hardware input hashes and all 19 candidate evidence classifications.
+Standalone TP2 uses physical GPUs4/6. The hybrid instead uses groups4/5 and6/7.
+The corrected synthesis keeps API and parent timers separate.
+It does not rank their mixed-clock medians as a common-endpoint winner.
+
+An isolated PDF parser resolves the earlier camera-ready sampler reader limit.
+Its final source body still does not establish unchanged-Ouro quality or physical distributed performance.
+No installed native or CDB package changes for this source read.
+
+The active final synthesis selects zero qualifying architectures.
+This remains a scoped qualification decision, not 19 measured architecture failures.
+No candidate LIVE_E2E or free-running quality result exists.
+The original held-out cohort and protected factorial outcomes remain unexamined.
+
 ## 2026-10-19 18:45 UTC checkpoint
 
 All four staged extension arms complete 64 requests each.

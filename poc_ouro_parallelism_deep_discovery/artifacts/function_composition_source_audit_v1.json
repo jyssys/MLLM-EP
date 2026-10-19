@@ -1,0 +1,27 @@
+{
+  "audit": "Associative composition is not automatically state-evaluation parallelism",
+  "observation_window_utc": ["2026-10-19T19:33:04+00:00", "2026-10-19T19:37:09+00:00"],
+  "sources": [
+    {
+      "title": "GPU Gems 3, Chapter 39: Parallel Prefix Sum (Scan) with CUDA",
+      "authors": ["Mark Harris", "Shubhabrata Sengupta", "John D. Owens"],
+      "url": "https://developer.nvidia.com/gpugems/gpugems3/part-vi-gpu-computing/chapter-39-parallel-prefix-sum-scan-cuda",
+      "read_extent": "Sections 39.1, 39.1.1, 39.2.1 and 39.2.2. Other sections are outside this claim.",
+      "source_reported_claim": "Scan uses an associative binary operator. Balanced-tree operation count does not make arbitrary operator evaluation costless.",
+      "transfer_limit": "No old-device performance number becomes an H100 latency prediction. This source does not qualify compact composition for Ouro."
+    },
+    {
+      "title": "Installed native vLLM Ouro implementation",
+      "url": "https://github.com/vllm-project/vllm/blob/v0.26.0/vllm/model_executor/models/ouro.py",
+      "local_path": "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/model_executor/models/ouro.py",
+      "sha256": "cf0792c6c8024ded45dba10553b5f0d24b7b6542dd8f8f0e0e6899807ec0c4ff",
+      "read_extent": "Local lines 78-105, 165-211, 262-285, 348-378. The local hash is authoritative for these observations.",
+      "observations": ["SiluAndMul", "Depth-indexed attention cache", "Normalization and residual updates", "Actual recurrent input chain"],
+      "transfer_limit": "The nonlinear source invalidates a direct affine-map substitution. It does not exclude all possible useful representations."
+    }
+  ],
+  "searches": [],
+  "direct_retrieval_rule": "One vendor page was retrieved directly. No keyword search count is added.",
+  "cpu_evidence": "analysis/function_composition_screen_v1.json",
+  "candidate_effect": "No new card, promotion, latency number, or universal impossibility claim."
+}

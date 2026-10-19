@@ -39,7 +39,11 @@ JSON_INPUTS=['coordinator_sources.json','independent_candidate_seeds.json',
     'native_fa3_tail_envelope_v1.json',
     'vllm_rlt_runtime_source_observations_v1.json',
     'rlt_final_source_search_v1.json',
-    'final_mechanism_negative_search_v1.json']
+    'final_mechanism_negative_search_v1.json',
+    'cacheflow_cse_source_supplement_v1.json',
+    'recurrent_sampler_camera_ready_supplement_v1.json',
+    'function_composition_source_audit_v1.json',
+    'adaptive_alias_capacity_source_v1.json']
 
 def jsonl_kind(name, row):
     """Retain explicit types. Query-only ledgers do not create source observations."""

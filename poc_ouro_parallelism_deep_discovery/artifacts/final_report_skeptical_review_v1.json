@@ -1,0 +1,269 @@
+{
+  "schema_version": "1.0",
+  "review_role": "skeptical_active_synthesis_review",
+  "status": "REQUIRES_SCOPED_CORRECTIONS",
+  "created_utc": "2026-10-19T19:02:19Z",
+  "reviewed_draft": {
+    "path": "reports/final_report_draft_v1.md",
+    "sha256": "ee94ed1bd2fccb8d21680a730aa36e6b5dc730c5980a8f34d35824d574ccb029",
+    "line_count": 328,
+    "unchanged": true
+  },
+  "time_scope": {
+    "active_intervals": [
+      {
+        "start_utc": "2026-10-19T18:53:42Z",
+        "end_utc": "2026-10-19T19:02:19Z",
+        "elapsed_seconds": 517
+      }
+    ],
+    "prior_work_and_pause_included": false,
+    "coordinator_duration_reaudited": false
+  },
+  "activity": {
+    "cpu_source_only": true,
+    "gpu_commands": false,
+    "source_edits": false,
+    "frozen_artifact_edits": false,
+    "protected_factorial_read": false,
+    "candidate_held_out_read": false,
+    "pending_native_quality_outcomes_read": false,
+    "completed_baseline_summary_read": true,
+    "raw_response_text_read": false
+  },
+  "findings": [
+    {
+      "id": "F01",
+      "priority": "CORRECT_FACT",
+      "draft_lines": [
+        82,
+        86
+      ],
+      "topic": "Physical and logical topology",
+      "finding": "Standalone native TP2 uses physical GPUs 4,6, not4,5. A four-device reservation is not always a four-rank TP world.",
+      "remedy": "Name each layout separately. Native TP4: GPUs 4/5/6/7 to ranks 0/1/2/3. Standalone TP2: GPUs 4/6 to ranks 0/1. TP2xDP2: groups 4/5 and 6/7, each with ranks 0/1. DP4: singleton-visible GPU 0 in each worker.",
+      "evidence": [
+        "outputs/native_cohort_base14_P2_v1/run_contract.json",
+        "outputs/native_cohort_base26_P2_v1/run_contract.json",
+        "reports/native_long_context_observation_v1.md",
+        "reports/native_hybrid_cohort_observation_v1.md",
+        "artifacts/environment_manifest.json"
+      ]
+    },
+    {
+      "id": "F02",
+      "priority": "CORRECT_FACT",
+      "draft_lines": [
+        169
+      ],
+      "topic": "Prior local context cap",
+      "finding": "The linked completed long-context report identifies the previous local cap as 10240, not 4096.",
+      "remedy": "Say these controls exceed the earlier local 10240-token runtime cap. Do not infer natural quality or numerical validity at the configured 65536 maximum.",
+      "evidence": [
+        "reports/native_long_context_observation_v1.md"
+      ]
+    },
+    {
+      "id": "F03",
+      "priority": "REPAIR_LINK",
+      "draft_lines": [
+        78
+      ],
+      "topic": "Missing runtime manifest",
+      "finding": "The referenced artifacts/model_runtime_manifest.json does not exist.",
+      "remedy": "Link artifacts/semantics_manifest.json for model/runtime semantics. Use artifacts/environment_manifest.json separately for device/environment metadata.",
+      "evidence": [
+        "artifacts/semantics_manifest.json",
+        "artifacts/environment_manifest.json"
+      ]
+    },
+    {
+      "id": "F04",
+      "priority": "CLARIFY_COMPARABILITY",
+      "draft_lines": [
+        144,
+        151
+      ],
+      "topic": "Cross-endpoint rank count",
+      "finding": "The 14/16 raw-median ranking mixes native API wall with parent release-to-completion wall. Its arithmetic does not supply a common-endpoint method ranking.",
+      "remedy": "Omit the ranking or attach an explicit mixed-clock label and say it does not establish a common-endpoint winner.",
+      "evidence": [
+        "reports/native_hybrid_cohort_observation_v1.md",
+        "analysis/result_tables_cd_complete_v1/tables_cd.md"
+      ]
+    },
+    {
+      "id": "F05",
+      "priority": "CLARIFY_SCOPE",
+      "draft_lines": [
+        192,
+        195
+      ],
+      "topic": "Adaptive runtime and depth denominator",
+      "finding": "Native depth counters can be mistaken for native vLLM adaptive TP. The quoted mean depths exclude the first output token produced by full-R4 prefill.",
+      "remedy": "Use CDB runtime counters. State that decode-depth accounting excludes prefill and its first output token. State that single-GPU reference execution does not validate adaptive TP2/TP4.",
+      "evidence": [
+        "reports/baseline_extension_complete_v1.md",
+        "analysis/baseline_extension_complete_v1/summary.json",
+        "reports/public_adaptive_runtime_scope_overlay_v1.md"
+      ]
+    },
+    {
+      "id": "F06",
+      "priority": "CLARIFY_SCOPE",
+      "draft_lines": [
+        214
+      ],
+      "topic": "C06 operand and sample scope",
+      "finding": "Adaptive full-R4 prefill is sampled already, but adaptive decode is not. Fixed/adaptive prefill values are duplicate measurements. The 2048-wide input is not the 5632-wide down-projection operand.",
+      "remedy": "Keep 2448 as scoped row-pair records. State duplicate prefill coverage. Replace unresolved adaptive mode with adaptive decode and uncaptured down-projection input, alongside projection parity/cost and broader workloads.",
+      "evidence": [
+        "reports/c06_sparse_fresh_delta_screen_v1.md"
+      ]
+    },
+    {
+      "id": "F07",
+      "priority": "CLARIFY_MODEL",
+      "draft_lines": [
+        256,
+        261
+      ],
+      "topic": "Depth-affinity hindsight",
+      "finding": "The best permitted static depth partition is chosen in hindsight from each observed exit histogram. This is not a causal online scheduling policy.",
+      "remedy": "Add the hindsight assumption and link the complete extension screen. Keep normalized-capacity ratios separate from GPU throughput and native TP4 speedup.",
+      "evidence": [
+        "analysis/depth_affinity_extension_complete_v1/screen.json",
+        "reports/depth_affinity_capacity_screen.md"
+      ]
+    },
+    {
+      "id": "F08",
+      "priority": "CLARIFY_TERM",
+      "draft_lines": [
+        63,
+        76
+      ],
+      "topic": "Logical KV slot ownership",
+      "finding": "Independent KV slots can be misread as separate physical allocations or a universal storage lower bound.",
+      "remedy": "Rename the header to Logical depth/layer KV slots. Keep fixed-R4 version independence distinct from allocator packing and adaptive terminal-version aliasing.",
+      "evidence": [
+        "artifacts/semantics_manifest.json",
+        "reports/exact_frontier_contract.md"
+      ]
+    },
+    {
+      "id": "F09",
+      "priority": "CLARIFY_TERM",
+      "draft_lines": [
+        27
+      ],
+      "topic": "Conventional controls work",
+      "finding": "Work is broader than the measured controlled-work completion claim.",
+      "remedy": "Say Conventional controls complete the declared controlled hardware workload on authorized H100 devices. Do not imply natural-generation quality or full numerical parity.",
+      "evidence": [
+        "reports/native_hybrid_cohort_observation_v1.md",
+        "reports/native_long_context_observation_v1.md"
+      ]
+    },
+    {
+      "id": "F10",
+      "priority": "SNAPSHOT_LABEL",
+      "draft_lines": [
+        7,
+        9,
+        197
+      ],
+      "topic": "Active status and time snapshot",
+      "finding": "The duration and pending-run statements are time-sensitive. This review did not re-audit coordinator duration or inspect the pending native extension.",
+      "remedy": "Add the draft creation UTC and a specific coordinator-ledger snapshot link/hash. Keep native-extension status explicitly as-of that snapshot.",
+      "evidence": [
+        "reports/final_report_draft_v1.md"
+      ]
+    }
+  ],
+  "verified_boundaries": [
+    "Dependency statements remain scoped to the inspected B1 graph, not every exact or quality-controlled reformulation.",
+    "Frozen dispositions are not 19 measured architecture failures.",
+    "No candidate LIVE_E2E or candidate free-running quality PASS is claimed.",
+    "Quality denominators retain 32 records per domain per arm and 64 unique IDs across 256 records.",
+    "C07 retains zero accepted service trials and an unresolved numerical cause.",
+    "CDB observer spans and failed collective-pair runs do not become admitted cost evidence.",
+    "C14 interpolation remains a model, not a bound or measured pipeline.",
+    "C19 capacity and read models do not become measured HBM or latency results.",
+    "P8 remains PROJECTED_NOT_RUN with missing candidate-level numerical calibration.",
+    "Source-reported priors do not fill campaign candidate-performance cells."
+  ],
+  "checks": {
+    "draft_local_links": {
+      "occurrences": 30,
+      "missing": [
+        "../artifacts/model_runtime_manifest.json"
+      ]
+    },
+    "quality": {
+      "records": 256,
+      "unique_ids": 64,
+      "arms": 4,
+      "per_arm": 64,
+      "per_domain_per_arm": 32,
+      "all_source_counter_matches": true,
+      "correct_counts_match_draft": true
+    },
+    "depth_affinity": {
+      "P4_records": 4,
+      "ratio_min": 0.7022802940400844,
+      "ratio_max": 0.7649022042843838,
+      "hindsight_partition": true
+    },
+    "cpu_tests": "NOT_APPLICABLE: review only",
+    "new_report_lint": {
+      "violations": 0,
+      "hard_violations": 0,
+      "status": "PASS"
+    },
+    "new_report_links": {
+      "local_occurrences": 16,
+      "missing": [],
+      "status": "PASS"
+    },
+    "input_hashes_rechecked": {
+      "count": 19,
+      "status": "PASS"
+    }
+  },
+  "input_sha256": {
+    "analysis/baseline_extension_complete_v1/summary.json": "1a590508a221f00f7a7209b94322380fa533832bd69faed02db198a73664dc37",
+    "analysis/depth_affinity_extension_complete_v1/screen.json": "ad6cf201f54819e8387b03e7d6a50f2843ab3ef599f3b2d80adb564251731436",
+    "analysis/result_tables_cd_complete_v1/tables_cd.md": "7f9472483879844ac740b8098e8ed2ddbb8bffe481a8994c09804d300ea77039",
+    "artifacts/environment_manifest.json": "db89610ea9ea5f717b490845d53bee21b1967e23b817321031f1dcae23544bdc",
+    "artifacts/semantics_manifest.json": "49d6d9cc226efa5562a1d49eed76d252a044e47bb29fc506d23d5d5abc7b1109",
+    "outputs/native_cohort_base14_P2_v1/run_contract.json": "6b427d416fd1b729831aa5cb2bf0dea4610298a3064a66cc4633998ddd897927",
+    "outputs/native_cohort_base26_P2_v1/run_contract.json": "b6161fe7b80375ddc146f42bbcc78d8552a82e00359eebd62be0cb158bac983b",
+    "reports/baseline_extension_complete_v1.md": "89655ef5f855f0abd501dcf4f9603c36afa8e6c788110a7b9e95504dda4c8186",
+    "reports/c06_sparse_fresh_delta_screen_v1.md": "63a790467b5d37f04eaef25ff5afa232e31bfb15007dcc12cc39e41addaa2e84",
+    "reports/c14_transpose_decision_screen_v1.md": "1caaccb1b218015da57e185497c7c6b7ec4ea393af7fce24cc32f75dc02939e4",
+    "reports/dependency_red_team.md": "d788e812625fa1d8a47bd6f1a626cfdced9b41c56f651fcdd70c9b1b30216881",
+    "reports/depth_affinity_capacity_screen.md": "b9754d34160553191ec307b13282a830deeca1458c866f1cddb051d7a64c558f",
+    "reports/exact_frontier_contract.md": "c2f6631476b08d35d7294e95f447533371794214b47cbc4fc0abd2bba7cca5c1",
+    "reports/final_report_draft_v1.md": "ee94ed1bd2fccb8d21680a730aa36e6b5dc730c5980a8f34d35824d574ccb029",
+    "reports/hybrid_collective_pair_failure_v1.md": "a070e02d1d31de559ec7b9d0cf7c80a70015a23701e1360771f184fd1864ec76",
+    "reports/native_hybrid_cohort_observation_v1.md": "732a33c5987715d9118d13020de1ec75e9ceabff72d5cfd5395adae7d5400906",
+    "reports/native_long_context_observation_v1.md": "995cf54c1335995907f6e81bb8e8613f637d70042c48a05a47ff6910a093729b",
+    "reports/p8_projection_feasibility_supplement_v1.md": "5846f409b37b898fb468d81039deb6d9c0ec146e0a6747798d6bbf9a0b81d486",
+    "reports/public_adaptive_runtime_scope_overlay_v1.md": "ae6bf9965efa0153b571f0c41b475f41df324074a2abaecf4f1d4a42273ca558"
+  },
+  "read_extents": {
+    "draft": "All 328 lines.",
+    "baseline_quality": "Completed report and aggregate/metadata fields from the completed summary. No raw response text.",
+    "topology": "Completed report locators, environment metadata, and mask fields from both standalone TP2 run contracts.",
+    "models_and_dependencies": "Linked exact-frontier contract, selected red-team locators, and existing semantics-manifest metadata.",
+    "candidate_screens": "C06 report; selected C14 decision locators; P8 supplement; pair failure; depth-affinity assumptions, limitations, and P4 records.",
+    "tables_cd": "Timing-endpoint and controlled-hardware panel text. No protected outcomes."
+  },
+  "limits": [
+    "This is not a final campaign verdict or duration certification.",
+    "This review does not validate every transitive artifact or repeat physical measurements.",
+    "No recommendation requires a new GPU run.",
+    "The reviewed draft remains unchanged."
+  ]
+}

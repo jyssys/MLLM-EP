@@ -1,0 +1,28 @@
+{
+  "audit": "Ideal terminal-alias payload accounting from completed original-gate traces",
+  "source_revision": "abdfae0adbdd12be8c6123ccb34eee98a38afb39",
+  "sources": [
+    {
+      "title": "CDB KV policy and terminal propagation",
+      "url": "https://github.com/kschwethelm/continuous-depth-batching/blob/abdfae0adbdd12be8c6123ccb34eee98a38afb39/src/looped_cdb/kv_cache_policy.py",
+      "read_extent": "Lines1-260. last_exited retains all depth slots and creates copy destinations above the exit depth.",
+      "claim": "Terminal aliases can represent equal copied values in an ideal payload model. Distinct computed-depth states remain distinct."
+    },
+    {
+      "title": "CDB actual KV copy path",
+      "url": "https://github.com/kschwethelm/continuous-depth-batching/blob/abdfae0adbdd12be8c6123ccb34eee98a38afb39/src/looped_cdb/continuous_depth_batching/cache.py",
+      "read_extent": "Lines85-140, especially copy_kv_rows.",
+      "claim": "The implementation gathers source rows and copies them into deeper cache tensors. It is not the modeled alias implementation."
+    },
+    {
+      "title": "CDB terminal publication order",
+      "url": "https://github.com/kschwethelm/continuous-depth-batching/blob/abdfae0adbdd12be8c6123ccb34eee98a38afb39/src/looped_cdb/continuous_depth_batching/continuous_api.py",
+      "read_extent": "Lines1198-1244, especially _flush_exit_kv_copies.",
+      "claim": "Copies precede deeper reads on the compute stream. The code assumes at most one recurrent token per request in flight."
+    }
+  ],
+  "searches": [],
+  "analysis": "analysis/adaptive_alias_capacity_v2/summary.json",
+  "page_supplement": "Selected config.py lines50-65 default block_size16. The campaign runtime.py lines28-70 supplies no override. No new allocator inspection. V2 preserves v1 row results and adds modeled sealed-page restrictions.",
+  "scope": "C03 capacity-scope supplement. Existing generic/state-policy overlap remains. No new finalist, executable memory saving, HBM traffic measurement, or latency result."
+}

@@ -1,7 +1,8 @@
+import copy
 import unittest
 
 from poc_ouro_parallelism_deep_discovery.scripts.build_result_tables_cd import (
-    extension_panels, native_panels, quality_panels)
+    extension_panels, native_extension_panels, native_panels, quality_panels)
 
 
 class ResultTablesTest(unittest.TestCase):
@@ -39,6 +40,37 @@ class ResultTablesTest(unittest.TestCase):
     def test_quality_summary_requires_an_admitted_complete_arm(self):
         with self.assertRaises(ValueError):
             extension_panels(dict(evidence_class='QUALITY_ONLY',summaries=[dict(N=32,size='1.4B',mode='fixed')]))
+
+    def native_extension(self):
+        records=[dict(size='1.4B',dataset=domain,id=f'{domain}/{i}',correct_completed=i<16)
+                 for domain in ('gsm8k','math500') for i in range(32)]
+        summaries=[dict(size='1.4B',dataset=domain,N=32,correct=16,accuracy_percent=50,
+                       accuracy_CI_percent=[31.25,68.75],parsing_failures=0,truncated=0)
+                   for domain in ('gsm8k','math500')]
+        return dict(evidence_class='QUALITY_ONLY',candidate_E2E='NOT_RUN',candidate_quality='NOT_RUN',
+                    summaries=summaries,records=records)
+
+    def test_native_extension_is_quality_only(self):
+        rows=native_extension_panels(self.native_extension())
+        self.assertEqual(len(rows),2)
+        self.assertTrue(all(row['GPUs']==4 and row['evidence_class']=='QUALITY_ONLY' for row in rows))
+        self.assertTrue(all(row['speedup_vs_native_1GPU']=='NOT_RUN' for row in rows))
+
+    def test_native_extension_rejects_partial_arm(self):
+        value=self.native_extension();value['records'].pop()
+        with self.assertRaises(ValueError):native_extension_panels(value)
+
+    def test_native_extension_rejects_duplicate_ID(self):
+        value=self.native_extension();value['records'][-1]=copy.deepcopy(value['records'][0])
+        with self.assertRaises(ValueError):native_extension_panels(value)
+
+    def test_native_extension_rejects_numerator_mismatch(self):
+        value=self.native_extension();value['summaries'][0]['correct']=17
+        with self.assertRaises(ValueError):native_extension_panels(value)
+
+    def test_native_extension_rejects_candidate_relabel(self):
+        value=self.native_extension();value['candidate_E2E']='PASS'
+        with self.assertRaises(ValueError):native_extension_panels(value)
 
 
 if __name__=='__main__':

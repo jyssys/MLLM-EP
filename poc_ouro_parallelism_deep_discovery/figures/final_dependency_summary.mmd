@@ -1,0 +1,20 @@
+flowchart LR
+  W["Resident shared physical weights W_l<br/>Not a ready hidden state"]
+  X["Known current input token<br/>Embedding ready"] --> F1["Pass 1 core<br/>24 or 48 physical blocks"]
+  F1 --> N1["Boundary norm h1"]
+  N1 --> F2["Pass 2 core"]
+  F2 --> N2["Boundary norm h2"]
+  N2 --> F3["Pass 3 core"]
+  F3 --> N3["Boundary norm h3"]
+  N3 --> F4["Pass 4 core"]
+  F4 --> N4["Boundary norm h4"]
+  N4 --> H["LM head and sample"] --> NEXT["Next input token"]
+  W -. "same weight identities" .-> F1
+  W -.-> F2
+  W -.-> F3
+  W -.-> F4
+  K1["Committed depth-1 historical KV"] --> F1
+  K2["Committed depth-2 historical KV"] --> F2
+  K3["Committed depth-3 historical KV"] --> F3
+  K4["Committed depth-4 historical KV"] --> F4
+  S["Scope: logical fixed-R4 dependency summary.<br/>Opaque core nodes hide legal local forks.<br/>No measured cost or physical overlap is implied."]

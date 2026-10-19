@@ -63,6 +63,27 @@ def extension_panels(value):
     return result
 
 
+def native_extension_panels(value):
+    require(value['evidence_class'] == 'QUALITY_ONLY', 'Native extension is not a quality lane')
+    require(value['candidate_E2E'] == value['candidate_quality'] == 'NOT_RUN', 'Native extension is not a candidate')
+    result = []
+    for row in value['summaries']:
+        records = [item for item in value['records'] if item['size'] == row['size']]
+        require(len(records) == len({item['id'] for item in records}) == 64, 'Native extension arm is incomplete')
+        selected = [item for item in records if item['dataset'] == row['dataset']]
+        require(row['N'] == len(selected) == 32, 'Native extension domain is incomplete')
+        correct = sum(bool(item['correct_completed']) for item in selected)
+        require(row['correct'] == correct and row['accuracy_percent'] == 100*correct/32,
+                'Native extension quality numerator differs')
+        result.append(dict(cohort='Same baseline-extension IDs:32/domain', size=row['size'], mode='fixed R4',
+            runtime='native_vllm_async, graph-enabled B1', GPUs=4, dataset=row['dataset'], N=row['N'],
+            correct=row['correct'], accuracy_percent=row['accuracy_percent'],
+            accuracy_CI_percent=row['accuracy_CI_percent'], parsing_failures=row['parsing_failures'],
+            truncated=row['truncated'], raw_latency='NOT_RUN in this quality panel',
+            speedup_vs_native_1GPU='NOT_RUN', speedup_vs_strongest_same_P='NOT_RUN', evidence_class='QUALITY_ONLY'))
+    return result
+
+
 def render_quality(rows):
     lines = ['| Model / mode | Runtime | GPUs | Domain | Correct/N | Accuracy,95% CI | Parse failures | Truncated |',
              '|---|---|---:|---|---:|---|---:|---:|']
@@ -79,26 +100,34 @@ def render(value):
         'This is an active-campaign synthesis. It is not the final campaign verdict.',
         'The tables preserve separate evidence lanes. They do not certify the campaign duration.', '',
         '## Table C1: original natural-generation calibration', '',
-        'These are actual greedy natural outputs from the original8 requests per domain.',
+        'These are actual greedy natural outputs from the original 8 requests per domain.',
         'Each runtime and TP setting remains a separate operating point.',
         'No row supplies candidate quality or a matched architecture speedup.',
-        'Request-level95% bootstrap intervals describe this small calibration sample.',
-        'They do not establish1pp or2pp noninferiority. The original held-out remains untouched.', '',
+        'Request-level 95% bootstrap intervals describe this small calibration sample.',
+        'They do not establish 1 pp or 2 pp noninferiority. The original held-out remains untouched.', '',
         render_quality(value['original_quality']), '',
         'The table retains backend/TP output differences and length truncation.',
         'It does not promote partial teacher-forced agreement into natural-output parity.', '',
         '## Table C2: disjoint baseline extension', '',
         'The frozen extension excludes the original calibration and held-out IDs.',
-        'It uses32 new requests per domain and the unchanged original gate.',
+        'It uses 32 new requests per domain and the unchanged original gate.',
         'Only complete, independently audited arms enter this panel.',
         'The extension is baseline evidence. It is not candidate held-out confirmation.', '']
     lines.append(render_quality(value['extension_quality']) if value['extension_quality'] else
                  'No complete extension arm is admitted at this checkpoint.')
-    lines += ['', 'The extension does not pool its requests with the earlier8/domain cohort.',
+    lines += ['', 'The extension does not pool its requests with the earlier 8/domain cohort.',
         'Adaptive-minus-fixed comparisons describe different original operating points, not a new mechanism.', '',
+        '## Table C2b: native TP4 on the same baseline-extension IDs', '',
+        'These are additional fixed-R4 baseline observations, not a new held-out cohort.',
+        'Each native arm uses the same 32 requests per domain as the staged extension.',
+        'Different BF16 backends and stopping mechanisms can produce different natural continuations.',
+        'Their quality-run wall times supply no matched-work architecture speedup.', '']
+    lines.append(render_quality(value.get('native_extension_quality', [])) if value.get('native_extension_quality') else
+                 'No complete native extension arm is admitted in this snapshot.')
+    lines += ['',
         '## Table C3: controlled native hardware workload', '',
         'These native calls execute real pretrained weights and real physical TP collectives.',
-        'Each request emits128 controlled constant tokens. EOS does not shorten this hardware workload.',
+        'Each request emits 128 controlled constant tokens. EOS does not shorten this hardware workload.',
         'Each cell reports the median of five trials. This is not task accuracy or natural reasoning latency.',
         'TP rows use the native API wall. DP rows use the parent release-to-completion wall.',
         'The two endpoints are not interchangeable. DP speedups against a TP endpoint remain NOT_RUN.',
@@ -110,10 +139,10 @@ def render(value):
         ratio = f"{r['speedup_vs_native_TP1']:.3f}×" if r['speedup_vs_native_TP1'] is not None else 'NOT_RUN'
         lines.append(f"| Base{r['size']} | {r['method']} | {r['GPUs']} | {r['C']} | {r['context']} | "
                      f"{r['median_wall_ms']:.3f} | {r['output_TPS']:.3f} | {ratio} |")
-    lines += ['', 'All four-GPU configurations reserve208GiB aggregate KV,52GiB per physical rank.',
+    lines += ['', 'All four-GPU configurations reserve 208 GiB aggregate KV, 52 GiB per physical rank.',
         'TP4, TP2×DP2, and DP4 differ in weight multiplicity and KV ownership.',
         'TP1 and TP2 use fewer physical ranks. These reservations do not measure HBM reads.',
-        'The separate32K native protocol reserves52GiB aggregate KV. Its rows must not be merged here.', '',
+        'The separate 32K native protocol reserves 52 GiB aggregate KV. Its rows must not be merged here.', '',
         '## Table C4: candidate performance and quality', '',
         '| Candidate set | Both Base sizes | Fixed / adaptive | GSM8K / MATH | Live architecture latency | Both speedups |',
         '|---|---|---|---|---|---|',
@@ -137,7 +166,7 @@ def render(value):
     return '\n'.join(lines)
 
 
-def build(root, hybrid_path, headroom_path, extension_path=None):
+def build(root, hybrid_path, headroom_path, extension_path=None, native_extension_path=None):
     root = Path(root).resolve()
     hybrid_path, headroom_path = Path(hybrid_path).resolve(), Path(headroom_path).resolve()
     if extension_path:
@@ -149,13 +178,17 @@ def build(root, hybrid_path, headroom_path, extension_path=None):
     require([r['candidate'] for r in headroom['rows']] == [f'C{i:02}' for i in range(1,20)], 'Headroom IDs differ')
     result = dict(created_utc=dt.datetime.now(dt.timezone.utc).isoformat(),
         original_quality=quality_panels(read(original)), native_hardware=native_panels(hardware),
-        extension_quality=[], headroom=headroom['rows'], candidate_LIVE_E2E='NOT_RUN',
+        extension_quality=[], native_extension_quality=[], headroom=headroom['rows'], candidate_LIVE_E2E='NOT_RUN',
         candidate_free_running_quality='NOT_RUN', original_held_out='UNTOUCHED',
         boundary_rule=hardware['boundary_rule'], memory_rule=hardware['memory_rule'],
         source_scope='See reports/primary_claim_reaudit_v1.md. No source result becomes our GPU evidence.')
     if extension_path:
         inputs.append(extension_path)
         result['extension_quality'] = extension_panels(read(extension_path))
+    if native_extension_path:
+        native_extension_path = Path(native_extension_path).resolve()
+        inputs.append(native_extension_path)
+        result['native_extension_quality'] = native_extension_panels(read(native_extension_path))
     result['input_sha256'] = {str(p.relative_to(root)):sha(p) for p in inputs}
     return result
 
@@ -164,14 +197,15 @@ def main():
     parser=argparse.ArgumentParser()
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--extension', type=Path)
+    parser.add_argument('--native-extension', type=Path)
     args=parser.parse_args()
     require(not args.output.exists(), 'Use a new output directory')
     value=build(ROOT, ROOT/'analysis/native_hybrid_cohorts_complete_v3/summary.json',
-                ROOT/'artifacts/current_headroom_decomposition_v1.json', args.extension)
+                ROOT/'artifacts/current_headroom_decomposition_v1.json', args.extension, args.native_extension)
     args.output.mkdir(parents=True)
     (args.output/'summary.json').write_text(json.dumps(value, indent=2, sort_keys=True, allow_nan=False)+'\n')
     (args.output/'tables_cd.md').write_text(render(value))
-    for key in ('original_quality','extension_quality','native_hardware','headroom'):
+    for key in ('original_quality','extension_quality','native_extension_quality','native_hardware','headroom'):
         rows=value[key]
         if rows:
             with (args.output/f'{key}.csv').open('x',newline='') as stream:
@@ -180,6 +214,7 @@ def main():
                 writer.writerows(rows)
     print(json.dumps(dict(native_cells=len(value['native_hardware']),
         original_quality_cells=len(value['original_quality']), extension_cells=len(value['extension_quality']),
+        native_extension_cells=len(value['native_extension_quality']),
         headroom_rows=len(value['headroom']))))
 
 

@@ -1,5 +1,44 @@
 # Next actions
 
+## Research closure: 2026-10-19 19:56 UTC
+
+This closure supersedes all historical action lists below.
+Recorded coordinator time is36008.456322 endpoint-derived seconds, or10.002349 hours.
+The explicit user pause stays excluded.
+No worker duration adds to that total.
+
+The final verdict is NO_QUALIFYING_CANDIDATE_IN_SEARCHED_SPACE, with zero finalists.
+No candidate engine, quality run, or original held-out confirmation is pending.
+The terminal-alias supplement retains structural capacity without claiming physical savings or novelty.
+P8 projections and other specification shortfalls remain explicit.
+
+1. Complete final metadata/hash/link validation.
+2. Commit and push only campaign files.
+3. Verify the remote payload SHA and record transport separately.
+4. Leave verified owned burners on physical4/5/6/7.
+5. Start no rescue experiment or engine without a new research request.
+
+See [the final report](final_report.md) and [Korean synthesis](final_summary_ko.md).
+
+## Current actions: 2026-10-19 19:22 UTC
+
+This list supersedes the historical checkpoints below.
+
+1. Let the guarded native Base2.6B TP4 quality arm complete without a new source or cache change.
+2. Admit and score only its complete 64-request output, then produce the both-size quality overlay.
+3. Preserve the stopped v1 launch and both failed collective-pair probes as non-admitted evidence.
+4. Complete final source, numerical-denominator, qualification, and reproduction checks.
+5. Run the final isolated CPU suite and complete-dossier hash/link validator.
+6. Keep the original candidate held-out unused. No candidate qualifies for its confirmation expense.
+7. Keep P8 equations and capacity scenarios separate from incomplete candidate-level latency projections.
+8. Continue substantive analysis and synthesis before the ten-hour completion gate.
+9. Confirm all four released devices have their verified owned burners.
+10. Commit and push only the campaign files after the final checks.
+
+Closed coordinator time is 33962.793687 seconds, approximately 9.434 hours.
+The active segment starts at 19:22:05.793278 UTC.
+The current zero-finalist selection is not a claim of 19 measured architecture failures.
+
 ## Current actions: 2026-10-19 18:45 UTC
 
 This list supersedes the historical snapshots below.

@@ -1,0 +1,835 @@
+{
+  "schema": "reproducibility_denominator_audit_v1",
+  "report": "reports/reproducibility_denominator_audit_v1.md",
+  "status": "CLOSED_NUMERICAL_CHECKS_PASS_DOCUMENTATION_FIXES_REQUIRED",
+  "work_accounting": {
+    "start_utc": "2026-10-19T19:06:43Z",
+    "accounting_cutoff_utc": "2026-10-19T19:15:17Z",
+    "elapsed_seconds": 514,
+    "pause_seconds": 0,
+    "deliberate_wait_seconds": 0,
+    "method": "CPU-only closed JSON/CSV arithmetic and hash checks, frozen-contract reads, and static source inspection.",
+    "excluded": "Final serialization, validation, stamping, and handoff after cutoff. Concurrent worker time does not add campaign wall time."
+  },
+  "safety": {
+    "GPU_access": false,
+    "model_run": false,
+    "engine_implementation": false,
+    "candidate_rescue": false,
+    "reproduction_commands_executed": false,
+    "unit_test_suite_executed": false,
+    "new_literature_search": false,
+    "pending_native_2p6_quality_outcomes_read": false,
+    "candidate_held_out_read": false,
+    "protected_factorial_outcomes_read": false,
+    "old_files_modified": false,
+    "task_accuracy_counts_audited": false
+  },
+  "term_scope": {
+    "S1": "Single-GPU native TP1 hardware control.",
+    "P2": "Native TP2 unless a fixture or external replica layout is explicit.",
+    "P4": "Native TP4 unless a fixture or external replica layout is explicit.",
+    "modes": "All closed distributed hardware performance controls in this audit are fixed R4."
+  },
+  "required_fixes": [
+    {
+      "id": "D1",
+      "location": "reports/final_report_draft_v1.md:84",
+      "severity": "FACTUAL_DEVICE_MAPPING_CORRECTION",
+      "issue": "Native standalone TP2 uses physical GPUs4/6 in both cohort and context protocols, not4/5.",
+      "evidence": [
+        "outputs/native_cohort_base14_P2_v1/run_contract.json:14",
+        "outputs/native_cohort_base26_P2_v1/run_contract.json:14",
+        "outputs/native_longctx_base14_P2_v3/run_contract.json:12",
+        "outputs/native_longctx_base26_P2_v3/run_contract.json:12"
+      ],
+      "prior_review_correction": "This supersedes the preceding review R1's proposed constant-token4/5 mapping. Preserve that report as an earlier incorrect proposal.",
+      "remedy": "Use4/6 for standalone TP2. Retain4/5 and6/7 only for the TP2xDP2 groups."
+    },
+    {
+      "id": "D2",
+      "location": "reports/final_report_draft_v1.md:150",
+      "severity": "COMPARATOR_AND_DENOMINATOR_CLARIFICATION",
+      "issue": "Below0.4% applies to TP4 versus the lowest alternate median, relative to TP4 wall. It is not every pairwise spread.",
+      "values": [
+        {
+          "size": "1.4B",
+          "C": 8,
+          "N": 4096,
+          "best": "TP2_DP2",
+          "TP4_minus_best_over_TP4_percent": 0.32874526853004427,
+          "largest_minus_smallest_over_smallest_percent": 0.3298295676278339
+        },
+        {
+          "size": "2.6B",
+          "C": 8,
+          "N": 4096,
+          "best": "DP4",
+          "TP4_minus_best_over_TP4_percent": 0.3166403566035891,
+          "largest_minus_smallest_over_smallest_percent": 1.203246136972978
+        }
+      ],
+      "remedy": "Name the comparator and denominator. Keep the different-endpoint and sequential-job caveats."
+    },
+    {
+      "id": "D3",
+      "location": "reports/reproduce_final_v1.md:50",
+      "severity": "REPRODUCTION_LOCATOR_FIX",
+      "issue": "The directory spelling long_context_* does not identify the completed native_longctx_* inputs.",
+      "remedy": "Name outputs/native_longctx_base{14,26}_P{1,2,4}_v3 and give the CPU rebuild with --attempt3 and ROOT-relative --output analysis/long_context_reproduction_01.",
+      "output_resolution": "analyze_native_long_context uses ROOT/args.output. The hybrid analyzer uses Path(args.output) directly."
+    },
+    {
+      "id": "D4",
+      "location": "reports/reproduce_final_v1.md:43",
+      "severity": "FRESH_RUN_SELECTOR_CLARIFICATION",
+      "issue": "Hardware analyzers still select original completed raw directories. New output names do not retarget them.",
+      "remedy": "Separate archived analysis rebuild from fresh-run analysis. Require a reviewed selector or source-root change and a new manifest for fresh data."
+    },
+    {
+      "id": "D5",
+      "location": "reports/reproduce_final_v1.md:46",
+      "severity": "GUARDED_COMMAND_CLARIFICATION",
+      "issue": "run_contract.command is the inner runner command, not a complete guarded launch.",
+      "remedy": "Document the gpu_session wrapper with recorded mask, fresh output, timeout, and inner command. Do not execute the runner without the guard environment."
+    }
+  ],
+  "carried_model_qualifiers": [
+    "C14 scales the complete frontend first-token metric. Its percent is API-wall reduction, not isolated prefill speedup or throughput increase.",
+    "C08 separate primitives do not establish a complete codec serving-path latency.",
+    "Depth-affinity best-static ownership is hindsight on the observed histogram, not a causal online scheduler.",
+    "P8 three-way candidate critical-path projections remain incomplete. No P8 measurement exists.",
+    "Fixed-R4 distributed baselines do not establish original-gate adaptive distributed performance.",
+    "Missing E2E or quality evidence is not universal architecture failure."
+  ],
+  "closed_checks": {
+    "all_closed_input_hashes_match": true,
+    "closed_input_hash_occurrences": 667,
+    "unique_closed_input_hashes": 667,
+    "closed_input_hash_map_sha256": "5b87a452781afb999446b7e304677c86b484b9253c50f6a7391d5af72832e091",
+    "closed_raw_trial_paths": 544,
+    "hardware_trials": 400,
+    "hardware_cells": 80,
+    "hardware_request_instances": 1500,
+    "hardware_output_tokens": 192000,
+    "context_trials": 144,
+    "context_cells": 24,
+    "context_output_tokens": 18432
+  },
+  "raw_numerical_checks": {
+    "status": "PASS",
+    "clean_trial_JSON_files": 544,
+    "cohort": {
+      "jobs": 10,
+      "cells": 80,
+      "clean_trials": 400,
+      "request_instances": 1500,
+      "output_tokens": 192000,
+      "repeats_per_cell": 5,
+      "output_tokens_per_request": 128,
+      "finish_reason": "length",
+      "warmup_runs_per_case": 3,
+      "warmup_outputs_per_request": 16,
+      "separate_trace_cases_per_job": 8
+    },
+    "context": {
+      "jobs": 6,
+      "cells": 24,
+      "clean_trials": 144,
+      "request_instances": 144,
+      "output_tokens": 18432,
+      "repeats_per_pattern_context": 3,
+      "patterns_per_cell": 2,
+      "output_tokens_per_request": 128,
+      "warmup_runs_per_pattern_context": 3,
+      "warmup_outputs_per_request": 4,
+      "post_timing_capture_outputs": 4,
+      "finish_reason": "The context raw record does not retain this field. The runner asserts128constant output IDs and retains generated_tokens128."
+    },
+    "all80_cohort_wall_and_TPS_medians_recomputed": true,
+    "all24_context_metric_medians_recomputed": true,
+    "all16_paired_context_mean_ratios_recomputed": true,
+    "cohort_raw_TPS_and_generated_work_and_parent_endpoint_checks": "PASS",
+    "context_raw_generated_work_and_timestamp_span_checks": "PASS",
+    "cohort_ownership_rank_records_checked": 30,
+    "context_ownership_rank_records_checked": 14,
+    "all16_guard_and_runner_statuses_success": true,
+    "UUID_mapping_checks": "PASS",
+    "lowest_descriptive_median_counts": {
+      "TP4": 14,
+      "TP2_DP2": 1,
+      "DP4": 1
+    },
+    "memory_reservations": "PASS: cohort52GiB/rank; four-rank cohort208GiB aggregate; context52GiB/TPgroup.",
+    "worst_cohort_structural_KV_GiB": {
+      "base_2p6_TP1_C8_N4096_plus128": 49.5
+    },
+    "no_HBM_traffic_measurement": true
+  },
+  "performance_inventory": [
+    {
+      "metric": "Cohort TP API wall",
+      "numerator": "One submitted cohort with C requests and128outputs each.",
+      "denominator_or_interval": "Host perf_counter around LLM.generate. Prepare SamplingParams before timing. Stop before output assertions.",
+      "source": "scripts/native_cohort_control.py:66"
+    },
+    {
+      "metric": "DP4/hybrid parent wall",
+      "numerator": "Same controlled cohort. Idle reserved replicas still count toward resource budget.",
+      "denominator_or_interval": "One parent monotonic clock from first RELEASE send to all DONE receipts. Includes release skew, worker checks/serialization, completion transport, and controller work.",
+      "source": "dp4_cohort.py:88; tp2_dp2_cohort.py:137"
+    },
+    {
+      "metric": "Finite-cohort output TPS",
+      "numerator": "C*128 returned output tokens.",
+      "denominator_or_interval": "Observed API or parent wall seconds. Endpoints remain different. No steady-state claim.",
+      "source": "scripts/analyze_native_tp_dp_cohorts.py:82"
+    },
+    {
+      "metric": "C1/N1024 TP1/TP4 ratios",
+      "numerator": "TP1 cell wall median.",
+      "denominator_or_interval": "TP4 cell wall median within the same constant-token protocol.",
+      "values": [
+        1.339712893499137,
+        1.2665882383591258
+      ],
+      "uncertainty": "Five repeated cohorts; C1 uses only the first frozen pattern. Sequential method jobs. No population or randomized paired architecture interval."
+    },
+    {
+      "metric": "Context wall",
+      "numerator": "One C1 request, declared prefix,128controlled outputs.",
+      "denominator_or_interval": "Host perf_counter_ns around the generate expression, including constructing its SamplingParams and indexing the returned list.",
+      "source": "scripts/native_long_context_control.py:65"
+    },
+    {
+      "metric": "Context output TPS",
+      "numerator": "128 outputs.",
+      "denominator_or_interval": "Measured context wall seconds. Prompt tokens are not added to numerator.",
+      "source": "scripts/native_long_context_control.py:73"
+    },
+    {
+      "metric": "Context cached TPOT",
+      "numerator": "last_token_ts-first_token_ts on the shared timestamp clock.",
+      "denominator_or_interval": "127 inter-token intervals for128outputs. Not isolated GPU attention.",
+      "source": "scripts/analyze_native_long_context.py:13"
+    },
+    {
+      "metric": "Native first-token latency",
+      "numerator": "Complete frontend first-output interval.",
+      "denominator_or_interval": "Keep its own metric clock. Not isolated GPU prefill. Never subtract arrival_time from core monotonic timestamps."
+    },
+    {
+      "metric": "Long-context paired ratio",
+      "numerator": "Within-pattern TP1 timing median.",
+      "denominator_or_interval": "Within-pattern compared-TP median. Mean across2matched patterns.",
+      "source": "scripts/analyze_native_long_context.py:115",
+      "uncertainty": "4000 bootstrap resamples of only2patterns, seed2026101911. Not a broad workload population."
+    },
+    {
+      "metric": "KV pools",
+      "numerator": "Configured storage reservations.",
+      "denominator_or_interval": "State rank versus TP-group versus aggregate four-GPU scope explicitly. Not HBM reads or attention share."
+    },
+    {
+      "metric": "Memory peaks",
+      "numerator": "PyTorch peak allocated bytes over a full job.",
+      "denominator_or_interval": "Not a separate context peak and not total device-resident memory."
+    },
+    {
+      "metric": "Operator/transport fixtures",
+      "numerator": "A complete named primitive/operator on warm repeated shapes.",
+      "denominator_or_interval": "31trials,7warmups,16graph repetitions where stated. Select per-trial maximum rank-local stream time, then median. Not E2E or pure link bandwidth.",
+      "source": "scripts/component_probe.py:21; scripts/communication_probe.py:10"
+    },
+    {
+      "metric": "C14 modeled wall reduction",
+      "numerator": "F4-F1/4.",
+      "denominator_or_interval": "Measured TP4 API wall W4. All extra exposed transition costs remain charged. Not measured PP."
+    },
+    {
+      "metric": "Depth-affinity capacity ratio",
+      "numerator": "Best static pinned capacity inside the unit-cost model.",
+      "denominator_or_interval": "Ideal pooled capacity under the same stipulated model. Hindsight partition. Not GPU throughput."
+    },
+    {
+      "metric": "C19 coded/read ratios",
+      "numerator": "Selected coded key bytes or modeled uncached reads.",
+      "denominator_or_interval": "Raw selected key bytes. No values, GPU decoder, HBM traffic, or live latency claim."
+    },
+    {
+      "metric": "C07 numerical mismatch",
+      "numerator": "1889unequal selected normalized hidden words.",
+      "denominator_or_interval": "2048selected words. Zero accepted service timing trials. Not task-quality loss."
+    },
+    {
+      "metric": "Baseline natural-quality task counts",
+      "numerator": "OUTSIDE_THIS_HARDWARE_AUDIT",
+      "denominator_or_interval": "Do not infer candidate quality or pending-arm completion from this review."
+    }
+  ],
+  "context_32768_pairs": [
+    {
+      "N_frozen_prompt_patterns": 2,
+      "baseline_TP": 1,
+      "caution": "Two repeated prompt patterns provide a narrow hardware control, not broad workload inference.",
+      "compared_TP": 4,
+      "context": 32768,
+      "mean_request_speedup_x": 2.1883189544196835,
+      "median_request_speedup_x": 2.1883189544196835,
+      "request_bootstrap_95_CI_x": [
+        2.1862613635900536,
+        2.1903765452493134
+      ],
+      "size": "1.4B"
+    },
+    {
+      "N_frozen_prompt_patterns": 2,
+      "baseline_TP": 1,
+      "caution": "Two repeated prompt patterns provide a narrow hardware control, not broad workload inference.",
+      "compared_TP": 4,
+      "context": 32768,
+      "mean_request_speedup_x": 2.2098444215758546,
+      "median_request_speedup_x": 2.2098444215758546,
+      "request_bootstrap_95_CI_x": [
+        2.208711805234355,
+        2.210977037917355
+      ],
+      "size": "2.6B"
+    }
+  ],
+  "run_receipts": [
+    {
+      "cohort": "constant_token",
+      "size": "1.4B",
+      "mode": "TP1",
+      "source": "outputs/native_cohort_base14_P1_v1",
+      "mask": "4",
+      "run_contract_sha256": "91a08c9869331cc653f7d9b20fa3334d04dea095de6abaf621c0fd1fbd4138ad",
+      "source_hash_count": 715,
+      "rank_KV_GiB": 52,
+      "aggregate_KV_GiB": 52
+    },
+    {
+      "cohort": "constant_token",
+      "size": "1.4B",
+      "mode": "TP2",
+      "source": "outputs/native_cohort_base14_P2_v1",
+      "mask": "4,6",
+      "run_contract_sha256": "6b427d416fd1b729831aa5cb2bf0dea4610298a3064a66cc4633998ddd897927",
+      "source_hash_count": 683,
+      "rank_KV_GiB": 52,
+      "aggregate_KV_GiB": 104
+    },
+    {
+      "cohort": "constant_token",
+      "size": "1.4B",
+      "mode": "TP4",
+      "source": "outputs/native_cohort_base14_P4_v1",
+      "mask": "4,5,6,7",
+      "run_contract_sha256": "433d8878cdb8e414a419ccb84f3f16ebba0180bc3af19876552214f40297ba2d",
+      "source_hash_count": 782,
+      "rank_KV_GiB": 52,
+      "aggregate_KV_GiB": 208
+    },
+    {
+      "cohort": "constant_token",
+      "size": "1.4B",
+      "mode": "DP4",
+      "source": "outputs/native_dp4_cohort_base14_v1",
+      "mask": "4,5,6,7",
+      "run_contract_sha256": "723c8d13b910553b0b3fbd59c47976aea248a024cb3bea25efd2de2f843a44ec",
+      "source_hash_count": 902,
+      "rank_KV_GiB": 52,
+      "aggregate_KV_GiB": 208
+    },
+    {
+      "cohort": "constant_token",
+      "size": "2.6B",
+      "mode": "TP1",
+      "source": "outputs/native_cohort_base26_P1_v1",
+      "mask": "4",
+      "run_contract_sha256": "465fad7dde7f284cd56ab33f848e62b9ca838278cd360b7a06d6dc5629c1eebb",
+      "source_hash_count": 729,
+      "rank_KV_GiB": 52,
+      "aggregate_KV_GiB": 52
+    },
+    {
+      "cohort": "constant_token",
+      "size": "2.6B",
+      "mode": "TP2",
+      "source": "outputs/native_cohort_base26_P2_v1",
+      "mask": "4,6",
+      "run_contract_sha256": "b6161fe7b80375ddc146f42bbcc78d8552a82e00359eebd62be0cb158bac983b",
+      "source_hash_count": 746,
+      "rank_KV_GiB": 52,
+      "aggregate_KV_GiB": 104
+    },
+    {
+      "cohort": "constant_token",
+      "size": "2.6B",
+      "mode": "TP4",
+      "source": "outputs/native_cohort_base26_P4_v1",
+      "mask": "4,5,6,7",
+      "run_contract_sha256": "b4614ad28bfa798ce3a8b83798e36d03b3423c9d656128f848cf07c7cb0da338",
+      "source_hash_count": 842,
+      "rank_KV_GiB": 52,
+      "aggregate_KV_GiB": 208
+    },
+    {
+      "cohort": "constant_token",
+      "size": "2.6B",
+      "mode": "DP4",
+      "source": "outputs/native_dp4_cohort_base26_v1",
+      "mask": "4,5,6,7",
+      "run_contract_sha256": "2d0fbfbb7c005124824e74788574e355618bb603a7939a4c757beb11c53d1ec0",
+      "source_hash_count": 960,
+      "rank_KV_GiB": 52,
+      "aggregate_KV_GiB": 208
+    },
+    {
+      "cohort": "constant_token",
+      "size": "1.4B",
+      "mode": "TP2_DP2",
+      "source": "outputs/native_tp2_dp2_cohort_base14_v4_preserve_environ",
+      "mask": "4,5,6,7",
+      "run_contract_sha256": "fecee204fd50f10302f7b13ab95e377ac3a49044d1c5af362387e8d5153a0103",
+      "source_hash_count": 1507,
+      "rank_KV_GiB": 52,
+      "aggregate_KV_GiB": 208
+    },
+    {
+      "cohort": "constant_token",
+      "size": "2.6B",
+      "mode": "TP2_DP2",
+      "source": "outputs/native_tp2_dp2_cohort_base26_v1_preserve_environ",
+      "mask": "4,5,6,7",
+      "run_contract_sha256": "c45f3742940cd1d620135c7a1f8322d301c62e5816b91bc9e0b837072f53ae1a",
+      "source_hash_count": 1567,
+      "rank_KV_GiB": 52,
+      "aggregate_KV_GiB": 208
+    },
+    {
+      "cohort": "long_context",
+      "size": "1.4B",
+      "mode": "TP1",
+      "source": "outputs/native_longctx_base14_P1_v3",
+      "mask": "4",
+      "run_contract_sha256": "26b03eeb0fb599d1f61093d04fe94b975e75ed80530383045f90705f4c666894",
+      "source_hash_count": 1082,
+      "rank_KV_GiB": 52,
+      "aggregate_KV_GiB": 52
+    },
+    {
+      "cohort": "long_context",
+      "size": "1.4B",
+      "mode": "TP2",
+      "source": "outputs/native_longctx_base14_P2_v3",
+      "mask": "4,6",
+      "run_contract_sha256": "53b214180cdc95f66e69f4e8565c7693602428ae2366d3dd5342e45ef271a72c",
+      "source_hash_count": 1098,
+      "rank_KV_GiB": 26,
+      "aggregate_KV_GiB": 52
+    },
+    {
+      "cohort": "long_context",
+      "size": "1.4B",
+      "mode": "TP4",
+      "source": "outputs/native_longctx_base14_P4_v3",
+      "mask": "4,5,6,7",
+      "run_contract_sha256": "e1b8111c5fd9120768dc884bb2fdf6d096c5a55044caf80fa3da39cb66013b2d",
+      "source_hash_count": 1132,
+      "rank_KV_GiB": 13,
+      "aggregate_KV_GiB": 52
+    },
+    {
+      "cohort": "long_context",
+      "size": "2.6B",
+      "mode": "TP1",
+      "source": "outputs/native_longctx_base26_P1_v3",
+      "mask": "4",
+      "run_contract_sha256": "fa6e65e69fd6f36c2eb46647538effa10fe8a766f9f8c6a87a54985df4a58347",
+      "source_hash_count": 1194,
+      "rank_KV_GiB": 52,
+      "aggregate_KV_GiB": 52
+    },
+    {
+      "cohort": "long_context",
+      "size": "2.6B",
+      "mode": "TP2",
+      "source": "outputs/native_longctx_base26_P2_v3",
+      "mask": "4,6",
+      "run_contract_sha256": "813b9d040584f1030bac7fd3bbf5975c2c89593f67ab483788e43787d1b17709",
+      "source_hash_count": 1210,
+      "rank_KV_GiB": 26,
+      "aggregate_KV_GiB": 52
+    },
+    {
+      "cohort": "long_context",
+      "size": "2.6B",
+      "mode": "TP4",
+      "source": "outputs/native_longctx_base26_P4_v3",
+      "mask": "4,5,6,7",
+      "run_contract_sha256": "8b7a6c774595811aa29a0dd39641093daabe09edf9f95492c0852a6331e32bc9",
+      "source_hash_count": 1241,
+      "rank_KV_GiB": 13,
+      "aggregate_KV_GiB": 52
+    }
+  ],
+  "source_freeze_check": {
+    "jobs": 16,
+    "selected_check_count": 142,
+    "mismatches": [
+      {
+        "receipt": "outputs/native_cohort_base14_P4_v1/run_contract.json",
+        "path": "dp4_cohort.py",
+        "recorded_sha256": "1e373b2b1ee6b9b6a8a176441be8d3e092ce29c238731190db9d8b65ba0b7ecd",
+        "current_sha256": "a149c6f8f36576df12ae318f41808f88c63978928a19eef5845e4a7de0b6af64",
+        "matches": false
+      },
+      {
+        "receipt": "outputs/native_cohort_base14_P4_v1/run_contract.json",
+        "path": "scripts/native_dp4_cohort_control.py",
+        "recorded_sha256": "8c2be67819c30f7f8a7a037f7aef38baed468b0895bf5986a11f6116d7fb88e3",
+        "current_sha256": "87ca8c2ce94d645fa01595f610ed22f5b15b6f32aee0bbcbdc03061d5260e8d8",
+        "matches": false
+      },
+      {
+        "receipt": "outputs/native_cohort_base14_P4_v1/run_contract.json",
+        "path": "scripts/native_dp4_cohort_worker.py",
+        "recorded_sha256": "14131830737cf099f5b9613daafa21f53b0b36df87bb5f88673baf8a1c373549",
+        "current_sha256": "0c268e6a83870184e99fb4f515469d4eadaddb9d7bdfc1fd152956adeb3fc0c9",
+        "matches": false
+      },
+      {
+        "receipt": "outputs/native_cohort_base26_P4_v1/run_contract.json",
+        "path": "scripts/native_dp4_cohort_control.py",
+        "recorded_sha256": "ab2305fcdac1c9eb4d71a835605fadbf6347bfbdbb3026ab55dd996db14ee794",
+        "current_sha256": "87ca8c2ce94d645fa01595f610ed22f5b15b6f32aee0bbcbdc03061d5260e8d8",
+        "matches": false
+      },
+      {
+        "receipt": "outputs/native_cohort_base26_P4_v1/run_contract.json",
+        "path": "scripts/native_dp4_cohort_worker.py",
+        "recorded_sha256": "14131830737cf099f5b9613daafa21f53b0b36df87bb5f88673baf8a1c373549",
+        "current_sha256": "0c268e6a83870184e99fb4f515469d4eadaddb9d7bdfc1fd152956adeb3fc0c9",
+        "matches": false
+      }
+    ],
+    "sample_key": [
+      "__init__.py",
+      "alias_control.py",
+      "cohort_probe.py"
+    ]
+  },
+  "source_freeze_interpretation": "Five drift entries belong only to unrelated DP helpers in two TP4 snapshots. No selected executed-TP-source drift follows. This is not a full binary or dynamic import-closure receipt.",
+  "source_receipts": [
+    {
+      "path": "reports/reproduce_final_v1.md",
+      "bytes": 8013,
+      "sha256": "6d30c57d03708be677414ef6cb2871d1b6c4f97001c4449ce6342662c4d3166b"
+    },
+    {
+      "path": "reports/final_report_draft_v1.md",
+      "bytes": 20577,
+      "sha256": "ee94ed1bd2fccb8d21680a730aa36e6b5dc730c5980a8f34d35824d574ccb029"
+    },
+    {
+      "path": "reports/native_cohort_control_contract.md",
+      "bytes": 3179,
+      "sha256": "654e9bace61a640e478777b9405895e84091c93e24c3584dd98b61b090c6716c"
+    },
+    {
+      "path": "reports/native_dp4_cohort_control_contract.md",
+      "bytes": 8701,
+      "sha256": "d2b8e97fe5bac7f206996469340d2418bd73f0e1502cd5c345dedf681e7b8a3d"
+    },
+    {
+      "path": "reports/native_tp2_dp2_cohort_control_contract_v1.md",
+      "bytes": 8797,
+      "sha256": "0ebba1e8c58e9966f1e9cd4ff69d78e5167cbe13cce1bd066318994b5994d07b"
+    },
+    {
+      "path": "reports/native_long_context_control_contract.md",
+      "bytes": 1947,
+      "sha256": "b0963f7ca8f4a2800ae01434f8eece4c211067ec403f1e0b8c40ceff3bafa827"
+    },
+    {
+      "path": "reports/native_cohort_sampler_source_audit.md",
+      "bytes": 10341,
+      "sha256": "5d49ee371504cb0d598de4608442806d1eefbe27fba70c944f1ce6122df65d71"
+    },
+    {
+      "path": "artifacts/native_cohort_protocol_v1.json",
+      "bytes": 1295,
+      "sha256": "57e0d81fe4bc250e6ca0c408afad77085c8cfc2d07b05efbdbe3aed76ea43710"
+    },
+    {
+      "path": "artifacts/native_cohort_protocol_v2.json",
+      "bytes": 1565,
+      "sha256": "240eb229b37734a532c38c7e08d008a3dc2cabb98ec3c7be7d0f64d46b7d42f9"
+    },
+    {
+      "path": "artifacts/native_dp4_cohort_protocol_v1.json",
+      "bytes": 1202,
+      "sha256": "2480d57006aca60289e1354218969df36d65f1a809b53b99982c105064d3bac6"
+    },
+    {
+      "path": "artifacts/native_tp2_dp2_cohort_protocol_v1.json",
+      "bytes": 1328,
+      "sha256": "46b7af3a5f3f86b6095c6a1d96b446f2e2ea246be29e849720904c390c7e7ab1"
+    },
+    {
+      "path": "artifacts/native_long_context_protocol_v1.json",
+      "bytes": 1238,
+      "sha256": "7563bf9bb5d8a7ed8facf3146aedcf4e631d582c0966d7c6d77e533972e924fd"
+    },
+    {
+      "path": "contract.py",
+      "bytes": 1796,
+      "sha256": "dc5dafe85aa5b8e3eb770f946bdaf34c7b730ca3a376245ee11d1488ac0f3492"
+    },
+    {
+      "path": "scripts/native_cohort_control.py",
+      "bytes": 6471,
+      "sha256": "8a6a92c0c4bd80671bd2744f3db26bd1043b2cd5a332f450708bd54bd0b3f074"
+    },
+    {
+      "path": "scripts/native_dp4_cohort_control.py",
+      "bytes": 11667,
+      "sha256": "87ca8c2ce94d645fa01595f610ed22f5b15b6f32aee0bbcbdc03061d5260e8d8"
+    },
+    {
+      "path": "scripts/native_dp4_cohort_worker.py",
+      "bytes": 6576,
+      "sha256": "0c268e6a83870184e99fb4f515469d4eadaddb9d7bdfc1fd152956adeb3fc0c9"
+    },
+    {
+      "path": "scripts/native_tp2_dp2_cohort_control.py",
+      "bytes": 13078,
+      "sha256": "713e44104053e52860197023336f147536595101da28f75b70b9fd36b5014914"
+    },
+    {
+      "path": "scripts/native_tp2_dp2_cohort_worker.py",
+      "bytes": 7867,
+      "sha256": "a2b1ad6ee239260a2f1e38a267c75c4a5f8fbbafae706ee3e47380a5716b4e52"
+    },
+    {
+      "path": "scripts/native_long_context_control.py",
+      "bytes": 5946,
+      "sha256": "82a7b82a4f97beef1a7cf1fe19467d102472529d11954e5662a71b8363a2147d"
+    },
+    {
+      "path": "scripts/run_native_cohort_controls.py",
+      "bytes": 2179,
+      "sha256": "5f1de14af07c2bc53bb6c196b8a08a3e06a7646104d49832e83c81bdbce00155"
+    },
+    {
+      "path": "scripts/run_native_long_context_controls.py",
+      "bytes": 3068,
+      "sha256": "d1b8d06fd1a27fb6d351c06d2335da6a25f3a0ea5e473e4d0313e9ffe614ed4f"
+    },
+    {
+      "path": "scripts/analyze_native_tp_dp_cohorts.py",
+      "bytes": 17082,
+      "sha256": "69b511896dca837173bff7fe3516260c85e5eb3c7a1e35da8b3f59d0257b2cfa"
+    },
+    {
+      "path": "scripts/analyze_native_hybrid_cohorts.py",
+      "bytes": 11838,
+      "sha256": "3e81e7a33f134b4f6af89bbf5f6704309cdf3a5956f91f588c5d88ac390b9e7f"
+    },
+    {
+      "path": "scripts/analyze_native_long_context.py",
+      "bytes": 8636,
+      "sha256": "5e1d1ef2553299006b88ba17821943edcea45ebdcf34b072f6e8ed11b7687f6a"
+    },
+    {
+      "path": "scripts/analyze_native_cohorts.py",
+      "bytes": 5749,
+      "sha256": "4bef5d5a22eefafcb1f4c38505f9ee760c98cbbc2abfa8b73f8976e85f2f5b5d"
+    },
+    {
+      "path": "scripts/run_cpu_tests_isolated.py",
+      "bytes": 2445,
+      "sha256": "0af9d3eec4fd390a4e493d526faf4ab3ef6469cfe756bf7183b1526b58a40af0"
+    },
+    {
+      "path": "scripts/checkpoint.py",
+      "bytes": 4767,
+      "sha256": "25694afa9cff7834881ca8726cb96f73742263502cab569d8e86e7f856eb1d1a"
+    },
+    {
+      "path": "dp4_cohort.py",
+      "bytes": 6950,
+      "sha256": "a149c6f8f36576df12ae318f41808f88c63978928a19eef5845e4a7de0b6af64"
+    },
+    {
+      "path": "tp2_dp2_cohort.py",
+      "bytes": 8654,
+      "sha256": "bdfd43857dab7b96e1749f7b6a99d14e82d7f7994de5d4bf0799582b89d1a7e5"
+    },
+    {
+      "path": "scripts/score_quality.py",
+      "bytes": 7106,
+      "sha256": "6a658c18820caf4d70d8b437dead7f11a9a4c4d39e28d74f9a484f2d0b30b912"
+    },
+    {
+      "path": "scripts/build_result_tables_cd.py",
+      "bytes": 12176,
+      "sha256": "76bc1747a9e44a96c42bbe7df61b3c3bcf773bd88597de275cf2f722f200065c"
+    },
+    {
+      "path": "scripts/validate_native_quality_extension.py",
+      "bytes": 6830,
+      "sha256": "0c49b1f0a125a91a3633361beae9b7a4a409d991924351047bddf116e8d50841"
+    },
+    {
+      "path": "scripts/analyze_native_quality_extension.py",
+      "bytes": 4576,
+      "sha256": "9434232f3f5637283827a9317f8b02109d6a4befea2a2537ef71d8eb1569ba29"
+    },
+    {
+      "path": "scripts/validate_baseline_extension_integrity.py",
+      "bytes": 7335,
+      "sha256": "7e1055b436784a01fe281e6c457f8a6eacb78e9c12e641b2338241b6b9c7c5e6"
+    },
+    {
+      "path": "scripts/analyze_baseline_extension.py",
+      "bytes": 15693,
+      "sha256": "b9d24f781dcbd7f98274e1f61182e7c8c77439be933578a7f26d7970bd031bf9"
+    },
+    {
+      "path": "scripts/depth_affinity_extension_screen.py",
+      "bytes": 4666,
+      "sha256": "f152cbd664e0cf8b0352de9f31b6f6c4eff51b1756d58f04d5d6f830b0610626"
+    },
+    {
+      "path": "scripts/build_research_ledger.py",
+      "bytes": 12052,
+      "sha256": "4500675836989a172e3ea9184f2460193867e19196bb53fdb2e3874ba976ab35"
+    },
+    {
+      "path": "scripts/communication_probe.py",
+      "bytes": 4165,
+      "sha256": "270a18f50494a26849f599de260df0d407bf79cf2a0ea4bd4d84c6fbc6e7e891"
+    },
+    {
+      "path": "scripts/component_probe.py",
+      "bytes": 8001,
+      "sha256": "2254867cb4e7d4b46b50d455cd7c375680066ee3798bb2a73245cae6d1619629"
+    },
+    {
+      "path": "analysis/native_hybrid_cohorts_complete_v3/summary.json",
+      "bytes": 281444,
+      "sha256": "e31f20a8a59ef96085c89ec939497203f833639e1b80aeda3d5eeace46f5e56e"
+    },
+    {
+      "path": "analysis/native_hybrid_cohorts_complete_v3/summaries.csv",
+      "bytes": 15542,
+      "sha256": "f9813be1405489bf8ab06d3ac2960a03e3787a3e4b4e3302a47cfb922a78545f"
+    },
+    {
+      "path": "analysis/native_hybrid_cohorts_complete_v3/trials.csv",
+      "bytes": 51443,
+      "sha256": "fbd04be34e3935d226893e77bef70d3cfe5bd37b43beec70e48860301e61d05a"
+    },
+    {
+      "path": "analysis/native_hybrid_cohorts_complete_v3/comparisons.csv",
+      "bytes": 2344,
+      "sha256": "3215e79144c8f504c2a8a6b09c66bde2f4108e54577a71823b613e51f56fc2f0"
+    },
+    {
+      "path": "analysis/long_context_complete_v2/summary.json",
+      "bytes": 56168,
+      "sha256": "13ad1266c17da48eb51866c456084d820c526bc95d86da7cfe7a2fa9ab5b7cb4"
+    },
+    {
+      "path": "analysis/long_context_complete_v2/cells.csv",
+      "bytes": 2724,
+      "sha256": "41500f3c9fa7c8589493230dfdee76db7792cf3fc304aa37198d8c876a98cd6e"
+    },
+    {
+      "path": "analysis/long_context_complete_v2/trials.csv",
+      "bytes": 24962,
+      "sha256": "3e1f68654ebf9937b36ee0e41fb46ad18e5290eff52125dab500c6fe338356ed"
+    },
+    {
+      "path": "analysis/long_context_complete_v2/paired_speedup.csv",
+      "bytes": 3237,
+      "sha256": "813a042300795d2a2062d8877d7d95d61bb01583ca72a49ee011717a26767fbb"
+    },
+    {
+      "path": "artifacts/baseline_extension_launch_contract_v1.json",
+      "bytes": 1556,
+      "sha256": "02bd4dbfe69f882e9c610d3071df6cc13c1e2ba2df8728f0c369adb3f38aa37a"
+    },
+    {
+      "path": "artifacts/final_report_independent_review_v1.json",
+      "bytes": 15240,
+      "sha256": "96c7de9772c8037d2c055ca3f307c74bcd63655d8466e1fc6678f8b50382505c"
+    },
+    {
+      "path": "artifacts/native_quality_extension_contract_v1.json",
+      "bytes": 2855,
+      "sha256": "c5f3b44674e3c04e4407a9aed03f603f96ed7ff74480b4591ef75a0e300c0b01"
+    },
+    {
+      "path": "artifacts/native_quality_extension_contract_v2.json",
+      "bytes": 3352,
+      "sha256": "2f340b37ac6883b459b8ef2ef3f53df4199f13547820cb1e779040443aba701e"
+    },
+    {
+      "path": "reports/native_quality_extension_contract_v1.md",
+      "bytes": 3634,
+      "sha256": "b54fcd3f5311966dcc4379d5d2b232afbf971fdd3a0f76d310694d8e7ff26836"
+    }
+  ],
+  "complete_contract_reads": [
+    "reports/reproduce_final_v1.md",
+    "reports/native_cohort_control_contract.md",
+    "reports/native_dp4_cohort_control_contract.md",
+    "reports/native_tp2_dp2_cohort_control_contract_v1.md",
+    "reports/native_long_context_control_contract.md",
+    "artifacts/native_cohort_protocol_v1.json",
+    "artifacts/native_cohort_protocol_v2.json",
+    "artifacts/native_dp4_cohort_protocol_v1.json",
+    "artifacts/native_tp2_dp2_cohort_protocol_v1.json",
+    "artifacts/native_long_context_protocol_v1.json",
+    "reports/native_cohort_sampler_source_audit.md",
+    "artifacts/baseline_extension_launch_contract_v1.json",
+    "artifacts/native_quality_extension_contract_v1.json",
+    "artifacts/native_quality_extension_contract_v2.json",
+    "reports/native_quality_extension_contract_v1.md"
+  ],
+  "inspection_limits": {
+    "draft_matches_preceding_full_read": true,
+    "draft_read_rule": "Complete draft read in preceding review. Byte identity checked here. Performance sections revisited here.",
+    "runner_source": "TP and context runners read completely. DP/hybrid control, worker, and helper timing/source contracts inspected. Some initial combined outputs truncated and targeted reads followed.",
+    "analyzers": "Closed hardware analyzers and numerical metric formulas inspected. Reproduction selector source inspected without executing any analyzer.",
+    "native_quality": "Frozen launch/analysis contracts and selector code only. No native v2 output file, status, integrity artifact, or outcome was opened.",
+    "preservation": "checkpoint.py inspected statically. Its verify command was not executed here.",
+    "compiled_binaries": "Not rebuilt or fully identified. Existing guide correctly disclaims a portable image and complete build receipt.",
+    "render_or_new_tests": "No figures rendered and no regression suite executed."
+  },
+  "audit_attempt_notes": [
+    "Two numerical traversals completed successfully, but printing broad receipt maps exceeded the tool output limit and blocked JSON parsing of that display.",
+    "A bounded receipt serialization then passed. No raw data changed.",
+    "An initial assertion tested the overly broad largest-to-smallest0.4% reading. It failed and exposed the comparator ambiguity. The intended TP4-versus-best comparison passes."
+  ],
+  "validation": {
+    "CPU_numerical_checks": "PASS",
+    "raw_hash_checks": "PASS: 667 inputs.",
+    "source_manifest_entries": 52,
+    "report_lint": {
+      "violations": 0,
+      "hard_count": 0,
+      "words": 1596
+    },
+    "JSON_syntax": "PASS",
+    "source_hash_recheck": "PASS: 52 source receipts and 16 run receipts.",
+    "report_links": "PASS",
+    "device_mapping_assertions": "PASS",
+    "validation_completed_utc": "2026-10-19T19:15:38Z",
+    "validation_accounting": "Final validation is after the stated cutoff. It does not enter the 514-second interval."
+  }
+}

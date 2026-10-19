@@ -1,44 +1,39 @@
 # Ouro parallelism deep discovery
 
-Status: `ACTIVE`. This is a resumable campaign, not a completed architecture result.
-The authoritative contract requires ten substantive hours before normal completion.
-The current time ledger records less than that duration.
+This directory contains the isolated dense-Ouro research campaign.
+It preserves code, raw outputs, source records, scoped negative results, and failed attempts.
+Model weights and compiled caches are not stored here.
 
-The empirical targets are dense Base Ouro-1.4B and Base Ouro-2.6B.
-The modes are fixed R4 and the pinned original-gate adaptive path.
-BF16 weights remain unchanged. No new component receives training.
-Only physical GPUs 4/5/6/7 belong to this campaign.
-P8 remains unmeasured.
+## Current status
+
+The bounded research campaign is closed.
+The [final synthesis](reports/final_report.md) selects no qualifying new architecture.
+The [completion receipt](artifacts/completion_receipt_v1.json) records duration and validation scope.
+Git transport remains a separate verified publication step.
+The current shortlist contains zero qualifying architectures.
+No candidate has a measured E2E speedup or a free-running quality result.
 
 ## Read first
 
-- [Saved state](research_state.json)
-- [Progress](reports/progress_log.md)
-- [Next actions](reports/next_actions.md)
-- [Specification snapshot](reports/spec_snapshot.md)
-- [Reproduction](reports/reproduce.md)
+- [Authoritative contract snapshot](reports/spec_snapshot.md)
+- [Current state](research_state.json)
+- [Current actions and historical checkpoints](reports/next_actions.md)
+- [Interpretation rules](reports/interpretation_contract_v1.md)
+- [Tables A/B/E/F](reports/current_tables_abef_overlay_v1.md)
+- [Performance, quality, and cost panels](analysis/result_tables_cd_complete_v2/tables_cd.md)
+- [Completed staged baseline extension](reports/baseline_extension_complete_v1.md)
+- [Completed native baseline extension](reports/native_quality_extension_complete_v1.md)
+- [Korean synthesis](reports/final_summary_ko.md)
+- [Completion obligations and remaining limits](reports/completion_obligations_v1.md)
+- [Reproduction and resource safety](reports/reproduce_final_v1.md)
 
-## Current evidence
+## Evidence boundaries
 
-- [Prior evidence and isolation](reports/scope_and_prior_evidence.md)
-- [Actual Ouro semantics](reports/ouro_semantics_audit.md)
-- [Exact frontier](reports/exact_frontier_contract.md)
-- [Candidate dispositions](artifacts/candidate_checkpoint.json)
-- [Cost screens](reports/cost_and_headroom.md)
-- [Quality boundaries](reports/quality_and_exactness.md)
-- [Measured native and component CSV](analysis/checkpoint_03/)
+Conventional baseline measurements are not new architectures.
+GPU components, structural bounds, fitted models, and source-reported results remain separate.
+The 19 frozen labels do not mean 19 measured architecture failures.
+The original held-out remains untouched.
+P8 performance is not measured.
 
-No candidate has measured architecture E2E speedup.
-Several screens reject a tested mechanism or identify direct prior overlap.
-Those outcomes do not prove that every new Ouro architecture is impossible.
-
-## Raw evidence
-
-Each `outputs/` directory contains a unique run contract, console log, source snapshot, and guard status.
-Successful model/component runs contain their own raw metrics.
-Failed attempts remain versioned beside successful attempts.
-The private process inventory is not a publication artifact.
-
-The source registry retains read depth, versions, code locators, and unresolved metadata.
-The generated ledger snapshots do not replace original source notes.
-Paper versions and concurrent worker activity must not inflate source counts or elapsed campaign hours.
+Branch: `flashvep/ouro-parallelism-deep-discovery`.
+The publication receipt and Git history identify the final transported payload.
