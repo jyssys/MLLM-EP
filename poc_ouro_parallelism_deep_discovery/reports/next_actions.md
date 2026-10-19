@@ -72,3 +72,16 @@ No candidate runtime or architecture speedup is available.
 8. Keep all candidate quality and the untouched held-out cohort separate from baseline calibration.
 9. Commit and push only this campaign's scoped evidence.
 10. Continue substantive research. About 4.80 coordinator hours are recorded, not ten hours.
+
+## Current actions after the 15:24 UTC checkpoint
+
+1. Finish queue78046 and independently validate all native context trials and sampled captures.
+2. Keep failed attempts and corrected request-timestamp denominators separate from completed controls.
+3. Review actual V2 entry points, request identities, and padding snapshots before a C07 GPU run.
+4. Do not use an eager-only component result as a strongest-native architecture comparison.
+5. Complete the remaining both-size TP2 natural calibration on the same frozen requests.
+6. Archive large fixture bytes losslessly before publication. Retain the original ignored file.
+7. Audit storage NPZ comparison paths before another numerical-cause hypothesis.
+8. Complete the interim candidate evidence matrix without selecting a finalist from structural evidence alone.
+9. Preserve held-out quality until a primary candidate and protocol freeze.
+10. Continue substantive research. About5.53 coordinator hours are recorded, not ten hours.

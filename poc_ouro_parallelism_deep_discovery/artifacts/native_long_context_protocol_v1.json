@@ -1,0 +1,21 @@
+{
+  "status": "FROZEN_BEFORE_RESULTS",
+  "purpose": "Native C1 context scaling and capacity preflight. Not a candidate engine or natural task quality.",
+  "contexts": [1024, 8192, 16384, 32768],
+  "generated_tokens": 128,
+  "warmup_repeats": 3,
+  "repeats": 3,
+  "order_seed": 20261019,
+  "max_model_len": 32896,
+  "max_num_batched_tokens": 32896,
+  "kv_pool_aggregate_bytes": 55834574848,
+  "kv_pool_ownership": "Divide the52GiB aggregate native KV pool evenly across TP ranks. TP1/TP2/TP4 allocate52/26/13GiB per rank.",
+  "max_num_seqs": 1,
+  "cudagraph_capture_sizes": [1],
+  "depth": "FixedR4 only. No adaptive quality claim.",
+  "precision": "BF16",
+  "output_policy": "Native greedy sampler with one allowed non-EOS token, shared across all cells.",
+  "input_policy": "Two frozen 8192-token patterns. Truncate or repeat each pattern to the declared length. Synthetic long-context hardware workload.",
+  "memory_boundary": "The52GiB aggregate native KV pool covers the audited Base2.6B C1 request including native null blocks. Activation and workspace safety still require the run.",
+  "evidence_boundary": "Controlled API E2E. Native request metrics are separate. Memory allocation is not HBM traffic. No new placement speedup."
+}

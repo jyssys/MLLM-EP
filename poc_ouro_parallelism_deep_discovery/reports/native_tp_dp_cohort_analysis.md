@@ -42,8 +42,8 @@ The DP4 column uses observed parent wall.
 | 1.4B | 1024 | 2 | 1166.76 | 1001.47 | 899.90 | 1046.60 |
 | 1.4B | 1024 | 4 | 1265.09 | 1054.85 | 945.34 | 1091.82 |
 | 1.4B | 1024 | 8 | 1493.11 | 1200.88 | 1014.67 | 1206.25 |
-| 1.4B | 4096 | 1 | 1218.46 | 1011.08 | 863.74 | 1214.87 |
-| 1.4B | 4096 | 2 | 1449.46 | 1166.61 | 993.63 | 1213.40 |
+| 1.4B | 4096 | 1 | 1218.46 | 1011.08 | 863.75 | 1214.87 |
+| 1.4B | 4096 | 2 | 1449.47 | 1166.61 | 993.63 | 1213.40 |
 | 1.4B | 4096 | 4 | 1907.49 | 1426.70 | 1144.34 | 1216.29 |
 | 1.4B | 4096 | 8 | 2781.51 | 1924.30 | 1450.21 | 1446.82 |
 | 2.6B | 1024 | 1 | 2062.76 | 1826.40 | 1628.60 | 2097.56 |
@@ -51,7 +51,7 @@ The DP4 column uses observed parent wall.
 | 2.6B | 1024 | 4 | 2469.34 | 2074.72 | 1893.50 | 2120.22 |
 | 2.6B | 1024 | 8 | 2904.01 | 2369.12 | 1999.82 | 2304.72 |
 | 2.6B | 4096 | 1 | 2403.27 | 1990.85 | 1718.98 | 2398.70 |
-| 2.6B | 4096 | 2 | 2867.94 | 2298.62 | 1984.75 | 2397.72 |
+| 2.6B | 4096 | 2 | 2867.94 | 2298.62 | 1984.76 | 2397.72 |
 | 2.6B | 4096 | 4 | 3788.88 | 2818.43 | 2261.57 | 2401.67 |
 | 2.6B | 4096 | 8 | 5562.20 | 3826.57 | 2877.71 | 2868.59 |
 
@@ -105,5 +105,6 @@ Do not compare these constant-token values with the earlier changing-teacher wor
 Worker start: 2026-10-19 14:34:00 UTC.
 Completed-data snapshot: 2026-10-19 14:38:07 UTC.
 Reproduction checkpoint: 2026-10-19 14:39:56 UTC.
-The validation artifact records the final verification cutoff.
+Final verification cutoff: 2026-10-19 14:42:36 UTC.
+The worker segment spans 516 seconds through that cutoff.
 Concurrent worker time is not additional campaign elapsed time.

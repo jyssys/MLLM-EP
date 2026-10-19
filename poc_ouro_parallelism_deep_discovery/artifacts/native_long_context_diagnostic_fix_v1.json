@@ -1,0 +1,58 @@
+{
+  "status": "CPU_FIX_CHECKS_PASS_GPU_RERUN_NOT_RUN",
+  "actual_time": {
+    "start_utc": "2026-10-19 15:08:27 UTC",
+    "end_utc": "2026-10-19 15:11:49 UTC",
+    "elapsed_seconds": 202,
+    "scope": "Failure inspection, CPU reproduction, scoped adapter, CPU tests, report, and source-only runner comparison. Ledger serialization follows this segment."
+  },
+  "failure": {
+    "job": "outputs/native_longctx_base14_P1_v2",
+    "clean_trial_files_present": 24,
+    "memory_after_json_present": true,
+    "guard_success": false,
+    "exception": "AttributeError: 'Worker' object has no attribute 'teacher_index'",
+    "console_locator": "outputs/native_longctx_base14_P1_v2/console.log:105",
+    "legacy_locator": "poc_looped_recurrence_tp_4models/worker_probe.py:97",
+    "cause": "The legacy exporter unconditionally reads a teacher-hook counter in returned metadata. Native allowed_token_ids does not create that counter.",
+    "initial_cpu_reproduction": "One test ERROR at the actual legacy finish_parity_capture return expression. AttributeError names teacher_index."
+  },
+  "fix": {
+    "helper": "long_context_diagnostic.py:4",
+    "extension": "long_context_probe.py:6",
+    "runner_selection": "scripts/native_long_context_control.py:40",
+    "temporary_field": "teacher_index=0 only during the legacy post-timing export call",
+    "cleanup": "Restore a prior instance field or remove the temporary field. The finally block also applies when export fails.",
+    "teacher_steps": "NOT_APPLICABLE",
+    "sampling_control": "NATIVE_ALLOWED_TOKEN_IDS",
+    "teacher_index_compatibility": "TEMPORARY_EXPORT_ONLY",
+    "sampler_change": "NONE",
+    "teacher_hook_installation": "NONE",
+    "installed_teacher_hook": "Reject before exporter invocation.",
+    "clean_runtime_instrumentation": "NONE"
+  },
+  "validation": {
+    "new_diagnostic_tests": 9,
+    "existing_protocol_tests": 2,
+    "default_interpreter": {"tests": 11, "result": "PASS", "reported_seconds": 0.008},
+    "campaign_interpreter": {"tests": 11, "result": "PASS", "reported_seconds": 0.008},
+    "command": "python -m unittest poc_ouro_parallelism_deep_discovery.tests.test_long_context_diagnostic_cpu poc_ouro_parallelism_deep_discovery.tests.test_long_context_protocol_cpu -v",
+    "py_compile": "PASS",
+    "report_lint": {"violations": 0, "hard_violations": 0},
+    "runner_snapshot_comparison": "PASS. Current runner equals the v2 source_snapshot.zip runner plus only the worker_extension_cls selection.",
+    "cpu_scope": "The suite executes the actual legacy function AST with CPU stubs. It checks the missing-field failure, adapted export, metadata labels, cleanup, inherited state, native-style extension injection, and unchanged sampler identity.",
+    "gpu_commands": 0,
+    "gpu_execution": "NOT_RUN",
+    "timing_rerun": "NOT_RUN",
+    "native_gpu_diagnostic_export": "PENDING_REVIEWED_RUN"
+  },
+  "sha256": {
+    "legacy_unchanged_poc_looped_recurrence_tp_4models/worker_probe.py": "0ee368eeb6a9717dbbcd07f1b4e400831517c0b188240765991ee5b7cf88d738",
+    "long_context_diagnostic.py": "3b6aaac56065e0c12100d62a662745662e6be1009b88512193eaadb65b69ebef",
+    "long_context_probe.py": "6f78fbbda65c2ab108b6d4af642fb5ea8358ae8ff9da8522124fff2a64f57682",
+    "scripts/native_long_context_control.py": "82a7b82a4f97beef1a7cf1fe19467d102472529d11954e5662a71b8363a2147d",
+    "tests/test_long_context_diagnostic_cpu.py": "eccd67c62bd3c7209779430e363756b2bc0deaa2ac5462213185150172d8bb7e",
+    "reports/native_long_context_diagnostic_fix_v1.md": "21a5d5598ab6b423fb84dc24ba5624779670048ed2bfc95abe3e1683f9803d12"
+  },
+  "preserved": ["All v1 outputs", "All v2 outputs", "Legacy source", "Installed packages", "Native sampler", "Frozen workload and timing intervals", "Queue and GPU guards"]
+}

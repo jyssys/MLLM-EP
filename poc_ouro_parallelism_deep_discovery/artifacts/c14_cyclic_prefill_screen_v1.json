@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "worker": "/root/literature_audit",
+  "segment_start_utc": "2026-10-19T14:48:41Z",
+  "segment_verification_cutoff_utc": "2026-10-19T14:57:39Z",
+  "elapsed_seconds": 538,
+  "evidence_class": "PRIMARY_SOURCE_AND_STRUCTURAL_ACCOUNTING",
+  "changed_assumption": "Installed default pipeline IR does not preserve active cross-stage tied aliases. Graph representation does not prove stock storage preservation.",
+  "decision": "GENERIC_ONLY for physical-layer-stationary cyclic prefill with the granted matched generic baseline. No architecture-wide performance rejection.",
+  "candidate_status_changed": false,
+  "new_candidate_cards": 0,
+  "GPU_execution": false,
+  "runner_edits": false,
+  "package_or_environment_changes": false,
+  "frozen_evidence_edits": false,
+  "baseline_grants": [
+    "Identical physical weight owners and buffers",
+    "Identical causal chunk DAG and recurrent norms",
+    "Identical depth-indexed KV ownership, versions, capacity, and publication",
+    "Identical kernels and boundary tensor representation",
+    "Identical streams, events, messages, and schedule freedom"
+  ],
+  "trace_identity": "Map each operation, allocation, message, synchronization event, and resource order identically. The constructed generic executor reproduces the physical trace. This is not a stock-runtime Ouro performance result.",
+  "structural_accounting": {
+    "R": 4,
+    "P": 4,
+    "hidden_size": 2048,
+    "BF16_bytes": 2,
+    "dense_matrices_per_layer": 7,
+    "dense_bytes_per_layer": 102760448,
+    "dense_definition": "Four H-by-H attention matrices plus three H-by-I MLP matrices. H=2048,I=5632. Excludes non-core tensors, scratch, and overhead.",
+    "KV_formula_bytes_per_token_all_owners": "R*2*L*H*BF16_bytes",
+    "balanced_layouts": ["Physical-layer stationary cyclic PP4", "Native TP4"],
+    "rows": [
+      {"model":"Base 1.4B","L":24,"physical_layers_per_owner":6,"W_core_bytes":2466250752,"W_core_rank_MiB":588,"R4_KV_token_bytes":786432,"R4_KV_token_rank_bytes":196608,"C8_N4096_KV_rank_MiB":6144,"C8_N4096_core_plus_KV_rank_MiB":6732},
+      {"model":"Base 2.6B","L":48,"physical_layers_per_owner":12,"W_core_bytes":4932501504,"W_core_rank_MiB":1176,"R4_KV_token_bytes":1572864,"R4_KV_token_rank_bytes":393216,"C8_N4096_KV_rank_MiB":12288,"C8_N4096_core_plus_KV_rank_MiB":13464}
+    ],
+    "core_hops_per_chunk": 15,
+    "hops_formula": "R*P-1",
+    "one_hidden_row_bytes": 4096,
+    "one_row_case_core_payload_bytes_per_token": 61440,
+    "message_caveat": "Native internal layer cuts retain hidden and residual. The one-row case is not a verified BF16 native boundary representation. Charge actual tensors, metadata, synchronization, and routing.",
+    "frontier_correction": "min(P,C) was a current-token decode bound. Known causal prefill chunks can supply work at C=1 without stale inputs.",
+    "no_TP_KV_transfer_saving": true,
+    "performance_estimate": false
+  },
+  "latency_condition": {
+    "definitions": "T_C0/T_T0 are fixed-schedule zero-network-cost makespans with actual compute, kernel shapes, KV dependencies, local control, buffers, and resource orders. D_C=T_C-T_C0. D_T=T_T-T_T0.",
+    "necessary_inequality": "D_T > (T_C0 - T_T0) + D_C",
+    "classification": "Accounting identity, not a measured prediction.",
+    "unmeasured": ["Full-matrix chunk/prefix kernels", "Exposed TP communication", "Cyclic boundary transfer/startup", "Communication-induced kernel slowdown", "Resource-constrained recurrent chunk schedule", "Matched isolated TP4 prefill wall"],
+    "lower_bound_rule": "Use max(slowest-owner service bound, longest dependency-path bound). Do not sum overlapping bounds. A measured component is not a universal lower bound. State kernel, grouping, fusion, and scheduling restrictions.",
+    "E2E_warning": "Completed cohort controls include 128 decode tokens. They do not isolate prefill time."
+  },
+  "unresolved_distinct_mechanism": "None identified under identical aliases, chunk DAG, KV ownership, and schedule freedom. A different ownership mechanism would need an explicit non-identical cost and a matched generic control.",
+  "validation": {
+    "two_model_dense_and_KV_accounting": "PASS",
+    "RP_minus_one_boundary_and_one_row_payload_accounting": "PASS",
+    "source_JSONL_records": 12,
+    "search_JSONL_records": 13,
+    "JSON_and_JSONL_parse": "PASS",
+    "report_lint": {"hard_count":0,"all_findings":0,"exit_code":0},
+    "GPU_or_runner_execution": "NONE",
+    "new_files": ["reports/c14_cyclic_prefill_reopening_audit_v1.md","artifacts/c14_cyclic_prefill_sources_v1.jsonl","artifacts/c14_cyclic_prefill_searches_v1.jsonl","artifacts/c14_cyclic_prefill_screen_v1.json"]
+  },
+  "time_scope": "One actual worker interval through the recorded verification cutoff. Concurrent worker intervals do not add campaign elapsed time."
+}

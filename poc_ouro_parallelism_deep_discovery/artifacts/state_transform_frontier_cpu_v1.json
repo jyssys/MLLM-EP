@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "started_utc": "2026-10-19T15:12:34.124156+00:00",
+  "ended_utc": "2026-10-19T15:12:34.124323+00:00",
+  "evidence_class": "CPU_ALGEBRA_AND_SCOPE_CHECKS",
+  "script_sha256": "2d74b5584fc5bd6da181185735a110eb6beccd7be8f0d8a18527f01c94c49aa4",
+  "model_execution": false,
+  "GPU_execution": false,
+  "checks": [
+    {
+      "id": "known_affine_positive_control",
+      "status": "PASS",
+      "states": [
+        "9/8",
+        "31/16",
+        "105/32",
+        "347/64"
+      ],
+      "claim": "Known affine summaries compose associatively. This checks algebra, not physical parallel execution."
+    },
+    {
+      "id": "balanced_composition_evaluation",
+      "status": "PASS",
+      "composition_tree_height": 2,
+      "dependent_leaf_calls": 4,
+      "leaf_inputs": [
+        1,
+        2,
+        5,
+        26
+      ],
+      "output": 677,
+      "claim": "A balanced composition syntax does not itself shorten opaque function evaluation."
+    },
+    {
+      "id": "polynomial_lift_scope",
+      "status": "PASS",
+      "four_step_powers_for_F_x_squared": [
+        1,
+        2,
+        4,
+        8,
+        16
+      ],
+      "claim": "A finite polynomial basis with a positive largest degree is not invariant under x->x^2. A four-step expression remains finite. Neither fact decides cheap nonpolynomial transforms."
+    },
+    {
+      "id": "reversible_coupling_positive_control",
+      "status": "PASS",
+      "cases": 3,
+      "claim": "The inverse reconstructs inputs from available outputs. Forward y2 still consumes actual y1."
+    },
+    {
+      "id": "bf16_translation_collision",
+      "status": "PASS",
+      "inputs": [
+        0.0,
+        0.00390625
+      ],
+      "outputs": [
+        1.0,
+        1.0
+      ],
+      "claim": "A real inverse need not invert a rounded implementation. This is a BF16 RNE toy, not an Ouro collision observation."
+    },
+    {
+      "id": "epsilon_rmsnorm_inverse_positive_control",
+      "status": "PASS",
+      "input": [
+        "3",
+        "4"
+      ],
+      "output": [
+        "3/2",
+        "3"
+      ],
+      "claim": "Real RMSNorm with positive epsilon and nonzero gains can be invertible on its range. This does not establish full-core or BF16 invertibility."
+    }
+  ],
+  "check_count": 6,
+  "status": "PASS"
+}

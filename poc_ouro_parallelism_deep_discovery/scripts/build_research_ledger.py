@@ -14,7 +14,9 @@ JSONL_INPUTS=['literature_sources.jsonl','parallel_sampling_sources.jsonl',
     'loopahead_searches.jsonl','folded_layout_sources.jsonl',
     'cuda_graph_event_node_sources.jsonl','typed_graph_edge_export_sources.jsonl',
     'hydragen_transfer_observations.jsonl','depth_sharded_verifier_sources.jsonl',
-    'depth_sharded_verifier_searches.jsonl']
+    'depth_sharded_verifier_searches.jsonl',
+    'c14_cyclic_prefill_sources_v1.jsonl','c14_cyclic_prefill_searches_v1.jsonl',
+    'state_transform_frontier_sources_v1.jsonl','state_transform_frontier_searches_v1.jsonl']
 JSON_INPUTS=['coordinator_sources.json','independent_candidate_seeds.json',
     'persistent_execution_audit.json','layout_residual_cpu.json',
     'certified_decision_cpu.json','branch_ownership_cost_ledger.json',
@@ -23,7 +25,12 @@ JSON_INPUTS=['coordinator_sources.json','independent_candidate_seeds.json',
     'dwdp_dense_observations_v1.json','candidate_search_v5_source_observations.json',
     'candidate_search_v6_source_observations.json','pipeline_alias_source_observations_v1.json',
     'long_context_capacity_source_audit.json','native_cohort_sampler_source_audit.json',
-    'candidate_search_v7_source_observations.json']
+    'candidate_search_v7_source_observations.json','cuda_graph_argument_feasibility_v1.json']
+
+def jsonl_kind(name, row):
+    """Retain explicit types. Query-only ledgers do not create source observations."""
+    default = 'search' if 'searches' in name else 'source'
+    return row.get('record_type', row.get('type', default))
 
 def canonical(record):
     text=' '.join(str(record.get(k,'')) for k in ['identifier','url','URL','paper_url','pdf_url'])
@@ -59,7 +66,7 @@ def main():
         for number,line in enumerate(path.read_text().splitlines(),1):
             row=json.loads(line);record={'origin':str(path.relative_to(ROOT)),
                 'line':number,'original':row}
-            kind=row.get('record_type',row.get('type','source'))
+            kind=jsonl_kind(name,row)
             if kind in ['source','source_metadata_only']:source_records.append(record)
             elif kind in ['search','search_batch','repository_search']:search_records.append(record)
             else:other_records.append(record)

@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "worker": "independent_axes",
+  "segment_start_UTC": "2026-10-19T14:50:02Z",
+  "segment_end_UTC": "2026-10-19T14:55:19Z",
+  "elapsed_seconds": 317,
+  "time_scope": "One worker's source-audit interval through report validation. Later metadata publication and separately logged implementation are outside this interval. Concurrent intervals do not add campaign elapsed time.",
+  "activity": "Inspect official CUDA12.9.1 API contracts, installed12.9 headers, package metadata, ELF exports, and PyTorch graph lifetime documentation.",
+  "GPU_execution": false,
+  "CUDA_API_calls": false,
+  "CUDA_library_load": false,
+  "unknown_pointer_reads": false,
+  "graph_or_runner_changes": false,
+  "conclusion": "Conditional bounded argument-value inspection is source-supported. Universal opaque-GEMM operand decoding and current cached-decode weight identity remain unresolved.",
+  "public_APIs": {
+    "cudaGraphKernelNodeGetParams": "Node-owned source-graph argument values and launch metadata. Lifetime ends on destruction or parameter change.",
+    "cudaFuncGetParamInfo": "Per-index device-layout offset and byte size. No type or nested-field schema.",
+    "cuFuncGetParamInfo": "Same metadata for a legitimate CUfunction.",
+    "cuKernelGetParamInfo": "Same metadata for a legitimate CUkernel.",
+    "separate_parameter_count_getter_in_inspected_headers": "NOT_FOUND",
+    "executable_kernel_parameter_getter_in_inspected_headers": "NOT_FOUND",
+    "runtime_func_cast_directly_to_CUfunction": "NOT_AUTHORIZED_BY_TYPE_CONTRACT",
+    "pointer_type_inferred_from_size_8": "UNSAFE_INTERPRETATION"
+  },
+  "safe_boundary": [
+    "Retain a valid source node and serialize graph access.",
+    "Use the matching API and exact structure version for the function handle.",
+    "Read an argument value only after its extent is established by a known signature or successful metadata query.",
+    "Use packed-buffer offsets only within the documented extra buffer extent.",
+    "Interpret a pointer field only with a verified ABI.",
+    "Match known tensor allocation ranges and view offsets without dereferencing device values.",
+    "Require source-to-executable provenance and no untracked updates."
+  ],
+  "unsafe_boundary": [
+    "Scan kernelParams until a null value appears.",
+    "Read guessed fixed-width windows from unknown addresses.",
+    "Treat device-layout offsets as offsets within individual kernelParams entries.",
+    "Follow indirect device buffers, pointer arrays, or descriptors without a schema and version.",
+    "Decode opaque library GEMM structures from public BLAS call signatures.",
+    "Cast runtime host entry symbols to CUfunction without documented conversion.",
+    "Treat source graph values as an audit of arbitrary executable updates.",
+    "Infer HBM transactions or speedup from operand address equality."
+  ],
+  "primary_URLs": [
+    {"URL": "https://docs.nvidia.com/cuda/archive/12.9.1/cuda-runtime-api/group__CUDART__GRAPH.html", "locators": ["cudaGraphKernelNodeGetParams", "cudaGraphAddKernelNode argument representations", "cudaGraphExecKernelNodeSetParams"], "role": "Source-node getter ownership, packed formats, executable update distinction"},
+    {"URL": "https://docs.nvidia.com/cuda/archive/12.9.1/cuda-runtime-api/group__CUDART__EXECUTION.html", "locators": ["cudaFuncGetParamInfo", "function/runtime registration notes"], "role": "Per-parameter offset and size, correct runtime handle"},
+    {"URL": "https://docs.nvidia.com/cuda/archive/12.9.1/cuda-driver-api/group__CUDA__EXEC.html", "locators": ["cuFuncGetParamInfo", "cuLaunchKernel kernelParams/extra"], "role": "Driver metadata and argument forms"},
+    {"URL": "https://docs.nvidia.com/cuda/archive/12.9.1/cuda-driver-api/group__CUDA__GRAPH.html", "locators": ["cuGraphKernelNodeGetParams"], "role": "Driver graph getter"},
+    {"URL": "https://docs.nvidia.com/cuda/archive/12.9.1/cuda-runtime-api/group__CUDART__DRIVER.html", "locators": ["CUfunction/cudaFunction_t", "CUkernel/cudaKernel_t", "cudaGetFuncBySymbol", "cudaGetKernel"], "role": "Documented handle conversion"},
+    {"URL": "https://docs.nvidia.com/cuda/archive/12.9.1/cuda-runtime-api/graphs-thread-safety.html", "locators": ["Section4"], "role": "All accesses to the same graph require external serialization"}
+  ],
+  "installed_package": {
+    "name": "nvidia-cuda-runtime-cu12",
+    "version": "12.9.79",
+    "metadata_path": "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/nvidia_cuda_runtime_cu12-12.9.79.dist-info/METADATA",
+    "CUDA_VERSION": 12090,
+    "CUDART_VERSION": 12090,
+    "worker_loaded_runtime_instance_verified": false,
+    "system_cuda_symlink_resolves_to": "/usr/local/cuda-12.8",
+    "system_header_version_not_used_as_12p9_evidence": true
+  },
+  "installed_files": [
+    {"path": "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/nvidia/cuda_runtime/include/cuda_runtime_api.h", "sha256": "e88147ea668332c16fba1614f159c105973cec9993870e09a4217dd7c17c8f02", "locators": ["line139 CUDART_VERSION", "lines4903–4925 parameter info", "lines10288–10343 argument representations", "lines10378–10409 getter", "lines12744–12802 executable setter", "lines14685–14744 handle conversions"]},
+    {"path": "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/nvidia/cuda_runtime/include/cuda.h", "sha256": "fda3285d055a9f05e40cd76352f9f073d0ab45d42fb5bb0db4bb33b0df506d28", "locators": ["line256 CUDA_VERSION", "line158 graph getter v2 alias", "lines1725–1773 node parameter structures", "lines8790–8811 CUkernel parameter info", "lines17738–17764 CUfunction parameter info", "lines19133–19163 driver graph getter"]},
+    {"path": "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/nvidia/cuda_runtime/include/driver_types.h", "sha256": "537c2198bc3a320a66ac97623283f50bb61e1f25caa317c9994f3738a85b799b", "locators": ["lines3060–3065 graph handle tags", "lines3330–3355 runtime kernel-node structures"]},
+    {"path": "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/nvidia/cuda_runtime/lib/libcudart.so.12", "sha256": "256e6409e4f06f618e1fb53d4844a6b81cdded1013afa8ade40c22f99eb133b7", "inspection": "Static readelf --dyn-syms --wide only", "exports_found": ["cudaGraphKernelNodeGetParams", "cudaFuncGetParamInfo", "cudaGetFuncBySymbol", "cudaGetKernel"]},
+    {"path": "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/cuda/graphs.py", "sha256": "1f4cf2183a1ef1897787c0dc6d13d5afe3ab57de1dd76bb9345323fd64b742b0", "locators": ["lines65–90 CUDAGraph keep_graph lifetime"], "observation": "Default capture destroys source graph after instantiation. keep_graph=True retains access. Current runner setting is not established here."},
+    {"path": "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/include/ATen/cuda/CUDAGraph.h", "sha256": "24b8d011a5d54e9436a26fff7dedd2c18e8fcd8ac2fd20b12b76f3e8ce0d622a", "locators": ["lines24–41", "lines45–55"], "observation": "Source graph and executable handles have distinct fields and lifetimes."}
+  ],
+  "live_diagnostic_status": "NOT_RUN. No actual kernel parameter bytes or cached-decode operand pointers were read.",
+  "recommended_stop_label": "POINTER_BINDING_UNRESOLVED when graph lifetime, executable provenance, argument extent, or operand ABI cannot be established.",
+  "validation": {"report_lint": {"hard_count": 0, "all_findings": 0, "exit_code": 0}, "JSON_and_header_hashes": "PASS"}
+}

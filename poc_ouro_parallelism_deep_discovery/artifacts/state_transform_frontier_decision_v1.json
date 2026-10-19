@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "worker": "/root/literature_audit",
+  "segment_start_utc": "2026-10-19T15:08:37Z",
+  "segment_verification_cutoff_utc": "2026-10-19T15:16:46Z",
+  "elapsed_seconds": 489,
+  "decision": "NO_QUALIFYING_NEW_CANDIDATE",
+  "new_candidate_cards": 0,
+  "coordinator_status_edits": false,
+  "GPU_execution": false,
+  "model_execution": false,
+  "engine_implementation": false,
+  "training_or_quantization": false,
+  "package_or_environment_changes": false,
+  "report": "reports/state_transform_frontier_audit_v1.md",
+  "source_ledger": "artifacts/state_transform_frontier_sources_v1.jsonl",
+  "search_ledger": "artifacts/state_transform_frontier_searches_v1.jsonl",
+  "CPU_artifact": "artifacts/state_transform_frontier_cpu_v1.json",
+  "CPU_script": "scripts/check_state_transform_frontier.py",
+  "actual_required_operands": ["Current predecessor hidden state", "Actual depth-indexed historical KV, positions, and mask", "Current internal-layer KV write state", "Actual loop norm", "Original gate hazards and terminal publication for adaptive execution"],
+  "possible_dependency_removal_if_proved": "A cheap exact lift with known composable coefficients could replace serial hidden-state evaluation. A complete decoder must also recover authoritative KV and gate operands.",
+  "missing_mechanism": "No inspected source proves or constructs that cheap complete lift for unchanged Base Ouro.",
+  "screens": [
+    {"mechanism":"Affine/Koopman summary","outcome":"NO_QUALIFYING_TRANSFORM","missing":"Certified cheap closure and complete state decoder from already available inputs."},
+    {"mechanism":"Inverse/bidirectional propagation","outcome":"NO_DEPENDENCY_REMOVAL","missing":"Authoritative future boundary without prediction or original forward evaluation."},
+    {"mechanism":"Coarse/fine multiple shooting","outcome":"EXISTING_C05_FAMILY","missing":"A newly proved cheaper exact correction with current KV."},
+    {"mechanism":"Basis or composition syntax","outcome":"REPRESENTATION_ONLY_UNLESS_CHEAP_CLOSED_COMPOSITION_PROVED","missing":"Actual cheaper evaluation, not a balanced function-object tree."}
+  ],
+  "scope_guards": [
+    "No universal impossibility claim.",
+    "Real positive-epsilon RMSNorm can be invertible on its range when gains are nonzero.",
+    "BF16 collisions or exact coincidences require implementation-specific evidence. The toy is not an Ouro observation.",
+    "Finite-horizon expressions can exist despite failure of infinite polynomial closure.",
+    "Nonpolynomial transforms and restricted-domain certificates are not ruled out.",
+    "Finite-state exhaustive tables exist formally but do not establish practical preprocessing or execution cost.",
+    "Every transform also needs comparison with aliased generic unrolling and same-P TP of its legal frontier."
+  ],
+  "validation": {
+    "CPU_check_count": 6,
+    "CPU_check_status": "PASS",
+    "CPU_check_reproduction": "Exact check-record equality on a second execution of run_checks()",
+    "CPU_script_hash_matches_raw_artifact": true,
+    "source_records": 6,
+    "search_records": 8,
+    "JSONL_parse_and_unique_ids": "PASS",
+    "report_lint": {"hard_count":0,"all_findings":0,"exit_code":0},
+    "model_or_GPU_execution": "NONE"
+  },
+  "time_scope": "One actual worker segment through verification cutoff. Publication follows. Concurrent worker intervals do not add campaign elapsed time."
+}

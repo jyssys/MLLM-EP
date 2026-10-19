@@ -1,0 +1,110 @@
+{
+  "schema_version": 1,
+  "worker": "independent_axes",
+  "status": "CPU_TESTS_PASS_NO_MODEL_ARCHIVE_RUN",
+  "segment_start_UTC": "2026-10-19T15:14:04Z",
+  "segment_end_UTC": "2026-10-19T15:21:25Z",
+  "elapsed_seconds": 441,
+  "time_scope": "One source/implementation/CPU/report interval. Parallel test invocations and their reported runtimes are nested and must not be added again.",
+  "activity": "Implement a separate streaming, lossless, chunked archive for C07 raw fixture bytes.",
+  "GPU_execution": "NOT_RUN",
+  "Torch_import": "NOT_RUN",
+  "model_load": "NOT_RUN",
+  "actual_model_fixture_archive": "NOT_RUN",
+  "C07_worker_or_runner_edits": false,
+  "original_model_evidence_edits": false,
+  "files_sha256": {
+    "fixture_archive.py": "f7395457a720a8ae2328a5aa775977d215b140b9a1291aa68a48de02ab4ecd05",
+    "scripts/c07_fixture_archive.py": "7aab161b0d77d6bdf3c67795813cfa020fbe0cb7b3424a00a2821760ea8032b8",
+    "tests/test_fixture_archive_cpu.py": "420b65f670cbeae3312cfcf017be07fe9f431e1734d6aa2ec9be9d67e520739b",
+    "reports/c07_fixture_archive_v1.md": "39c1e1f0fa710ab3113f70f954025f3dded356310a35a0610cd996dcd99470ef"
+  },
+  "python": "3.14.6 | packaged by Anaconda, Inc. | (main, Jul  9 2026, 14:37:38) [GCC 14.3.0]",
+  "default_interpreter": "/home/esjung/anaconda3/bin/python",
+  "compression": {
+    "codec": "zlib",
+    "level": 6,
+    "wbits": 15,
+    "zlib_compile_version": "1.3.2",
+    "zlib_runtime_version": "1.3.2"
+  },
+  "archive_contract": {
+    "input": "An explicit regular fixture.pt within this campaign outputs directory. No discovery scan.",
+    "original": "Read-only source. Keep the ignored raw file unchanged.",
+    "chunks": {
+      "default_and_max_bytes": 33554432,
+      "default_and_max_MiB": 32
+    },
+    "manifest": [
+      "Original path, bytes, SHA256",
+      "Compressed stream bytes and SHA256",
+      "Ordered chunk names, bytes, SHA256",
+      "Exact reconstruction command and argv",
+      "Readback result and final original hash match"
+    ],
+    "completion": "Publish complete manifest only after chunk readback, bounded decompression, decoded hash check, and final source hash/identity check.",
+    "overwrite_policy": "Refuse an existing archive directory or restore output. Never merge or replace.",
+    "failure_policy": "Keep partial archive directory without a complete manifest. Failed restore removes only its newly created temporary file and publishes no output.",
+    "reconstruction": "Bounded stream decode. Verify all chunk/stream/original hashes before atomic no-overwrite output publication.",
+    "limits": "File identity and hash checks detect ordinary concurrent changes. They are not a filesystem snapshot against arbitrary writers.",
+    "semantics": "Opaque bytes only. No tensor deserialization, dtype conversion, quantization, filtering, or numerical tolerance."
+  },
+  "CPU_validation_interval": {
+    "start_UTC": "2026-10-19T15:20:03Z",
+    "end_UTC": "2026-10-19T15:20:22Z",
+    "concurrent_invocations": true
+  },
+  "CPU_runs": [
+    {
+      "interpreter": "/home/esjung/anaconda3/bin/python",
+      "command": "CUDA_VISIBLE_DEVICES='' python -m unittest poc_ouro_parallelism_deep_discovery.tests.test_fixture_archive_cpu -v",
+      "exit_code": 0,
+      "tests": 14,
+      "reported_test_seconds": 13.663,
+      "exec_tool_wait_seconds": 10.001164034,
+      "full_output": "test_chunk_order_path_escape_and_excess_limit_are_rejected (poc_ouro_parallelism_deep_discovery.tests.test_fixture_archive_cpu.FixtureArchiveTests.test_chunk_order_path_escape_and_excess_limit_are_rejected) ... ok\ntest_corrupt_chunk_does_not_publish_restore (poc_ouro_parallelism_deep_discovery.tests.test_fixture_archive_cpu.FixtureArchiveTests.test_corrupt_chunk_does_not_publish_restore) ... ok\ntest_default_limit_is_32mib (poc_ouro_parallelism_deep_discovery.tests.test_fixture_archive_cpu.FixtureArchiveTests.test_default_limit_is_32mib) ... ok\ntest_empty_and_one_byte_inputs (poc_ouro_parallelism_deep_discovery.tests.test_fixture_archive_cpu.FixtureArchiveTests.test_empty_and_one_byte_inputs) ... ok\ntest_existing_archive_is_never_modified (poc_ouro_parallelism_deep_discovery.tests.test_fixture_archive_cpu.FixtureArchiveTests.test_existing_archive_is_never_modified) ... ok\ntest_existing_restore_target_and_original_are_never_modified (poc_ouro_parallelism_deep_discovery.tests.test_fixture_archive_cpu.FixtureArchiveTests.test_existing_restore_target_and_original_are_never_modified) ... ok\ntest_extra_or_truncated_compressed_stream_is_rejected_even_with_updated_chunk_hash (poc_ouro_parallelism_deep_discovery.tests.test_fixture_archive_cpu.FixtureArchiveTests.test_extra_or_truncated_compressed_stream_is_rejected_even_with_updated_chunk_hash) ... ok\ntest_import_does_not_load_torch_or_cuda (poc_ouro_parallelism_deep_discovery.tests.test_fixture_archive_cpu.FixtureArchiveTests.test_import_does_not_load_torch_or_cuda) ... ok\ntest_manifest_hash_or_original_size_corruption_is_rejected (poc_ouro_parallelism_deep_discovery.tests.test_fixture_archive_cpu.FixtureArchiveTests.test_manifest_hash_or_original_size_corruption_is_rejected) ... ok\ntest_missing_or_truncated_chunk_is_rejected (poc_ouro_parallelism_deep_discovery.tests.test_fixture_archive_cpu.FixtureArchiveTests.test_missing_or_truncated_chunk_is_rejected) ... ok\ntest_multi_chunk_byte_exact_roundtrip_and_original_unchanged (poc_ouro_parallelism_deep_discovery.tests.test_fixture_archive_cpu.FixtureArchiveTests.test_multi_chunk_byte_exact_roundtrip_and_original_unchanged) ... ok\ntest_scoped_input_name_and_chunk_limit (poc_ouro_parallelism_deep_discovery.tests.test_fixture_archive_cpu.FixtureArchiveTests.test_scoped_input_name_and_chunk_limit) ... ok\ntest_standalone_cli_and_manifest_reconstruction_command (poc_ouro_parallelism_deep_discovery.tests.test_fixture_archive_cpu.FixtureArchiveTests.test_standalone_cli_and_manifest_reconstruction_command) ... ok\ntest_symlink_inputs_and_chunks_are_rejected (poc_ouro_parallelism_deep_discovery.tests.test_fixture_archive_cpu.FixtureArchiveTests.test_symlink_inputs_and_chunks_are_rejected) ... ok\n\n----------------------------------------------------------------------\nRan 14 tests in 13.663s\n\nOK\n"
+    },
+    {
+      "interpreter": "/home/esjung/.venvs/cp-composition-vllm026/bin/python",
+      "command": "CUDA_VISIBLE_DEVICES='' /home/esjung/.venvs/cp-composition-vllm026/bin/python -m unittest poc_ouro_parallelism_deep_discovery.tests.test_fixture_archive_cpu -v",
+      "exit_code": 0,
+      "tests": 14,
+      "reported_test_seconds": 13.287,
+      "exec_tool_wait_seconds": 10.001088979,
+      "full_output": "test_chunk_order_path_escape_and_excess_limit_are_rejected (poc_ouro_parallelism_deep_discovery.tests.test_fixture_archive_cpu.FixtureArchiveTests.test_chunk_order_path_escape_and_excess_limit_are_rejected) ... ok\ntest_corrupt_chunk_does_not_publish_restore (poc_ouro_parallelism_deep_discovery.tests.test_fixture_archive_cpu.FixtureArchiveTests.test_corrupt_chunk_does_not_publish_restore) ... ok\ntest_default_limit_is_32mib (poc_ouro_parallelism_deep_discovery.tests.test_fixture_archive_cpu.FixtureArchiveTests.test_default_limit_is_32mib) ... ok\ntest_empty_and_one_byte_inputs (poc_ouro_parallelism_deep_discovery.tests.test_fixture_archive_cpu.FixtureArchiveTests.test_empty_and_one_byte_inputs) ... ok\ntest_existing_archive_is_never_modified (poc_ouro_parallelism_deep_discovery.tests.test_fixture_archive_cpu.FixtureArchiveTests.test_existing_archive_is_never_modified) ... ok\ntest_existing_restore_target_and_original_are_never_modified (poc_ouro_parallelism_deep_discovery.tests.test_fixture_archive_cpu.FixtureArchiveTests.test_existing_restore_target_and_original_are_never_modified) ... ok\ntest_extra_or_truncated_compressed_stream_is_rejected_even_with_updated_chunk_hash (poc_ouro_parallelism_deep_discovery.tests.test_fixture_archive_cpu.FixtureArchiveTests.test_extra_or_truncated_compressed_stream_is_rejected_even_with_updated_chunk_hash) ... ok\ntest_import_does_not_load_torch_or_cuda (poc_ouro_parallelism_deep_discovery.tests.test_fixture_archive_cpu.FixtureArchiveTests.test_import_does_not_load_torch_or_cuda) ... ok\ntest_manifest_hash_or_original_size_corruption_is_rejected (poc_ouro_parallelism_deep_discovery.tests.test_fixture_archive_cpu.FixtureArchiveTests.test_manifest_hash_or_original_size_corruption_is_rejected) ... ok\ntest_missing_or_truncated_chunk_is_rejected (poc_ouro_parallelism_deep_discovery.tests.test_fixture_archive_cpu.FixtureArchiveTests.test_missing_or_truncated_chunk_is_rejected) ... ok\ntest_multi_chunk_byte_exact_roundtrip_and_original_unchanged (poc_ouro_parallelism_deep_discovery.tests.test_fixture_archive_cpu.FixtureArchiveTests.test_multi_chunk_byte_exact_roundtrip_and_original_unchanged) ... ok\ntest_scoped_input_name_and_chunk_limit (poc_ouro_parallelism_deep_discovery.tests.test_fixture_archive_cpu.FixtureArchiveTests.test_scoped_input_name_and_chunk_limit) ... ok\ntest_standalone_cli_and_manifest_reconstruction_command (poc_ouro_parallelism_deep_discovery.tests.test_fixture_archive_cpu.FixtureArchiveTests.test_standalone_cli_and_manifest_reconstruction_command) ... ok\ntest_symlink_inputs_and_chunks_are_rejected (poc_ouro_parallelism_deep_discovery.tests.test_fixture_archive_cpu.FixtureArchiveTests.test_symlink_inputs_and_chunks_are_rejected) ... ok\n\n----------------------------------------------------------------------\nRan 14 tests in 13.287s\n\nOK\n"
+    }
+  ],
+  "test_scope": "Both invocations repeat the same14 software controls. Synthetic opaque payload at most8192bytes plus empty/onebyte controls. No actual model fixture or model-quality evidence.",
+  "CPU_controls": [
+    "Multi-chunk byte-exact roundtrip",
+    "Original inode/bytes/mtime/ctime remain unchanged",
+    "Default32MiB limit",
+    "Empty and onebyte streams",
+    "Existing archive refusal",
+    "Existing restore/original path refusal",
+    "Corrupt, missing, and truncated chunks",
+    "Manifest/hash/size corruption",
+    "Chunk reordering and path-escape rejection",
+    "Trailing or truncated compressed stream with recomputed chunk hash",
+    "Scoped fixture.pt and size-limit checks",
+    "Symlink rejection",
+    "Standalone CLI and exact recorded reconstruction command",
+    "No Torch or CUDA import"
+  ],
+  "validation": {
+    "py_compile": "PASS",
+    "report_lint_all_findings": 0,
+    "report_lint_hard_count": 0,
+    "tests_each_run": 14,
+    "all_returncodes_zero": true
+  },
+  "large_fixture_compression_ratio": "NOT_MEASURED",
+  "large_fixture_archive_wall": "NOT_MEASURED",
+  "model_quality": "NOT_RUN",
+  "GPU_speedup": "NOT_MEASURED",
+  "sources": {
+    "additional_web_searches": 0,
+    "implementation_dependencies": "Python standard library only. zlib versions above."
+  },
+  "handoff": "Main can run the standalone archive command after each completed fixture export. Keep raw ignored fixture.pt. Do not treat archive CPU work as physical-service time."
+}

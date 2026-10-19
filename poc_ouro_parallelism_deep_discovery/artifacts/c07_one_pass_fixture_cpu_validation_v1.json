@@ -1,0 +1,71 @@
+{
+  "status": "CPU_CHECKS_PASS_GPU_NOT_RUN",
+  "time": {
+    "segment_start_utc": "2026-10-19 14:47:41 UTC",
+    "segment_end_utc": "2026-10-19 15:03:46 UTC",
+    "elapsed_seconds": 965,
+    "scope": "Source inspection, new component implementation, CPU tests, syntax checks, and report. Ledger serialization follows this segment."
+  },
+  "validation": {
+    "default_python": {"command": "python -m unittest poc_ouro_parallelism_deep_discovery.tests.test_c07_fixture_cpu -q", "tests": 15, "result": "PASS", "reported_test_seconds": 0.024},
+    "campaign_python": {"interpreter": "/home/esjung/.venvs/ouro-deep-discovery/bin/python", "tests": 15, "result": "PASS", "reported_test_seconds": 0.024},
+    "py_compile": "PASS",
+    "report_lint": {"violations": 0, "hard_violations": 0},
+    "gpu_commands": 0,
+    "gpu_execution": "NOT_RUN",
+    "runtime_metadata_support": "UNTESTED",
+    "bitwise_parity": "UNTESTED",
+    "service_latency": "NOT_MEASURED"
+  },
+  "new_files_sha256": {
+    "c07_fixture.py": "20cd6729f2e130bedda48a31a1ab8f200522efbd597237f2e4541555cc5fc42d",
+    "c07_fixture_probe.py": "a64776d5aa5931696d544cd081bbe044fa957263dfa920f0446212429488f0bb",
+    "scripts/c07_one_pass_fixture.py": "7d3d6a7cb8b70e873c9e38dd696bbd4982947fd7281e6af2a4b90d9b4cc3cdf2",
+    "tests/test_c07_fixture_cpu.py": "0e3c2b0b34a7ae94d8e88666b46d775c502f689367b74db5fd40e9ef01698952",
+    "artifacts/c07_one_pass_fixture_protocol_v1.json": "a9611c35dfbfe172333bd27aa0b39aface7ab22d1b79759b3d30b3e44f5f6113",
+    "reports/c07_one_pass_fixture_contract_v1.md": "ff02f27e33a048b034e92b3e072aee137e286f9bea326aac6366782bf8a4ac51"
+  },
+  "worker_locators": {
+    "capture_start": {"file": "c07_fixture_probe.py", "line": 14},
+    "suitability": {"file": "c07_fixture_probe.py", "line": 149},
+    "capture_finish_and_exclusive_lease": {"file": "c07_fixture_probe.py", "line": 181},
+    "prepare_fixture": {"file": "c07_fixture_probe.py", "line": 277},
+    "physical_body": {"file": "c07_fixture_probe.py", "line": 372},
+    "word_comparison": {"file": "c07_fixture_probe.py", "line": 383},
+    "all_rank_parity_gate": {"file": "c07_fixture_probe.py", "line": 428},
+    "eager_service": {"file": "c07_fixture_probe.py", "line": 437},
+    "actual_fixture_export": {"file": "c07_fixture_probe.py", "line": 486}
+  },
+  "native_source_root": "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages",
+  "native_sources": [
+    {"path": "vllm/model_executor/models/ouro.py", "sha256": "cf0792c6c8024ded45dba10553b5f0d24b7b6542dd8f8f0e0e6899807ec0c4ff", "locators": {"attention_forward": 198, "layer_forward": 260, "r4_core_forward": 355}},
+    {"path": "vllm/forward_context.py", "sha256": "985adacc9e7ed2a7695819ac2e2ad9cb264a7d886806d3091ad75bfda7392242", "locators": {"ForwardContext": 131, "override_forward_context": 245}},
+    {"path": "vllm/v1/attention/backends/flash_attn.py", "sha256": "7b5fac9b635b4dc138f24a07277569ab92e59ffd0a88a1d4c5d326039a880a51", "locators": {"packed_cache_shape": 130, "metadata": 241, "graph_split_bound": 418, "eager_split_not_graph_compatible": 489, "native_scheduler_call": 513, "cache_update": 1071}},
+    {"path": "vllm/distributed/parallel_state.py", "sha256": "ecfa5eeda697e9982591c93eca835fcc53463267c1c22110700819efcecee74f", "locators": {"cpu_barrier": 1179, "graph_capture": 1430}},
+    {"path": "vllm/v1/worker/gpu_model_runner.py", "sha256": "81b7627fbe81f7aaa2f77b4bf085faa353c69d03662ebfe369536a9773bb70d0", "locators": {"build_attention_metadata": 2261, "model_forward": 3824, "slot_mappings": 4027, "actual_forward_context": 4376, "clear_execute_model_state": 4524, "native_collective_graph_capture": 6802}}
+  ],
+  "structural_raw32gib_page_counts": [
+    {"model": "1.4B", "tp": 1, "raw_pool_blocks": 2730},
+    {"model": "1.4B", "tp": 4, "raw_pool_blocks": 10922},
+    {"model": "2.6B", "tp": 1, "raw_pool_blocks": 1365},
+    {"model": "2.6B", "tp": 4, "raw_pool_blocks": 5461}
+  ],
+  "structural_payload_bytes_per_rank": [
+    {"model": "1.4B", "position": 1024, "selected_history_snapshot": 201326592, "destination_history_write": 201326592},
+    {"model": "1.4B", "position": 4096, "selected_history_snapshot": 805306368, "destination_history_write": 805306368},
+    {"model": "2.6B", "position": 1024, "selected_history_snapshot": 402653184, "destination_history_write": 402653184},
+    {"model": "2.6B", "position": 4096, "selected_history_snapshot": 1610612736, "destination_history_write": 1610612736}
+  ],
+  "payload_denominator": "TP1 one selected row or TP4 four selected rows. Local heads differ by four. Not aggregate cluster bytes or measured HBM traffic.",
+  "unresolved": [
+    "Actual first native C4 cached-decode suitability and metadata fields.",
+    "Actual per-layer native cache density and non-overlapping ranges.",
+    "Actual source and destination page capacity after runtime allocation.",
+    "Bitwise normalized-output and KV parity, including TP1 C4-to-one-row kernel-shape changes.",
+    "Eager service latency and observer effects.",
+    "Graph-safe FA3 split bounds and scheduler state. Version1 implements no graph path.",
+    "Four simultaneous full-weight TP1-owner global makespan.",
+    "Natural frontier readiness, acceptance, task quality, and end-to-end speculation."
+  ],
+  "preservation": "Only new campaign files changed. Existing runners, external source, installed packages, raw evidence, and old reports remain unchanged."
+}

@@ -1,0 +1,172 @@
+{
+  "P": 1,
+  "R": 4,
+  "arm": "native",
+  "context": 1024,
+  "evidence_class": "SOURCE_TEMPLATE_ARGUMENT_OBSERVATION",
+  "executed_operand_identity": "UNRESOLVED",
+  "generated_tokens": 4,
+  "graphs": [
+    {
+      "argument_metadata": true,
+      "argument_policy": {
+        "kernels": {},
+        "schema_version": 1
+      },
+      "argument_runtime_library": "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/nvidia/cuda_runtime/lib/libcudart.so.12",
+      "argument_runtime_version": 12090,
+      "edge_metadata": true,
+      "rank": 0,
+      "records": [
+        {
+          "argument_observations": {
+            "bytes": 388433,
+            "coverage": {
+              "argument_status_counts": {},
+              "explicit_data_ptrs": 197,
+              "explicit_tensor_names": 197,
+              "inspected_kernel_nodes": 1153,
+              "kernel_nodes": 1153,
+              "node_status_counts": {
+                "GET_PARAMS_FAILED": 865,
+                "NON_KERNEL_NODE_NOT_INSPECTED": 1,
+                "UNKNOWN_ABI_UNRESOLVED": 288
+              },
+              "top_level_nodes": 1154,
+              "value_reads": 0
+            },
+            "executed_operand_identity": "UNRESOLVED",
+            "path": "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/native_graph_argument_inventory_base14_P1_v1/1.4B_R4_TP1/rank0_replayed_graph0_arguments.json",
+            "sha256": "0ca6807cb82a2529b7e5c3438865ff195d15237180dc7d9522498c8208dfd74e",
+            "timing": "NOT_MEASURED"
+          },
+          "bytes": 613626,
+          "graph_object_id": 140662021743104,
+          "path": "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/native_graph_argument_inventory_base14_P1_v1/1.4B_R4_TP1/rank0_replayed_graph0.dot",
+          "replay_count": 3,
+          "typed_edges": {
+            "bytes": 773098,
+            "cut_analysis": {
+              "cut_scope": "Cuts precede the observed first-layer normalization kernels. A boundary kernel can fuse preceding-pass normalization and next-pass input work. These cuts are not exact Python recurrent-pass completion timestamps.",
+              "cuts": [
+                {
+                  "crossing_edge_indices": [],
+                  "following_kernel": "triton_red_fused__to_copy_embedding_rms_norm_0\\<\\<\\<1,512,8192\\>\\>\\>",
+                  "location": "GRAPH_ENDPOINT",
+                  "nondefault_edge_indices": [],
+                  "on_nondefault_edge": null,
+                  "position": 0
+                },
+                {
+                  "crossing_edge_indices": [
+                    287
+                  ],
+                  "following_kernel": "triton_red_fused_fused_add_rms_norm_rms_norm_2\\<\\<\\<1,256,8192\\>\\>\\>",
+                  "location": "INTERIOR_EDGE",
+                  "nondefault_edge_indices": [],
+                  "on_nondefault_edge": false,
+                  "position": 288
+                },
+                {
+                  "crossing_edge_indices": [
+                    575
+                  ],
+                  "following_kernel": "triton_red_fused_fused_add_rms_norm_rms_norm_2\\<\\<\\<1,256,8192\\>\\>\\>",
+                  "location": "INTERIOR_EDGE",
+                  "nondefault_edge_indices": [],
+                  "on_nondefault_edge": false,
+                  "position": 576
+                },
+                {
+                  "crossing_edge_indices": [
+                    863
+                  ],
+                  "following_kernel": "triton_red_fused_fused_add_rms_norm_rms_norm_2\\<\\<\\<1,256,8192\\>\\>\\>",
+                  "location": "INTERIOR_EDGE",
+                  "nondefault_edge_indices": [],
+                  "on_nondefault_edge": false,
+                  "position": 864
+                },
+                {
+                  "crossing_edge_indices": [],
+                  "following_kernel": null,
+                  "location": "GRAPH_ENDPOINT",
+                  "nondefault_edge_indices": [],
+                  "on_nondefault_edge": null,
+                  "position": 1154
+                }
+              ],
+              "overlap_duration": "UNKNOWN",
+              "status": "VERIFIED_KERNEL_GROUP_CUTS",
+              "timing": "NOT_MEASURED",
+              "topology": {
+                "cache_write_nodes": 96,
+                "classification_counts": {
+                  "ATTENTION_CORE": 96,
+                  "ATTENTION_SPLIT_MERGE": 96,
+                  "CURRENT_KV_WRITE": 96,
+                  "FUSED_NORM_RESIDUAL": 193,
+                  "GEMM_SPLITK_REDUCTION": 96,
+                  "GEMM_UNRESOLVED_ROLE": 384,
+                  "MEMCPY_UNRESOLVED_PURPOSE": 1,
+                  "MLP_ACTIVATION": 96,
+                  "QKV_ROPE_LAYOUT": 96
+                },
+                "cut_scope": "Cuts precede the observed first-layer normalization kernels. A boundary kernel can fuse preceding-pass normalization and next-pass input work. These cuts are not exact Python recurrent-pass completion timestamps.",
+                "dependency_scope": "Captured execution order only. A stream edge can be stronger than a mathematical data dependency.",
+                "edge_count": 1153,
+                "expected_R4_cache_writes": 96,
+                "logical_pass_kernel_cuts": [
+                  0,
+                  288,
+                  576,
+                  864,
+                  1154
+                ],
+                "max_ready_nodes_in_captured_dag": 1,
+                "node_count": 1154,
+                "node_kinds": {
+                  "KERNEL": 1153,
+                  "MEMCPY": 1
+                },
+                "physical_layers": 24,
+                "recurrence_scope": "Repeated kernels do not imply reusable activation values or independent recurrent passes.",
+                "roots": [
+                  "graph_392_node_0"
+                ],
+                "single_chain": true,
+                "tails": [
+                  "graph_392_node_1153"
+                ],
+                "timing": "NOT_MEASURED. Node counts and edges do not determine kernel duration.",
+                "verified_repeated_pattern": true
+              }
+            },
+            "metadata_stable_across_two_queries": true,
+            "nondefault_edge_count": 96,
+            "path": "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/native_graph_argument_inventory_base14_P1_v1/1.4B_R4_TP1/rank0_replayed_graph0_edges.json",
+            "sha256": "66a30bdc5bd0402a730ac618800789ad05e1310b3a6a073ee0f6a80c2c17cfe6"
+          }
+        }
+      ],
+      "runtime_library": "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/nvidia/cuda_runtime/lib/libcudart.so.12",
+      "runtime_version": 12090,
+      "scope": "Retained source-template arguments for actual replay identities. No proof of executed reads or timing.",
+      "total_observed_replays": 3
+    }
+  ],
+  "model": "ByteDance/Ouro-1.4B",
+  "natural_quality": "NOT_RUN",
+  "output_ids": [
+    378,
+    2988,
+    314,
+    216
+  ],
+  "physical_gpus": [
+    5
+  ],
+  "request_id": "gsm8k/test/1074",
+  "revision": "574fa66cb8bf5abdc979642d01cf2b79b16bfab1",
+  "timing": "NOT_MEASURED"
+}

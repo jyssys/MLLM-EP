@@ -1,0 +1,62 @@
+{
+  "status": "FROZEN_BEFORE_GPU_EXECUTION",
+  "component": "C07 eager one-pass physical fixture",
+  "scope": "Conditional service of an already ready frontier. Not closed-loop speculation.",
+  "models": {
+    "1.4B": {"revision": "574fa66cb8bf5abdc979642d01cf2b79b16bfab1", "physical_layers": 24},
+    "2.6B": {"revision": "1ed04250da1a9936042725d302e81c8fa2ab5abd", "physical_layers": 48}
+  },
+  "tp": [1, 4],
+  "context_lengths": [1024, 4096],
+  "source_cohort_requests": 4,
+  "source_output_tokens_per_request": 2,
+  "source_decode_selection": "First actual unpadded four-row cached-decode invocation with one query token per row.",
+  "source_output_control": "Native allowed_token_ids singleton. No teacher hook.",
+  "tp4_row_depth_pairs": [[0, 0], [1, 1], [2, 2], [3, 3]],
+  "tp1_row_and_depth": "Select each independently from zero through three.",
+  "row_identity": "Captured input_batch request order. Never assume submission order.",
+  "residency": "Retain the original R4 model, all original parameters, and all4L cache slots.",
+  "native_cache_logical_shape": ["blocks", "16/TP heads", 16, 256],
+  "cache_dtype": "BF16",
+  "native_cache_allocation_bytes_per_rank": 34359738368,
+  "max_model_len": 10240,
+  "max_num_batched_tokens": 32768,
+  "max_num_seqs": 4,
+  "async_scheduling": true,
+  "chunked_prefill": false,
+  "prefix_caching": false,
+  "compilation_mode": 0,
+  "cudagraph_mode": "NONE",
+  "lease": {
+    "phase": "After native generation completes, the driver has no unfinished request, and the worker has no execute_model_state.",
+    "destination": "Existing slot0 allocations. No new cache binding.",
+    "reserved_page": 0,
+    "protected": "Every real page of all four source requests through the current token.",
+    "lifetime": "Exclusive fixture use until engine teardown. No subsequent serving call.",
+    "snapshots": "Capture all selected historical versions before any destination write.",
+    "layout_limit": "Reject interleaved layer arenas and overlapping original cache address ranges."
+  },
+  "parity": {
+    "criterion": "Bitwise BF16 words. No tolerance.",
+    "checks": ["Normalized pass output", "Produced current-token K and V", "Destination historical K and V", "Original selected-depth historical K and V"],
+    "cadence": "Before timing, after every timed trial, and after the final trial.",
+    "cross_rank_gate": "All TP ranks must pass before timed trials continue.",
+    "failure_status": "UNRESOLVED",
+    "cross_tp_bitwise_equivalence": "Not claimed. Each fixture checks its own native reference."
+  },
+  "service": {
+    "body": "One working-input reset copy, all original physical layer bodies at slot0, and core.norm.",
+    "residual": "Reset to None at pass entry. Keep every native norm, residual operation, and cast.",
+    "default_repeats": 5,
+    "max_repeats": 32,
+    "clocks": "Rank-local CUDA events and host wall. No aligned DP4 or TP4 global makespan claim.",
+    "excluded": ["Fixture capture", "Historical KV remap", "Parity checks", "CPU/GPU barrier", "Export", "Embedding", "Gate", "LM head", "Sampler"],
+    "claim_limit": "Eager physical service only. Native compiled/graph headroom is UNVALIDATED."
+  },
+  "graph_limit": "Native collective capture registration exists. Eager FA3 max_num_splits=0 is explicitly not graph compatible. No graph path is implemented.",
+  "gpu_execution": "NOT_RUN",
+  "natural_frontier_availability": "NOT_TESTED",
+  "acceptance": "NOT_TESTED",
+  "quality": "NOT_TESTED",
+  "speedup": "NOT_MEASURED"
+}

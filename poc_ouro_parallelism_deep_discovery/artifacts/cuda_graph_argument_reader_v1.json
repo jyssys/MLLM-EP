@@ -1,0 +1,141 @@
+{
+  "schema_version": 1,
+  "worker": "independent_axes",
+  "activity": "Implement and CPU-test the bounded opt-in source-graph argument reader requested after the source audit.",
+  "source_audit": {
+    "record": "artifacts/cuda_graph_argument_feasibility_v1.json",
+    "start_UTC": "2026-10-19T14:50:02Z",
+    "end_UTC": "2026-10-19T14:55:19Z",
+    "elapsed_seconds": 317,
+    "counted_in_implementation": false
+  },
+  "implementation_work_segments": [
+    {
+      "start_UTC": "2026-10-19T14:55:54Z",
+      "end_UTC": "2026-10-19T14:56:43Z",
+      "elapsed_seconds": 49,
+      "scope": "Read existing worker, runtime-selection, and CPU ABI-test implementation before compaction."
+    },
+    {
+      "start_UTC": "2026-10-19T14:58:28Z",
+      "end_UTC": "2026-10-19T15:08:24Z",
+      "elapsed_seconds": 596,
+      "scope": "Read required reporting skill, implement new files, run CPU controls, write report, and validate report before final metadata publication."
+    }
+  ],
+  "implementation_active_seconds": 645,
+  "time_accounting": "Do not add nested CPU validation durations again. Do not add concurrent agent time to campaign elapsed time. The publication interval14:55:19–14:55:54 and compaction gap14:56:43–14:58:28 are not counted here.",
+  "GPU_execution": "NOT_RUN",
+  "live_CUDA_API_calls": "NOT_RUN",
+  "CUDA_library_load": "NOT_RUN",
+  "existing_diagnostic_edits": "NONE",
+  "real_kernel_ABI_policy_created": false,
+  "live_coverage": "NOT_RUN. No actual cached-decode kernel argument values were observed.",
+  "decision": "Source-supported direct-argument path implemented for review. Empty policy does not read argument values. No current real GEMM signature policy or executable-update audit.",
+  "safety_contract": {
+    "opt_in": "OURO_CUDA_GRAPH_ARGUMENT_DIAGNOSTIC=1",
+    "runtime": "Existing Torch-linked RTLD_NOLOAD runtime selection; CUDA12.9; exact installed header hashes.",
+    "API_bindings": [
+      "cudaRuntimeGetVersion",
+      "cudaGetErrorString",
+      "cudaGraphGetNodes",
+      "cudaGraphGetEdges_v2",
+      "cudaGraphNodeGetType",
+      "cudaGraphKernelNodeGetParams",
+      "cudaFuncGetParamInfo",
+      "cudaFuncGetName"
+    ],
+    "values": "Read only explicit direct-pointer indices after every declared index succeeds and selected sizes equal8. Copy exactly8 bytes from API-owned host argument storage.",
+    "bounds": {
+      "max_kernel_nodes": 4096,
+      "max_declared_parameters": 64,
+      "max_value_reads": 8192,
+      "max_exact_policy_names": 256
+    },
+    "skip_or_reject": [
+      "unknown ABI",
+      "extra or mixed representation",
+      "declared indirect/structure/pointer-array ABI",
+      "null API-owned storage",
+      "query failure",
+      "pointer-size mismatch",
+      "budget exhaustion",
+      "child graph"
+    ],
+    "comparison": "Only explicit model tensor data_ptr values. No device dereference, range search, storage-base match, or nested field scan.",
+    "limits": [
+      "Source hash and exact name do not prove loaded-binary correspondence.",
+      "Template argument equality is not executed weight-operand identity.",
+      "Stable graph handles and topology do not prove argument or executable-state stability.",
+      "Opaque GEMMs remain UNRESOLVED without an exact reviewed direct signature.",
+      "No HBM traffic, performance, model parity, or natural-quality evidence."
+    ]
+  },
+  "CPU_validation": [
+    {
+      "record": "artifacts/cuda_graph_argument_cpu_validation_v1.json",
+      "interpreter": "/home/esjung/anaconda3/bin/python",
+      "tests": 35,
+      "new_tests": 25,
+      "existing_regression_tests": 10,
+      "returncode": 0
+    },
+    {
+      "record": "artifacts/cuda_graph_argument_cpu_validation_native_v1.json",
+      "interpreter": "/home/esjung/.venvs/cp-composition-vllm026/bin/python",
+      "tests": 35,
+      "new_tests": 25,
+      "existing_regression_tests": 10,
+      "returncode": 0
+    }
+  ],
+  "CPU_result_scope": "Two interpreter invocations repeat the same controls. Not70 independent model experiments.",
+  "C_ABI_check": "CPU compiler checks CUDA12.9 header version, all3 API prototypes, struct size56/alignment8/offsets0,8,20,32,40,48, and pointer size8. No CUDA runtime link.",
+  "source_contract_record": "artifacts/cuda_graph_argument_feasibility_v1.json",
+  "additional_web_searches_in_implementation": 0,
+  "primary_locators_reused": [
+    {
+      "URL": "https://docs.nvidia.com/cuda/archive/12.9.1/cuda-runtime-api/group__CUDART__GRAPH.html",
+      "locator": "cudaGraphKernelNodeGetParams; node-owned storage lifetime; source graph vs executable setter"
+    },
+    {
+      "URL": "https://docs.nvidia.com/cuda/archive/12.9.1/cuda-runtime-api/group__CUDART__EXECUTION.html",
+      "locator": "cudaFuncGetParamInfo and cudaFuncGetName"
+    },
+    {
+      "URL": "https://docs.nvidia.com/cuda/archive/12.9.1/cuda-runtime-api/graphs-thread-safety.html",
+      "locator": "External serialization for all accesses"
+    },
+    {
+      "path": "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/nvidia/cuda_runtime/include/cuda_runtime_api.h",
+      "locators": [
+        "4880–4925 runtime name and parameter metadata",
+        "10378–10409 getter ownership"
+      ]
+    },
+    {
+      "path": "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/nvidia/cuda_runtime/include/driver_types.h",
+      "locator": "3330–3337 runtime cudaKernelNodeParams"
+    }
+  ],
+  "report": "reports/cuda_graph_argument_reader_v1.md",
+  "report_sha256": "d614f65cccd0467cecb2dc12d0b948143a6e32605479adfe9bce33b4259f743d",
+  "validation": {
+    "report_lint_hard": 0,
+    "report_lint_all_findings": 0,
+    "py_compile": "PASS",
+    "current_hashes_match_default_record": true,
+    "current_hashes_match_native_record": true,
+    "existing_files_unchanged_across_each_validation": true
+  },
+  "new_file_hashes": {
+    "cuda_graph_argument_getter.py": "d41453a368c38d0a34fac254bb6dff05fa601369f4002b94b427909219a1408f",
+    "graph_argument_probe.py": "09d41da0df6ef26b793aca39794e1bbbc7053c89a37250f19beb3c8f3ba56c3a",
+    "scripts/cuda_graph_argument_cpu_validation.py": "eb98d28309eb431d6063ce8d35e79ca6b8c135d94a06c147da4c12ccdacd46c5",
+    "scripts/native_graph_argument_probe.py": "67a221747240b468990f65e9a9e2a4166c4bc6e4d596c26672e97f39dacf6b6d",
+    "tests/cuda_graph_argument_abi.c": "2433d800225fe3e04b63bae14a2926ed0e0fab63cf4b7351e13c5fa35803b550",
+    "tests/test_cuda_graph_argument_getter.py": "7037327514030175d6c8d0ef3f5686db4bb8efc41006727a48b75fcf8b0f94d7",
+    "tests/test_native_graph_argument_probe_cpu.py": "1ddb0f6ef9ca6f023cabbdfa290828e9196d42d352a3a2ba6e3fec0698ec92bd"
+  },
+  "handoff": "Parent review required before any fresh guarded GPU probe. No real ABI policy is supplied. Omitted --kernel-policy is metadata inventory only."
+}

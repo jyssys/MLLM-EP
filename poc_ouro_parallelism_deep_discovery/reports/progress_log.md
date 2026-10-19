@@ -222,3 +222,37 @@ Its two tested arithmetic proposals lack a supported net-cost argument.
 The held-out cohort remains untouched.
 No new architecture has qualifying evidence.
 The predecessor-preservation check passes.
+
+## Context and frontier checkpoint, 15:24 UTC
+
+Coordinator segments cover19904.202438 seconds through2026-10-19T15:24:37.202438Z.
+This is about5.53 hours.
+The campaign remains active and does not satisfy the ten-hour completion condition.
+Concurrent worker intervals do not multiply campaign elapsed time.
+
+Both-size native TP4 natural calibration completed.
+Observed correctness sometimes matches TP1 while raw continuations differ.
+The new paired artifact retains first divergences, truncations, and request-level CIs.
+It does not establish quality equivalence or candidate quality.
+
+The first long-context startup exposed a race between two owned guard lifetimes.
+The queue now waits for the final cleanup record.
+The next run completed24 clean trials but failed during a separate diagnostic export.
+The campaign-owned adapter corrects that missing metadata field without installing a sampler hook.
+The third queue continues the same frozen workload on both Base sizes and TP1/2/4.
+Completed Base1.4B TP1/2 runs include32768-token prompts and finite sampled captures.
+
+The source-graph inventory completed on physical GPU5.
+It read zero argument values and leaves cached-decode weight identity unresolved.
+The default runtime getter rejected865 kernel nodes with error98.
+No pointer match or HBM claim follows from those records.
+
+The C07 review first corrected shape validation and parity-gate failure handling.
+A later source audit found a more fundamental V1/V2 entry-point mismatch.
+The coordinator stopped only its waiting post-context queue before GPU acquisition.
+The active native context queue remains untouched.
+A bounded V2 hook adaptation requires review before any fixture GPU run.
+
+New exact-state-transform and tied-aware cyclic-prefill audits produce no qualifying architecture.
+The held-out cohort remains untouched.
+The predecessor-preservation check passes.
