@@ -90,3 +90,30 @@ INFO 10-19 21:39:32 [worker_base.py:282] Injected <class 'poc_ouro_parallelism_d
 (EngineCore pid=2733974) INFO 10-19 21:39:57 [vllm.py:1109] Asynchronous scheduling is enabled.
 (EngineCore pid=2733974) INFO 10-19 21:39:57 [kernel.py:295] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native'])
 NATIVE_BASELINE 1.4B 4 2 1024 0
+INFO 10-19 21:40:07 [loggers.py:310] Engine 000: Avg prompt throughput: 1295.1 tokens/s, Avg generation throughput: 116.8 tokens/s, Running: 1 reqs, Waiting: 0 reqs, GPU KV cache usage: 1.9%, Prefix cache hit rate: 0.0%
+NATIVE_BASELINE 1.4B 4 2 1024 1
+INFO 10-19 21:40:17 [loggers.py:310] Engine 000: Avg prompt throughput: 3227.2 tokens/s, Avg generation throughput: 67.8 tokens/s, Running: 1 reqs, Waiting: 0 reqs, GPU KV cache usage: 7.5%, Prefix cache hit rate: 0.0%
+NATIVE_BASELINE 1.4B 4 2 4096 0
+NATIVE_BASELINE 1.4B 4 2 4096 1
+INFO 10-19 21:40:27 [loggers.py:310] Engine 000: Avg prompt throughput: 6960.3 tokens/s, Avg generation throughput: 114.1 tokens/s, Running: 1 reqs, Waiting: 0 reqs, GPU KV cache usage: 15.2%, Prefix cache hit rate: 0.0%
+NATIVE_BASELINE 1.4B 4 2 8192 0
+NATIVE_BASELINE 1.4B 4 2 8192 1
+(EngineCore pid=2733974) INFO 10-19 21:40:37 [core.py:1313] [shutdown] EngineCore: trigger received signal=SIGTERM
+(EngineCore pid=2733974) INFO 10-19 21:40:37 [core.py:1432] [shutdown] EngineCore: start mode=abort timeout=0s
+(EngineCore pid=2733974) INFO 10-19 21:40:37 [core.py:1463] [shutdown] EngineCore: request processing complete; starting resource teardown
+(EngineCore pid=2733974) INFO 10-19 21:40:37 [core.py:1326] [shutdown] EngineCore: exiting busy loop
+(EngineCore pid=2733974) INFO 10-19 21:40:37 [multiproc_executor.py:429] [shutdown] Executor: waiting for worker exit count=2
+(Worker_TP0 pid=2734512) INFO 10-19 21:40:37 [multiproc_executor.py:793] Parent process exited, terminating worker queues
+[rank1]:[W1019 21:40:38.630616734 TCPStore.cpp:125] [c10d] recvValue failed on SocketImpl(fd=76, addr=[localhost]:49514, remote=[localhost]:38513): Failed to recv, got 0 bytes. Connection was likely closed. Did the remote server shutdown or crash?
+Exception raised from recvBytes at /pytorch/torch/csrc/distributed/c10d/Utils.hpp:682 (most recent call first):
+frame #0: c10::Error::Error(c10::SourceLocation, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >) + 0x9d (0x7fc2bfb7205d in /home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/lib/libc10.so)
+frame #1: <unknown function> + 0x6a9149d (0x7fc1dd48e49d in /home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/lib/libtorch_cpu.so)
+frame #2: c10d::TCPStore::check(std::vector<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, std::allocator<std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > const&) + 0x273 (0x7fc1dd48c3f3 in /home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/lib/libtorch_cpu.so)
+frame #3: c10d::ProcessGroupNCCL::HeartbeatMonitor::runLoop() + 0x4a5 (0x7fc187dd7515 in /home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/lib/libtorch_cuda.so)
+frame #4: <unknown function> + 0xdc253 (0x7fc2822b0253 in /lib/x86_64-linux-gnu/libstdc++.so.6)
+frame #5: <unknown function> + 0x94ac3 (0x7fc2c1613ac3 in /lib/x86_64-linux-gnu/libc.so.6)
+frame #6: <unknown function> + 0x1268d0 (0x7fc2c16a58d0 in /lib/x86_64-linux-gnu/libc.so.6)
+
+[rank1]:[W1019 21:40:38.639128741 ProcessGroupNCCL.cpp:1826] [PG ID 0 PG GUID 0 Rank 1] Failed to check the "should dump" flag on TCPStore, (maybe TCPStore server has shut down too early), with error: Failed to recv, got 0 bytes. Connection was likely closed. Did the remote server shutdown or crash?
+(EngineCore pid=2733974) INFO 10-19 21:40:41 [multiproc_executor.py:436] [shutdown] Executor: all workers exited gracefully
+WARNING 10-19 21:40:42 [utils.py:626] [shutdown] Process manager: force killing remaining processes count=1

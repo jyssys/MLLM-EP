@@ -23,10 +23,20 @@ def main():
     p.add_argument('--weight-storage-control',choices=['alias','copies'],
         help='Allocate four identical block copies in both arms. Change only execution pointer reuse. Not a candidate method.')
     p.add_argument('--isolate-compile-cache',action='store_true',
-        help='Use a fresh job-local compilation cache. This prevents storage controls from loading another arm\'s compiled artifacts.')
+        help='Isolate the per-job vLLM index cache only. Global AOT isolation requires --isolate-all-compile-caches.')
+    p.add_argument('--isolate-all-compile-caches',action='store_true',
+        help='Also isolate VLLM_CACHE_ROOT and lower-level compiler paths. The global AOT model cache otherwise remains shared.')
     args=p.parse_args();mask=validate_mask();assert len(mask)==args.tp
     output=Path(os.environ['LOOPED_KV_OUTPUT'])/f'{args.size}_R{args.R}_TP{args.tp}'
     output.mkdir(parents=True,exist_ok=False)
+    if args.isolate_all_compile_caches:
+        scoped={name:str(output/directory) for name,directory in [
+            ('VLLM_CACHE_ROOT','vllm_cache'),('TORCHINDUCTOR_CACHE_DIR','inductor_cache'),('TRITON_CACHE_DIR','triton_cache')]}
+        for name,value in scoped.items():
+            assert not Path(value).exists()
+            os.environ[name]=value
+        write(output/'cache_environment.json',dict(before_vllm_import=True,variables=scoped,
+            scope='Per-job cache roots. Actual compiled storage arguments still require inspection.'))
     from vllm import LLM,SamplingParams
     from transformers import AutoTokenizer
     info=MODELS[args.size];tok=AutoTokenizer.from_pretrained(str(info['path']),trust_remote_code=True)
@@ -54,7 +64,7 @@ def main():
         assert args.tp>1
         config['compilation_config']['pass_config']={'fuse_allreduce_rms':True}
     if args.async_scheduling:config['async_scheduling']=True
-    if args.isolate_compile_cache:
+    if args.isolate_compile_cache or args.isolate_all_compile_caches:
         cache=output/'compile_cache'
         assert not cache.exists()
         config['compilation_config']['cache_dir']=str(cache)

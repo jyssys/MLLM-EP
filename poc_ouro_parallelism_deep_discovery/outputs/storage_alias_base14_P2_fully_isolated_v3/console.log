@@ -1,0 +1,67 @@
+/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/transformers/modeling_rope_utils.py:1080: FutureWarning: `rope_config_validation` is deprecated and has been removed. Its functionality has been moved to RotaryEmbeddingConfigMixin.validate_rope method. PreTrainedConfig inherits this class, so please call self.validate_rope() instead. Also, make sure to use the new rope_parameters syntax. You can call self.standardize_rope_params() in the meantime.
+  warnings.warn(
+[transformers] `layer_type_validation` is deprecated and will be removed in v5.20. Use `PreTrainedConfig.validate_layer_type` instead
+[transformers] `layer_type_validation` is deprecated and will be removed in v5.20. Use `PreTrainedConfig.validate_layer_type` instead
+INFO 10-19 22:08:28 [api_utils.py:273] non-default args: {'trust_remote_code': True, 'dtype': 'bfloat16', 'seed': 20261019, 'max_model_len': 10240, 'distributed_executor_backend': 'mp', 'tensor_parallel_size': 2, 'enable_prefix_caching': False, 'kv_cache_memory_bytes': 21474836480, 'max_num_batched_tokens': 10240, 'max_num_seqs': 8, 'hf_overrides': {'total_ut_steps': 4}, 'enable_chunked_prefill': False, 'compilation_config': {'mode': None, 'debug_dump_path': None, 'cache_dir': '/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_alias_base14_P2_fully_isolated_v3/1.4B_R4_TP2/compile_cache', 'compile_cache_save_format': 'binary', 'backend': 'inductor', 'custom_ops': [], 'ir_enable_torch_wrap': None, 'splitting_ops': None, 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'compile_sizes': None, 'compile_ranges_endpoints': None, 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'size_asserts': False, 'alignment_asserts': False, 'scalar_asserts': False, 'combo_kernels': True, 'benchmark_combo_kernel': True}, 'inductor_passes': {}, 'cudagraph_mode': None, 'cudagraph_num_of_warmups': 0, 'cudagraph_capture_sizes': [1, 2, 4, 8], 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': None, 'pass_config': {}, 'max_cudagraph_capture_size': None, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': None, 'static_all_moe_layers': []}, 'worker_extension_cls': 'poc_ouro_parallelism_deep_discovery.worker_probe.CampaignProbe', 'async_scheduling': True, 'model': '/home/esjung/.cache/huggingface/hub/models--ByteDance--Ouro-1.4B/snapshots/574fa66cb8bf5abdc979642d01cf2b79b16bfab1'}
+[transformers] `layer_type_validation` is deprecated and will be removed in v5.20. Use `PreTrainedConfig.validate_layer_type` instead
+[transformers] `layer_type_validation` is deprecated and will be removed in v5.20. Use `PreTrainedConfig.validate_layer_type` instead
+ERROR 10-19 22:08:28 [registry.py:1019] Error in inspecting model architecture 'OuroForCausalLM'
+ERROR 10-19 22:08:28 [registry.py:1019] Traceback (most recent call last):
+ERROR 10-19 22:08:28 [registry.py:1019]   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/model_executor/models/registry.py", line 1454, in _run_in_subprocess
+ERROR 10-19 22:08:28 [registry.py:1019]     returned.check_returncode()
+ERROR 10-19 22:08:28 [registry.py:1019]     ~~~~~~~~~~~~~~~~~~~~~~~~~^^
+ERROR 10-19 22:08:28 [registry.py:1019]   File "/home/esjung/anaconda3/lib/python3.14/subprocess.py", line 509, in check_returncode
+ERROR 10-19 22:08:28 [registry.py:1019]     raise CalledProcessError(self.returncode, self.args, self.stdout,
+ERROR 10-19 22:08:28 [registry.py:1019]                              self.stderr)
+ERROR 10-19 22:08:28 [registry.py:1019] subprocess.CalledProcessError: Command '['/home/esjung/.venvs/ouro-deep-discovery/bin/python', '-m', 'vllm.model_executor.models.registry']' returned non-zero exit status 1.
+ERROR 10-19 22:08:28 [registry.py:1019] 
+ERROR 10-19 22:08:28 [registry.py:1019] The above exception was the direct cause of the following exception:
+ERROR 10-19 22:08:28 [registry.py:1019] 
+ERROR 10-19 22:08:28 [registry.py:1019] Traceback (most recent call last):
+ERROR 10-19 22:08:28 [registry.py:1019]   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/model_executor/models/registry.py", line 1017, in _try_inspect_model_cls
+ERROR 10-19 22:08:28 [registry.py:1019]     return model.inspect_model_cls()
+ERROR 10-19 22:08:28 [registry.py:1019]            ~~~~~~~~~~~~~~~~~~~~~~~^^
+ERROR 10-19 22:08:28 [registry.py:1019]   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/logging_utils/log_time.py", line 21, in _wrapper
+ERROR 10-19 22:08:28 [registry.py:1019]     result = func(*args, **kwargs)
+ERROR 10-19 22:08:28 [registry.py:1019]   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/model_executor/models/registry.py", line 978, in inspect_model_cls
+ERROR 10-19 22:08:28 [registry.py:1019]     mi = _run_in_subprocess(
+ERROR 10-19 22:08:28 [registry.py:1019]         lambda: _ModelInfo.from_model_cls(self.load_model_cls())
+ERROR 10-19 22:08:28 [registry.py:1019]     )
+ERROR 10-19 22:08:28 [registry.py:1019]   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/model_executor/models/registry.py", line 1457, in _run_in_subprocess
+ERROR 10-19 22:08:28 [registry.py:1019]     raise RuntimeError(
+ERROR 10-19 22:08:28 [registry.py:1019]         f"Error raised in subprocess:\n{returned.stderr.decode()}"
+ERROR 10-19 22:08:28 [registry.py:1019]     ) from e
+ERROR 10-19 22:08:28 [registry.py:1019] RuntimeError: Error raised in subprocess:
+ERROR 10-19 22:08:28 [registry.py:1019] /home/esjung/.venvs/ouro-deep-discovery/bin/python: Error while finding module specification for 'vllm.model_executor.models.registry' (ModuleNotFoundError: No module named 'vllm')
+ERROR 10-19 22:08:28 [registry.py:1019] 
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/scripts/native_baseline.py", line 113, in <module>
+    if __name__=='__main__':main()
+                            ~~~~^^
+  File "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/scripts/native_baseline.py", line 76, in main
+    llm=LLM(**config)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/entrypoints/llm.py", line 338, in __init__
+    self.llm_engine = LLMEngine.from_engine_args(
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        engine_args=engine_args, usage_context=UsageContext.LLM_CLASS
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/v1/engine/llm_engine.py", line 171, in from_engine_args
+    vllm_config = engine_args.create_engine_config(usage_context)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/engine/arg_utils.py", line 1880, in create_engine_config
+    model_config = self.create_model_config()
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/engine/arg_utils.py", line 1639, in create_model_config
+    return ModelConfig(
+        model=self.model,
+    ...<61 lines>...
+        renderer_num_workers=self.renderer_num_workers,
+    )
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/pydantic/_internal/_dataclasses.py", line 121, in __init__
+    s.__pydantic_validator__.validate_python(ArgsKwargs(args, kwargs), self_instance=s)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+pydantic_core._pydantic_core.ValidationError: 1 validation error for ModelConfig
+  Value error, Model architectures ['OuroForCausalLM'] failed to be inspected. Please check the logs for more details. [type=value_error, input_value=ArgsKwargs((), {'model': ...nderer_num_workers': 1}), input_type=ArgsKwargs]
+    For further information visit https://errors.pydantic.dev/2.13/v/value_error

@@ -22,7 +22,7 @@ Retargeting that principle to internal tiles is not enough to establish a new re
 The screened variant does not enter the shortlist.
 This result does not prove that all exact value-dependent execution must fail.
 
-No second hypothesis was added merely to increase the count.
+The worker did not add a second hypothesis merely to increase the count.
 The excluded families remain excluded.
 This block does not tune TP, repeat failed hidden prediction, or reopen terminal KV aliasing.
 
@@ -59,7 +59,7 @@ For one block, the dependency sequence is:
 
 The end of each physical stack adds loop norm and the unchanged original adaptive gate.
 All four block norms and the loop norm retain their actual predecessors.
-No query/key norm is invented.
+The source contains no additional query/key norm.
 Historical KV retains its request, depth, layer, position, and version.
 
 Within an MLP, a final gate/up feature can feed SiLU and product independently of other features.
@@ -179,9 +179,9 @@ The implementation must map successful certificates onto useful instruction or w
 If one required row remains uncertified, a whole-tile exit may remain unavailable.
 Individual neuron counts cannot substitute for that mapping.
 
-The intended saving is omitted arithmetic or earlier exact consumer work.
-It is not launch overhead already covered by native asynchronous execution.
-It is not a claimed HBM reduction without counters or a validated byte-trace model.
+The method intends to omit arithmetic or advance exact consumer work.
+It does not target dispatch overhead already covered by native asynchronous execution.
+It does not claim HBM reduction without counters or a checked byte-trace model.
 No latency estimate follows from these counts.
 
 ## 7. Primary nearby mechanisms
@@ -202,7 +202,7 @@ It leaves accumulation order, rounding, and subnormal handling unspecified in th
 A generic sequential-FP32 proof therefore does not automatically qualify the native kernel.
 This report does not identify or execute a candidate SASS path.
 
-[Accurate Models of NVIDIA Tensor Cores](https://arxiv.org/html/2512.07004), section 4.1.6 and tables 1–2,
+[Accurate Models of NVIDIA Tensor Cores](https://arxiv.org/html/2512.07004), section 4.1.6 and its numerical-model tables,
 analyzes H100 numerical details and supplies software models.
 The existence of those models reinforces the need for an explicit arithmetic contract.
 This block does not install or run that software.
@@ -289,5 +289,11 @@ Source and axis derivation reached the 12:35:49 UTC checkpoint.
 The executable controls reached the 12:36:56 UTC checkpoint.
 Report synthesis and checks followed.
 The block contains no TP tuning or new inference measurement.
+The final evidence checkpoint was 12:40:31 UTC.
+The active worker interval to that checkpoint was 465 seconds.
+All substantive task work concerned the proposed value axis and its falsification, not TP tuning.
+The report and source-observation prose fields passed the clarity checks.
+Both JSON artifacts parsed, and the saved script identity matched.
+Final publication followed that checkpoint.
 Count the active worker interval once within concurrent campaign wall time.
 Do not sum it with overlapping workers as extra elapsed time.

@@ -1,0 +1,167 @@
+{
+  "schema": "device_launched_graph_transfer_v1",
+  "worker": "/root/independent_axes",
+  "report": "reports/device_launched_graph_transfer_v1.md",
+  "time": {
+    "start_utc": "2026-10-19 13:17:24 UTC",
+    "source_checkpoint_utc": "2026-10-19 13:19:59 UTC",
+    "evidence_end_utc": "2026-10-19 13:22:54 UTC",
+    "segment_seconds_to_checkpoint": 330,
+    "query_time_precision": "Search batches occurred between start and source checkpoint. Exact per-query timestamps were not captured.",
+    "accounting": "Separate from the PT/BFS segment. Count the active worker span once. Do not add concurrent worker time to campaign elapsed time."
+  },
+  "evidence_class": "PRIMARY_SOURCE_AND_READ_ONLY_CODE_AUDIT",
+  "verdict": "GENERIC_ONLY_WITH_UNMEASURED_INTERNAL_HEADROOM",
+  "candidate_files_modified": [],
+  "GPU_execution": "NOT_RUN",
+  "model_quality": "NOT_RUN",
+  "performance_measurement": "No new measurement. Existing coordinator observations are explicitly labeled.",
+  "changed_cost_screen": {
+    "fixed_R4": "One whole-R4 graph already removes intra-pass host submissions.",
+    "device_launch_only": "Changes submission location. Does not remove internal kernel boundaries or tensor dependencies.",
+    "one_pass_device_graph": "Descriptor compression can add dispatch boundaries relative to whole-R4 capture.",
+    "persistent_fusion": "May remove internal costs, but the mechanism is generic and its net Ouro cost is unmeasured.",
+    "original_adaptive": "A host-visible gate wait can be a distinct control-path cost. Compare matched device-resident generic control.",
+    "ownership": "No new weight/KV ownership optimum follows from replacing a launch API.",
+    "recurrence_specific_novelty": "NOT_ESTABLISHED"
+  },
+  "local_sources": [
+    {
+      "path": "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/model_executor/models/ouro.py",
+      "sha256": "cf0792c6c8024ded45dba10553b5f0d24b7b6542dd8f8f0e0e6899807ec0c4ff",
+      "lines": "348–375",
+      "observation": "Fixed recurrent loop is inside forward. Loop norm separates passes. Defined gate is not consumed there."
+    },
+    {
+      "path": "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/compilation/cuda_graph.py",
+      "sha256": "cbc474f9098386d2eef2e3ff61364c611fbc1338d9c259ad5a24439aa7f06412",
+      "lines": "145–168, 313–360",
+      "observation": "Wrapper captures the runnable and replays its graph. Dynamic input-buffer management belongs outside the wrapper."
+    },
+    {
+      "path": "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/cuda/graphs.py",
+      "sha256": "1f4cf2183a1ef1897787c0dc6d13d5afe3ab57de1dd76bb9345323fd64b742b0",
+      "lines": "137–139",
+      "observation": "Python replay delegates to its C++ parent. Installed binary identity was not audited."
+    },
+    {
+      "path": "/home/esjung/external/decode-first-cdb-upstream/src/looped_cdb/continuous_depth_batching/exit_policy.py",
+      "sha256": "46340237b2ba399fb38b814e0c7f6d0b65e915c554d404b148520f238860d948",
+      "lines": "150–168",
+      "observation": "Gate policy consumes a host scalar and updates Python survival/CDF arithmetic."
+    }
+  ],
+  "primary_sources": [
+    {
+      "id": "CUDA_1291",
+      "url": "https://docs.nvidia.com/cuda/archive/12.9.1/cuda-c-programming-guide/index.html",
+      "locators": ["6.2.8.7.7.1–6.2.8.7.7.2", "6.2.8.7.8.2"],
+      "observation": "Device graphs and conditional bodies are single-device. Host instantiation/upload and explicit continuation rules remain.",
+      "compatibility_limit": "Documentation inspection is not a successful local graph conversion."
+    },
+    {
+      "id": "CUDA_CURRENT",
+      "url": "https://docs.nvidia.com/cuda/cuda-programming-guide/04-special-topics/cuda-graphs.html",
+      "version": "Live page updated 2026-09-10.",
+      "locators": ["4.2.4.2", "4.2.6.1–4.2.6.2"],
+      "observation": "Retains single-device restrictions. Current documentation is not the installed toolkit identity."
+    },
+    {
+      "id": "NVSHMEM_LAUNCH",
+      "url": "https://docs.nvidia.com/nvshmem/api/latest/api/launch.html",
+      "locators": ["NVSHMEMX_COLLECTIVE_LAUNCH description", "NVSHMEMX_COLLECTIVE_LAUNCH_QUERY_GRIDSIZE"],
+      "observation": "Launch is local to the calling PE. Required peers must participate. Synchronizing APIs need the documented launch path and supported grid."
+    },
+    {
+      "id": "NVSHMEM_SIGNAL",
+      "url": "https://docs.nvidia.com/nvshmem/api/latest/gen/api/signal.html",
+      "locator": "NVSHMEM_PUT_SIGNAL and device variants.",
+      "observation": "Device data-plus-signal operations exist. They do not create remote compute workers."
+    },
+    {
+      "id": "NVSHMEM_ORDER",
+      "url": "https://docs.nvidia.com/nvshmem/api/latest/gen/api/ordering.html",
+      "locators": ["NVSHMEM_FENCE", "NVSHMEM_QUIET"],
+      "observation": "Ordering, completion, and peer notification have different guarantees."
+    },
+    {
+      "id": "NVSHMEM_CUDA",
+      "url": "https://docs.nvidia.com/nvshmem/api/latest/cuda-interactions.html",
+      "locators": ["The CUDA Abstract Machine", "Nonlocal Operations and the CUDA Execution Model"],
+      "observation": "CUDA and NVSHMEM dependencies can create execution cycles and deadlock."
+    },
+    {
+      "id": "MPK_V2",
+      "url": "https://arxiv.org/html/2512.22219v2",
+      "locators": ["3 Comparison with CUDA Graphs", "5", "6.2", "6.5–6.6"],
+      "observation": "Generic persistent task execution covers internal graph boundaries and fine-grained overlap.",
+      "transfer_limit": "No Ouro result. No reported speedup transfers to the campaign."
+    },
+    {
+      "id": "HAZY_MEGAKERNEL",
+      "url": "https://hazyresearch.stanford.edu/blog/2025-05-27-no-bubbles",
+      "publication_date": "2025-05-27",
+      "locators": ["Separate Kernels Kill the Vibe", "How to Megakernel"],
+      "observation": "Generic one-GPU interpreter and counters target costs remaining after CUDA Graphs.",
+      "transfer_limit": "Llama-1B, not Ouro. Timing and bandwidth claims are not transferred."
+    }
+  ],
+  "external_code": {
+    "url": "https://github.com/mirage-project/mirage/blob/ca58a02d110a278bffaed503be5e66494db2597d/include/mirage/persistent_kernel/persistent_kernel.cuh",
+    "revision": "ca58a02d110a278bffaed503be5e66494db2597d",
+    "sha256": "171c3e78670eb9cfda705aee7fd898d7606c646daefd160cca10479b55717666",
+    "lines": "1959–2045",
+    "observations": [
+      "Prepare kernel resets task-queue state before launch.",
+      "Single-kernel NVSHMEM branch calls nvshmemx_collective_launch.",
+      "Launcher synchronizes after the single persistent workload.",
+      "Split worker/scheduler branch explicitly excludes NVSHMEM in a source comment."
+    ],
+    "scope": "Targeted source inspection only. No clone, build, install, execution, or server-compatibility test."
+  },
+  "existing_timing_inputs": {
+    "owner": "Coordinator, not this worker.",
+    "paths": [
+      "outputs/graph_intervals_base14_P2_v1/interval_analysis/summary.json",
+      "outputs/graph_intervals_base26_P2_v1/interval_analysis/summary.json"
+    ],
+    "mode": "BF16 fixed R4, TP2, async enabled.",
+    "physical_GPUs": [4, 5],
+    "contexts": [1024, 4096, 8192],
+    "observed_repeats_per_frozen_shape": 3,
+    "forced_output_tokens": 128,
+    "graph_fraction_min": 0.9779862232477742,
+    "graph_fraction_max": 0.9898956613340496,
+    "denominator": "Selected-rank local cached window. Excludes prefill and first/final sampling intervals.",
+    "complement": "Unattributed. Not proven idle, removable, or recurrence-specific.",
+    "hypothetical_launch_only_screen": {
+      "formula": "1/f",
+      "rounded_range": [1.0102, 1.0225],
+      "assumptions": "Keep complete graph envelopes unchanged and delete every outside-graph interval.",
+      "evidence_class": "CONDITIONAL_ARITHMETIC_NOT_SPEEDUP",
+      "scope_limit": "Not an E2E bound and not a bound on internal persistent fusion."
+    }
+  },
+  "searches": [
+    "site.docs.nvidia.com cuda device graph launch fire and forget tail launch multiple devices graph",
+    "site.docs.nvidia.com nvshmem device API collective launch stream graph support",
+    "persistent GPU inference CUDA graph device launched inference Mirage Megakernel official",
+    "site:docs.nvidia.com/nvshmem/api CUDA Graph capture device API collective launch requirements",
+    "site:developer.nvidia.com device graph single device"
+  ],
+  "lookup_limits": [
+    "The initial NVSHMEM using.html URL returned no indexed text. The latest-version paths supplied official text.",
+    "The guessed put_signal.html path failed. The official signaling index supplied the device API.",
+    "No local CUDA graph conversion, NVSHMEM initialization, or persistent-engine run occurred.",
+    "This audit does not establish quality, numerical equivalence, net latency, or HBM savings."
+  ],
+  "smallest_discriminator": "Name a removable exclusive critical-path cost that remains after the same-P generic control. Compare aliased unrolling under the same runtime.",
+  "stop_rule": "No recurrence-specific candidate if the same generic runtime gives aliased unrolling the same benefit. No engine without a plausible net-cost margin.",
+  "validation": {
+    "JSON_parse": "PASS",
+    "report_prose_lint_findings": 0,
+    "report_prose_lint_hard_findings": 0,
+    "ratio_arithmetic": "PASS. The two source fractions give 1.022509291264984 and 1.0102074784854933.",
+    "scope": "Validation checks prose, schema parsing, and conditional arithmetic. It does not validate a CUDA engine."
+  }
+}

@@ -1,0 +1,174 @@
+{
+  "task": "parallel_track_breadth_first_transfer_audit_v1",
+  "worker": "/root/independent_axes",
+  "start_utc": "2026-10-19 13:07:10 UTC",
+  "observation_checkpoint_utc": "2026-10-19 13:14:46 UTC",
+  "evidence_end_utc": "2026-10-19 13:15:56 UTC",
+  "evidence_segment_seconds": 526,
+  "publication_checkpoint_utc": "2026-10-19 13:17:12 UTC",
+  "evidence_class": "PRIMARY_SOURCE_AND_READ_ONLY_CODE_AUDIT",
+  "outcome": "No reopening of C01, C04 or C14.",
+  "candidate_files_modified": [],
+  "report": "reports/parallel_track_breadth_first_transfer_v1.md",
+  "sources": [
+    {
+      "id": "PT_PAPER",
+      "title": "Parallel Track Transformers: Enabling Fast GPU Inference with Reduced Synchronization",
+      "url": "https://arxiv.org/html/2602.07306v1",
+      "version": "arXiv:2602.07306v1, 2026-02-07",
+      "locators": [
+        "Section 2.2, Algorithm 1",
+        "Section 3.1",
+        "Section 3.3",
+        "Section 4"
+      ],
+      "architecture": "Independent smaller tracks, periodic fusion.",
+      "training": {
+        "tracks": 8,
+        "attention": "GQA",
+        "pretraining_tokens": {
+          "6B": 800000000000,
+          "13B": 400000000000,
+          "30B": 400000000000
+        }
+      },
+      "serving_scope": "30B, eight H100 GPUs.",
+      "runtime_limit": "TensorRT-LLM variant is internal. No verified PT runtime source inspected."
+    },
+    {
+      "id": "PT_OFFICIAL_PAGE",
+      "url": "https://machinelearning.apple.com/research/parallel-track",
+      "locator": "Publication and related-reading links.",
+      "code_link_verified": false
+    },
+    {
+      "id": "BFS_PAPER",
+      "title": "Breadth-First Pipeline Parallelism",
+      "url": "https://proceedings.mlsys.org/paper_files/paper/2023/file/24e845415c1486dd2d582a9d639237f9-Paper-mlsys2023.pdf",
+      "version": "Official MLSys 2023 PDF, 20 pages.",
+      "sha256": "0575c243a718b3b22bc7258e0af6c0274661bad4d0e66498144147d212e8ba13",
+      "locators": {
+        "5": "PDF pages 8–10",
+        "3.2": "PDF page 4",
+        "4.1-4.2": "PDF page 6",
+        "4.3": "PDF page 8",
+        "C": "PDF page 16",
+        "D.1": "PDF page 17"
+      },
+      "looped_meaning": "Cyclic placement of distinct stages.",
+      "weight_schedule": "Group microbatches to avoid repeated FSDP reconstruction.",
+      "communication_limit": "More stages add messages. Described PP overlap requires Nmb greater than NPP.",
+      "study": "BERT training on 64 V100-SXM2-32GB GPUs.",
+      "baseline_limit": "Section 5 notes communication-overlap implementation differences.",
+      "original_code": "Custom library not located in inspected primary links."
+    },
+    {
+      "id": "BFS_AUTHOR_PAGE",
+      "url": "https://www.servicenow.com/research/author/joel-lamy-poirier.html",
+      "locator": "Breadth-First Pipeline Parallelism publication entry.",
+      "code_link_verified": false
+    },
+    {
+      "id": "PYTORCH_DOCS",
+      "url": "https://docs.pytorch.org/docs/2.14/distributed.pipelining.html#torch.distributed.pipelining.schedules.ScheduleLoopedBFS",
+      "locator": "ScheduleLoopedBFS and eval documentation.",
+      "relation": "Official generic implementation, not the original BFS custom library."
+    }
+  ],
+  "code_audits": [
+    {
+      "url": "https://github.com/pytorch/pytorch/blob/7baab7878598a7e3bfce1e982b2f3008fd89aef3/torch/distributed/pipelining/schedules.py",
+      "revision": "7baab7878598a7e3bfce1e982b2f3008fd89aef3",
+      "revision_time": "2026-10-19T11:15:13Z",
+      "sha256": "c0b7d3fd1f69474ff9272efefc00124d3c79e1570812dae9748339b62bafd973",
+      "locators": {
+        "eval": "685–759",
+        "runtime and lowering": "3269–3485",
+        "ScheduleLoopedBFS": "3898–3991"
+      },
+      "observations": [
+        "Rank-strided stage indices.",
+        "All forward microbatches of one local stage precede the next local stage.",
+        "Reverse-stage backward actions follow.",
+        "Runtime lowers communication and parameter-residency actions."
+      ],
+      "limitations": [
+        "No distributed execution.",
+        "No automatic Ouro weight-alias preservation test.",
+        "No Looped BFS eval compatibility test.",
+        "No autoregressive KV or gate runtime qualification."
+      ]
+    }
+  ],
+  "bounded_code_lookups": {
+    "exact_title_GitHub_repository_query": "\"Parallel Track Transformers\"",
+    "exact_title_GitHub_repository_total_count": 0,
+    "AXLearn_tree_sha": "34aed43c1b6e581c4753d06d7cbeedd5010ef26b",
+    "AXLearn_tree_truncated": false,
+    "AXLearn_filename_filters": [
+      "track",
+      "parallel_transformer"
+    ],
+    "AXLearn_matched_paths": [],
+    "limit": "These lookups do not prove that no public code exists."
+  },
+  "searches": [
+    "\"Parallel Track Transformers\" code github Apple",
+    "\"Breadth-First Pipeline Parallelism\" code github",
+    "\"Joel Lamy-Poirier\" breadth first pipeline github looped",
+    "\"ParallelTrack\" \"vllm\"",
+    "\"Parallel Track Transformers\" \"github.com\"",
+    "\"2602.07306\" code"
+  ],
+  "own_transfer_analysis": {
+    "PT": "Different connectivity and trained weights do not preserve unchanged Ouro.",
+    "BFS_training_terms_removed_at_inference": [
+      "Gradient reduction",
+      "Optimizer work",
+      "Training activation retention"
+    ],
+    "weight_streaming_condition": "Reconstruction savings require a baseline with actual nonresident-weight reconstruction.",
+    "ready_frontier": "R4 is not four independent ready microbatches for one request.",
+    "coarse_physical_PP_layout": {
+      "R": 4,
+      "D": 2048,
+      "BF16_bytes_per_hidden": 4096,
+      "hops_formula": "R*(P-1)+(R-1)",
+      "rows": [
+        {
+          "P": 2,
+          "hops": 7,
+          "logical_payload_bytes": 28672
+        },
+        {
+          "P": 4,
+          "hops": 15,
+          "logical_payload_bytes": 61440
+        },
+        {
+          "P": 8,
+          "hops": 31,
+          "logical_payload_bytes": 126976
+        }
+      ],
+      "limit": "Derived logical payload only. Excludes other routing, synchronization and KV movement."
+    },
+    "C01": "Add stronger generic prior. No new ownership evidence.",
+    "C04": "PT does not authorize deferred exact Ouro nonlinear consumers.",
+    "C14": "Generic stage ordering does not remove causal prefix-KV dependencies.",
+    "current_baseline": "Native asynchronous same-P execution with explicit physical weight aliases."
+  },
+  "tool_limitations": [
+    "pdftotext is unavailable. No installation followed.",
+    "The checked fitz, pypdf and PyPDF2 modules are unavailable.",
+    "The audit uses indexed official PDF text and exact section locators.",
+    "No plotted performance value relies on screenshot interpretation."
+  ],
+  "integrity_limits": [
+    "No GPU job.",
+    "No trained model or weight download.",
+    "No frozen-artifact edit.",
+    "No inference speedup or quality result."
+  ],
+  "time_accounting": "Count the active worker interval once. Concurrent work does not multiply elapsed campaign time."
+}

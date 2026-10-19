@@ -1,0 +1,2511 @@
+{
+  "UTC": "2026-10-19T12:55:36.474448+00:00",
+  "candidate": "NONE",
+  "records": [
+    {
+      "P": 2,
+      "R": 4,
+      "alias_path": "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_alias_base14_P2_isolated_v2/1.4B_R4_TP2",
+      "attribution": "Physical sharing changes parameter/module aliases and may change compilation. HBM counters unavailable.",
+      "capture_comparisons": [
+        {
+          "KL_alias_to_copies": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "KV": {
+            "bitwise_float_capture_equal": true,
+            "max_abs": 0.0,
+            "relative_L2": 0.0,
+            "shape": [
+              96,
+              5,
+              2,
+              16
+            ]
+          },
+          "hidden": {
+            "bitwise_float_capture_equal": true,
+            "max_abs": 0.0,
+            "relative_L2": 0.0,
+            "shape": [
+              4,
+              2048
+            ]
+          },
+          "logits": {
+            "bitwise_float_capture_equal": true,
+            "max_abs": 0.0,
+            "relative_L2": 0.0,
+            "shape": [
+              4,
+              49152
+            ]
+          },
+          "rank": 0,
+          "top1_match": [
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        {
+          "KL_alias_to_copies": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "KV": {
+            "bitwise_float_capture_equal": true,
+            "max_abs": 0.0,
+            "relative_L2": 0.0,
+            "shape": [
+              96,
+              5,
+              2,
+              16
+            ]
+          },
+          "hidden": {
+            "bitwise_float_capture_equal": true,
+            "max_abs": 0.0,
+            "relative_L2": 0.0,
+            "shape": [
+              4,
+              2048
+            ]
+          },
+          "logits": {
+            "bitwise_float_capture_equal": true,
+            "max_abs": 0.0,
+            "relative_L2": 0.0,
+            "shape": [
+              4,
+              49152
+            ]
+          },
+          "rank": 1,
+          "top1_match": [
+            true,
+            true,
+            true,
+            true
+          ]
+        }
+      ],
+      "compile_cache_isolated": true,
+      "compile_cache_paths": [
+        "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_alias_base14_P2_isolated_v2/1.4B_R4_TP2/compile_cache",
+        "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_copies_base14_P2_isolated_v2/1.4B_R4_TP2/compile_cache"
+      ],
+      "copies_path": "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_copies_base14_P2_isolated_v2/1.4B_R4_TP2",
+      "evidence_class": "LIVE_E2E",
+      "model": "1.4B",
+      "quality": "Four controlled teacher-forced positions only. Natural accuracy NOT_RUN.",
+      "storage": {
+        "alias": [
+          {
+            "allocated_bytes": 26916640256,
+            "allocated_bytes_after_setup": 5271254016,
+            "attention_contract": "Original R4 attention objects and static forward-context entries.",
+            "checkpoint_layer_identities": 24,
+            "comparisons": [
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 1,
+                "parameter_bytes": 1233518592,
+                "parameter_tensors": 192
+              },
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 2,
+                "parameter_bytes": 1233518592,
+                "parameter_tensors": 192
+              },
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 3,
+                "parameter_bytes": 1233518592,
+                "parameter_tensors": 192
+              }
+            ],
+            "copies_allocated": 4,
+            "execution_storage": "one shared core",
+            "forward_source": "def storage_forward(self,input_ids,positions,intermediate_tensors=None,inputs_embeds=None):\n    hidden_states=inputs_embeds if inputs_embeds is not None else self.embed_input_ids(input_ids)\n    for current_ut in range(self.total_ut_steps):\n        residual=None\n        for layer in self._campaign_execution[current_ut]:\n            hidden_states,residual=layer(positions,hidden_states,current_ut,residual)\n        hidden_states,_=self.norm(hidden_states,residual)\n    return hidden_states\n",
+            "implementation_sha256": "3c11cde3e297be60d9fb14b5d6e15c13713051cccb964bef1abdaffcb458c8dd",
+            "inspector_count_note": "Generic inspect_ownership physical_layers counts registered OuroAttention wrappers here. It is4L, not the L checkpoint layer identities or the number of KV slots.",
+            "logical_depth": 96,
+            "mode": "alias",
+            "original_loaded_name_count": 197,
+            "peak_allocated_bytes": 26923559424,
+            "post_warmup_buffer_checks": [
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 385,
+                "depth": 1
+              },
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 385,
+                "depth": 2
+              },
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 385,
+                "depth": 3
+              }
+            ],
+            "precision": "BF16",
+            "quality": "Four-position numerical check and controlled output only. Natural quality NOT_RUN.",
+            "rank": 0,
+            "registered_parameter_block_copies": 96,
+            "reserved_bytes": 26950500352,
+            "reserved_bytes_after_setup": 5312086016,
+            "rotary_contract": "Original parameter-free RoPE module remains shared, including its cache dtype update.",
+            "unique_parameter_storage_bytes": 5135407106,
+            "unique_parameter_storages": 773
+          },
+          {
+            "allocated_bytes": 26916640256,
+            "allocated_bytes_after_setup": 5271254016,
+            "attention_contract": "Original R4 attention objects and static forward-context entries.",
+            "checkpoint_layer_identities": 24,
+            "comparisons": [
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 1,
+                "parameter_bytes": 1233518592,
+                "parameter_tensors": 192
+              },
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 2,
+                "parameter_bytes": 1233518592,
+                "parameter_tensors": 192
+              },
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 3,
+                "parameter_bytes": 1233518592,
+                "parameter_tensors": 192
+              }
+            ],
+            "copies_allocated": 4,
+            "execution_storage": "one shared core",
+            "forward_source": "def storage_forward(self,input_ids,positions,intermediate_tensors=None,inputs_embeds=None):\n    hidden_states=inputs_embeds if inputs_embeds is not None else self.embed_input_ids(input_ids)\n    for current_ut in range(self.total_ut_steps):\n        residual=None\n        for layer in self._campaign_execution[current_ut]:\n            hidden_states,residual=layer(positions,hidden_states,current_ut,residual)\n        hidden_states,_=self.norm(hidden_states,residual)\n    return hidden_states\n",
+            "implementation_sha256": "3c11cde3e297be60d9fb14b5d6e15c13713051cccb964bef1abdaffcb458c8dd",
+            "inspector_count_note": "Generic inspect_ownership physical_layers counts registered OuroAttention wrappers here. It is4L, not the L checkpoint layer identities or the number of KV slots.",
+            "logical_depth": 96,
+            "mode": "alias",
+            "original_loaded_name_count": 197,
+            "peak_allocated_bytes": 26923559424,
+            "post_warmup_buffer_checks": [
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 385,
+                "depth": 1
+              },
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 385,
+                "depth": 2
+              },
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 385,
+                "depth": 3
+              }
+            ],
+            "precision": "BF16",
+            "quality": "Four-position numerical check and controlled output only. Natural quality NOT_RUN.",
+            "rank": 1,
+            "registered_parameter_block_copies": 96,
+            "reserved_bytes": 26950500352,
+            "reserved_bytes_after_setup": 5312086016,
+            "rotary_contract": "Original parameter-free RoPE module remains shared, including its cache dtype update.",
+            "unique_parameter_storage_bytes": 5135407106,
+            "unique_parameter_storages": 773
+          }
+        ],
+        "copies": [
+          {
+            "allocated_bytes": 26916640256,
+            "allocated_bytes_after_setup": 5271254016,
+            "attention_contract": "Original R4 attention objects and static forward-context entries.",
+            "checkpoint_layer_identities": 24,
+            "comparisons": [
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 1,
+                "parameter_bytes": 1233518592,
+                "parameter_tensors": 192
+              },
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 2,
+                "parameter_bytes": 1233518592,
+                "parameter_tensors": 192
+              },
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 3,
+                "parameter_bytes": 1233518592,
+                "parameter_tensors": 192
+              }
+            ],
+            "copies_allocated": 4,
+            "execution_storage": "four distinct value-identical cores",
+            "forward_source": "def storage_forward(self,input_ids,positions,intermediate_tensors=None,inputs_embeds=None):\n    hidden_states=inputs_embeds if inputs_embeds is not None else self.embed_input_ids(input_ids)\n    for current_ut in range(self.total_ut_steps):\n        residual=None\n        for layer in self._campaign_execution[current_ut]:\n            hidden_states,residual=layer(positions,hidden_states,current_ut,residual)\n        hidden_states,_=self.norm(hidden_states,residual)\n    return hidden_states\n",
+            "implementation_sha256": "3c11cde3e297be60d9fb14b5d6e15c13713051cccb964bef1abdaffcb458c8dd",
+            "inspector_count_note": "Generic inspect_ownership physical_layers counts registered OuroAttention wrappers here. It is4L, not the L checkpoint layer identities or the number of KV slots.",
+            "logical_depth": 96,
+            "mode": "copies",
+            "original_loaded_name_count": 197,
+            "peak_allocated_bytes": 26923559424,
+            "post_warmup_buffer_checks": [
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 385,
+                "depth": 1
+              },
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 385,
+                "depth": 2
+              },
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 385,
+                "depth": 3
+              }
+            ],
+            "precision": "BF16",
+            "quality": "Four-position numerical check and controlled output only. Natural quality NOT_RUN.",
+            "rank": 0,
+            "registered_parameter_block_copies": 96,
+            "reserved_bytes": 26950500352,
+            "reserved_bytes_after_setup": 5312086016,
+            "rotary_contract": "Original parameter-free RoPE module remains shared, including its cache dtype update.",
+            "unique_parameter_storage_bytes": 5135407106,
+            "unique_parameter_storages": 773
+          },
+          {
+            "allocated_bytes": 26916640256,
+            "allocated_bytes_after_setup": 5271254016,
+            "attention_contract": "Original R4 attention objects and static forward-context entries.",
+            "checkpoint_layer_identities": 24,
+            "comparisons": [
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 1,
+                "parameter_bytes": 1233518592,
+                "parameter_tensors": 192
+              },
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 2,
+                "parameter_bytes": 1233518592,
+                "parameter_tensors": 192
+              },
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 3,
+                "parameter_bytes": 1233518592,
+                "parameter_tensors": 192
+              }
+            ],
+            "copies_allocated": 4,
+            "execution_storage": "four distinct value-identical cores",
+            "forward_source": "def storage_forward(self,input_ids,positions,intermediate_tensors=None,inputs_embeds=None):\n    hidden_states=inputs_embeds if inputs_embeds is not None else self.embed_input_ids(input_ids)\n    for current_ut in range(self.total_ut_steps):\n        residual=None\n        for layer in self._campaign_execution[current_ut]:\n            hidden_states,residual=layer(positions,hidden_states,current_ut,residual)\n        hidden_states,_=self.norm(hidden_states,residual)\n    return hidden_states\n",
+            "implementation_sha256": "3c11cde3e297be60d9fb14b5d6e15c13713051cccb964bef1abdaffcb458c8dd",
+            "inspector_count_note": "Generic inspect_ownership physical_layers counts registered OuroAttention wrappers here. It is4L, not the L checkpoint layer identities or the number of KV slots.",
+            "logical_depth": 96,
+            "mode": "copies",
+            "original_loaded_name_count": 197,
+            "peak_allocated_bytes": 26923559424,
+            "post_warmup_buffer_checks": [
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 385,
+                "depth": 1
+              },
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 385,
+                "depth": 2
+              },
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 385,
+                "depth": 3
+              }
+            ],
+            "precision": "BF16",
+            "quality": "Four-position numerical check and controlled output only. Natural quality NOT_RUN.",
+            "rank": 1,
+            "registered_parameter_block_copies": 96,
+            "reserved_bytes": 26950500352,
+            "reserved_bytes_after_setup": 5312086016,
+            "rotary_contract": "Original parameter-free RoPE module remains shared, including its cache dtype update.",
+            "unique_parameter_storage_bytes": 5135407106,
+            "unique_parameter_storages": 773
+          }
+        ]
+      },
+      "timing": [
+        {
+          "N_distinct_request_shapes": 2,
+          "N_trials_each": 10,
+          "alias_median_E2E_ms": 928.389492444694,
+          "context": 1024,
+          "copies_median_E2E_ms": 927.949030417949,
+          "copies_over_alias_speedup": 0.9995255633219359,
+          "paired_requests": [
+            {
+              "alias_ms": 930.559310130775,
+              "copies_ms": 927.7823818847537,
+              "copies_over_alias": 0.9970158503431329,
+              "request_id": "gsm8k/test/1074"
+            },
+            {
+              "alias_ms": 927.7601130306721,
+              "copies_ms": 931.2429064884782,
+              "copies_over_alias": 1.003753980591415,
+              "request_id": "math500/test/311"
+            }
+          ]
+        },
+        {
+          "N_distinct_request_shapes": 2,
+          "N_trials_each": 10,
+          "alias_median_E2E_ms": 1006.2980940565467,
+          "context": 4096,
+          "copies_median_E2E_ms": 1006.6898483783007,
+          "copies_over_alias_speedup": 1.0003893024582555,
+          "paired_requests": [
+            {
+              "alias_ms": 1006.5028658136725,
+              "copies_ms": 1006.4455233514309,
+              "copies_over_alias": 0.9999430280189066,
+              "request_id": "gsm8k/test/1074"
+            },
+            {
+              "alias_ms": 1006.0933222994208,
+              "copies_ms": 1006.9341734051704,
+              "copies_over_alias": 1.0008357585594823,
+              "request_id": "math500/test/311"
+            }
+          ]
+        },
+        {
+          "N_distinct_request_shapes": 2,
+          "N_trials_each": 10,
+          "alias_median_E2E_ms": 1152.1648275665939,
+          "context": 8192,
+          "copies_median_E2E_ms": 1153.259408660233,
+          "copies_over_alias_speedup": 1.0009500212707854,
+          "paired_requests": [
+            {
+              "alias_ms": 1152.0195929333568,
+              "copies_ms": 1153.1519833952188,
+              "copies_over_alias": 1.0009829611135161,
+              "request_id": "gsm8k/test/1074"
+            },
+            {
+              "alias_ms": 1152.269591577351,
+              "copies_ms": 1153.3668339252472,
+              "copies_over_alias": 1.0009522444711867,
+              "request_id": "math500/test/311"
+            }
+          ]
+        }
+      ],
+      "uncertainty": "Sequential arm order. Two request shapes do not establish broad request-level confidence."
+    },
+    {
+      "P": 4,
+      "R": 4,
+      "alias_path": "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_alias_base14_P4_isolated_v2/1.4B_R4_TP4",
+      "attribution": "Physical sharing changes parameter/module aliases and may change compilation. HBM counters unavailable.",
+      "capture_comparisons": [
+        {
+          "KL_alias_to_copies": [
+            5.52160354581595e-07,
+            0.0019216364271355626,
+            2.4649705400057746e-05,
+            0.00024676075652029644
+          ],
+          "KV": {
+            "bitwise_float_capture_equal": false,
+            "max_abs": 0.1015625,
+            "relative_L2": 0.006934039408304306,
+            "shape": [
+              96,
+              5,
+              2,
+              16
+            ]
+          },
+          "hidden": {
+            "bitwise_float_capture_equal": false,
+            "max_abs": 0.1875,
+            "relative_L2": 0.018552859988291467,
+            "shape": [
+              4,
+              2048
+            ]
+          },
+          "logits": {
+            "bitwise_float_capture_equal": false,
+            "max_abs": 0.25,
+            "relative_L2": 0.010242911645473862,
+            "shape": [
+              4,
+              49152
+            ]
+          },
+          "rank": 0,
+          "top1_match": [
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        {
+          "KL_alias_to_copies": [
+            5.52160354581595e-07,
+            0.0019216364271355626,
+            2.4649705400057746e-05,
+            0.00024676075652029644
+          ],
+          "KV": {
+            "bitwise_float_capture_equal": false,
+            "max_abs": 0.078125,
+            "relative_L2": 0.0075186658856203565,
+            "shape": [
+              96,
+              5,
+              2,
+              16
+            ]
+          },
+          "hidden": {
+            "bitwise_float_capture_equal": false,
+            "max_abs": 0.1875,
+            "relative_L2": 0.018557197011739805,
+            "shape": [
+              4,
+              2048
+            ]
+          },
+          "logits": {
+            "bitwise_float_capture_equal": false,
+            "max_abs": 0.25,
+            "relative_L2": 0.010242911645473862,
+            "shape": [
+              4,
+              49152
+            ]
+          },
+          "rank": 1,
+          "top1_match": [
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        {
+          "KL_alias_to_copies": [
+            5.52160354581595e-07,
+            0.0019216364271355626,
+            2.4649705400057746e-05,
+            0.00024676075652029644
+          ],
+          "KV": {
+            "bitwise_float_capture_equal": false,
+            "max_abs": 0.08203125,
+            "relative_L2": 0.007573638344513446,
+            "shape": [
+              96,
+              5,
+              2,
+              16
+            ]
+          },
+          "hidden": {
+            "bitwise_float_capture_equal": false,
+            "max_abs": 0.1875,
+            "relative_L2": 0.018552859988291467,
+            "shape": [
+              4,
+              2048
+            ]
+          },
+          "logits": {
+            "bitwise_float_capture_equal": false,
+            "max_abs": 0.25,
+            "relative_L2": 0.010242911645473862,
+            "shape": [
+              4,
+              49152
+            ]
+          },
+          "rank": 2,
+          "top1_match": [
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        {
+          "KL_alias_to_copies": [
+            5.52160354581595e-07,
+            0.0019216364271355626,
+            2.4649705400057746e-05,
+            0.00024676075652029644
+          ],
+          "KV": {
+            "bitwise_float_capture_equal": false,
+            "max_abs": 0.09375,
+            "relative_L2": 0.007607177327267034,
+            "shape": [
+              96,
+              5,
+              2,
+              16
+            ]
+          },
+          "hidden": {
+            "bitwise_float_capture_equal": false,
+            "max_abs": 0.1875,
+            "relative_L2": 0.018552859988291467,
+            "shape": [
+              4,
+              2048
+            ]
+          },
+          "logits": {
+            "bitwise_float_capture_equal": false,
+            "max_abs": 0.25,
+            "relative_L2": 0.010242911645473862,
+            "shape": [
+              4,
+              49152
+            ]
+          },
+          "rank": 3,
+          "top1_match": [
+            true,
+            true,
+            true,
+            true
+          ]
+        }
+      ],
+      "compile_cache_isolated": true,
+      "compile_cache_paths": [
+        "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_alias_base14_P4_isolated_v2/1.4B_R4_TP4/compile_cache",
+        "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_copies_base14_P4_isolated_v2/1.4B_R4_TP4/compile_cache"
+      ],
+      "copies_path": "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_copies_base14_P4_isolated_v2/1.4B_R4_TP4",
+      "evidence_class": "LIVE_E2E",
+      "model": "1.4B",
+      "quality": "Four controlled teacher-forced positions only. Natural accuracy NOT_RUN.",
+      "storage": {
+        "alias": [
+          {
+            "allocated_bytes": 24387473920,
+            "allocated_bytes_after_setup": 2742087680,
+            "attention_contract": "Original R4 attention objects and static forward-context entries.",
+            "checkpoint_layer_identities": 24,
+            "comparisons": [
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 1,
+                "parameter_bytes": 616955904,
+                "parameter_tensors": 192
+              },
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 2,
+                "parameter_bytes": 616955904,
+                "parameter_tensors": 192
+              },
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 3,
+                "parameter_bytes": 616955904,
+                "parameter_tensors": 192
+              }
+            ],
+            "copies_allocated": 4,
+            "execution_storage": "one shared core",
+            "forward_source": "def storage_forward(self,input_ids,positions,intermediate_tensors=None,inputs_embeds=None):\n    hidden_states=inputs_embeds if inputs_embeds is not None else self.embed_input_ids(input_ids)\n    for current_ut in range(self.total_ut_steps):\n        residual=None\n        for layer in self._campaign_execution[current_ut]:\n            hidden_states,residual=layer(positions,hidden_states,current_ut,residual)\n        hidden_states,_=self.norm(hidden_states,residual)\n    return hidden_states\n",
+            "implementation_sha256": "3c11cde3e297be60d9fb14b5d6e15c13713051cccb964bef1abdaffcb458c8dd",
+            "inspector_count_note": "Generic inspect_ownership physical_layers counts registered OuroAttention wrappers here. It is4L, not the L checkpoint layer identities or the number of KV slots.",
+            "logical_depth": 96,
+            "mode": "alias",
+            "original_loaded_name_count": 197,
+            "peak_allocated_bytes": 24393868800,
+            "post_warmup_buffer_checks": [
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 385,
+                "depth": 1
+              },
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 385,
+                "depth": 2
+              },
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 385,
+                "depth": 3
+              }
+            ],
+            "precision": "BF16",
+            "quality": "Four-position numerical check and controlled output only. Natural quality NOT_RUN.",
+            "rank": 0,
+            "registered_parameter_block_copies": 96,
+            "reserved_bytes": 24423432192,
+            "reserved_bytes_after_setup": 2805989376,
+            "rotary_contract": "Original parameter-free RoPE module remains shared, including its cache dtype update.",
+            "unique_parameter_storage_bytes": 2568492034,
+            "unique_parameter_storages": 773
+          },
+          {
+            "allocated_bytes": 24387473920,
+            "allocated_bytes_after_setup": 2742087680,
+            "attention_contract": "Original R4 attention objects and static forward-context entries.",
+            "checkpoint_layer_identities": 24,
+            "comparisons": [
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 1,
+                "parameter_bytes": 616955904,
+                "parameter_tensors": 192
+              },
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 2,
+                "parameter_bytes": 616955904,
+                "parameter_tensors": 192
+              },
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 3,
+                "parameter_bytes": 616955904,
+                "parameter_tensors": 192
+              }
+            ],
+            "copies_allocated": 4,
+            "execution_storage": "one shared core",
+            "forward_source": "def storage_forward(self,input_ids,positions,intermediate_tensors=None,inputs_embeds=None):\n    hidden_states=inputs_embeds if inputs_embeds is not None else self.embed_input_ids(input_ids)\n    for current_ut in range(self.total_ut_steps):\n        residual=None\n        for layer in self._campaign_execution[current_ut]:\n            hidden_states,residual=layer(positions,hidden_states,current_ut,residual)\n        hidden_states,_=self.norm(hidden_states,residual)\n    return hidden_states\n",
+            "implementation_sha256": "3c11cde3e297be60d9fb14b5d6e15c13713051cccb964bef1abdaffcb458c8dd",
+            "inspector_count_note": "Generic inspect_ownership physical_layers counts registered OuroAttention wrappers here. It is4L, not the L checkpoint layer identities or the number of KV slots.",
+            "logical_depth": 96,
+            "mode": "alias",
+            "original_loaded_name_count": 197,
+            "peak_allocated_bytes": 24393868800,
+            "post_warmup_buffer_checks": [
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 385,
+                "depth": 1
+              },
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 385,
+                "depth": 2
+              },
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 385,
+                "depth": 3
+              }
+            ],
+            "precision": "BF16",
+            "quality": "Four-position numerical check and controlled output only. Natural quality NOT_RUN.",
+            "rank": 1,
+            "registered_parameter_block_copies": 96,
+            "reserved_bytes": 24423432192,
+            "reserved_bytes_after_setup": 2805989376,
+            "rotary_contract": "Original parameter-free RoPE module remains shared, including its cache dtype update.",
+            "unique_parameter_storage_bytes": 2568492034,
+            "unique_parameter_storages": 773
+          },
+          {
+            "allocated_bytes": 24387473920,
+            "allocated_bytes_after_setup": 2742087680,
+            "attention_contract": "Original R4 attention objects and static forward-context entries.",
+            "checkpoint_layer_identities": 24,
+            "comparisons": [
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 1,
+                "parameter_bytes": 616955904,
+                "parameter_tensors": 192
+              },
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 2,
+                "parameter_bytes": 616955904,
+                "parameter_tensors": 192
+              },
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 3,
+                "parameter_bytes": 616955904,
+                "parameter_tensors": 192
+              }
+            ],
+            "copies_allocated": 4,
+            "execution_storage": "one shared core",
+            "forward_source": "def storage_forward(self,input_ids,positions,intermediate_tensors=None,inputs_embeds=None):\n    hidden_states=inputs_embeds if inputs_embeds is not None else self.embed_input_ids(input_ids)\n    for current_ut in range(self.total_ut_steps):\n        residual=None\n        for layer in self._campaign_execution[current_ut]:\n            hidden_states,residual=layer(positions,hidden_states,current_ut,residual)\n        hidden_states,_=self.norm(hidden_states,residual)\n    return hidden_states\n",
+            "implementation_sha256": "3c11cde3e297be60d9fb14b5d6e15c13713051cccb964bef1abdaffcb458c8dd",
+            "inspector_count_note": "Generic inspect_ownership physical_layers counts registered OuroAttention wrappers here. It is4L, not the L checkpoint layer identities or the number of KV slots.",
+            "logical_depth": 96,
+            "mode": "alias",
+            "original_loaded_name_count": 197,
+            "peak_allocated_bytes": 24393868800,
+            "post_warmup_buffer_checks": [
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 385,
+                "depth": 1
+              },
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 385,
+                "depth": 2
+              },
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 385,
+                "depth": 3
+              }
+            ],
+            "precision": "BF16",
+            "quality": "Four-position numerical check and controlled output only. Natural quality NOT_RUN.",
+            "rank": 2,
+            "registered_parameter_block_copies": 96,
+            "reserved_bytes": 24423432192,
+            "reserved_bytes_after_setup": 2805989376,
+            "rotary_contract": "Original parameter-free RoPE module remains shared, including its cache dtype update.",
+            "unique_parameter_storage_bytes": 2568492034,
+            "unique_parameter_storages": 773
+          },
+          {
+            "allocated_bytes": 24387473920,
+            "allocated_bytes_after_setup": 2742087680,
+            "attention_contract": "Original R4 attention objects and static forward-context entries.",
+            "checkpoint_layer_identities": 24,
+            "comparisons": [
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 1,
+                "parameter_bytes": 616955904,
+                "parameter_tensors": 192
+              },
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 2,
+                "parameter_bytes": 616955904,
+                "parameter_tensors": 192
+              },
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 3,
+                "parameter_bytes": 616955904,
+                "parameter_tensors": 192
+              }
+            ],
+            "copies_allocated": 4,
+            "execution_storage": "one shared core",
+            "forward_source": "def storage_forward(self,input_ids,positions,intermediate_tensors=None,inputs_embeds=None):\n    hidden_states=inputs_embeds if inputs_embeds is not None else self.embed_input_ids(input_ids)\n    for current_ut in range(self.total_ut_steps):\n        residual=None\n        for layer in self._campaign_execution[current_ut]:\n            hidden_states,residual=layer(positions,hidden_states,current_ut,residual)\n        hidden_states,_=self.norm(hidden_states,residual)\n    return hidden_states\n",
+            "implementation_sha256": "3c11cde3e297be60d9fb14b5d6e15c13713051cccb964bef1abdaffcb458c8dd",
+            "inspector_count_note": "Generic inspect_ownership physical_layers counts registered OuroAttention wrappers here. It is4L, not the L checkpoint layer identities or the number of KV slots.",
+            "logical_depth": 96,
+            "mode": "alias",
+            "original_loaded_name_count": 197,
+            "peak_allocated_bytes": 24393868800,
+            "post_warmup_buffer_checks": [
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 385,
+                "depth": 1
+              },
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 385,
+                "depth": 2
+              },
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 385,
+                "depth": 3
+              }
+            ],
+            "precision": "BF16",
+            "quality": "Four-position numerical check and controlled output only. Natural quality NOT_RUN.",
+            "rank": 3,
+            "registered_parameter_block_copies": 96,
+            "reserved_bytes": 24423432192,
+            "reserved_bytes_after_setup": 2805989376,
+            "rotary_contract": "Original parameter-free RoPE module remains shared, including its cache dtype update.",
+            "unique_parameter_storage_bytes": 2568492034,
+            "unique_parameter_storages": 773
+          }
+        ],
+        "copies": [
+          {
+            "allocated_bytes": 24387473920,
+            "allocated_bytes_after_setup": 2742087680,
+            "attention_contract": "Original R4 attention objects and static forward-context entries.",
+            "checkpoint_layer_identities": 24,
+            "comparisons": [
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 1,
+                "parameter_bytes": 616955904,
+                "parameter_tensors": 192
+              },
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 2,
+                "parameter_bytes": 616955904,
+                "parameter_tensors": 192
+              },
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 3,
+                "parameter_bytes": 616955904,
+                "parameter_tensors": 192
+              }
+            ],
+            "copies_allocated": 4,
+            "execution_storage": "four distinct value-identical cores",
+            "forward_source": "def storage_forward(self,input_ids,positions,intermediate_tensors=None,inputs_embeds=None):\n    hidden_states=inputs_embeds if inputs_embeds is not None else self.embed_input_ids(input_ids)\n    for current_ut in range(self.total_ut_steps):\n        residual=None\n        for layer in self._campaign_execution[current_ut]:\n            hidden_states,residual=layer(positions,hidden_states,current_ut,residual)\n        hidden_states,_=self.norm(hidden_states,residual)\n    return hidden_states\n",
+            "implementation_sha256": "3c11cde3e297be60d9fb14b5d6e15c13713051cccb964bef1abdaffcb458c8dd",
+            "inspector_count_note": "Generic inspect_ownership physical_layers counts registered OuroAttention wrappers here. It is4L, not the L checkpoint layer identities or the number of KV slots.",
+            "logical_depth": 96,
+            "mode": "copies",
+            "original_loaded_name_count": 197,
+            "peak_allocated_bytes": 24393868800,
+            "post_warmup_buffer_checks": [
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 385,
+                "depth": 1
+              },
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 385,
+                "depth": 2
+              },
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 385,
+                "depth": 3
+              }
+            ],
+            "precision": "BF16",
+            "quality": "Four-position numerical check and controlled output only. Natural quality NOT_RUN.",
+            "rank": 0,
+            "registered_parameter_block_copies": 96,
+            "reserved_bytes": 24423432192,
+            "reserved_bytes_after_setup": 2805989376,
+            "rotary_contract": "Original parameter-free RoPE module remains shared, including its cache dtype update.",
+            "unique_parameter_storage_bytes": 2568492034,
+            "unique_parameter_storages": 773
+          },
+          {
+            "allocated_bytes": 24387473920,
+            "allocated_bytes_after_setup": 2742087680,
+            "attention_contract": "Original R4 attention objects and static forward-context entries.",
+            "checkpoint_layer_identities": 24,
+            "comparisons": [
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 1,
+                "parameter_bytes": 616955904,
+                "parameter_tensors": 192
+              },
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 2,
+                "parameter_bytes": 616955904,
+                "parameter_tensors": 192
+              },
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 3,
+                "parameter_bytes": 616955904,
+                "parameter_tensors": 192
+              }
+            ],
+            "copies_allocated": 4,
+            "execution_storage": "four distinct value-identical cores",
+            "forward_source": "def storage_forward(self,input_ids,positions,intermediate_tensors=None,inputs_embeds=None):\n    hidden_states=inputs_embeds if inputs_embeds is not None else self.embed_input_ids(input_ids)\n    for current_ut in range(self.total_ut_steps):\n        residual=None\n        for layer in self._campaign_execution[current_ut]:\n            hidden_states,residual=layer(positions,hidden_states,current_ut,residual)\n        hidden_states,_=self.norm(hidden_states,residual)\n    return hidden_states\n",
+            "implementation_sha256": "3c11cde3e297be60d9fb14b5d6e15c13713051cccb964bef1abdaffcb458c8dd",
+            "inspector_count_note": "Generic inspect_ownership physical_layers counts registered OuroAttention wrappers here. It is4L, not the L checkpoint layer identities or the number of KV slots.",
+            "logical_depth": 96,
+            "mode": "copies",
+            "original_loaded_name_count": 197,
+            "peak_allocated_bytes": 24393868800,
+            "post_warmup_buffer_checks": [
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 385,
+                "depth": 1
+              },
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 385,
+                "depth": 2
+              },
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 385,
+                "depth": 3
+              }
+            ],
+            "precision": "BF16",
+            "quality": "Four-position numerical check and controlled output only. Natural quality NOT_RUN.",
+            "rank": 1,
+            "registered_parameter_block_copies": 96,
+            "reserved_bytes": 24423432192,
+            "reserved_bytes_after_setup": 2805989376,
+            "rotary_contract": "Original parameter-free RoPE module remains shared, including its cache dtype update.",
+            "unique_parameter_storage_bytes": 2568492034,
+            "unique_parameter_storages": 773
+          },
+          {
+            "allocated_bytes": 24387473920,
+            "allocated_bytes_after_setup": 2742087680,
+            "attention_contract": "Original R4 attention objects and static forward-context entries.",
+            "checkpoint_layer_identities": 24,
+            "comparisons": [
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 1,
+                "parameter_bytes": 616955904,
+                "parameter_tensors": 192
+              },
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 2,
+                "parameter_bytes": 616955904,
+                "parameter_tensors": 192
+              },
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 3,
+                "parameter_bytes": 616955904,
+                "parameter_tensors": 192
+              }
+            ],
+            "copies_allocated": 4,
+            "execution_storage": "four distinct value-identical cores",
+            "forward_source": "def storage_forward(self,input_ids,positions,intermediate_tensors=None,inputs_embeds=None):\n    hidden_states=inputs_embeds if inputs_embeds is not None else self.embed_input_ids(input_ids)\n    for current_ut in range(self.total_ut_steps):\n        residual=None\n        for layer in self._campaign_execution[current_ut]:\n            hidden_states,residual=layer(positions,hidden_states,current_ut,residual)\n        hidden_states,_=self.norm(hidden_states,residual)\n    return hidden_states\n",
+            "implementation_sha256": "3c11cde3e297be60d9fb14b5d6e15c13713051cccb964bef1abdaffcb458c8dd",
+            "inspector_count_note": "Generic inspect_ownership physical_layers counts registered OuroAttention wrappers here. It is4L, not the L checkpoint layer identities or the number of KV slots.",
+            "logical_depth": 96,
+            "mode": "copies",
+            "original_loaded_name_count": 197,
+            "peak_allocated_bytes": 24393868800,
+            "post_warmup_buffer_checks": [
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 385,
+                "depth": 1
+              },
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 385,
+                "depth": 2
+              },
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 385,
+                "depth": 3
+              }
+            ],
+            "precision": "BF16",
+            "quality": "Four-position numerical check and controlled output only. Natural quality NOT_RUN.",
+            "rank": 2,
+            "registered_parameter_block_copies": 96,
+            "reserved_bytes": 24423432192,
+            "reserved_bytes_after_setup": 2805989376,
+            "rotary_contract": "Original parameter-free RoPE module remains shared, including its cache dtype update.",
+            "unique_parameter_storage_bytes": 2568492034,
+            "unique_parameter_storages": 773
+          },
+          {
+            "allocated_bytes": 24387473920,
+            "allocated_bytes_after_setup": 2742087680,
+            "attention_contract": "Original R4 attention objects and static forward-context entries.",
+            "checkpoint_layer_identities": 24,
+            "comparisons": [
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 1,
+                "parameter_bytes": 616955904,
+                "parameter_tensors": 192
+              },
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 2,
+                "parameter_bytes": 616955904,
+                "parameter_tensors": 192
+              },
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 3,
+                "parameter_bytes": 616955904,
+                "parameter_tensors": 192
+              }
+            ],
+            "copies_allocated": 4,
+            "execution_storage": "four distinct value-identical cores",
+            "forward_source": "def storage_forward(self,input_ids,positions,intermediate_tensors=None,inputs_embeds=None):\n    hidden_states=inputs_embeds if inputs_embeds is not None else self.embed_input_ids(input_ids)\n    for current_ut in range(self.total_ut_steps):\n        residual=None\n        for layer in self._campaign_execution[current_ut]:\n            hidden_states,residual=layer(positions,hidden_states,current_ut,residual)\n        hidden_states,_=self.norm(hidden_states,residual)\n    return hidden_states\n",
+            "implementation_sha256": "3c11cde3e297be60d9fb14b5d6e15c13713051cccb964bef1abdaffcb458c8dd",
+            "inspector_count_note": "Generic inspect_ownership physical_layers counts registered OuroAttention wrappers here. It is4L, not the L checkpoint layer identities or the number of KV slots.",
+            "logical_depth": 96,
+            "mode": "copies",
+            "original_loaded_name_count": 197,
+            "peak_allocated_bytes": 24393868800,
+            "post_warmup_buffer_checks": [
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 385,
+                "depth": 1
+              },
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 385,
+                "depth": 2
+              },
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 385,
+                "depth": 3
+              }
+            ],
+            "precision": "BF16",
+            "quality": "Four-position numerical check and controlled output only. Natural quality NOT_RUN.",
+            "rank": 3,
+            "registered_parameter_block_copies": 96,
+            "reserved_bytes": 24423432192,
+            "reserved_bytes_after_setup": 2805989376,
+            "rotary_contract": "Original parameter-free RoPE module remains shared, including its cache dtype update.",
+            "unique_parameter_storage_bytes": 2568492034,
+            "unique_parameter_storages": 773
+          }
+        ]
+      },
+      "timing": [
+        {
+          "N_distinct_request_shapes": 2,
+          "N_trials_each": 10,
+          "alias_median_E2E_ms": 793.5078525915742,
+          "context": 1024,
+          "copies_median_E2E_ms": 791.5123701095581,
+          "copies_over_alias_speedup": 0.9974852391498095,
+          "paired_requests": [
+            {
+              "alias_ms": 793.4428444132209,
+              "copies_ms": 791.6730418801308,
+              "copies_over_alias": 0.9977694643721956,
+              "request_id": "gsm8k/test/1074"
+            },
+            {
+              "alias_ms": 793.5728607699275,
+              "copies_ms": 791.3516983389854,
+              "copies_over_alias": 0.997201060493945,
+              "request_id": "math500/test/311"
+            }
+          ]
+        },
+        {
+          "N_distinct_request_shapes": 2,
+          "N_trials_each": 10,
+          "alias_median_E2E_ms": 862.2881411574781,
+          "context": 4096,
+          "copies_median_E2E_ms": 838.7858509086072,
+          "copies_over_alias_speedup": 0.9727442729093747,
+          "paired_requests": [
+            {
+              "alias_ms": 863.6217946186662,
+              "copies_ms": 838.959121145308,
+              "copies_over_alias": 0.9714427384451917,
+              "request_id": "gsm8k/test/1074"
+            },
+            {
+              "alias_ms": 840.2600325644016,
+              "copies_ms": 838.4350026026368,
+              "copies_over_alias": 0.9978280176480666,
+              "request_id": "math500/test/311"
+            }
+          ]
+        },
+        {
+          "N_distinct_request_shapes": 2,
+          "N_trials_each": 10,
+          "alias_median_E2E_ms": 936.3048365339637,
+          "context": 8192,
+          "copies_median_E2E_ms": 934.0892364270985,
+          "copies_over_alias_speedup": 0.9976336765330969,
+          "paired_requests": [
+            {
+              "alias_ms": 936.6259044036269,
+              "copies_ms": 934.0111520141363,
+              "copies_over_alias": 0.9972083279170508,
+              "request_id": "gsm8k/test/1074"
+            },
+            {
+              "alias_ms": 935.6171488761902,
+              "copies_ms": 934.1260837391019,
+              "copies_over_alias": 0.998406329833865,
+              "request_id": "math500/test/311"
+            }
+          ]
+        }
+      ],
+      "uncertainty": "Sequential arm order. Two request shapes do not establish broad request-level confidence."
+    },
+    {
+      "P": 2,
+      "R": 4,
+      "alias_path": "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_alias_base26_P2_isolated_v2/2.6B_R4_TP2",
+      "attribution": "Physical sharing changes parameter/module aliases and may change compilation. HBM counters unavailable.",
+      "capture_comparisons": [
+        {
+          "KL_alias_to_copies": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "KV": {
+            "bitwise_float_capture_equal": true,
+            "max_abs": 0.0,
+            "relative_L2": 0.0,
+            "shape": [
+              192,
+              5,
+              2,
+              16
+            ]
+          },
+          "hidden": {
+            "bitwise_float_capture_equal": true,
+            "max_abs": 0.0,
+            "relative_L2": 0.0,
+            "shape": [
+              4,
+              2048
+            ]
+          },
+          "logits": {
+            "bitwise_float_capture_equal": true,
+            "max_abs": 0.0,
+            "relative_L2": 0.0,
+            "shape": [
+              4,
+              49152
+            ]
+          },
+          "rank": 0,
+          "top1_match": [
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        {
+          "KL_alias_to_copies": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "KV": {
+            "bitwise_float_capture_equal": true,
+            "max_abs": 0.0,
+            "relative_L2": 0.0,
+            "shape": [
+              192,
+              5,
+              2,
+              16
+            ]
+          },
+          "hidden": {
+            "bitwise_float_capture_equal": true,
+            "max_abs": 0.0,
+            "relative_L2": 0.0,
+            "shape": [
+              4,
+              2048
+            ]
+          },
+          "logits": {
+            "bitwise_float_capture_equal": true,
+            "max_abs": 0.0,
+            "relative_L2": 0.0,
+            "shape": [
+              4,
+              49152
+            ]
+          },
+          "rank": 1,
+          "top1_match": [
+            true,
+            true,
+            true,
+            true
+          ]
+        }
+      ],
+      "compile_cache_isolated": true,
+      "compile_cache_paths": [
+        "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_alias_base26_P2_isolated_v2/2.6B_R4_TP2/compile_cache",
+        "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_copies_base26_P2_isolated_v2/2.6B_R4_TP2/compile_cache"
+      ],
+      "copies_path": "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_copies_base26_P2_isolated_v2/2.6B_R4_TP2",
+      "evidence_class": "LIVE_E2E",
+      "model": "2.6B",
+      "quality": "Four controlled teacher-forced positions only. Natural accuracy NOT_RUN.",
+      "storage": {
+        "alias": [
+          {
+            "allocated_bytes": 31876077056,
+            "allocated_bytes_after_setup": 10306434048,
+            "attention_contract": "Original R4 attention objects and static forward-context entries.",
+            "checkpoint_layer_identities": 48,
+            "comparisons": [
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 1,
+                "parameter_bytes": 2467037184,
+                "parameter_tensors": 384
+              },
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 2,
+                "parameter_bytes": 2467037184,
+                "parameter_tensors": 384
+              },
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 3,
+                "parameter_bytes": 2467037184,
+                "parameter_tensors": 384
+              }
+            ],
+            "copies_allocated": 4,
+            "execution_storage": "one shared core",
+            "forward_source": "def storage_forward(self,input_ids,positions,intermediate_tensors=None,inputs_embeds=None):\n    hidden_states=inputs_embeds if inputs_embeds is not None else self.embed_input_ids(input_ids)\n    for current_ut in range(self.total_ut_steps):\n        residual=None\n        for layer in self._campaign_execution[current_ut]:\n            hidden_states,residual=layer(positions,hidden_states,current_ut,residual)\n        hidden_states,_=self.norm(hidden_states,residual)\n    return hidden_states\n",
+            "implementation_sha256": "3c11cde3e297be60d9fb14b5d6e15c13713051cccb964bef1abdaffcb458c8dd",
+            "inspector_count_note": "Generic inspect_ownership physical_layers counts registered OuroAttention wrappers here. It is4L, not the L checkpoint layer identities or the number of KV slots.",
+            "logical_depth": 192,
+            "mode": "alias",
+            "original_loaded_name_count": 389,
+            "peak_allocated_bytes": 31882865152,
+            "post_warmup_buffer_checks": [
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 769,
+                "depth": 1
+              },
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 769,
+                "depth": 2
+              },
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 769,
+                "depth": 3
+              }
+            ],
+            "precision": "BF16",
+            "quality": "Four-position numerical check and controlled output only. Natural quality NOT_RUN.",
+            "rank": 0,
+            "registered_parameter_block_copies": 192,
+            "reserved_bytes": 32170311680,
+            "reserved_bytes_after_setup": 10345250816,
+            "rotary_contract": "Original parameter-free RoPE module remains shared, including its cache dtype update.",
+            "unique_parameter_storage_bytes": 10069481474,
+            "unique_parameter_storages": 1541
+          },
+          {
+            "allocated_bytes": 31876077056,
+            "allocated_bytes_after_setup": 10306434048,
+            "attention_contract": "Original R4 attention objects and static forward-context entries.",
+            "checkpoint_layer_identities": 48,
+            "comparisons": [
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 1,
+                "parameter_bytes": 2467037184,
+                "parameter_tensors": 384
+              },
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 2,
+                "parameter_bytes": 2467037184,
+                "parameter_tensors": 384
+              },
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 3,
+                "parameter_bytes": 2467037184,
+                "parameter_tensors": 384
+              }
+            ],
+            "copies_allocated": 4,
+            "execution_storage": "one shared core",
+            "forward_source": "def storage_forward(self,input_ids,positions,intermediate_tensors=None,inputs_embeds=None):\n    hidden_states=inputs_embeds if inputs_embeds is not None else self.embed_input_ids(input_ids)\n    for current_ut in range(self.total_ut_steps):\n        residual=None\n        for layer in self._campaign_execution[current_ut]:\n            hidden_states,residual=layer(positions,hidden_states,current_ut,residual)\n        hidden_states,_=self.norm(hidden_states,residual)\n    return hidden_states\n",
+            "implementation_sha256": "3c11cde3e297be60d9fb14b5d6e15c13713051cccb964bef1abdaffcb458c8dd",
+            "inspector_count_note": "Generic inspect_ownership physical_layers counts registered OuroAttention wrappers here. It is4L, not the L checkpoint layer identities or the number of KV slots.",
+            "logical_depth": 192,
+            "mode": "alias",
+            "original_loaded_name_count": 389,
+            "peak_allocated_bytes": 31882865152,
+            "post_warmup_buffer_checks": [
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 769,
+                "depth": 1
+              },
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 769,
+                "depth": 2
+              },
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 769,
+                "depth": 3
+              }
+            ],
+            "precision": "BF16",
+            "quality": "Four-position numerical check and controlled output only. Natural quality NOT_RUN.",
+            "rank": 1,
+            "registered_parameter_block_copies": 192,
+            "reserved_bytes": 32170311680,
+            "reserved_bytes_after_setup": 10345250816,
+            "rotary_contract": "Original parameter-free RoPE module remains shared, including its cache dtype update.",
+            "unique_parameter_storage_bytes": 10069481474,
+            "unique_parameter_storages": 1541
+          }
+        ],
+        "copies": [
+          {
+            "allocated_bytes": 31876077056,
+            "allocated_bytes_after_setup": 10306434048,
+            "attention_contract": "Original R4 attention objects and static forward-context entries.",
+            "checkpoint_layer_identities": 48,
+            "comparisons": [
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 1,
+                "parameter_bytes": 2467037184,
+                "parameter_tensors": 384
+              },
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 2,
+                "parameter_bytes": 2467037184,
+                "parameter_tensors": 384
+              },
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 3,
+                "parameter_bytes": 2467037184,
+                "parameter_tensors": 384
+              }
+            ],
+            "copies_allocated": 4,
+            "execution_storage": "four distinct value-identical cores",
+            "forward_source": "def storage_forward(self,input_ids,positions,intermediate_tensors=None,inputs_embeds=None):\n    hidden_states=inputs_embeds if inputs_embeds is not None else self.embed_input_ids(input_ids)\n    for current_ut in range(self.total_ut_steps):\n        residual=None\n        for layer in self._campaign_execution[current_ut]:\n            hidden_states,residual=layer(positions,hidden_states,current_ut,residual)\n        hidden_states,_=self.norm(hidden_states,residual)\n    return hidden_states\n",
+            "implementation_sha256": "3c11cde3e297be60d9fb14b5d6e15c13713051cccb964bef1abdaffcb458c8dd",
+            "inspector_count_note": "Generic inspect_ownership physical_layers counts registered OuroAttention wrappers here. It is4L, not the L checkpoint layer identities or the number of KV slots.",
+            "logical_depth": 192,
+            "mode": "copies",
+            "original_loaded_name_count": 389,
+            "peak_allocated_bytes": 31882865152,
+            "post_warmup_buffer_checks": [
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 769,
+                "depth": 1
+              },
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 769,
+                "depth": 2
+              },
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 769,
+                "depth": 3
+              }
+            ],
+            "precision": "BF16",
+            "quality": "Four-position numerical check and controlled output only. Natural quality NOT_RUN.",
+            "rank": 0,
+            "registered_parameter_block_copies": 192,
+            "reserved_bytes": 32170311680,
+            "reserved_bytes_after_setup": 10345250816,
+            "rotary_contract": "Original parameter-free RoPE module remains shared, including its cache dtype update.",
+            "unique_parameter_storage_bytes": 10069481474,
+            "unique_parameter_storages": 1541
+          },
+          {
+            "allocated_bytes": 31876077056,
+            "allocated_bytes_after_setup": 10306434048,
+            "attention_contract": "Original R4 attention objects and static forward-context entries.",
+            "checkpoint_layer_identities": 48,
+            "comparisons": [
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 1,
+                "parameter_bytes": 2467037184,
+                "parameter_tensors": 384
+              },
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 2,
+                "parameter_bytes": 2467037184,
+                "parameter_tensors": 384
+              },
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 3,
+                "parameter_bytes": 2467037184,
+                "parameter_tensors": 384
+              }
+            ],
+            "copies_allocated": 4,
+            "execution_storage": "four distinct value-identical cores",
+            "forward_source": "def storage_forward(self,input_ids,positions,intermediate_tensors=None,inputs_embeds=None):\n    hidden_states=inputs_embeds if inputs_embeds is not None else self.embed_input_ids(input_ids)\n    for current_ut in range(self.total_ut_steps):\n        residual=None\n        for layer in self._campaign_execution[current_ut]:\n            hidden_states,residual=layer(positions,hidden_states,current_ut,residual)\n        hidden_states,_=self.norm(hidden_states,residual)\n    return hidden_states\n",
+            "implementation_sha256": "3c11cde3e297be60d9fb14b5d6e15c13713051cccb964bef1abdaffcb458c8dd",
+            "inspector_count_note": "Generic inspect_ownership physical_layers counts registered OuroAttention wrappers here. It is4L, not the L checkpoint layer identities or the number of KV slots.",
+            "logical_depth": 192,
+            "mode": "copies",
+            "original_loaded_name_count": 389,
+            "peak_allocated_bytes": 31882865152,
+            "post_warmup_buffer_checks": [
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 769,
+                "depth": 1
+              },
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 769,
+                "depth": 2
+              },
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 769,
+                "depth": 3
+              }
+            ],
+            "precision": "BF16",
+            "quality": "Four-position numerical check and controlled output only. Natural quality NOT_RUN.",
+            "rank": 1,
+            "registered_parameter_block_copies": 192,
+            "reserved_bytes": 32170311680,
+            "reserved_bytes_after_setup": 10345250816,
+            "rotary_contract": "Original parameter-free RoPE module remains shared, including its cache dtype update.",
+            "unique_parameter_storage_bytes": 10069481474,
+            "unique_parameter_storages": 1541
+          }
+        ]
+      },
+      "timing": [
+        {
+          "N_distinct_request_shapes": 2,
+          "N_trials_each": 10,
+          "alias_median_E2E_ms": 1821.854839567095,
+          "context": 1024,
+          "copies_median_E2E_ms": 1822.2195319831371,
+          "copies_over_alias_speedup": 1.0002001764400335,
+          "paired_requests": [
+            {
+              "alias_ms": 1820.792463608086,
+              "copies_ms": 1822.174054570496,
+              "copies_over_alias": 1.0007587855233497,
+              "request_id": "gsm8k/test/1074"
+            },
+            {
+              "alias_ms": 1821.959543041885,
+              "copies_ms": 1822.2650093957782,
+              "copies_over_alias": 1.000167658143157,
+              "request_id": "math500/test/311"
+            }
+          ]
+        },
+        {
+          "N_distinct_request_shapes": 2,
+          "N_trials_each": 10,
+          "alias_median_E2E_ms": 1986.001388169825,
+          "context": 4096,
+          "copies_median_E2E_ms": 1987.2610629536211,
+          "copies_over_alias_speedup": 1.0006342768898853,
+          "paired_requests": [
+            {
+              "alias_ms": 1985.3369873017073,
+              "copies_ms": 1987.2453529387712,
+              "copies_over_alias": 1.0009612300829884,
+              "request_id": "gsm8k/test/1074"
+            },
+            {
+              "alias_ms": 1987.127642147243,
+              "copies_ms": 1987.6043619588017,
+              "copies_over_alias": 1.0002399039706598,
+              "request_id": "math500/test/311"
+            }
+          ]
+        },
+        {
+          "N_distinct_request_shapes": 2,
+          "N_trials_each": 10,
+          "alias_median_E2E_ms": 2279.290532693267,
+          "context": 8192,
+          "copies_median_E2E_ms": 2238.669734913856,
+          "copies_over_alias_speedup": 0.9821783150516523,
+          "paired_requests": [
+            {
+              "alias_ms": 2279.1991336271167,
+              "copies_ms": 2277.3503800854087,
+              "copies_over_alias": 0.9991888582641018,
+              "request_id": "gsm8k/test/1074"
+            },
+            {
+              "alias_ms": 2279.381931759417,
+              "copies_ms": 2158.5344364866614,
+              "copies_over_alias": 0.946982340436701,
+              "request_id": "math500/test/311"
+            }
+          ]
+        }
+      ],
+      "uncertainty": "Sequential arm order. Two request shapes do not establish broad request-level confidence."
+    },
+    {
+      "P": 4,
+      "R": 4,
+      "alias_path": "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_alias_base26_P4_isolated_v2/2.6B_R4_TP4",
+      "attribution": "Physical sharing changes parameter/module aliases and may change compilation. HBM counters unavailable.",
+      "capture_comparisons": [
+        {
+          "KL_alias_to_copies": [
+            8.530372805085148e-08,
+            0.002171397194605351,
+            0.00039944358542234393,
+            0.0007089359621337958
+          ],
+          "KV": {
+            "bitwise_float_capture_equal": false,
+            "max_abs": 0.126953125,
+            "relative_L2": 0.008638682912350428,
+            "shape": [
+              192,
+              5,
+              2,
+              16
+            ]
+          },
+          "hidden": {
+            "bitwise_float_capture_equal": false,
+            "max_abs": 0.21875,
+            "relative_L2": 0.03128501976336032,
+            "shape": [
+              4,
+              2048
+            ]
+          },
+          "logits": {
+            "bitwise_float_capture_equal": false,
+            "max_abs": 0.4375,
+            "relative_L2": 0.014769949318441139,
+            "shape": [
+              4,
+              49152
+            ]
+          },
+          "rank": 0,
+          "top1_match": [
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        {
+          "KL_alias_to_copies": [
+            8.530372805085148e-08,
+            0.002171397194605351,
+            0.00039944358542234393,
+            0.0007089359621337958
+          ],
+          "KV": {
+            "bitwise_float_capture_equal": false,
+            "max_abs": 0.114990234375,
+            "relative_L2": 0.009449870567739369,
+            "shape": [
+              192,
+              5,
+              2,
+              16
+            ]
+          },
+          "hidden": {
+            "bitwise_float_capture_equal": false,
+            "max_abs": 0.21875,
+            "relative_L2": 0.031288005027181105,
+            "shape": [
+              4,
+              2048
+            ]
+          },
+          "logits": {
+            "bitwise_float_capture_equal": false,
+            "max_abs": 0.4375,
+            "relative_L2": 0.014769949318441139,
+            "shape": [
+              4,
+              49152
+            ]
+          },
+          "rank": 1,
+          "top1_match": [
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        {
+          "KL_alias_to_copies": [
+            8.530372805085148e-08,
+            0.002171397194605351,
+            0.00039944358542234393,
+            0.0007089359621337958
+          ],
+          "KV": {
+            "bitwise_float_capture_equal": false,
+            "max_abs": 0.125,
+            "relative_L2": 0.009470883548576227,
+            "shape": [
+              192,
+              5,
+              2,
+              16
+            ]
+          },
+          "hidden": {
+            "bitwise_float_capture_equal": false,
+            "max_abs": 0.21875,
+            "relative_L2": 0.03128501976336032,
+            "shape": [
+              4,
+              2048
+            ]
+          },
+          "logits": {
+            "bitwise_float_capture_equal": false,
+            "max_abs": 0.4375,
+            "relative_L2": 0.014769949318441139,
+            "shape": [
+              4,
+              49152
+            ]
+          },
+          "rank": 2,
+          "top1_match": [
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        {
+          "KL_alias_to_copies": [
+            8.530372805085148e-08,
+            0.002171397194605351,
+            0.00039944358542234393,
+            0.0007089359621337958
+          ],
+          "KV": {
+            "bitwise_float_capture_equal": false,
+            "max_abs": 0.125,
+            "relative_L2": 0.009596221388236246,
+            "shape": [
+              192,
+              5,
+              2,
+              16
+            ]
+          },
+          "hidden": {
+            "bitwise_float_capture_equal": false,
+            "max_abs": 0.21875,
+            "relative_L2": 0.03128501976336032,
+            "shape": [
+              4,
+              2048
+            ]
+          },
+          "logits": {
+            "bitwise_float_capture_equal": false,
+            "max_abs": 0.4375,
+            "relative_L2": 0.014769949318441139,
+            "shape": [
+              4,
+              49152
+            ]
+          },
+          "rank": 3,
+          "top1_match": [
+            true,
+            true,
+            true,
+            true
+          ]
+        }
+      ],
+      "compile_cache_isolated": true,
+      "compile_cache_paths": [
+        "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_alias_base26_P4_isolated_v2/2.6B_R4_TP4/compile_cache",
+        "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_copies_base26_P4_isolated_v2/2.6B_R4_TP4/compile_cache"
+      ],
+      "copies_path": "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_copies_base26_P4_isolated_v2/2.6B_R4_TP4",
+      "evidence_class": "LIVE_E2E",
+      "model": "2.6B",
+      "quality": "Four controlled teacher-forced positions only. Natural accuracy NOT_RUN.",
+      "storage": {
+        "alias": [
+          {
+            "allocated_bytes": 26937283072,
+            "allocated_bytes_after_setup": 5361348608,
+            "attention_contract": "Original R4 attention objects and static forward-context entries.",
+            "checkpoint_layer_identities": 48,
+            "comparisons": [
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 1,
+                "parameter_bytes": 1233911808,
+                "parameter_tensors": 384
+              },
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 2,
+                "parameter_bytes": 1233911808,
+                "parameter_tensors": 384
+              },
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 3,
+                "parameter_bytes": 1233911808,
+                "parameter_tensors": 384
+              }
+            ],
+            "copies_allocated": 4,
+            "execution_storage": "one shared core",
+            "forward_source": "def storage_forward(self,input_ids,positions,intermediate_tensors=None,inputs_embeds=None):\n    hidden_states=inputs_embeds if inputs_embeds is not None else self.embed_input_ids(input_ids)\n    for current_ut in range(self.total_ut_steps):\n        residual=None\n        for layer in self._campaign_execution[current_ut]:\n            hidden_states,residual=layer(positions,hidden_states,current_ut,residual)\n        hidden_states,_=self.norm(hidden_states,residual)\n    return hidden_states\n",
+            "implementation_sha256": "3c11cde3e297be60d9fb14b5d6e15c13713051cccb964bef1abdaffcb458c8dd",
+            "inspector_count_note": "Generic inspect_ownership physical_layers counts registered OuroAttention wrappers here. It is4L, not the L checkpoint layer identities or the number of KV slots.",
+            "logical_depth": 192,
+            "mode": "alias",
+            "original_loaded_name_count": 389,
+            "peak_allocated_bytes": 26943677952,
+            "post_warmup_buffer_checks": [
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 769,
+                "depth": 1
+              },
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 769,
+                "depth": 2
+              },
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 769,
+                "depth": 3
+              }
+            ],
+            "precision": "BF16",
+            "quality": "Four-position numerical check and controlled output only. Natural quality NOT_RUN.",
+            "rank": 0,
+            "registered_parameter_block_copies": 192,
+            "reserved_bytes": 27244101632,
+            "reserved_bytes_after_setup": 5425332224,
+            "rotary_contract": "Original parameter-free RoPE module remains shared, including its cache dtype update.",
+            "unique_parameter_storage_bytes": 5036315650,
+            "unique_parameter_storages": 1541
+          },
+          {
+            "allocated_bytes": 26937283072,
+            "allocated_bytes_after_setup": 5361348608,
+            "attention_contract": "Original R4 attention objects and static forward-context entries.",
+            "checkpoint_layer_identities": 48,
+            "comparisons": [
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 1,
+                "parameter_bytes": 1233911808,
+                "parameter_tensors": 384
+              },
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 2,
+                "parameter_bytes": 1233911808,
+                "parameter_tensors": 384
+              },
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 3,
+                "parameter_bytes": 1233911808,
+                "parameter_tensors": 384
+              }
+            ],
+            "copies_allocated": 4,
+            "execution_storage": "one shared core",
+            "forward_source": "def storage_forward(self,input_ids,positions,intermediate_tensors=None,inputs_embeds=None):\n    hidden_states=inputs_embeds if inputs_embeds is not None else self.embed_input_ids(input_ids)\n    for current_ut in range(self.total_ut_steps):\n        residual=None\n        for layer in self._campaign_execution[current_ut]:\n            hidden_states,residual=layer(positions,hidden_states,current_ut,residual)\n        hidden_states,_=self.norm(hidden_states,residual)\n    return hidden_states\n",
+            "implementation_sha256": "3c11cde3e297be60d9fb14b5d6e15c13713051cccb964bef1abdaffcb458c8dd",
+            "inspector_count_note": "Generic inspect_ownership physical_layers counts registered OuroAttention wrappers here. It is4L, not the L checkpoint layer identities or the number of KV slots.",
+            "logical_depth": 192,
+            "mode": "alias",
+            "original_loaded_name_count": 389,
+            "peak_allocated_bytes": 26943677952,
+            "post_warmup_buffer_checks": [
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 769,
+                "depth": 1
+              },
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 769,
+                "depth": 2
+              },
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 769,
+                "depth": 3
+              }
+            ],
+            "precision": "BF16",
+            "quality": "Four-position numerical check and controlled output only. Natural quality NOT_RUN.",
+            "rank": 1,
+            "registered_parameter_block_copies": 192,
+            "reserved_bytes": 27244101632,
+            "reserved_bytes_after_setup": 5425332224,
+            "rotary_contract": "Original parameter-free RoPE module remains shared, including its cache dtype update.",
+            "unique_parameter_storage_bytes": 5036315650,
+            "unique_parameter_storages": 1541
+          },
+          {
+            "allocated_bytes": 26937283072,
+            "allocated_bytes_after_setup": 5361348608,
+            "attention_contract": "Original R4 attention objects and static forward-context entries.",
+            "checkpoint_layer_identities": 48,
+            "comparisons": [
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 1,
+                "parameter_bytes": 1233911808,
+                "parameter_tensors": 384
+              },
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 2,
+                "parameter_bytes": 1233911808,
+                "parameter_tensors": 384
+              },
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 3,
+                "parameter_bytes": 1233911808,
+                "parameter_tensors": 384
+              }
+            ],
+            "copies_allocated": 4,
+            "execution_storage": "one shared core",
+            "forward_source": "def storage_forward(self,input_ids,positions,intermediate_tensors=None,inputs_embeds=None):\n    hidden_states=inputs_embeds if inputs_embeds is not None else self.embed_input_ids(input_ids)\n    for current_ut in range(self.total_ut_steps):\n        residual=None\n        for layer in self._campaign_execution[current_ut]:\n            hidden_states,residual=layer(positions,hidden_states,current_ut,residual)\n        hidden_states,_=self.norm(hidden_states,residual)\n    return hidden_states\n",
+            "implementation_sha256": "3c11cde3e297be60d9fb14b5d6e15c13713051cccb964bef1abdaffcb458c8dd",
+            "inspector_count_note": "Generic inspect_ownership physical_layers counts registered OuroAttention wrappers here. It is4L, not the L checkpoint layer identities or the number of KV slots.",
+            "logical_depth": 192,
+            "mode": "alias",
+            "original_loaded_name_count": 389,
+            "peak_allocated_bytes": 26943677952,
+            "post_warmup_buffer_checks": [
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 769,
+                "depth": 1
+              },
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 769,
+                "depth": 2
+              },
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 769,
+                "depth": 3
+              }
+            ],
+            "precision": "BF16",
+            "quality": "Four-position numerical check and controlled output only. Natural quality NOT_RUN.",
+            "rank": 2,
+            "registered_parameter_block_copies": 192,
+            "reserved_bytes": 27244101632,
+            "reserved_bytes_after_setup": 5425332224,
+            "rotary_contract": "Original parameter-free RoPE module remains shared, including its cache dtype update.",
+            "unique_parameter_storage_bytes": 5036315650,
+            "unique_parameter_storages": 1541
+          },
+          {
+            "allocated_bytes": 26937283072,
+            "allocated_bytes_after_setup": 5361348608,
+            "attention_contract": "Original R4 attention objects and static forward-context entries.",
+            "checkpoint_layer_identities": 48,
+            "comparisons": [
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 1,
+                "parameter_bytes": 1233911808,
+                "parameter_tensors": 384
+              },
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 2,
+                "parameter_bytes": 1233911808,
+                "parameter_tensors": 384
+              },
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 3,
+                "parameter_bytes": 1233911808,
+                "parameter_tensors": 384
+              }
+            ],
+            "copies_allocated": 4,
+            "execution_storage": "one shared core",
+            "forward_source": "def storage_forward(self,input_ids,positions,intermediate_tensors=None,inputs_embeds=None):\n    hidden_states=inputs_embeds if inputs_embeds is not None else self.embed_input_ids(input_ids)\n    for current_ut in range(self.total_ut_steps):\n        residual=None\n        for layer in self._campaign_execution[current_ut]:\n            hidden_states,residual=layer(positions,hidden_states,current_ut,residual)\n        hidden_states,_=self.norm(hidden_states,residual)\n    return hidden_states\n",
+            "implementation_sha256": "3c11cde3e297be60d9fb14b5d6e15c13713051cccb964bef1abdaffcb458c8dd",
+            "inspector_count_note": "Generic inspect_ownership physical_layers counts registered OuroAttention wrappers here. It is4L, not the L checkpoint layer identities or the number of KV slots.",
+            "logical_depth": 192,
+            "mode": "alias",
+            "original_loaded_name_count": 389,
+            "peak_allocated_bytes": 26943677952,
+            "post_warmup_buffer_checks": [
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 769,
+                "depth": 1
+              },
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 769,
+                "depth": 2
+              },
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 769,
+                "depth": 3
+              }
+            ],
+            "precision": "BF16",
+            "quality": "Four-position numerical check and controlled output only. Natural quality NOT_RUN.",
+            "rank": 3,
+            "registered_parameter_block_copies": 192,
+            "reserved_bytes": 27244101632,
+            "reserved_bytes_after_setup": 5425332224,
+            "rotary_contract": "Original parameter-free RoPE module remains shared, including its cache dtype update.",
+            "unique_parameter_storage_bytes": 5036315650,
+            "unique_parameter_storages": 1541
+          }
+        ],
+        "copies": [
+          {
+            "allocated_bytes": 26937283072,
+            "allocated_bytes_after_setup": 5361348608,
+            "attention_contract": "Original R4 attention objects and static forward-context entries.",
+            "checkpoint_layer_identities": 48,
+            "comparisons": [
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 1,
+                "parameter_bytes": 1233911808,
+                "parameter_tensors": 384
+              },
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 2,
+                "parameter_bytes": 1233911808,
+                "parameter_tensors": 384
+              },
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 3,
+                "parameter_bytes": 1233911808,
+                "parameter_tensors": 384
+              }
+            ],
+            "copies_allocated": 4,
+            "execution_storage": "four distinct value-identical cores",
+            "forward_source": "def storage_forward(self,input_ids,positions,intermediate_tensors=None,inputs_embeds=None):\n    hidden_states=inputs_embeds if inputs_embeds is not None else self.embed_input_ids(input_ids)\n    for current_ut in range(self.total_ut_steps):\n        residual=None\n        for layer in self._campaign_execution[current_ut]:\n            hidden_states,residual=layer(positions,hidden_states,current_ut,residual)\n        hidden_states,_=self.norm(hidden_states,residual)\n    return hidden_states\n",
+            "implementation_sha256": "3c11cde3e297be60d9fb14b5d6e15c13713051cccb964bef1abdaffcb458c8dd",
+            "inspector_count_note": "Generic inspect_ownership physical_layers counts registered OuroAttention wrappers here. It is4L, not the L checkpoint layer identities or the number of KV slots.",
+            "logical_depth": 192,
+            "mode": "copies",
+            "original_loaded_name_count": 389,
+            "peak_allocated_bytes": 26943677952,
+            "post_warmup_buffer_checks": [
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 769,
+                "depth": 1
+              },
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 769,
+                "depth": 2
+              },
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 769,
+                "depth": 3
+              }
+            ],
+            "precision": "BF16",
+            "quality": "Four-position numerical check and controlled output only. Natural quality NOT_RUN.",
+            "rank": 0,
+            "registered_parameter_block_copies": 192,
+            "reserved_bytes": 27262976000,
+            "reserved_bytes_after_setup": 5425332224,
+            "rotary_contract": "Original parameter-free RoPE module remains shared, including its cache dtype update.",
+            "unique_parameter_storage_bytes": 5036315650,
+            "unique_parameter_storages": 1541
+          },
+          {
+            "allocated_bytes": 26937283072,
+            "allocated_bytes_after_setup": 5361348608,
+            "attention_contract": "Original R4 attention objects and static forward-context entries.",
+            "checkpoint_layer_identities": 48,
+            "comparisons": [
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 1,
+                "parameter_bytes": 1233911808,
+                "parameter_tensors": 384
+              },
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 2,
+                "parameter_bytes": 1233911808,
+                "parameter_tensors": 384
+              },
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 3,
+                "parameter_bytes": 1233911808,
+                "parameter_tensors": 384
+              }
+            ],
+            "copies_allocated": 4,
+            "execution_storage": "four distinct value-identical cores",
+            "forward_source": "def storage_forward(self,input_ids,positions,intermediate_tensors=None,inputs_embeds=None):\n    hidden_states=inputs_embeds if inputs_embeds is not None else self.embed_input_ids(input_ids)\n    for current_ut in range(self.total_ut_steps):\n        residual=None\n        for layer in self._campaign_execution[current_ut]:\n            hidden_states,residual=layer(positions,hidden_states,current_ut,residual)\n        hidden_states,_=self.norm(hidden_states,residual)\n    return hidden_states\n",
+            "implementation_sha256": "3c11cde3e297be60d9fb14b5d6e15c13713051cccb964bef1abdaffcb458c8dd",
+            "inspector_count_note": "Generic inspect_ownership physical_layers counts registered OuroAttention wrappers here. It is4L, not the L checkpoint layer identities or the number of KV slots.",
+            "logical_depth": 192,
+            "mode": "copies",
+            "original_loaded_name_count": 389,
+            "peak_allocated_bytes": 26943677952,
+            "post_warmup_buffer_checks": [
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 769,
+                "depth": 1
+              },
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 769,
+                "depth": 2
+              },
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 769,
+                "depth": 3
+              }
+            ],
+            "precision": "BF16",
+            "quality": "Four-position numerical check and controlled output only. Natural quality NOT_RUN.",
+            "rank": 1,
+            "registered_parameter_block_copies": 192,
+            "reserved_bytes": 27262976000,
+            "reserved_bytes_after_setup": 5425332224,
+            "rotary_contract": "Original parameter-free RoPE module remains shared, including its cache dtype update.",
+            "unique_parameter_storage_bytes": 5036315650,
+            "unique_parameter_storages": 1541
+          },
+          {
+            "allocated_bytes": 26937283072,
+            "allocated_bytes_after_setup": 5361348608,
+            "attention_contract": "Original R4 attention objects and static forward-context entries.",
+            "checkpoint_layer_identities": 48,
+            "comparisons": [
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 1,
+                "parameter_bytes": 1233911808,
+                "parameter_tensors": 384
+              },
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 2,
+                "parameter_bytes": 1233911808,
+                "parameter_tensors": 384
+              },
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 3,
+                "parameter_bytes": 1233911808,
+                "parameter_tensors": 384
+              }
+            ],
+            "copies_allocated": 4,
+            "execution_storage": "four distinct value-identical cores",
+            "forward_source": "def storage_forward(self,input_ids,positions,intermediate_tensors=None,inputs_embeds=None):\n    hidden_states=inputs_embeds if inputs_embeds is not None else self.embed_input_ids(input_ids)\n    for current_ut in range(self.total_ut_steps):\n        residual=None\n        for layer in self._campaign_execution[current_ut]:\n            hidden_states,residual=layer(positions,hidden_states,current_ut,residual)\n        hidden_states,_=self.norm(hidden_states,residual)\n    return hidden_states\n",
+            "implementation_sha256": "3c11cde3e297be60d9fb14b5d6e15c13713051cccb964bef1abdaffcb458c8dd",
+            "inspector_count_note": "Generic inspect_ownership physical_layers counts registered OuroAttention wrappers here. It is4L, not the L checkpoint layer identities or the number of KV slots.",
+            "logical_depth": 192,
+            "mode": "copies",
+            "original_loaded_name_count": 389,
+            "peak_allocated_bytes": 26943677952,
+            "post_warmup_buffer_checks": [
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 769,
+                "depth": 1
+              },
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 769,
+                "depth": 2
+              },
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 769,
+                "depth": 3
+              }
+            ],
+            "precision": "BF16",
+            "quality": "Four-position numerical check and controlled output only. Natural quality NOT_RUN.",
+            "rank": 2,
+            "registered_parameter_block_copies": 192,
+            "reserved_bytes": 27262976000,
+            "reserved_bytes_after_setup": 5425332224,
+            "rotary_contract": "Original parameter-free RoPE module remains shared, including its cache dtype update.",
+            "unique_parameter_storage_bytes": 5036315650,
+            "unique_parameter_storages": 1541
+          },
+          {
+            "allocated_bytes": 26937283072,
+            "allocated_bytes_after_setup": 5361348608,
+            "attention_contract": "Original R4 attention objects and static forward-context entries.",
+            "checkpoint_layer_identities": 48,
+            "comparisons": [
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 1,
+                "parameter_bytes": 1233911808,
+                "parameter_tensors": 384
+              },
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 2,
+                "parameter_bytes": 1233911808,
+                "parameter_tensors": 384
+              },
+              {
+                "all_parameter_storages_distinct": true,
+                "all_values_bitwise_equal": true,
+                "attention_objects_shared": true,
+                "depth": 3,
+                "parameter_bytes": 1233911808,
+                "parameter_tensors": 384
+              }
+            ],
+            "copies_allocated": 4,
+            "execution_storage": "four distinct value-identical cores",
+            "forward_source": "def storage_forward(self,input_ids,positions,intermediate_tensors=None,inputs_embeds=None):\n    hidden_states=inputs_embeds if inputs_embeds is not None else self.embed_input_ids(input_ids)\n    for current_ut in range(self.total_ut_steps):\n        residual=None\n        for layer in self._campaign_execution[current_ut]:\n            hidden_states,residual=layer(positions,hidden_states,current_ut,residual)\n        hidden_states,_=self.norm(hidden_states,residual)\n    return hidden_states\n",
+            "implementation_sha256": "3c11cde3e297be60d9fb14b5d6e15c13713051cccb964bef1abdaffcb458c8dd",
+            "inspector_count_note": "Generic inspect_ownership physical_layers counts registered OuroAttention wrappers here. It is4L, not the L checkpoint layer identities or the number of KV slots.",
+            "logical_depth": 192,
+            "mode": "copies",
+            "original_loaded_name_count": 389,
+            "peak_allocated_bytes": 26943677952,
+            "post_warmup_buffer_checks": [
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 769,
+                "depth": 1
+              },
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 769,
+                "depth": 2
+              },
+              {
+                "all_buffer_storage_pointers_shared": true,
+                "buffers": 769,
+                "depth": 3
+              }
+            ],
+            "precision": "BF16",
+            "quality": "Four-position numerical check and controlled output only. Natural quality NOT_RUN.",
+            "rank": 3,
+            "registered_parameter_block_copies": 192,
+            "reserved_bytes": 27262976000,
+            "reserved_bytes_after_setup": 5425332224,
+            "rotary_contract": "Original parameter-free RoPE module remains shared, including its cache dtype update.",
+            "unique_parameter_storage_bytes": 5036315650,
+            "unique_parameter_storages": 1541
+          }
+        ]
+      },
+      "timing": [
+        {
+          "N_distinct_request_shapes": 2,
+          "N_trials_each": 10,
+          "alias_median_E2E_ms": 1572.2290980629623,
+          "context": 1024,
+          "copies_median_E2E_ms": 1567.0110527426004,
+          "copies_over_alias_speedup": 0.9966811164309383,
+          "paired_requests": [
+            {
+              "alias_ms": 1572.2933802753687,
+              "copies_ms": 1568.2355472818017,
+              "copies_over_alias": 0.9974191629599964,
+              "request_id": "gsm8k/test/1074"
+            },
+            {
+              "alias_ms": 1572.164815850556,
+              "copies_ms": 1566.9783018529415,
+              "copies_over_alias": 0.9967010367199902,
+              "request_id": "math500/test/311"
+            }
+          ]
+        },
+        {
+          "N_distinct_request_shapes": 2,
+          "N_trials_each": 10,
+          "alias_median_E2E_ms": 1655.3704314865172,
+          "context": 4096,
+          "copies_median_E2E_ms": 1597.0439966768026,
+          "copies_over_alias_speedup": 0.9647653276267973,
+          "paired_requests": [
+            {
+              "alias_ms": 1656.1213815584779,
+              "copies_ms": 1651.8617328256369,
+              "copies_over_alias": 0.997427936876926,
+              "request_id": "gsm8k/test/1074"
+            },
+            {
+              "alias_ms": 1654.6194814145565,
+              "copies_ms": 1539.1396284103394,
+              "copies_over_alias": 0.9302076070653467,
+              "request_id": "math500/test/311"
+            }
+          ]
+        },
+        {
+          "N_distinct_request_shapes": 2,
+          "N_trials_each": 10,
+          "alias_median_E2E_ms": 1840.3764232061803,
+          "context": 8192,
+          "copies_median_E2E_ms": 1727.8586281463504,
+          "copies_over_alias_speedup": 0.9388615319990847,
+          "paired_requests": [
+            {
+              "alias_ms": 1840.4056541621685,
+              "copies_ms": 1728.063926100731,
+              "copies_over_alias": 0.9389581705493182,
+              "request_id": "gsm8k/test/1074"
+            },
+            {
+              "alias_ms": 1840.2912775054574,
+              "copies_ms": 1727.7494203299284,
+              "copies_over_alias": 0.9388456281072629,
+              "request_id": "math500/test/311"
+            }
+          ]
+        }
+      ],
+      "uncertainty": "Sequential arm order. Two request shapes do not establish broad request-level confidence."
+    }
+  ],
+  "scope": "Full-core alias/copies counterfactual. No new parallel architecture or hardware-cache claim."
+}

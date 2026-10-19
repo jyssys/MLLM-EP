@@ -9,11 +9,15 @@ from poc_ouro_parallelism_deep_discovery.contract import ROOT, read, sha, write
 
 JSONL_INPUTS=['literature_sources.jsonl','parallel_sampling_sources.jsonl',
     'operator_ownership_sources.jsonl','dynamic_runtime_sources.jsonl','certified_operator_sources.jsonl',
-    'tile_dataflow_sources.jsonl','lossless_kv_reopening_sources.jsonl']
+    'tile_dataflow_sources.jsonl','lossless_kv_reopening_sources.jsonl',
+    'shared_weights_selected_computations_sources.jsonl','loopahead_sources.jsonl',
+    'loopahead_searches.jsonl','folded_layout_sources.jsonl']
 JSON_INPUTS=['coordinator_sources.json','independent_candidate_seeds.json',
     'persistent_execution_audit.json','layout_residual_cpu.json',
     'certified_decision_cpu.json','branch_ownership_cost_ledger.json',
-    'candidate_round3_source_observations.json']
+    'candidate_round3_source_observations.json','candidate_search_v4_source_observations.json',
+    'parallel_track_breadth_first_observations_v1.json','device_launched_graph_observations_v1.json',
+    'dwdp_dense_observations_v1.json','candidate_search_v5_source_observations.json']
 
 def canonical(record):
     text=' '.join(str(record.get(k,'')) for k in ['identifier','url','paper_url','pdf_url'])
@@ -49,7 +53,7 @@ def main():
         for number,line in enumerate(path.read_text().splitlines(),1):
             row=json.loads(line);record={'origin':str(path.relative_to(ROOT)),
                 'line':number,'original':row}
-            kind=row.get('record_type','source')
+            kind=row.get('record_type',row.get('type','source'))
             if kind in ['source','source_metadata_only']:source_records.append(record)
             elif kind in ['search','search_batch','repository_search']:search_records.append(record)
             else:other_records.append(record)
@@ -62,7 +66,7 @@ def main():
         path=ROOT/'artifacts'/name
         if not path.exists():continue
         value=read(path);provenance.append({'path':str(path.relative_to(ROOT)),'sha256':sha(path)})
-        for key in ['sources','external_sources']:
+        for key in ['sources','external_sources','primary_sources']:
             for pointer,row in indexed_sources(value.get(key,[]),'/'+key):
                 source_records.append({'origin':str(path.relative_to(ROOT)),'json_pointer':pointer,'original':row})
         for key in ['searches','search_batches']:
@@ -91,7 +95,8 @@ def main():
              'guard_status':read(state) if state.exists() else {'status':'RUNNING_OR_UNRESOLVED'},
              'files':[{ 'path':str(p.relative_to(ROOT)),'sha256':sha(p)}
                 for p in sorted(directory.rglob('*.json'))
-                if p.name!='clean_start.json' and 'compile_cache' not in p.parts]}
+                if p.name!='clean_start.json' and not set(p.parts)&{
+                    'compile_cache','vllm_cache','inductor_cache','triton_cache'}]}
         # Avoid publishing process environment inventories from the guard.
         if row['run_contract'] is not None:
             row['run_contract'].pop('environment',None)

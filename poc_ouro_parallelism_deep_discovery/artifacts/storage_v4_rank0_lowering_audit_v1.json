@@ -1,0 +1,1539 @@
+{
+  "schema_version": 1,
+  "source": "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/artifacts/storage_fully_isolated_checkpoint3.json",
+  "source_sha256": "92b568214c0ccb9d8fa073d01877087b89b180f61a0174ee17becf71018e6d18",
+  "evidence_class": "CPU inspection of rank-zero saved graphs and generated source",
+  "limits": [
+    "No compiled artifact was loaded or executed.",
+    "A matching piece index is a source locator, not proof of equivalent runtime context.",
+    "No numerical cause or timing cause is established."
+  ],
+  "records": [
+    {
+      "model": "1.4B",
+      "P": 2,
+      "rank": 0,
+      "host_operation_counts_equal": true,
+      "host_shape_annotations_equal": true,
+      "host_collective_attention_sequence_equal": true,
+      "different_normalized_leaf_indices": [],
+      "alias_only_piece_indices": [],
+      "copies_only_piece_indices": [
+        "25",
+        "48"
+      ],
+      "common_piece_comparisons": {
+        "0": {
+          "embedded_source_equal": false,
+          "normalized_call_ast_equal": true,
+          "triton_compute_hashes_equal": true,
+          "autotune_key_sets_equal": true,
+          "autotune_common_keys": 2,
+          "autotune_values_equal": false,
+          "autotune_values_equal_without_time_taken_ms": true,
+          "autotune_non_timing_difference_keys": [],
+          "autotune_alias_only_keys": [],
+          "autotune_copies_only_keys": []
+        },
+        "1": {
+          "embedded_source_equal": false,
+          "normalized_call_ast_equal": true,
+          "triton_compute_hashes_equal": true,
+          "autotune_key_sets_equal": true,
+          "autotune_common_keys": 2,
+          "autotune_values_equal": false,
+          "autotune_values_equal_without_time_taken_ms": true,
+          "autotune_non_timing_difference_keys": [],
+          "autotune_alias_only_keys": [],
+          "autotune_copies_only_keys": []
+        },
+        "24": {
+          "embedded_source_equal": false,
+          "normalized_call_ast_equal": true,
+          "triton_compute_hashes_equal": true,
+          "autotune_key_sets_equal": true,
+          "autotune_common_keys": 2,
+          "autotune_values_equal": false,
+          "autotune_values_equal_without_time_taken_ms": true,
+          "autotune_non_timing_difference_keys": [],
+          "autotune_alias_only_keys": [],
+          "autotune_copies_only_keys": []
+        },
+        "96": {
+          "embedded_source_equal": false,
+          "normalized_call_ast_equal": true,
+          "triton_compute_hashes_equal": true,
+          "autotune_key_sets_equal": true,
+          "autotune_common_keys": 1,
+          "autotune_values_equal": false,
+          "autotune_values_equal_without_time_taken_ms": true,
+          "autotune_non_timing_difference_keys": [],
+          "autotune_alias_only_keys": [],
+          "autotune_copies_only_keys": []
+        }
+      },
+      "arms": {
+        "alias": {
+          "graph": {
+            "path": "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_alias_base14_P2_fully_isolated_v4/1.4B_R4_TP2/compile_cache/rank_0_0/backbone/computation_graph.py",
+            "sha256": "7720e433f11c7ea1068ce7d7570ccab4f164130ade0678654f68c43172ae47ab",
+            "leaf_count": 193,
+            "top_weight_arguments": 194,
+            "weight_depth_prefix_counts": {
+              "0": 192
+            },
+            "operations": {
+              "torch.nn.functional.embedding": 1,
+              "torch.ops.vllm.all_reduce": 193,
+              "torch._C._autograd._get_data_attr": 388,
+              "torch.ops.vllm_ir.rms_norm.default": 196,
+              "torch._C._nn.linear": 384,
+              "torch.ops.aten.sym_size.int": 192,
+              "torch.chunk": 192,
+              "torch.cat": 384,
+              "torch.Size": 96,
+              "torch.empty": 96,
+              "torch.ops.vllm.unified_kv_cache_update": 96,
+              "torch.ops.vllm.unified_attention_with_output": 96,
+              "torch.ops.vllm_ir.fused_add_rms_norm.maybe_inplace": 192,
+              "torch.nn.functional.silu": 96
+            }
+          },
+          "pieces": {
+            "0": {
+              "path": "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_alias_base14_P2_fully_isolated_v4/1.4B_R4_TP2/compile_cache/rank_0_0/backbone/artifact_compile_range_1_10240_subgraph_0",
+              "sha256": "008de0d500671703e751a415132b4a933062061d5f1e500867706a63cd09e7f8",
+              "embedded_source_sha256": "4637ce34490da710ab9e6bbc5d03730225d7d1e0a370d3a31dd3bcf5d0d85c85",
+              "call_ast_sha256": "7a54048db9ab19ab2b9a7a5303b7bc1ba5062598e7d687ab21fd2e6ac4349b5d",
+              "triton_compute_hashes": [
+                "7681dd8c1f37bf266909912afdc45ec3701fd09a010b6c3cd40a981ac8bbf26a",
+                "176805e0f4357a195a337b104a7860fcb9282584eb8868db94b7c7bb1f70963d",
+                "049e97c2bb9cb099ff8d4ca4308699ccfb3993fcbe2b34c627dc9f7ea080ac9f"
+              ],
+              "runtime_callee_counts": {
+                "args.clear": 1,
+                "torch.cuda._DeviceGuard": 1,
+                "torch.cuda.set_device": 1,
+                "empty_strided_cuda": 6,
+                "get_raw_stream": 3,
+                "triton_poi_fused_add_bitwise_and_bitwise_not_bitwise_or_embedding_ge_lt_masked_fill_mul_sub_unsqueeze_0.run": 1,
+                "torch.ops.vllm.all_reduce.default": 1,
+                "triton_red_fused_rms_norm_1.run": 1,
+                "extern_kernels.mm": 1,
+                "triton_poi_fused_add_cat_index_select_mul_split_split_with_sizes_sub_unsqueeze_view_2.run": 1,
+                "reinterpret_tensor": 3
+              }
+            },
+            "1": {
+              "path": "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_alias_base14_P2_fully_isolated_v4/1.4B_R4_TP2/compile_cache/rank_0_0/backbone/artifact_compile_range_1_10240_subgraph_1",
+              "sha256": "ab2228220a65f5fa96bb45904f0b0101d27197330c60abff09e480337e825786",
+              "embedded_source_sha256": "c95950928fa8fe03b750275f9642c23bebbec63f7292fdd672154615682d0f1c",
+              "call_ast_sha256": "e12f07965c9b69133bd74c5c0acbd793cf5cf1dcc79b768b2efa527da2a27f82",
+              "triton_compute_hashes": [
+                "d7deb1aca2f51297ee376c87656c88343dc4d70694c43b983643457f6d031b98",
+                "cf98057e410a4bdf33a6de0398ade2acf04a1b417082b690890819d117167146",
+                "77fabd5dc5cb2f287cfbb5b79d282c4c69d38618fc0f38a12640762f4af8c43a",
+                "2a1d66c9e769a0995fae37d01b4bfa3ac2e7096e083ef1e56e34f7897d89755f"
+              ],
+              "runtime_callee_counts": {
+                "args.clear": 1,
+                "torch.cuda._DeviceGuard": 1,
+                "torch.cuda.set_device": 1,
+                "empty_strided_cuda": 11,
+                "extern_kernels.mm": 4,
+                "torch.ops.vllm.all_reduce.default": 2,
+                "get_raw_stream": 4,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_0.run": 1,
+                "triton_poi_fused_mul_silu_slice_1.run": 1,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_2.run": 1,
+                "triton_poi_fused_add_cat_index_select_mul_split_split_with_sizes_sub_unsqueeze_view_3.run": 1,
+                "reinterpret_tensor": 7
+              }
+            },
+            "24": {
+              "path": "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_alias_base14_P2_fully_isolated_v4/1.4B_R4_TP2/compile_cache/rank_0_0/backbone/artifact_compile_range_1_10240_subgraph_24",
+              "sha256": "281a1de8232cb93c336166d1fceef36fe1ecc0f19a1f4748319ff4354d155051",
+              "embedded_source_sha256": "591e3ac2a17ae148b965c1b3e21f3c725ca6194550b6aea76e031de9305fa286",
+              "call_ast_sha256": "6282bb575fac757fb7a1263e926911758d287729cb8659944d2de323277debdf",
+              "triton_compute_hashes": [
+                "d7deb1aca2f51297ee376c87656c88343dc4d70694c43b983643457f6d031b98",
+                "cf98057e410a4bdf33a6de0398ade2acf04a1b417082b690890819d117167146",
+                "3d56fa749caf54c88c7b5146511986f726524ccfb5315876f0db62e62504dd9b",
+                "2a1d66c9e769a0995fae37d01b4bfa3ac2e7096e083ef1e56e34f7897d89755f"
+              ],
+              "runtime_callee_counts": {
+                "args.clear": 1,
+                "torch.cuda._DeviceGuard": 1,
+                "torch.cuda.set_device": 1,
+                "empty_strided_cuda": 11,
+                "extern_kernels.mm": 4,
+                "torch.ops.vllm.all_reduce.default": 2,
+                "get_raw_stream": 4,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_0.run": 1,
+                "triton_poi_fused_mul_silu_slice_1.run": 1,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_2.run": 1,
+                "triton_poi_fused_add_cat_index_select_mul_split_split_with_sizes_sub_unsqueeze_view_3.run": 1,
+                "reinterpret_tensor": 7
+              }
+            },
+            "96": {
+              "path": "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_alias_base14_P2_fully_isolated_v4/1.4B_R4_TP2/compile_cache/rank_0_0/backbone/artifact_compile_range_1_10240_subgraph_96",
+              "sha256": "dd7d8f041eea4d67147d793c9b71dc3c609ca82b01120fdafbb2525c457727ac",
+              "embedded_source_sha256": "6f4b19bfdd7a1bb1a3826090485e0a5151570219b64bdcbe0124bb4d003e9179",
+              "call_ast_sha256": "3041cb238afedfc27379aac888c91ea57e481206e458fce876a297d8312eb6d7",
+              "triton_compute_hashes": [
+                "d7deb1aca2f51297ee376c87656c88343dc4d70694c43b983643457f6d031b98",
+                "cf98057e410a4bdf33a6de0398ade2acf04a1b417082b690890819d117167146",
+                "352bd678d2b2b2daef902f9eedcc3f8d10f068838c658661510d53bbb20e97b1"
+              ],
+              "runtime_callee_counts": {
+                "args.clear": 1,
+                "torch.cuda._DeviceGuard": 1,
+                "torch.cuda.set_device": 1,
+                "empty_strided_cuda": 6,
+                "extern_kernels.mm": 3,
+                "torch.ops.vllm.all_reduce.default": 2,
+                "get_raw_stream": 3,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_0.run": 1,
+                "triton_poi_fused_mul_silu_slice_1.run": 1,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_2.run": 1,
+                "reinterpret_tensor": 4
+              }
+            }
+          }
+        },
+        "copies": {
+          "graph": {
+            "path": "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_copies_base14_P2_fully_isolated_v4/1.4B_R4_TP2/compile_cache/rank_0_0/backbone/computation_graph.py",
+            "sha256": "239e4543f1b00cba9bf2cb9a6f0e5890216155dd385abbd42a5b3cabff8793e0",
+            "leaf_count": 193,
+            "top_weight_arguments": 770,
+            "weight_depth_prefix_counts": {
+              "0": 192,
+              "1": 192,
+              "2": 192,
+              "3": 192
+            },
+            "operations": {
+              "torch.nn.functional.embedding": 1,
+              "torch.ops.vllm.all_reduce": 193,
+              "torch._C._autograd._get_data_attr": 388,
+              "torch.ops.vllm_ir.rms_norm.default": 196,
+              "torch._C._nn.linear": 384,
+              "torch.ops.aten.sym_size.int": 192,
+              "torch.chunk": 192,
+              "torch.cat": 384,
+              "torch.Size": 96,
+              "torch.empty": 96,
+              "torch.ops.vllm.unified_kv_cache_update": 96,
+              "torch.ops.vllm.unified_attention_with_output": 96,
+              "torch.ops.vllm_ir.fused_add_rms_norm.maybe_inplace": 192,
+              "torch.nn.functional.silu": 96
+            }
+          },
+          "pieces": {
+            "0": {
+              "path": "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_copies_base14_P2_fully_isolated_v4/1.4B_R4_TP2/compile_cache/rank_0_0/backbone/artifact_compile_range_1_10240_subgraph_0",
+              "sha256": "cc51b8b363fc8ae2b3c3f2bc2c86bf42d99ea6f77e34e8b89fb214efc4a597fc",
+              "embedded_source_sha256": "a0655b7f706a218d542e23d342547ffd3d492e0c324704560c2b4b7fb4b28175",
+              "call_ast_sha256": "7a54048db9ab19ab2b9a7a5303b7bc1ba5062598e7d687ab21fd2e6ac4349b5d",
+              "triton_compute_hashes": [
+                "7681dd8c1f37bf266909912afdc45ec3701fd09a010b6c3cd40a981ac8bbf26a",
+                "176805e0f4357a195a337b104a7860fcb9282584eb8868db94b7c7bb1f70963d",
+                "049e97c2bb9cb099ff8d4ca4308699ccfb3993fcbe2b34c627dc9f7ea080ac9f"
+              ],
+              "runtime_callee_counts": {
+                "args.clear": 1,
+                "torch.cuda._DeviceGuard": 1,
+                "torch.cuda.set_device": 1,
+                "empty_strided_cuda": 6,
+                "get_raw_stream": 3,
+                "triton_poi_fused_add_bitwise_and_bitwise_not_bitwise_or_embedding_ge_lt_masked_fill_mul_sub_unsqueeze_0.run": 1,
+                "torch.ops.vllm.all_reduce.default": 1,
+                "triton_red_fused_rms_norm_1.run": 1,
+                "extern_kernels.mm": 1,
+                "triton_poi_fused_add_cat_index_select_mul_split_split_with_sizes_sub_unsqueeze_view_2.run": 1,
+                "reinterpret_tensor": 3
+              }
+            },
+            "1": {
+              "path": "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_copies_base14_P2_fully_isolated_v4/1.4B_R4_TP2/compile_cache/rank_0_0/backbone/artifact_compile_range_1_10240_subgraph_1",
+              "sha256": "30bbf8d069bc8699bea242fe76ba5582ddeb640848149fdb52c5fa3d5fffb804",
+              "embedded_source_sha256": "615a7a5159315dccb327bebbe9191732f8901f7d7b8cc167d6b64c03cfdee447",
+              "call_ast_sha256": "e12f07965c9b69133bd74c5c0acbd793cf5cf1dcc79b768b2efa527da2a27f82",
+              "triton_compute_hashes": [
+                "d7deb1aca2f51297ee376c87656c88343dc4d70694c43b983643457f6d031b98",
+                "cf98057e410a4bdf33a6de0398ade2acf04a1b417082b690890819d117167146",
+                "77fabd5dc5cb2f287cfbb5b79d282c4c69d38618fc0f38a12640762f4af8c43a",
+                "2a1d66c9e769a0995fae37d01b4bfa3ac2e7096e083ef1e56e34f7897d89755f"
+              ],
+              "runtime_callee_counts": {
+                "args.clear": 1,
+                "torch.cuda._DeviceGuard": 1,
+                "torch.cuda.set_device": 1,
+                "empty_strided_cuda": 11,
+                "extern_kernels.mm": 4,
+                "torch.ops.vllm.all_reduce.default": 2,
+                "get_raw_stream": 4,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_0.run": 1,
+                "triton_poi_fused_mul_silu_slice_1.run": 1,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_2.run": 1,
+                "triton_poi_fused_add_cat_index_select_mul_split_split_with_sizes_sub_unsqueeze_view_3.run": 1,
+                "reinterpret_tensor": 7
+              }
+            },
+            "24": {
+              "path": "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_copies_base14_P2_fully_isolated_v4/1.4B_R4_TP2/compile_cache/rank_0_0/backbone/artifact_compile_range_1_10240_subgraph_24",
+              "sha256": "b065fedd475ba06bcb39ddeb014eb224d643c94204d57f32c7013e405b76a950",
+              "embedded_source_sha256": "f5481c087a36c294547e74d7e931f48bd8e475798bb430bbdc107371112f07a6",
+              "call_ast_sha256": "6282bb575fac757fb7a1263e926911758d287729cb8659944d2de323277debdf",
+              "triton_compute_hashes": [
+                "d7deb1aca2f51297ee376c87656c88343dc4d70694c43b983643457f6d031b98",
+                "cf98057e410a4bdf33a6de0398ade2acf04a1b417082b690890819d117167146",
+                "3d56fa749caf54c88c7b5146511986f726524ccfb5315876f0db62e62504dd9b",
+                "2a1d66c9e769a0995fae37d01b4bfa3ac2e7096e083ef1e56e34f7897d89755f"
+              ],
+              "runtime_callee_counts": {
+                "args.clear": 1,
+                "torch.cuda._DeviceGuard": 1,
+                "torch.cuda.set_device": 1,
+                "empty_strided_cuda": 11,
+                "extern_kernels.mm": 4,
+                "torch.ops.vllm.all_reduce.default": 2,
+                "get_raw_stream": 4,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_0.run": 1,
+                "triton_poi_fused_mul_silu_slice_1.run": 1,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_2.run": 1,
+                "triton_poi_fused_add_cat_index_select_mul_split_split_with_sizes_sub_unsqueeze_view_3.run": 1,
+                "reinterpret_tensor": 7
+              }
+            },
+            "25": {
+              "path": "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_copies_base14_P2_fully_isolated_v4/1.4B_R4_TP2/compile_cache/rank_0_0/backbone/artifact_compile_range_1_10240_subgraph_25",
+              "sha256": "ecafcf23eb3ba7e40f9fdc4fa49cab18de3affb723085b968afd7a148f68cf89",
+              "embedded_source_sha256": "615a7a5159315dccb327bebbe9191732f8901f7d7b8cc167d6b64c03cfdee447",
+              "call_ast_sha256": "e12f07965c9b69133bd74c5c0acbd793cf5cf1dcc79b768b2efa527da2a27f82",
+              "triton_compute_hashes": [
+                "d7deb1aca2f51297ee376c87656c88343dc4d70694c43b983643457f6d031b98",
+                "cf98057e410a4bdf33a6de0398ade2acf04a1b417082b690890819d117167146",
+                "77fabd5dc5cb2f287cfbb5b79d282c4c69d38618fc0f38a12640762f4af8c43a",
+                "2a1d66c9e769a0995fae37d01b4bfa3ac2e7096e083ef1e56e34f7897d89755f"
+              ],
+              "runtime_callee_counts": {
+                "args.clear": 1,
+                "torch.cuda._DeviceGuard": 1,
+                "torch.cuda.set_device": 1,
+                "empty_strided_cuda": 11,
+                "extern_kernels.mm": 4,
+                "torch.ops.vllm.all_reduce.default": 2,
+                "get_raw_stream": 4,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_0.run": 1,
+                "triton_poi_fused_mul_silu_slice_1.run": 1,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_2.run": 1,
+                "triton_poi_fused_add_cat_index_select_mul_split_split_with_sizes_sub_unsqueeze_view_3.run": 1,
+                "reinterpret_tensor": 7
+              }
+            },
+            "48": {
+              "path": "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_copies_base14_P2_fully_isolated_v4/1.4B_R4_TP2/compile_cache/rank_0_0/backbone/artifact_compile_range_1_10240_subgraph_48",
+              "sha256": "020378882c086adc662e27262a3db392a25d52c4621185b970634a230bee2de8",
+              "embedded_source_sha256": "f5481c087a36c294547e74d7e931f48bd8e475798bb430bbdc107371112f07a6",
+              "call_ast_sha256": "6282bb575fac757fb7a1263e926911758d287729cb8659944d2de323277debdf",
+              "triton_compute_hashes": [
+                "d7deb1aca2f51297ee376c87656c88343dc4d70694c43b983643457f6d031b98",
+                "cf98057e410a4bdf33a6de0398ade2acf04a1b417082b690890819d117167146",
+                "3d56fa749caf54c88c7b5146511986f726524ccfb5315876f0db62e62504dd9b",
+                "2a1d66c9e769a0995fae37d01b4bfa3ac2e7096e083ef1e56e34f7897d89755f"
+              ],
+              "runtime_callee_counts": {
+                "args.clear": 1,
+                "torch.cuda._DeviceGuard": 1,
+                "torch.cuda.set_device": 1,
+                "empty_strided_cuda": 11,
+                "extern_kernels.mm": 4,
+                "torch.ops.vllm.all_reduce.default": 2,
+                "get_raw_stream": 4,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_0.run": 1,
+                "triton_poi_fused_mul_silu_slice_1.run": 1,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_2.run": 1,
+                "triton_poi_fused_add_cat_index_select_mul_split_split_with_sizes_sub_unsqueeze_view_3.run": 1,
+                "reinterpret_tensor": 7
+              }
+            },
+            "96": {
+              "path": "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_copies_base14_P2_fully_isolated_v4/1.4B_R4_TP2/compile_cache/rank_0_0/backbone/artifact_compile_range_1_10240_subgraph_96",
+              "sha256": "9b38b0ef235bb87e2788724bda1fabfb2df835ad40efd1f858ab5ee8f4115bf2",
+              "embedded_source_sha256": "e1b191bea94a2e35dbe8c88aa559cbdf9277c05fdfe8f7fe4a12873fe215ccbd",
+              "call_ast_sha256": "3041cb238afedfc27379aac888c91ea57e481206e458fce876a297d8312eb6d7",
+              "triton_compute_hashes": [
+                "d7deb1aca2f51297ee376c87656c88343dc4d70694c43b983643457f6d031b98",
+                "cf98057e410a4bdf33a6de0398ade2acf04a1b417082b690890819d117167146",
+                "352bd678d2b2b2daef902f9eedcc3f8d10f068838c658661510d53bbb20e97b1"
+              ],
+              "runtime_callee_counts": {
+                "args.clear": 1,
+                "torch.cuda._DeviceGuard": 1,
+                "torch.cuda.set_device": 1,
+                "empty_strided_cuda": 6,
+                "extern_kernels.mm": 3,
+                "torch.ops.vllm.all_reduce.default": 2,
+                "get_raw_stream": 3,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_0.run": 1,
+                "triton_poi_fused_mul_silu_slice_1.run": 1,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_2.run": 1,
+                "reinterpret_tensor": 4
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "model": "1.4B",
+      "P": 4,
+      "rank": 0,
+      "host_operation_counts_equal": true,
+      "host_shape_annotations_equal": true,
+      "host_collective_attention_sequence_equal": true,
+      "different_normalized_leaf_indices": [],
+      "alias_only_piece_indices": [],
+      "copies_only_piece_indices": [
+        "25",
+        "48"
+      ],
+      "common_piece_comparisons": {
+        "0": {
+          "embedded_source_equal": false,
+          "normalized_call_ast_equal": true,
+          "triton_compute_hashes_equal": true,
+          "autotune_key_sets_equal": true,
+          "autotune_common_keys": 2,
+          "autotune_values_equal": false,
+          "autotune_values_equal_without_time_taken_ms": true,
+          "autotune_non_timing_difference_keys": [],
+          "autotune_alias_only_keys": [],
+          "autotune_copies_only_keys": []
+        },
+        "1": {
+          "embedded_source_equal": false,
+          "normalized_call_ast_equal": true,
+          "triton_compute_hashes_equal": true,
+          "autotune_key_sets_equal": true,
+          "autotune_common_keys": 2,
+          "autotune_values_equal": false,
+          "autotune_values_equal_without_time_taken_ms": false,
+          "autotune_non_timing_difference_keys": [
+            "le/ede6497aab6395df427d4be701de7af477b35d1aeaee6d62718fedc97a401155.best_config"
+          ],
+          "autotune_alias_only_keys": [],
+          "autotune_copies_only_keys": []
+        },
+        "24": {
+          "embedded_source_equal": false,
+          "normalized_call_ast_equal": true,
+          "triton_compute_hashes_equal": true,
+          "autotune_key_sets_equal": true,
+          "autotune_common_keys": 2,
+          "autotune_values_equal": false,
+          "autotune_values_equal_without_time_taken_ms": false,
+          "autotune_non_timing_difference_keys": [
+            "hk/d485fc1b367d481d3930dc8400f0193a6de15e2f587f056391f43eba7e9b226c.best_config"
+          ],
+          "autotune_alias_only_keys": [],
+          "autotune_copies_only_keys": []
+        },
+        "96": {
+          "embedded_source_equal": false,
+          "normalized_call_ast_equal": true,
+          "triton_compute_hashes_equal": true,
+          "autotune_key_sets_equal": true,
+          "autotune_common_keys": 1,
+          "autotune_values_equal": false,
+          "autotune_values_equal_without_time_taken_ms": false,
+          "autotune_non_timing_difference_keys": [
+            "le/ede6497aab6395df427d4be701de7af477b35d1aeaee6d62718fedc97a401155.best_config"
+          ],
+          "autotune_alias_only_keys": [],
+          "autotune_copies_only_keys": []
+        }
+      },
+      "arms": {
+        "alias": {
+          "graph": {
+            "path": "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_alias_base14_P4_fully_isolated_v4/1.4B_R4_TP4/compile_cache/rank_0_0/backbone/computation_graph.py",
+            "sha256": "59c292a7deaebae9109543ac459e158146e97081b7c0952935923959f359904f",
+            "leaf_count": 193,
+            "top_weight_arguments": 194,
+            "weight_depth_prefix_counts": {
+              "0": 192
+            },
+            "operations": {
+              "torch.nn.functional.embedding": 1,
+              "torch.ops.vllm.all_reduce": 193,
+              "torch._C._autograd._get_data_attr": 388,
+              "torch.ops.vllm_ir.rms_norm.default": 196,
+              "torch._C._nn.linear": 384,
+              "torch.ops.aten.sym_size.int": 192,
+              "torch.chunk": 192,
+              "torch.cat": 384,
+              "torch.Size": 96,
+              "torch.empty": 96,
+              "torch.ops.vllm.unified_kv_cache_update": 96,
+              "torch.ops.vllm.unified_attention_with_output": 96,
+              "torch.ops.vllm_ir.fused_add_rms_norm.maybe_inplace": 192,
+              "torch.nn.functional.silu": 96
+            }
+          },
+          "pieces": {
+            "0": {
+              "path": "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_alias_base14_P4_fully_isolated_v4/1.4B_R4_TP4/compile_cache/rank_0_0/backbone/artifact_compile_range_1_10240_subgraph_0",
+              "sha256": "f94af60bad9475fb5ef36f388c0c967752b4435f253d774cac1d6b35898b4124",
+              "embedded_source_sha256": "2db94bc6d19c0b4e8ca93c041025163a9073611c474d9dae0163d4a89339ff1d",
+              "call_ast_sha256": "17840223083760569bfd49f54663f4b39f64b78137f9b39b6381083f638df1a0",
+              "triton_compute_hashes": [
+                "c0d367dbfa58ba3ef06b3aedba609d4bd86bc3f1ca2f521e8ac2cacbd6d2d256",
+                "176805e0f4357a195a337b104a7860fcb9282584eb8868db94b7c7bb1f70963d",
+                "f52590ef25502582d253dc385e720229c8bd45f1a54d56415773e5a90949ce8f"
+              ],
+              "runtime_callee_counts": {
+                "args.clear": 1,
+                "torch.cuda._DeviceGuard": 1,
+                "torch.cuda.set_device": 1,
+                "empty_strided_cuda": 6,
+                "get_raw_stream": 3,
+                "triton_poi_fused_add_bitwise_and_bitwise_not_bitwise_or_embedding_ge_lt_masked_fill_mul_sub_unsqueeze_0.run": 1,
+                "torch.ops.vllm.all_reduce.default": 1,
+                "triton_red_fused_rms_norm_1.run": 1,
+                "extern_kernels.mm": 1,
+                "triton_poi_fused_add_cat_index_select_mul_split_split_with_sizes_sub_unsqueeze_view_2.run": 1,
+                "reinterpret_tensor": 3
+              }
+            },
+            "1": {
+              "path": "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_alias_base14_P4_fully_isolated_v4/1.4B_R4_TP4/compile_cache/rank_0_0/backbone/artifact_compile_range_1_10240_subgraph_1",
+              "sha256": "4a04f999d41527a9400614c12f3d42438d2eb39f26475df715093c9a6a251dd9",
+              "embedded_source_sha256": "b85a2561488e7ab5d431d7962c71d7f15a9ba3e90a4987955efbc14e7ee769c6",
+              "call_ast_sha256": "317d3e76b64d217101e15f039812c2404320a593db36be1449d3ae3b16c379db",
+              "triton_compute_hashes": [
+                "d7deb1aca2f51297ee376c87656c88343dc4d70694c43b983643457f6d031b98",
+                "9e87670c7c92b87bad48b8697a6ab765f6768c1c8723426f83d3f000968e5c9b",
+                "77fabd5dc5cb2f287cfbb5b79d282c4c69d38618fc0f38a12640762f4af8c43a",
+                "8f114267c829950f610afae9439d202b35e67562b3c8aae0d5704800e4400bd6"
+              ],
+              "runtime_callee_counts": {
+                "args.clear": 1,
+                "torch.cuda._DeviceGuard": 1,
+                "torch.cuda.set_device": 1,
+                "empty_strided_cuda": 10,
+                "extern_kernels.mm": 4,
+                "torch.ops.vllm.all_reduce.default": 2,
+                "get_raw_stream": 4,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_0.run": 1,
+                "triton_poi_fused_mul_silu_slice_1.run": 1,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_2.run": 1,
+                "triton_poi_fused_add_cat_index_select_mul_split_split_with_sizes_sub_unsqueeze_view_3.run": 1,
+                "reinterpret_tensor": 7
+              }
+            },
+            "24": {
+              "path": "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_alias_base14_P4_fully_isolated_v4/1.4B_R4_TP4/compile_cache/rank_0_0/backbone/artifact_compile_range_1_10240_subgraph_24",
+              "sha256": "a5b5e8cb683d2395b8aadb5b91e21054dc231310096186a2aeb8a026466cd032",
+              "embedded_source_sha256": "db85d4402a9d3556938a6271597506583d406fc7cef733f0153853fcd497c817",
+              "call_ast_sha256": "b42e13a00015bfa9d30d20d652d536c3921adaf3e701f527607944757bfa0c34",
+              "triton_compute_hashes": [
+                "d7deb1aca2f51297ee376c87656c88343dc4d70694c43b983643457f6d031b98",
+                "9e87670c7c92b87bad48b8697a6ab765f6768c1c8723426f83d3f000968e5c9b",
+                "3d56fa749caf54c88c7b5146511986f726524ccfb5315876f0db62e62504dd9b",
+                "8f114267c829950f610afae9439d202b35e67562b3c8aae0d5704800e4400bd6"
+              ],
+              "runtime_callee_counts": {
+                "args.clear": 1,
+                "torch.cuda._DeviceGuard": 1,
+                "torch.cuda.set_device": 1,
+                "empty_strided_cuda": 10,
+                "extern_kernels.mm": 4,
+                "torch.ops.vllm.all_reduce.default": 2,
+                "get_raw_stream": 4,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_0.run": 1,
+                "triton_poi_fused_mul_silu_slice_1.run": 1,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_2.run": 1,
+                "triton_poi_fused_add_cat_index_select_mul_split_split_with_sizes_sub_unsqueeze_view_3.run": 1,
+                "reinterpret_tensor": 7
+              }
+            },
+            "96": {
+              "path": "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_alias_base14_P4_fully_isolated_v4/1.4B_R4_TP4/compile_cache/rank_0_0/backbone/artifact_compile_range_1_10240_subgraph_96",
+              "sha256": "942287898b03cd7660920705d943669004487225a25a53f521cd99a809c838fc",
+              "embedded_source_sha256": "8b4216816610e5b87f0d955d9b250e3996a6af1e4424c69c8ef1261a5dcfb4ef",
+              "call_ast_sha256": "dba8daf3d573ab39cb2a257c6efa8cf2a54a7b23b0fb6d5161aa5fc1b94105e2",
+              "triton_compute_hashes": [
+                "d7deb1aca2f51297ee376c87656c88343dc4d70694c43b983643457f6d031b98",
+                "9e87670c7c92b87bad48b8697a6ab765f6768c1c8723426f83d3f000968e5c9b",
+                "352bd678d2b2b2daef902f9eedcc3f8d10f068838c658661510d53bbb20e97b1"
+              ],
+              "runtime_callee_counts": {
+                "args.clear": 1,
+                "torch.cuda._DeviceGuard": 1,
+                "torch.cuda.set_device": 1,
+                "empty_strided_cuda": 5,
+                "extern_kernels.mm": 3,
+                "torch.ops.vllm.all_reduce.default": 2,
+                "get_raw_stream": 3,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_0.run": 1,
+                "triton_poi_fused_mul_silu_slice_1.run": 1,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_2.run": 1,
+                "reinterpret_tensor": 4
+              }
+            }
+          }
+        },
+        "copies": {
+          "graph": {
+            "path": "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_copies_base14_P4_fully_isolated_v4/1.4B_R4_TP4/compile_cache/rank_0_0/backbone/computation_graph.py",
+            "sha256": "4bdd03bdd479c00e8b2edc23c2a030137621410739c0c08ad9f843edcf834d01",
+            "leaf_count": 193,
+            "top_weight_arguments": 770,
+            "weight_depth_prefix_counts": {
+              "0": 192,
+              "1": 192,
+              "2": 192,
+              "3": 192
+            },
+            "operations": {
+              "torch.nn.functional.embedding": 1,
+              "torch.ops.vllm.all_reduce": 193,
+              "torch._C._autograd._get_data_attr": 388,
+              "torch.ops.vllm_ir.rms_norm.default": 196,
+              "torch._C._nn.linear": 384,
+              "torch.ops.aten.sym_size.int": 192,
+              "torch.chunk": 192,
+              "torch.cat": 384,
+              "torch.Size": 96,
+              "torch.empty": 96,
+              "torch.ops.vllm.unified_kv_cache_update": 96,
+              "torch.ops.vllm.unified_attention_with_output": 96,
+              "torch.ops.vllm_ir.fused_add_rms_norm.maybe_inplace": 192,
+              "torch.nn.functional.silu": 96
+            }
+          },
+          "pieces": {
+            "0": {
+              "path": "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_copies_base14_P4_fully_isolated_v4/1.4B_R4_TP4/compile_cache/rank_0_0/backbone/artifact_compile_range_1_10240_subgraph_0",
+              "sha256": "7a61a4a080a96f18955282b9230fc67555f3baba3fe394448ce03b1fd8b48242",
+              "embedded_source_sha256": "8950b3708af938d505a77d60ca40a61986e581f2b7a6f0ef08dcf2a48f131f83",
+              "call_ast_sha256": "17840223083760569bfd49f54663f4b39f64b78137f9b39b6381083f638df1a0",
+              "triton_compute_hashes": [
+                "c0d367dbfa58ba3ef06b3aedba609d4bd86bc3f1ca2f521e8ac2cacbd6d2d256",
+                "176805e0f4357a195a337b104a7860fcb9282584eb8868db94b7c7bb1f70963d",
+                "f52590ef25502582d253dc385e720229c8bd45f1a54d56415773e5a90949ce8f"
+              ],
+              "runtime_callee_counts": {
+                "args.clear": 1,
+                "torch.cuda._DeviceGuard": 1,
+                "torch.cuda.set_device": 1,
+                "empty_strided_cuda": 6,
+                "get_raw_stream": 3,
+                "triton_poi_fused_add_bitwise_and_bitwise_not_bitwise_or_embedding_ge_lt_masked_fill_mul_sub_unsqueeze_0.run": 1,
+                "torch.ops.vllm.all_reduce.default": 1,
+                "triton_red_fused_rms_norm_1.run": 1,
+                "extern_kernels.mm": 1,
+                "triton_poi_fused_add_cat_index_select_mul_split_split_with_sizes_sub_unsqueeze_view_2.run": 1,
+                "reinterpret_tensor": 3
+              }
+            },
+            "1": {
+              "path": "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_copies_base14_P4_fully_isolated_v4/1.4B_R4_TP4/compile_cache/rank_0_0/backbone/artifact_compile_range_1_10240_subgraph_1",
+              "sha256": "f00eaf256cbe28b0bdd4157132e8b30236f650c7150a913eaafbc68a51540c7b",
+              "embedded_source_sha256": "50dde62c61b4a561503a5c728e37dea59e1d31cdb849cb480b6897e841c1bdd5",
+              "call_ast_sha256": "317d3e76b64d217101e15f039812c2404320a593db36be1449d3ae3b16c379db",
+              "triton_compute_hashes": [
+                "d7deb1aca2f51297ee376c87656c88343dc4d70694c43b983643457f6d031b98",
+                "9e87670c7c92b87bad48b8697a6ab765f6768c1c8723426f83d3f000968e5c9b",
+                "77fabd5dc5cb2f287cfbb5b79d282c4c69d38618fc0f38a12640762f4af8c43a",
+                "8f114267c829950f610afae9439d202b35e67562b3c8aae0d5704800e4400bd6"
+              ],
+              "runtime_callee_counts": {
+                "args.clear": 1,
+                "torch.cuda._DeviceGuard": 1,
+                "torch.cuda.set_device": 1,
+                "empty_strided_cuda": 10,
+                "extern_kernels.mm": 4,
+                "torch.ops.vllm.all_reduce.default": 2,
+                "get_raw_stream": 4,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_0.run": 1,
+                "triton_poi_fused_mul_silu_slice_1.run": 1,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_2.run": 1,
+                "triton_poi_fused_add_cat_index_select_mul_split_split_with_sizes_sub_unsqueeze_view_3.run": 1,
+                "reinterpret_tensor": 7
+              }
+            },
+            "24": {
+              "path": "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_copies_base14_P4_fully_isolated_v4/1.4B_R4_TP4/compile_cache/rank_0_0/backbone/artifact_compile_range_1_10240_subgraph_24",
+              "sha256": "f879781a89bb8ce55f2473ad8c6bca9d07253f3c64ecbfec0bffd9b9c0914711",
+              "embedded_source_sha256": "bd9cf8c15fb73f1b3e76cb0a74eb4f98c6901bcc3730e970b55aac764d2bce06",
+              "call_ast_sha256": "b42e13a00015bfa9d30d20d652d536c3921adaf3e701f527607944757bfa0c34",
+              "triton_compute_hashes": [
+                "d7deb1aca2f51297ee376c87656c88343dc4d70694c43b983643457f6d031b98",
+                "9e87670c7c92b87bad48b8697a6ab765f6768c1c8723426f83d3f000968e5c9b",
+                "3d56fa749caf54c88c7b5146511986f726524ccfb5315876f0db62e62504dd9b",
+                "8f114267c829950f610afae9439d202b35e67562b3c8aae0d5704800e4400bd6"
+              ],
+              "runtime_callee_counts": {
+                "args.clear": 1,
+                "torch.cuda._DeviceGuard": 1,
+                "torch.cuda.set_device": 1,
+                "empty_strided_cuda": 10,
+                "extern_kernels.mm": 4,
+                "torch.ops.vllm.all_reduce.default": 2,
+                "get_raw_stream": 4,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_0.run": 1,
+                "triton_poi_fused_mul_silu_slice_1.run": 1,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_2.run": 1,
+                "triton_poi_fused_add_cat_index_select_mul_split_split_with_sizes_sub_unsqueeze_view_3.run": 1,
+                "reinterpret_tensor": 7
+              }
+            },
+            "25": {
+              "path": "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_copies_base14_P4_fully_isolated_v4/1.4B_R4_TP4/compile_cache/rank_0_0/backbone/artifact_compile_range_1_10240_subgraph_25",
+              "sha256": "d0abb565f9d7dc7e15348f7b68c84b194433a1f084be56b9e22e26a53f3bf8f5",
+              "embedded_source_sha256": "50dde62c61b4a561503a5c728e37dea59e1d31cdb849cb480b6897e841c1bdd5",
+              "call_ast_sha256": "317d3e76b64d217101e15f039812c2404320a593db36be1449d3ae3b16c379db",
+              "triton_compute_hashes": [
+                "d7deb1aca2f51297ee376c87656c88343dc4d70694c43b983643457f6d031b98",
+                "9e87670c7c92b87bad48b8697a6ab765f6768c1c8723426f83d3f000968e5c9b",
+                "77fabd5dc5cb2f287cfbb5b79d282c4c69d38618fc0f38a12640762f4af8c43a",
+                "8f114267c829950f610afae9439d202b35e67562b3c8aae0d5704800e4400bd6"
+              ],
+              "runtime_callee_counts": {
+                "args.clear": 1,
+                "torch.cuda._DeviceGuard": 1,
+                "torch.cuda.set_device": 1,
+                "empty_strided_cuda": 10,
+                "extern_kernels.mm": 4,
+                "torch.ops.vllm.all_reduce.default": 2,
+                "get_raw_stream": 4,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_0.run": 1,
+                "triton_poi_fused_mul_silu_slice_1.run": 1,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_2.run": 1,
+                "triton_poi_fused_add_cat_index_select_mul_split_split_with_sizes_sub_unsqueeze_view_3.run": 1,
+                "reinterpret_tensor": 7
+              }
+            },
+            "48": {
+              "path": "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_copies_base14_P4_fully_isolated_v4/1.4B_R4_TP4/compile_cache/rank_0_0/backbone/artifact_compile_range_1_10240_subgraph_48",
+              "sha256": "438b49405b7f870e3a3ddd063b751ef3ce33cf80e212899f5292622cb136bdc1",
+              "embedded_source_sha256": "bd9cf8c15fb73f1b3e76cb0a74eb4f98c6901bcc3730e970b55aac764d2bce06",
+              "call_ast_sha256": "b42e13a00015bfa9d30d20d652d536c3921adaf3e701f527607944757bfa0c34",
+              "triton_compute_hashes": [
+                "d7deb1aca2f51297ee376c87656c88343dc4d70694c43b983643457f6d031b98",
+                "9e87670c7c92b87bad48b8697a6ab765f6768c1c8723426f83d3f000968e5c9b",
+                "3d56fa749caf54c88c7b5146511986f726524ccfb5315876f0db62e62504dd9b",
+                "8f114267c829950f610afae9439d202b35e67562b3c8aae0d5704800e4400bd6"
+              ],
+              "runtime_callee_counts": {
+                "args.clear": 1,
+                "torch.cuda._DeviceGuard": 1,
+                "torch.cuda.set_device": 1,
+                "empty_strided_cuda": 10,
+                "extern_kernels.mm": 4,
+                "torch.ops.vllm.all_reduce.default": 2,
+                "get_raw_stream": 4,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_0.run": 1,
+                "triton_poi_fused_mul_silu_slice_1.run": 1,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_2.run": 1,
+                "triton_poi_fused_add_cat_index_select_mul_split_split_with_sizes_sub_unsqueeze_view_3.run": 1,
+                "reinterpret_tensor": 7
+              }
+            },
+            "96": {
+              "path": "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_copies_base14_P4_fully_isolated_v4/1.4B_R4_TP4/compile_cache/rank_0_0/backbone/artifact_compile_range_1_10240_subgraph_96",
+              "sha256": "3c86416d70f5ef69f71f6000283b733ffdef0a01e9db1d5ea851f2edd61a9387",
+              "embedded_source_sha256": "6dc0149561bbd40ef7d793176fc92efbedab60db83d412f77afc69ec96d15513",
+              "call_ast_sha256": "dba8daf3d573ab39cb2a257c6efa8cf2a54a7b23b0fb6d5161aa5fc1b94105e2",
+              "triton_compute_hashes": [
+                "d7deb1aca2f51297ee376c87656c88343dc4d70694c43b983643457f6d031b98",
+                "9e87670c7c92b87bad48b8697a6ab765f6768c1c8723426f83d3f000968e5c9b",
+                "352bd678d2b2b2daef902f9eedcc3f8d10f068838c658661510d53bbb20e97b1"
+              ],
+              "runtime_callee_counts": {
+                "args.clear": 1,
+                "torch.cuda._DeviceGuard": 1,
+                "torch.cuda.set_device": 1,
+                "empty_strided_cuda": 5,
+                "extern_kernels.mm": 3,
+                "torch.ops.vllm.all_reduce.default": 2,
+                "get_raw_stream": 3,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_0.run": 1,
+                "triton_poi_fused_mul_silu_slice_1.run": 1,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_2.run": 1,
+                "reinterpret_tensor": 4
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "model": "2.6B",
+      "P": 2,
+      "rank": 0,
+      "host_operation_counts_equal": true,
+      "host_shape_annotations_equal": true,
+      "host_collective_attention_sequence_equal": true,
+      "different_normalized_leaf_indices": [],
+      "alias_only_piece_indices": [],
+      "copies_only_piece_indices": [
+        "49",
+        "96"
+      ],
+      "common_piece_comparisons": {
+        "0": {
+          "embedded_source_equal": false,
+          "normalized_call_ast_equal": true,
+          "triton_compute_hashes_equal": true,
+          "autotune_key_sets_equal": true,
+          "autotune_common_keys": 2,
+          "autotune_values_equal": false,
+          "autotune_values_equal_without_time_taken_ms": true,
+          "autotune_non_timing_difference_keys": [],
+          "autotune_alias_only_keys": [],
+          "autotune_copies_only_keys": []
+        },
+        "1": {
+          "embedded_source_equal": false,
+          "normalized_call_ast_equal": true,
+          "triton_compute_hashes_equal": true,
+          "autotune_key_sets_equal": true,
+          "autotune_common_keys": 2,
+          "autotune_values_equal": false,
+          "autotune_values_equal_without_time_taken_ms": true,
+          "autotune_non_timing_difference_keys": [],
+          "autotune_alias_only_keys": [],
+          "autotune_copies_only_keys": []
+        },
+        "48": {
+          "embedded_source_equal": false,
+          "normalized_call_ast_equal": true,
+          "triton_compute_hashes_equal": true,
+          "autotune_key_sets_equal": true,
+          "autotune_common_keys": 2,
+          "autotune_values_equal": false,
+          "autotune_values_equal_without_time_taken_ms": true,
+          "autotune_non_timing_difference_keys": [],
+          "autotune_alias_only_keys": [],
+          "autotune_copies_only_keys": []
+        },
+        "192": {
+          "embedded_source_equal": false,
+          "normalized_call_ast_equal": true,
+          "triton_compute_hashes_equal": true,
+          "autotune_key_sets_equal": true,
+          "autotune_common_keys": 1,
+          "autotune_values_equal": false,
+          "autotune_values_equal_without_time_taken_ms": true,
+          "autotune_non_timing_difference_keys": [],
+          "autotune_alias_only_keys": [],
+          "autotune_copies_only_keys": []
+        }
+      },
+      "arms": {
+        "alias": {
+          "graph": {
+            "path": "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_alias_base26_P2_fully_isolated_v4/2.6B_R4_TP2/compile_cache/rank_0_0/backbone/computation_graph.py",
+            "sha256": "319efccc7323a7c6547f729b0ef457f6ea36b6cab8d13764187498da176c56e0",
+            "leaf_count": 385,
+            "top_weight_arguments": 386,
+            "weight_depth_prefix_counts": {
+              "0": 384
+            },
+            "operations": {
+              "torch.nn.functional.embedding": 1,
+              "torch.ops.vllm.all_reduce": 385,
+              "torch._C._autograd._get_data_attr": 772,
+              "torch.ops.vllm_ir.rms_norm.default": 388,
+              "torch._C._nn.linear": 768,
+              "torch.ops.aten.sym_size.int": 384,
+              "torch.chunk": 384,
+              "torch.cat": 768,
+              "torch.Size": 192,
+              "torch.empty": 192,
+              "torch.ops.vllm.unified_kv_cache_update": 192,
+              "torch.ops.vllm.unified_attention_with_output": 192,
+              "torch.ops.vllm_ir.fused_add_rms_norm.maybe_inplace": 384,
+              "torch.nn.functional.silu": 192
+            }
+          },
+          "pieces": {
+            "0": {
+              "path": "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_alias_base26_P2_fully_isolated_v4/2.6B_R4_TP2/compile_cache/rank_0_0/backbone/artifact_compile_range_1_10240_subgraph_0",
+              "sha256": "b2e0fed6017d464d48b215437231bf5630be98ca4d4a0127a7a1ce127147f843",
+              "embedded_source_sha256": "565b650b81b83052fd2665b13c7217ca6c555519cfb7dcecf8caefdc7978a5b9",
+              "call_ast_sha256": "7a54048db9ab19ab2b9a7a5303b7bc1ba5062598e7d687ab21fd2e6ac4349b5d",
+              "triton_compute_hashes": [
+                "7681dd8c1f37bf266909912afdc45ec3701fd09a010b6c3cd40a981ac8bbf26a",
+                "176805e0f4357a195a337b104a7860fcb9282584eb8868db94b7c7bb1f70963d",
+                "049e97c2bb9cb099ff8d4ca4308699ccfb3993fcbe2b34c627dc9f7ea080ac9f"
+              ],
+              "runtime_callee_counts": {
+                "args.clear": 1,
+                "torch.cuda._DeviceGuard": 1,
+                "torch.cuda.set_device": 1,
+                "empty_strided_cuda": 6,
+                "get_raw_stream": 3,
+                "triton_poi_fused_add_bitwise_and_bitwise_not_bitwise_or_embedding_ge_lt_masked_fill_mul_sub_unsqueeze_0.run": 1,
+                "torch.ops.vllm.all_reduce.default": 1,
+                "triton_red_fused_rms_norm_1.run": 1,
+                "extern_kernels.mm": 1,
+                "triton_poi_fused_add_cat_index_select_mul_split_split_with_sizes_sub_unsqueeze_view_2.run": 1,
+                "reinterpret_tensor": 3
+              }
+            },
+            "1": {
+              "path": "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_alias_base26_P2_fully_isolated_v4/2.6B_R4_TP2/compile_cache/rank_0_0/backbone/artifact_compile_range_1_10240_subgraph_1",
+              "sha256": "311ab77dac7ee9480605da06f1f681c3eb568e958c46e9111af6dca8650d50a5",
+              "embedded_source_sha256": "724dc24720bf895e04a01a9c0bd3dd6ae2b2397e1533eee0f04bc1b3075fe9b5",
+              "call_ast_sha256": "e12f07965c9b69133bd74c5c0acbd793cf5cf1dcc79b768b2efa527da2a27f82",
+              "triton_compute_hashes": [
+                "d7deb1aca2f51297ee376c87656c88343dc4d70694c43b983643457f6d031b98",
+                "cf98057e410a4bdf33a6de0398ade2acf04a1b417082b690890819d117167146",
+                "77fabd5dc5cb2f287cfbb5b79d282c4c69d38618fc0f38a12640762f4af8c43a",
+                "2a1d66c9e769a0995fae37d01b4bfa3ac2e7096e083ef1e56e34f7897d89755f"
+              ],
+              "runtime_callee_counts": {
+                "args.clear": 1,
+                "torch.cuda._DeviceGuard": 1,
+                "torch.cuda.set_device": 1,
+                "empty_strided_cuda": 11,
+                "extern_kernels.mm": 4,
+                "torch.ops.vllm.all_reduce.default": 2,
+                "get_raw_stream": 4,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_0.run": 1,
+                "triton_poi_fused_mul_silu_slice_1.run": 1,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_2.run": 1,
+                "triton_poi_fused_add_cat_index_select_mul_split_split_with_sizes_sub_unsqueeze_view_3.run": 1,
+                "reinterpret_tensor": 7
+              }
+            },
+            "48": {
+              "path": "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_alias_base26_P2_fully_isolated_v4/2.6B_R4_TP2/compile_cache/rank_0_0/backbone/artifact_compile_range_1_10240_subgraph_48",
+              "sha256": "aa1d56fa6ce39f3c8a02ddce4806ecc7250e5f46b86a08ae1cef45b2e619ed14",
+              "embedded_source_sha256": "3940cdc09b9b47973285ec39435ef96e301080bfa45315d3a578746e95e1fb98",
+              "call_ast_sha256": "6282bb575fac757fb7a1263e926911758d287729cb8659944d2de323277debdf",
+              "triton_compute_hashes": [
+                "d7deb1aca2f51297ee376c87656c88343dc4d70694c43b983643457f6d031b98",
+                "cf98057e410a4bdf33a6de0398ade2acf04a1b417082b690890819d117167146",
+                "3d56fa749caf54c88c7b5146511986f726524ccfb5315876f0db62e62504dd9b",
+                "2a1d66c9e769a0995fae37d01b4bfa3ac2e7096e083ef1e56e34f7897d89755f"
+              ],
+              "runtime_callee_counts": {
+                "args.clear": 1,
+                "torch.cuda._DeviceGuard": 1,
+                "torch.cuda.set_device": 1,
+                "empty_strided_cuda": 11,
+                "extern_kernels.mm": 4,
+                "torch.ops.vllm.all_reduce.default": 2,
+                "get_raw_stream": 4,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_0.run": 1,
+                "triton_poi_fused_mul_silu_slice_1.run": 1,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_2.run": 1,
+                "triton_poi_fused_add_cat_index_select_mul_split_split_with_sizes_sub_unsqueeze_view_3.run": 1,
+                "reinterpret_tensor": 7
+              }
+            },
+            "192": {
+              "path": "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_alias_base26_P2_fully_isolated_v4/2.6B_R4_TP2/compile_cache/rank_0_0/backbone/artifact_compile_range_1_10240_subgraph_192",
+              "sha256": "eb8cb28c3ec658fe993d48a78bac651d6b162ab28877f9aab1efd546254572a2",
+              "embedded_source_sha256": "5f5a4fc48e9cf544b51f1b12c686a3f067f94fc1c8b2cc12d323f0861009c1d1",
+              "call_ast_sha256": "3041cb238afedfc27379aac888c91ea57e481206e458fce876a297d8312eb6d7",
+              "triton_compute_hashes": [
+                "d7deb1aca2f51297ee376c87656c88343dc4d70694c43b983643457f6d031b98",
+                "cf98057e410a4bdf33a6de0398ade2acf04a1b417082b690890819d117167146",
+                "352bd678d2b2b2daef902f9eedcc3f8d10f068838c658661510d53bbb20e97b1"
+              ],
+              "runtime_callee_counts": {
+                "args.clear": 1,
+                "torch.cuda._DeviceGuard": 1,
+                "torch.cuda.set_device": 1,
+                "empty_strided_cuda": 6,
+                "extern_kernels.mm": 3,
+                "torch.ops.vllm.all_reduce.default": 2,
+                "get_raw_stream": 3,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_0.run": 1,
+                "triton_poi_fused_mul_silu_slice_1.run": 1,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_2.run": 1,
+                "reinterpret_tensor": 4
+              }
+            }
+          }
+        },
+        "copies": {
+          "graph": {
+            "path": "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_copies_base26_P2_fully_isolated_v4/2.6B_R4_TP2/compile_cache/rank_0_0/backbone/computation_graph.py",
+            "sha256": "e6e170ecf4df91544e831a2a1a809551de06101ab014dd43ad981ddc539b4a92",
+            "leaf_count": 385,
+            "top_weight_arguments": 1538,
+            "weight_depth_prefix_counts": {
+              "0": 384,
+              "1": 384,
+              "2": 384,
+              "3": 384
+            },
+            "operations": {
+              "torch.nn.functional.embedding": 1,
+              "torch.ops.vllm.all_reduce": 385,
+              "torch._C._autograd._get_data_attr": 772,
+              "torch.ops.vllm_ir.rms_norm.default": 388,
+              "torch._C._nn.linear": 768,
+              "torch.ops.aten.sym_size.int": 384,
+              "torch.chunk": 384,
+              "torch.cat": 768,
+              "torch.Size": 192,
+              "torch.empty": 192,
+              "torch.ops.vllm.unified_kv_cache_update": 192,
+              "torch.ops.vllm.unified_attention_with_output": 192,
+              "torch.ops.vllm_ir.fused_add_rms_norm.maybe_inplace": 384,
+              "torch.nn.functional.silu": 192
+            }
+          },
+          "pieces": {
+            "0": {
+              "path": "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_copies_base26_P2_fully_isolated_v4/2.6B_R4_TP2/compile_cache/rank_0_0/backbone/artifact_compile_range_1_10240_subgraph_0",
+              "sha256": "14f20817b72fef49530d42a16376d37ea05204e68b30887c0afce56864414d5b",
+              "embedded_source_sha256": "c6f0bb8c60c255bc7497e0ffbaff45f333ff7478d9c8cbc091fe1cc6c2e40205",
+              "call_ast_sha256": "7a54048db9ab19ab2b9a7a5303b7bc1ba5062598e7d687ab21fd2e6ac4349b5d",
+              "triton_compute_hashes": [
+                "7681dd8c1f37bf266909912afdc45ec3701fd09a010b6c3cd40a981ac8bbf26a",
+                "176805e0f4357a195a337b104a7860fcb9282584eb8868db94b7c7bb1f70963d",
+                "049e97c2bb9cb099ff8d4ca4308699ccfb3993fcbe2b34c627dc9f7ea080ac9f"
+              ],
+              "runtime_callee_counts": {
+                "args.clear": 1,
+                "torch.cuda._DeviceGuard": 1,
+                "torch.cuda.set_device": 1,
+                "empty_strided_cuda": 6,
+                "get_raw_stream": 3,
+                "triton_poi_fused_add_bitwise_and_bitwise_not_bitwise_or_embedding_ge_lt_masked_fill_mul_sub_unsqueeze_0.run": 1,
+                "torch.ops.vllm.all_reduce.default": 1,
+                "triton_red_fused_rms_norm_1.run": 1,
+                "extern_kernels.mm": 1,
+                "triton_poi_fused_add_cat_index_select_mul_split_split_with_sizes_sub_unsqueeze_view_2.run": 1,
+                "reinterpret_tensor": 3
+              }
+            },
+            "1": {
+              "path": "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_copies_base26_P2_fully_isolated_v4/2.6B_R4_TP2/compile_cache/rank_0_0/backbone/artifact_compile_range_1_10240_subgraph_1",
+              "sha256": "927a9fc49f52ff5d965e1c6ef37d89348510ae5dad9e8bb36300e6d4f9cfdd9a",
+              "embedded_source_sha256": "57c7a4370a56daa20834632940ddfe6d5a049a7359e1b390222022d179d8735b",
+              "call_ast_sha256": "e12f07965c9b69133bd74c5c0acbd793cf5cf1dcc79b768b2efa527da2a27f82",
+              "triton_compute_hashes": [
+                "d7deb1aca2f51297ee376c87656c88343dc4d70694c43b983643457f6d031b98",
+                "cf98057e410a4bdf33a6de0398ade2acf04a1b417082b690890819d117167146",
+                "77fabd5dc5cb2f287cfbb5b79d282c4c69d38618fc0f38a12640762f4af8c43a",
+                "2a1d66c9e769a0995fae37d01b4bfa3ac2e7096e083ef1e56e34f7897d89755f"
+              ],
+              "runtime_callee_counts": {
+                "args.clear": 1,
+                "torch.cuda._DeviceGuard": 1,
+                "torch.cuda.set_device": 1,
+                "empty_strided_cuda": 11,
+                "extern_kernels.mm": 4,
+                "torch.ops.vllm.all_reduce.default": 2,
+                "get_raw_stream": 4,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_0.run": 1,
+                "triton_poi_fused_mul_silu_slice_1.run": 1,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_2.run": 1,
+                "triton_poi_fused_add_cat_index_select_mul_split_split_with_sizes_sub_unsqueeze_view_3.run": 1,
+                "reinterpret_tensor": 7
+              }
+            },
+            "48": {
+              "path": "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_copies_base26_P2_fully_isolated_v4/2.6B_R4_TP2/compile_cache/rank_0_0/backbone/artifact_compile_range_1_10240_subgraph_48",
+              "sha256": "4759f0af92aadb2ba622017729a3cf380ee523b91cec992334761a48ba85fe3b",
+              "embedded_source_sha256": "19f4d4cac0a6cd4b1a444f20de1e45d79c71945b71b04f1ef320434418e68a86",
+              "call_ast_sha256": "6282bb575fac757fb7a1263e926911758d287729cb8659944d2de323277debdf",
+              "triton_compute_hashes": [
+                "d7deb1aca2f51297ee376c87656c88343dc4d70694c43b983643457f6d031b98",
+                "cf98057e410a4bdf33a6de0398ade2acf04a1b417082b690890819d117167146",
+                "3d56fa749caf54c88c7b5146511986f726524ccfb5315876f0db62e62504dd9b",
+                "2a1d66c9e769a0995fae37d01b4bfa3ac2e7096e083ef1e56e34f7897d89755f"
+              ],
+              "runtime_callee_counts": {
+                "args.clear": 1,
+                "torch.cuda._DeviceGuard": 1,
+                "torch.cuda.set_device": 1,
+                "empty_strided_cuda": 11,
+                "extern_kernels.mm": 4,
+                "torch.ops.vllm.all_reduce.default": 2,
+                "get_raw_stream": 4,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_0.run": 1,
+                "triton_poi_fused_mul_silu_slice_1.run": 1,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_2.run": 1,
+                "triton_poi_fused_add_cat_index_select_mul_split_split_with_sizes_sub_unsqueeze_view_3.run": 1,
+                "reinterpret_tensor": 7
+              }
+            },
+            "49": {
+              "path": "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_copies_base26_P2_fully_isolated_v4/2.6B_R4_TP2/compile_cache/rank_0_0/backbone/artifact_compile_range_1_10240_subgraph_49",
+              "sha256": "ec97af552815838006cbb38437879a573d6f511491fee33ac6dfb95d91843144",
+              "embedded_source_sha256": "57c7a4370a56daa20834632940ddfe6d5a049a7359e1b390222022d179d8735b",
+              "call_ast_sha256": "e12f07965c9b69133bd74c5c0acbd793cf5cf1dcc79b768b2efa527da2a27f82",
+              "triton_compute_hashes": [
+                "d7deb1aca2f51297ee376c87656c88343dc4d70694c43b983643457f6d031b98",
+                "cf98057e410a4bdf33a6de0398ade2acf04a1b417082b690890819d117167146",
+                "77fabd5dc5cb2f287cfbb5b79d282c4c69d38618fc0f38a12640762f4af8c43a",
+                "2a1d66c9e769a0995fae37d01b4bfa3ac2e7096e083ef1e56e34f7897d89755f"
+              ],
+              "runtime_callee_counts": {
+                "args.clear": 1,
+                "torch.cuda._DeviceGuard": 1,
+                "torch.cuda.set_device": 1,
+                "empty_strided_cuda": 11,
+                "extern_kernels.mm": 4,
+                "torch.ops.vllm.all_reduce.default": 2,
+                "get_raw_stream": 4,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_0.run": 1,
+                "triton_poi_fused_mul_silu_slice_1.run": 1,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_2.run": 1,
+                "triton_poi_fused_add_cat_index_select_mul_split_split_with_sizes_sub_unsqueeze_view_3.run": 1,
+                "reinterpret_tensor": 7
+              }
+            },
+            "96": {
+              "path": "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_copies_base26_P2_fully_isolated_v4/2.6B_R4_TP2/compile_cache/rank_0_0/backbone/artifact_compile_range_1_10240_subgraph_96",
+              "sha256": "c11469d48e31a7c560b39ab031767ab154f6c068ba1cd5c01bf235d1119ad13e",
+              "embedded_source_sha256": "19f4d4cac0a6cd4b1a444f20de1e45d79c71945b71b04f1ef320434418e68a86",
+              "call_ast_sha256": "6282bb575fac757fb7a1263e926911758d287729cb8659944d2de323277debdf",
+              "triton_compute_hashes": [
+                "d7deb1aca2f51297ee376c87656c88343dc4d70694c43b983643457f6d031b98",
+                "cf98057e410a4bdf33a6de0398ade2acf04a1b417082b690890819d117167146",
+                "3d56fa749caf54c88c7b5146511986f726524ccfb5315876f0db62e62504dd9b",
+                "2a1d66c9e769a0995fae37d01b4bfa3ac2e7096e083ef1e56e34f7897d89755f"
+              ],
+              "runtime_callee_counts": {
+                "args.clear": 1,
+                "torch.cuda._DeviceGuard": 1,
+                "torch.cuda.set_device": 1,
+                "empty_strided_cuda": 11,
+                "extern_kernels.mm": 4,
+                "torch.ops.vllm.all_reduce.default": 2,
+                "get_raw_stream": 4,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_0.run": 1,
+                "triton_poi_fused_mul_silu_slice_1.run": 1,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_2.run": 1,
+                "triton_poi_fused_add_cat_index_select_mul_split_split_with_sizes_sub_unsqueeze_view_3.run": 1,
+                "reinterpret_tensor": 7
+              }
+            },
+            "192": {
+              "path": "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_copies_base26_P2_fully_isolated_v4/2.6B_R4_TP2/compile_cache/rank_0_0/backbone/artifact_compile_range_1_10240_subgraph_192",
+              "sha256": "44f502aa4ed0fe1a4c0279e27230394aa8f6b2bf1c1a5cb124d958b6ee291d18",
+              "embedded_source_sha256": "75fd906694991129d52e4e466b64fe8f3d1cdc06ab3439d9119f18cbb9429b2a",
+              "call_ast_sha256": "3041cb238afedfc27379aac888c91ea57e481206e458fce876a297d8312eb6d7",
+              "triton_compute_hashes": [
+                "d7deb1aca2f51297ee376c87656c88343dc4d70694c43b983643457f6d031b98",
+                "cf98057e410a4bdf33a6de0398ade2acf04a1b417082b690890819d117167146",
+                "352bd678d2b2b2daef902f9eedcc3f8d10f068838c658661510d53bbb20e97b1"
+              ],
+              "runtime_callee_counts": {
+                "args.clear": 1,
+                "torch.cuda._DeviceGuard": 1,
+                "torch.cuda.set_device": 1,
+                "empty_strided_cuda": 6,
+                "extern_kernels.mm": 3,
+                "torch.ops.vllm.all_reduce.default": 2,
+                "get_raw_stream": 3,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_0.run": 1,
+                "triton_poi_fused_mul_silu_slice_1.run": 1,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_2.run": 1,
+                "reinterpret_tensor": 4
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "model": "2.6B",
+      "P": 4,
+      "rank": 0,
+      "host_operation_counts_equal": true,
+      "host_shape_annotations_equal": true,
+      "host_collective_attention_sequence_equal": true,
+      "different_normalized_leaf_indices": [],
+      "alias_only_piece_indices": [],
+      "copies_only_piece_indices": [
+        "49",
+        "96"
+      ],
+      "common_piece_comparisons": {
+        "0": {
+          "embedded_source_equal": false,
+          "normalized_call_ast_equal": true,
+          "triton_compute_hashes_equal": true,
+          "autotune_key_sets_equal": true,
+          "autotune_common_keys": 2,
+          "autotune_values_equal": false,
+          "autotune_values_equal_without_time_taken_ms": false,
+          "autotune_non_timing_difference_keys": [
+            "6g/a562984e81101bac7c44fb1e9ad0f01014787bd4b1e0cbb5a927c676dd4a177e.best_config"
+          ],
+          "autotune_alias_only_keys": [],
+          "autotune_copies_only_keys": []
+        },
+        "1": {
+          "embedded_source_equal": false,
+          "normalized_call_ast_equal": true,
+          "triton_compute_hashes_equal": true,
+          "autotune_key_sets_equal": true,
+          "autotune_common_keys": 2,
+          "autotune_values_equal": false,
+          "autotune_values_equal_without_time_taken_ms": true,
+          "autotune_non_timing_difference_keys": [],
+          "autotune_alias_only_keys": [],
+          "autotune_copies_only_keys": []
+        },
+        "48": {
+          "embedded_source_equal": false,
+          "normalized_call_ast_equal": true,
+          "triton_compute_hashes_equal": true,
+          "autotune_key_sets_equal": true,
+          "autotune_common_keys": 2,
+          "autotune_values_equal": false,
+          "autotune_values_equal_without_time_taken_ms": false,
+          "autotune_non_timing_difference_keys": [
+            "hk/d485fc1b367d481d3930dc8400f0193a6de15e2f587f056391f43eba7e9b226c.best_config"
+          ],
+          "autotune_alias_only_keys": [],
+          "autotune_copies_only_keys": []
+        },
+        "192": {
+          "embedded_source_equal": false,
+          "normalized_call_ast_equal": true,
+          "triton_compute_hashes_equal": true,
+          "autotune_key_sets_equal": true,
+          "autotune_common_keys": 1,
+          "autotune_values_equal": false,
+          "autotune_values_equal_without_time_taken_ms": true,
+          "autotune_non_timing_difference_keys": [],
+          "autotune_alias_only_keys": [],
+          "autotune_copies_only_keys": []
+        }
+      },
+      "arms": {
+        "alias": {
+          "graph": {
+            "path": "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_alias_base26_P4_fully_isolated_v4/2.6B_R4_TP4/compile_cache/rank_0_0/backbone/computation_graph.py",
+            "sha256": "06178e1001e539e6b6212153f9bf5881caeb4b48311ee3f30bef11f0c005793c",
+            "leaf_count": 385,
+            "top_weight_arguments": 386,
+            "weight_depth_prefix_counts": {
+              "0": 384
+            },
+            "operations": {
+              "torch.nn.functional.embedding": 1,
+              "torch.ops.vllm.all_reduce": 385,
+              "torch._C._autograd._get_data_attr": 772,
+              "torch.ops.vllm_ir.rms_norm.default": 388,
+              "torch._C._nn.linear": 768,
+              "torch.ops.aten.sym_size.int": 384,
+              "torch.chunk": 384,
+              "torch.cat": 768,
+              "torch.Size": 192,
+              "torch.empty": 192,
+              "torch.ops.vllm.unified_kv_cache_update": 192,
+              "torch.ops.vllm.unified_attention_with_output": 192,
+              "torch.ops.vllm_ir.fused_add_rms_norm.maybe_inplace": 384,
+              "torch.nn.functional.silu": 192
+            }
+          },
+          "pieces": {
+            "0": {
+              "path": "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_alias_base26_P4_fully_isolated_v4/2.6B_R4_TP4/compile_cache/rank_0_0/backbone/artifact_compile_range_1_10240_subgraph_0",
+              "sha256": "0eb57e80a9bd1b50f6b6b86dd1e6eb6c1d0ba5071451d01cf30d29edee2656f9",
+              "embedded_source_sha256": "ccfe374b8d83af22be5fd1f6537a486f89b651989fa10545f3eb836fed61f594",
+              "call_ast_sha256": "17840223083760569bfd49f54663f4b39f64b78137f9b39b6381083f638df1a0",
+              "triton_compute_hashes": [
+                "c0d367dbfa58ba3ef06b3aedba609d4bd86bc3f1ca2f521e8ac2cacbd6d2d256",
+                "176805e0f4357a195a337b104a7860fcb9282584eb8868db94b7c7bb1f70963d",
+                "f52590ef25502582d253dc385e720229c8bd45f1a54d56415773e5a90949ce8f"
+              ],
+              "runtime_callee_counts": {
+                "args.clear": 1,
+                "torch.cuda._DeviceGuard": 1,
+                "torch.cuda.set_device": 1,
+                "empty_strided_cuda": 6,
+                "get_raw_stream": 3,
+                "triton_poi_fused_add_bitwise_and_bitwise_not_bitwise_or_embedding_ge_lt_masked_fill_mul_sub_unsqueeze_0.run": 1,
+                "torch.ops.vllm.all_reduce.default": 1,
+                "triton_red_fused_rms_norm_1.run": 1,
+                "extern_kernels.mm": 1,
+                "triton_poi_fused_add_cat_index_select_mul_split_split_with_sizes_sub_unsqueeze_view_2.run": 1,
+                "reinterpret_tensor": 3
+              }
+            },
+            "1": {
+              "path": "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_alias_base26_P4_fully_isolated_v4/2.6B_R4_TP4/compile_cache/rank_0_0/backbone/artifact_compile_range_1_10240_subgraph_1",
+              "sha256": "634aff301e67a351be01753854c067f3530b0f713a0e6bd6e6a372639944a3dc",
+              "embedded_source_sha256": "28f9388240bc32642dc1683abfbc417ff13d91b2896f2abb13165b3aca6c5d5b",
+              "call_ast_sha256": "317d3e76b64d217101e15f039812c2404320a593db36be1449d3ae3b16c379db",
+              "triton_compute_hashes": [
+                "d7deb1aca2f51297ee376c87656c88343dc4d70694c43b983643457f6d031b98",
+                "9e87670c7c92b87bad48b8697a6ab765f6768c1c8723426f83d3f000968e5c9b",
+                "77fabd5dc5cb2f287cfbb5b79d282c4c69d38618fc0f38a12640762f4af8c43a",
+                "8f114267c829950f610afae9439d202b35e67562b3c8aae0d5704800e4400bd6"
+              ],
+              "runtime_callee_counts": {
+                "args.clear": 1,
+                "torch.cuda._DeviceGuard": 1,
+                "torch.cuda.set_device": 1,
+                "empty_strided_cuda": 10,
+                "extern_kernels.mm": 4,
+                "torch.ops.vllm.all_reduce.default": 2,
+                "get_raw_stream": 4,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_0.run": 1,
+                "triton_poi_fused_mul_silu_slice_1.run": 1,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_2.run": 1,
+                "triton_poi_fused_add_cat_index_select_mul_split_split_with_sizes_sub_unsqueeze_view_3.run": 1,
+                "reinterpret_tensor": 7
+              }
+            },
+            "48": {
+              "path": "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_alias_base26_P4_fully_isolated_v4/2.6B_R4_TP4/compile_cache/rank_0_0/backbone/artifact_compile_range_1_10240_subgraph_48",
+              "sha256": "9c1cab80c0d694a5dc862a793713a99e846129ba73f321767e48c28f55253d2d",
+              "embedded_source_sha256": "4e9f220e21e16d56a2cd4caa131b575c29168a89c91a1329e564befa155445ef",
+              "call_ast_sha256": "b42e13a00015bfa9d30d20d652d536c3921adaf3e701f527607944757bfa0c34",
+              "triton_compute_hashes": [
+                "d7deb1aca2f51297ee376c87656c88343dc4d70694c43b983643457f6d031b98",
+                "9e87670c7c92b87bad48b8697a6ab765f6768c1c8723426f83d3f000968e5c9b",
+                "3d56fa749caf54c88c7b5146511986f726524ccfb5315876f0db62e62504dd9b",
+                "8f114267c829950f610afae9439d202b35e67562b3c8aae0d5704800e4400bd6"
+              ],
+              "runtime_callee_counts": {
+                "args.clear": 1,
+                "torch.cuda._DeviceGuard": 1,
+                "torch.cuda.set_device": 1,
+                "empty_strided_cuda": 10,
+                "extern_kernels.mm": 4,
+                "torch.ops.vllm.all_reduce.default": 2,
+                "get_raw_stream": 4,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_0.run": 1,
+                "triton_poi_fused_mul_silu_slice_1.run": 1,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_2.run": 1,
+                "triton_poi_fused_add_cat_index_select_mul_split_split_with_sizes_sub_unsqueeze_view_3.run": 1,
+                "reinterpret_tensor": 7
+              }
+            },
+            "192": {
+              "path": "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_alias_base26_P4_fully_isolated_v4/2.6B_R4_TP4/compile_cache/rank_0_0/backbone/artifact_compile_range_1_10240_subgraph_192",
+              "sha256": "ca1b3bcf3bd110e3845c3dc9c1308347320cd7421358b62bb57e3dfe38968c4d",
+              "embedded_source_sha256": "fd2eb146a2df242685082f5e5910103d50562f58133655cc5a89cabfc231cbd5",
+              "call_ast_sha256": "dba8daf3d573ab39cb2a257c6efa8cf2a54a7b23b0fb6d5161aa5fc1b94105e2",
+              "triton_compute_hashes": [
+                "d7deb1aca2f51297ee376c87656c88343dc4d70694c43b983643457f6d031b98",
+                "9e87670c7c92b87bad48b8697a6ab765f6768c1c8723426f83d3f000968e5c9b",
+                "352bd678d2b2b2daef902f9eedcc3f8d10f068838c658661510d53bbb20e97b1"
+              ],
+              "runtime_callee_counts": {
+                "args.clear": 1,
+                "torch.cuda._DeviceGuard": 1,
+                "torch.cuda.set_device": 1,
+                "empty_strided_cuda": 5,
+                "extern_kernels.mm": 3,
+                "torch.ops.vllm.all_reduce.default": 2,
+                "get_raw_stream": 3,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_0.run": 1,
+                "triton_poi_fused_mul_silu_slice_1.run": 1,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_2.run": 1,
+                "reinterpret_tensor": 4
+              }
+            }
+          }
+        },
+        "copies": {
+          "graph": {
+            "path": "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_copies_base26_P4_fully_isolated_v4/2.6B_R4_TP4/compile_cache/rank_0_0/backbone/computation_graph.py",
+            "sha256": "a73665f47fa5898d3989457c368c4e41f92daa6586604a05c8b3e251cbe9ace8",
+            "leaf_count": 385,
+            "top_weight_arguments": 1538,
+            "weight_depth_prefix_counts": {
+              "0": 384,
+              "1": 384,
+              "2": 384,
+              "3": 384
+            },
+            "operations": {
+              "torch.nn.functional.embedding": 1,
+              "torch.ops.vllm.all_reduce": 385,
+              "torch._C._autograd._get_data_attr": 772,
+              "torch.ops.vllm_ir.rms_norm.default": 388,
+              "torch._C._nn.linear": 768,
+              "torch.ops.aten.sym_size.int": 384,
+              "torch.chunk": 384,
+              "torch.cat": 768,
+              "torch.Size": 192,
+              "torch.empty": 192,
+              "torch.ops.vllm.unified_kv_cache_update": 192,
+              "torch.ops.vllm.unified_attention_with_output": 192,
+              "torch.ops.vllm_ir.fused_add_rms_norm.maybe_inplace": 384,
+              "torch.nn.functional.silu": 192
+            }
+          },
+          "pieces": {
+            "0": {
+              "path": "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_copies_base26_P4_fully_isolated_v4/2.6B_R4_TP4/compile_cache/rank_0_0/backbone/artifact_compile_range_1_10240_subgraph_0",
+              "sha256": "21830d1b4bcbc405841dbc55b7babf29fd2472163f3257779058f22ec8c37388",
+              "embedded_source_sha256": "16891d702e2be33721d80a799a67d9f7b9e0c11b135cfd7cb5f7a4d6b82f7a5f",
+              "call_ast_sha256": "17840223083760569bfd49f54663f4b39f64b78137f9b39b6381083f638df1a0",
+              "triton_compute_hashes": [
+                "c0d367dbfa58ba3ef06b3aedba609d4bd86bc3f1ca2f521e8ac2cacbd6d2d256",
+                "176805e0f4357a195a337b104a7860fcb9282584eb8868db94b7c7bb1f70963d",
+                "f52590ef25502582d253dc385e720229c8bd45f1a54d56415773e5a90949ce8f"
+              ],
+              "runtime_callee_counts": {
+                "args.clear": 1,
+                "torch.cuda._DeviceGuard": 1,
+                "torch.cuda.set_device": 1,
+                "empty_strided_cuda": 6,
+                "get_raw_stream": 3,
+                "triton_poi_fused_add_bitwise_and_bitwise_not_bitwise_or_embedding_ge_lt_masked_fill_mul_sub_unsqueeze_0.run": 1,
+                "torch.ops.vllm.all_reduce.default": 1,
+                "triton_red_fused_rms_norm_1.run": 1,
+                "extern_kernels.mm": 1,
+                "triton_poi_fused_add_cat_index_select_mul_split_split_with_sizes_sub_unsqueeze_view_2.run": 1,
+                "reinterpret_tensor": 3
+              }
+            },
+            "1": {
+              "path": "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_copies_base26_P4_fully_isolated_v4/2.6B_R4_TP4/compile_cache/rank_0_0/backbone/artifact_compile_range_1_10240_subgraph_1",
+              "sha256": "dccca5527965fb031b54bf18d4ebb6862e518d002457b80ee8b57b188df5a4f9",
+              "embedded_source_sha256": "1cbf258315cf366003568b1f6b1380816fbec0d8752aff8f93632b06c8deac06",
+              "call_ast_sha256": "317d3e76b64d217101e15f039812c2404320a593db36be1449d3ae3b16c379db",
+              "triton_compute_hashes": [
+                "d7deb1aca2f51297ee376c87656c88343dc4d70694c43b983643457f6d031b98",
+                "9e87670c7c92b87bad48b8697a6ab765f6768c1c8723426f83d3f000968e5c9b",
+                "77fabd5dc5cb2f287cfbb5b79d282c4c69d38618fc0f38a12640762f4af8c43a",
+                "8f114267c829950f610afae9439d202b35e67562b3c8aae0d5704800e4400bd6"
+              ],
+              "runtime_callee_counts": {
+                "args.clear": 1,
+                "torch.cuda._DeviceGuard": 1,
+                "torch.cuda.set_device": 1,
+                "empty_strided_cuda": 10,
+                "extern_kernels.mm": 4,
+                "torch.ops.vllm.all_reduce.default": 2,
+                "get_raw_stream": 4,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_0.run": 1,
+                "triton_poi_fused_mul_silu_slice_1.run": 1,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_2.run": 1,
+                "triton_poi_fused_add_cat_index_select_mul_split_split_with_sizes_sub_unsqueeze_view_3.run": 1,
+                "reinterpret_tensor": 7
+              }
+            },
+            "48": {
+              "path": "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_copies_base26_P4_fully_isolated_v4/2.6B_R4_TP4/compile_cache/rank_0_0/backbone/artifact_compile_range_1_10240_subgraph_48",
+              "sha256": "7306bd33e94c959211356c3d34984df42e03c1172291dceef89c08d30ef234c2",
+              "embedded_source_sha256": "2fef23887f1540ffc55588714ee4eb885f0ffdbb044ad8a27597a3f29f802597",
+              "call_ast_sha256": "b42e13a00015bfa9d30d20d652d536c3921adaf3e701f527607944757bfa0c34",
+              "triton_compute_hashes": [
+                "d7deb1aca2f51297ee376c87656c88343dc4d70694c43b983643457f6d031b98",
+                "9e87670c7c92b87bad48b8697a6ab765f6768c1c8723426f83d3f000968e5c9b",
+                "3d56fa749caf54c88c7b5146511986f726524ccfb5315876f0db62e62504dd9b",
+                "8f114267c829950f610afae9439d202b35e67562b3c8aae0d5704800e4400bd6"
+              ],
+              "runtime_callee_counts": {
+                "args.clear": 1,
+                "torch.cuda._DeviceGuard": 1,
+                "torch.cuda.set_device": 1,
+                "empty_strided_cuda": 10,
+                "extern_kernels.mm": 4,
+                "torch.ops.vllm.all_reduce.default": 2,
+                "get_raw_stream": 4,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_0.run": 1,
+                "triton_poi_fused_mul_silu_slice_1.run": 1,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_2.run": 1,
+                "triton_poi_fused_add_cat_index_select_mul_split_split_with_sizes_sub_unsqueeze_view_3.run": 1,
+                "reinterpret_tensor": 7
+              }
+            },
+            "49": {
+              "path": "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_copies_base26_P4_fully_isolated_v4/2.6B_R4_TP4/compile_cache/rank_0_0/backbone/artifact_compile_range_1_10240_subgraph_49",
+              "sha256": "9cc0f48088a53c62baf135dc7366fa637fbbd69d592f8d202be4700a122fbadf",
+              "embedded_source_sha256": "1cbf258315cf366003568b1f6b1380816fbec0d8752aff8f93632b06c8deac06",
+              "call_ast_sha256": "317d3e76b64d217101e15f039812c2404320a593db36be1449d3ae3b16c379db",
+              "triton_compute_hashes": [
+                "d7deb1aca2f51297ee376c87656c88343dc4d70694c43b983643457f6d031b98",
+                "9e87670c7c92b87bad48b8697a6ab765f6768c1c8723426f83d3f000968e5c9b",
+                "77fabd5dc5cb2f287cfbb5b79d282c4c69d38618fc0f38a12640762f4af8c43a",
+                "8f114267c829950f610afae9439d202b35e67562b3c8aae0d5704800e4400bd6"
+              ],
+              "runtime_callee_counts": {
+                "args.clear": 1,
+                "torch.cuda._DeviceGuard": 1,
+                "torch.cuda.set_device": 1,
+                "empty_strided_cuda": 10,
+                "extern_kernels.mm": 4,
+                "torch.ops.vllm.all_reduce.default": 2,
+                "get_raw_stream": 4,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_0.run": 1,
+                "triton_poi_fused_mul_silu_slice_1.run": 1,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_2.run": 1,
+                "triton_poi_fused_add_cat_index_select_mul_split_split_with_sizes_sub_unsqueeze_view_3.run": 1,
+                "reinterpret_tensor": 7
+              }
+            },
+            "96": {
+              "path": "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_copies_base26_P4_fully_isolated_v4/2.6B_R4_TP4/compile_cache/rank_0_0/backbone/artifact_compile_range_1_10240_subgraph_96",
+              "sha256": "4cbf3a0161ca05beee705306369b4006267cd4fe2daf66a2188cfa003f257951",
+              "embedded_source_sha256": "2fef23887f1540ffc55588714ee4eb885f0ffdbb044ad8a27597a3f29f802597",
+              "call_ast_sha256": "b42e13a00015bfa9d30d20d652d536c3921adaf3e701f527607944757bfa0c34",
+              "triton_compute_hashes": [
+                "d7deb1aca2f51297ee376c87656c88343dc4d70694c43b983643457f6d031b98",
+                "9e87670c7c92b87bad48b8697a6ab765f6768c1c8723426f83d3f000968e5c9b",
+                "3d56fa749caf54c88c7b5146511986f726524ccfb5315876f0db62e62504dd9b",
+                "8f114267c829950f610afae9439d202b35e67562b3c8aae0d5704800e4400bd6"
+              ],
+              "runtime_callee_counts": {
+                "args.clear": 1,
+                "torch.cuda._DeviceGuard": 1,
+                "torch.cuda.set_device": 1,
+                "empty_strided_cuda": 10,
+                "extern_kernels.mm": 4,
+                "torch.ops.vllm.all_reduce.default": 2,
+                "get_raw_stream": 4,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_0.run": 1,
+                "triton_poi_fused_mul_silu_slice_1.run": 1,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_2.run": 1,
+                "triton_poi_fused_add_cat_index_select_mul_split_split_with_sizes_sub_unsqueeze_view_3.run": 1,
+                "reinterpret_tensor": 7
+              }
+            },
+            "192": {
+              "path": "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/storage_copies_base26_P4_fully_isolated_v4/2.6B_R4_TP4/compile_cache/rank_0_0/backbone/artifact_compile_range_1_10240_subgraph_192",
+              "sha256": "3e2df112928f2437c79140410b761eb73f4d4ff384185a1afbb6a14d546714d6",
+              "embedded_source_sha256": "0bb1c1e5cf87a815a2b360455e2aa04a37827858490c6548fb57ff7cfc8c98c2",
+              "call_ast_sha256": "dba8daf3d573ab39cb2a257c6efa8cf2a54a7b23b0fb6d5161aa5fc1b94105e2",
+              "triton_compute_hashes": [
+                "d7deb1aca2f51297ee376c87656c88343dc4d70694c43b983643457f6d031b98",
+                "9e87670c7c92b87bad48b8697a6ab765f6768c1c8723426f83d3f000968e5c9b",
+                "352bd678d2b2b2daef902f9eedcc3f8d10f068838c658661510d53bbb20e97b1"
+              ],
+              "runtime_callee_counts": {
+                "args.clear": 1,
+                "torch.cuda._DeviceGuard": 1,
+                "torch.cuda.set_device": 1,
+                "empty_strided_cuda": 5,
+                "extern_kernels.mm": 3,
+                "torch.ops.vllm.all_reduce.default": 2,
+                "get_raw_stream": 3,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_0.run": 1,
+                "triton_poi_fused_mul_silu_slice_1.run": 1,
+                "triton_red_fused_fused_add_rms_norm_rms_norm_2.run": 1,
+                "reinterpret_tensor": 4
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

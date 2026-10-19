@@ -1,0 +1,905 @@
+{
+  "schema_version": 1,
+  "audit": "storage_isolated_lowering_audit_v1",
+  "source": "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/artifacts/storage_isolated_checkpoint3.json",
+  "source_sha256": "1af10fc826bcecc9bf93a3bdeb730ae521b34e042a43e1d8889ec073aebea838",
+  "evidence_class": "CPU inspection of saved host graphs and embedded source",
+  "counterfactual_status": "UNVALIDATED_ALL_V2_CELLS",
+  "actual_time": {
+    "start_utc": "2026-10-19 12:58:50 UTC",
+    "final_recorded_utc": "2026-10-19 13:14:29 UTC",
+    "elapsed_wall_seconds": 939,
+    "gpu_execution": false
+  },
+  "aot_provenance": {
+    "root": "/home/esjung/.cache/vllm/torch_compile_cache/torch_aot_compile",
+    "path_suffix": "rank_<rank>_0/model",
+    "hash_by_cell": {
+      "1.4B_P2": "2dcb5f8fee4408408a6f452be00fb4a10c951500f4fca553807705e19129340b",
+      "1.4B_P4": "45b313d913a80860cf957e2eded1841b95e0e1ade2c28a484911637e1237613b",
+      "2.6B_P2": "4d937b8512c97b49500565cae76af43793a364a86299d2e0bac43aa844b305f6",
+      "2.6B_P4": "d72933cb6143771fb2b9f5332f81171294f57558d7a4f73e62aae32591a51ba3"
+    },
+    "whole_model_cache_shared_between_arms": true,
+    "job_local_compile_cache_is_not_full_isolation": true,
+    "aot_overrides_TORCHINDUCTOR_CACHE_DIR": true,
+    "global_model_artifacts_inspected": false
+  },
+  "base26_P4_bundle_check": {
+    "ranks": [0, 1, 2, 3],
+    "pieces": [0, 1, 48, 49, 96, 192],
+    "comparison": "Sorted (entry key, content SHA256) pairs by bundle kind",
+    "aot_autograd_equal_all_24_pairs": true,
+    "inductor_equal_all_24_pairs": true,
+    "autotune_unequal_pieces_each_rank": [0, 1, 48, 49, 96],
+    "autotune_equal_pieces_each_rank": [192],
+    "autotune_unequal_pairs": 20,
+    "whole_binary_unequal_pairs": 24,
+    "cause_of_remaining_outer_serialization_differences": "UNRESOLVED",
+    "numerical_or_latency_cause_established": false
+  },
+  "validator": {
+    "script": "scripts/validate_storage_graph_provenance_cpu_v1.py",
+    "script_sha256": "3ba978cfb6854ea8e3a749baa9dce2a4175ba4f9cc8a282f98f4d65e00b6b17a",
+    "tests": "tests/test_storage_graph_provenance_cpu.py",
+    "tests_sha256": "f8d4590892ec3383f9a23699f3bcdd95f45e57c712410d552697d1e40ab5cf2b",
+    "cpu_tests_passed": 6,
+    "v2_mismatched_arms": ["1.4B_P2_copies", "1.4B_P4_copies", "2.6B_P2_copies", "2.6B_P4_alias"],
+    "runtime_address_or_numerical_validation": false
+  },
+  "limits": [
+    "No compiled artifact was loaded or executed.",
+    "Equal source is not proof of equal runtime arithmetic or latency.",
+    "Top-level provenance remains invalid for the intended v2 counterfactual."
+  ],
+  "records": [
+    {
+      "model": "1.4B",
+      "P": 2,
+      "rank": 0,
+      "graph_operations_equal": true,
+      "leaf_shapes_equal": true,
+      "collective_attention_sequence_equal": true,
+      "different_normalized_leaf_indices": [],
+      "artifact_comparisons": {
+        "0": {
+          "sha256_equal": true,
+          "embedded_source_sha256_equal": true,
+          "call_ast_sha256_equal": true,
+          "runtime_calls_equal": true,
+          "triton_compute_hashes_equal": true
+        },
+        "1": {
+          "sha256_equal": true,
+          "embedded_source_sha256_equal": true,
+          "call_ast_sha256_equal": true,
+          "runtime_calls_equal": true,
+          "triton_compute_hashes_equal": true
+        },
+        "24": {
+          "sha256_equal": true,
+          "embedded_source_sha256_equal": true,
+          "call_ast_sha256_equal": true,
+          "runtime_calls_equal": true,
+          "triton_compute_hashes_equal": true
+        },
+        "96": {
+          "sha256_equal": true,
+          "embedded_source_sha256_equal": true,
+          "call_ast_sha256_equal": true,
+          "runtime_calls_equal": true,
+          "triton_compute_hashes_equal": true
+        }
+      },
+      "graph_metadata": {
+        "alias": {
+          "sha256": "7720e433f11c7ea1068ce7d7570ccab4f164130ade0678654f68c43172ae47ab",
+          "leaf_count": 193,
+          "top_weight_arguments": 194,
+          "weight_depth_prefix_counts": {
+            "0": 192
+          }
+        },
+        "copies": {
+          "sha256": "7720e433f11c7ea1068ce7d7570ccab4f164130ade0678654f68c43172ae47ab",
+          "leaf_count": 193,
+          "top_weight_arguments": 194,
+          "weight_depth_prefix_counts": {
+            "0": 192
+          }
+        }
+      },
+      "major_operations": {
+        "torch.ops.vllm.all_reduce": 193,
+        "torch.ops.vllm_ir.rms_norm.default": 196,
+        "torch._C._nn.linear": 384,
+        "torch.ops.vllm.unified_attention_with_output": 96,
+        "torch.ops.vllm_ir.fused_add_rms_norm.maybe_inplace": 192
+      }
+    },
+    {
+      "model": "1.4B",
+      "P": 2,
+      "rank": 1,
+      "graph_operations_equal": true,
+      "leaf_shapes_equal": true,
+      "collective_attention_sequence_equal": true,
+      "different_normalized_leaf_indices": [],
+      "artifact_comparisons": {
+        "0": {
+          "sha256_equal": true,
+          "embedded_source_sha256_equal": true,
+          "call_ast_sha256_equal": true,
+          "runtime_calls_equal": true,
+          "triton_compute_hashes_equal": true
+        },
+        "1": {
+          "sha256_equal": true,
+          "embedded_source_sha256_equal": true,
+          "call_ast_sha256_equal": true,
+          "runtime_calls_equal": true,
+          "triton_compute_hashes_equal": true
+        },
+        "24": {
+          "sha256_equal": true,
+          "embedded_source_sha256_equal": true,
+          "call_ast_sha256_equal": true,
+          "runtime_calls_equal": true,
+          "triton_compute_hashes_equal": true
+        },
+        "96": {
+          "sha256_equal": true,
+          "embedded_source_sha256_equal": true,
+          "call_ast_sha256_equal": true,
+          "runtime_calls_equal": true,
+          "triton_compute_hashes_equal": true
+        }
+      },
+      "graph_metadata": {
+        "alias": {
+          "sha256": "bdb459254a14f6f579c9bb31a33ffe14a7f853760f55d496dab8e4100052b723",
+          "leaf_count": 193,
+          "top_weight_arguments": 194,
+          "weight_depth_prefix_counts": {
+            "0": 192
+          }
+        },
+        "copies": {
+          "sha256": "bdb459254a14f6f579c9bb31a33ffe14a7f853760f55d496dab8e4100052b723",
+          "leaf_count": 193,
+          "top_weight_arguments": 194,
+          "weight_depth_prefix_counts": {
+            "0": 192
+          }
+        }
+      },
+      "major_operations": {
+        "torch.ops.vllm.all_reduce": 193,
+        "torch.ops.vllm_ir.rms_norm.default": 196,
+        "torch._C._nn.linear": 384,
+        "torch.ops.vllm.unified_attention_with_output": 96,
+        "torch.ops.vllm_ir.fused_add_rms_norm.maybe_inplace": 192
+      }
+    },
+    {
+      "model": "1.4B",
+      "P": 4,
+      "rank": 0,
+      "graph_operations_equal": true,
+      "leaf_shapes_equal": true,
+      "collective_attention_sequence_equal": true,
+      "different_normalized_leaf_indices": [],
+      "artifact_comparisons": {
+        "0": {
+          "sha256_equal": true,
+          "embedded_source_sha256_equal": true,
+          "call_ast_sha256_equal": true,
+          "runtime_calls_equal": true,
+          "triton_compute_hashes_equal": true
+        },
+        "1": {
+          "sha256_equal": true,
+          "embedded_source_sha256_equal": true,
+          "call_ast_sha256_equal": true,
+          "runtime_calls_equal": true,
+          "triton_compute_hashes_equal": true
+        },
+        "24": {
+          "sha256_equal": true,
+          "embedded_source_sha256_equal": true,
+          "call_ast_sha256_equal": true,
+          "runtime_calls_equal": true,
+          "triton_compute_hashes_equal": true
+        },
+        "96": {
+          "sha256_equal": true,
+          "embedded_source_sha256_equal": true,
+          "call_ast_sha256_equal": true,
+          "runtime_calls_equal": true,
+          "triton_compute_hashes_equal": true
+        }
+      },
+      "graph_metadata": {
+        "alias": {
+          "sha256": "59c292a7deaebae9109543ac459e158146e97081b7c0952935923959f359904f",
+          "leaf_count": 193,
+          "top_weight_arguments": 194,
+          "weight_depth_prefix_counts": {
+            "0": 192
+          }
+        },
+        "copies": {
+          "sha256": "59c292a7deaebae9109543ac459e158146e97081b7c0952935923959f359904f",
+          "leaf_count": 193,
+          "top_weight_arguments": 194,
+          "weight_depth_prefix_counts": {
+            "0": 192
+          }
+        }
+      },
+      "major_operations": {
+        "torch.ops.vllm.all_reduce": 193,
+        "torch.ops.vllm_ir.rms_norm.default": 196,
+        "torch._C._nn.linear": 384,
+        "torch.ops.vllm.unified_attention_with_output": 96,
+        "torch.ops.vllm_ir.fused_add_rms_norm.maybe_inplace": 192
+      }
+    },
+    {
+      "model": "1.4B",
+      "P": 4,
+      "rank": 1,
+      "graph_operations_equal": true,
+      "leaf_shapes_equal": true,
+      "collective_attention_sequence_equal": true,
+      "different_normalized_leaf_indices": [],
+      "artifact_comparisons": {
+        "0": {
+          "sha256_equal": true,
+          "embedded_source_sha256_equal": true,
+          "call_ast_sha256_equal": true,
+          "runtime_calls_equal": true,
+          "triton_compute_hashes_equal": true
+        },
+        "1": {
+          "sha256_equal": true,
+          "embedded_source_sha256_equal": true,
+          "call_ast_sha256_equal": true,
+          "runtime_calls_equal": true,
+          "triton_compute_hashes_equal": true
+        },
+        "24": {
+          "sha256_equal": true,
+          "embedded_source_sha256_equal": true,
+          "call_ast_sha256_equal": true,
+          "runtime_calls_equal": true,
+          "triton_compute_hashes_equal": true
+        },
+        "96": {
+          "sha256_equal": true,
+          "embedded_source_sha256_equal": true,
+          "call_ast_sha256_equal": true,
+          "runtime_calls_equal": true,
+          "triton_compute_hashes_equal": true
+        }
+      },
+      "graph_metadata": {
+        "alias": {
+          "sha256": "d32ffacdb8f793abc7ec9e3da8e84cd057bb50a12afcef5a9e66a46d2c77fb1a",
+          "leaf_count": 193,
+          "top_weight_arguments": 194,
+          "weight_depth_prefix_counts": {
+            "0": 192
+          }
+        },
+        "copies": {
+          "sha256": "d32ffacdb8f793abc7ec9e3da8e84cd057bb50a12afcef5a9e66a46d2c77fb1a",
+          "leaf_count": 193,
+          "top_weight_arguments": 194,
+          "weight_depth_prefix_counts": {
+            "0": 192
+          }
+        }
+      },
+      "major_operations": {
+        "torch.ops.vllm.all_reduce": 193,
+        "torch.ops.vllm_ir.rms_norm.default": 196,
+        "torch._C._nn.linear": 384,
+        "torch.ops.vllm.unified_attention_with_output": 96,
+        "torch.ops.vllm_ir.fused_add_rms_norm.maybe_inplace": 192
+      }
+    },
+    {
+      "model": "1.4B",
+      "P": 4,
+      "rank": 2,
+      "graph_operations_equal": true,
+      "leaf_shapes_equal": true,
+      "collective_attention_sequence_equal": true,
+      "different_normalized_leaf_indices": [],
+      "artifact_comparisons": {
+        "0": {
+          "sha256_equal": true,
+          "embedded_source_sha256_equal": true,
+          "call_ast_sha256_equal": true,
+          "runtime_calls_equal": true,
+          "triton_compute_hashes_equal": true
+        },
+        "1": {
+          "sha256_equal": true,
+          "embedded_source_sha256_equal": true,
+          "call_ast_sha256_equal": true,
+          "runtime_calls_equal": true,
+          "triton_compute_hashes_equal": true
+        },
+        "24": {
+          "sha256_equal": true,
+          "embedded_source_sha256_equal": true,
+          "call_ast_sha256_equal": true,
+          "runtime_calls_equal": true,
+          "triton_compute_hashes_equal": true
+        },
+        "96": {
+          "sha256_equal": true,
+          "embedded_source_sha256_equal": true,
+          "call_ast_sha256_equal": true,
+          "runtime_calls_equal": true,
+          "triton_compute_hashes_equal": true
+        }
+      },
+      "graph_metadata": {
+        "alias": {
+          "sha256": "a14cae7f5010b61d233ff504ba2e57b934f697d220426c3d732fd6cc55ffd80e",
+          "leaf_count": 193,
+          "top_weight_arguments": 194,
+          "weight_depth_prefix_counts": {
+            "0": 192
+          }
+        },
+        "copies": {
+          "sha256": "a14cae7f5010b61d233ff504ba2e57b934f697d220426c3d732fd6cc55ffd80e",
+          "leaf_count": 193,
+          "top_weight_arguments": 194,
+          "weight_depth_prefix_counts": {
+            "0": 192
+          }
+        }
+      },
+      "major_operations": {
+        "torch.ops.vllm.all_reduce": 193,
+        "torch.ops.vllm_ir.rms_norm.default": 196,
+        "torch._C._nn.linear": 384,
+        "torch.ops.vllm.unified_attention_with_output": 96,
+        "torch.ops.vllm_ir.fused_add_rms_norm.maybe_inplace": 192
+      }
+    },
+    {
+      "model": "1.4B",
+      "P": 4,
+      "rank": 3,
+      "graph_operations_equal": true,
+      "leaf_shapes_equal": true,
+      "collective_attention_sequence_equal": true,
+      "different_normalized_leaf_indices": [],
+      "artifact_comparisons": {
+        "0": {
+          "sha256_equal": true,
+          "embedded_source_sha256_equal": true,
+          "call_ast_sha256_equal": true,
+          "runtime_calls_equal": true,
+          "triton_compute_hashes_equal": true
+        },
+        "1": {
+          "sha256_equal": true,
+          "embedded_source_sha256_equal": true,
+          "call_ast_sha256_equal": true,
+          "runtime_calls_equal": true,
+          "triton_compute_hashes_equal": true
+        },
+        "24": {
+          "sha256_equal": true,
+          "embedded_source_sha256_equal": true,
+          "call_ast_sha256_equal": true,
+          "runtime_calls_equal": true,
+          "triton_compute_hashes_equal": true
+        },
+        "96": {
+          "sha256_equal": true,
+          "embedded_source_sha256_equal": true,
+          "call_ast_sha256_equal": true,
+          "runtime_calls_equal": true,
+          "triton_compute_hashes_equal": true
+        }
+      },
+      "graph_metadata": {
+        "alias": {
+          "sha256": "36c70ee075a768eb7218048e61c44fa2e3d9b8941b4983ddaaac1d7da35f4c27",
+          "leaf_count": 193,
+          "top_weight_arguments": 194,
+          "weight_depth_prefix_counts": {
+            "0": 192
+          }
+        },
+        "copies": {
+          "sha256": "36c70ee075a768eb7218048e61c44fa2e3d9b8941b4983ddaaac1d7da35f4c27",
+          "leaf_count": 193,
+          "top_weight_arguments": 194,
+          "weight_depth_prefix_counts": {
+            "0": 192
+          }
+        }
+      },
+      "major_operations": {
+        "torch.ops.vllm.all_reduce": 193,
+        "torch.ops.vllm_ir.rms_norm.default": 196,
+        "torch._C._nn.linear": 384,
+        "torch.ops.vllm.unified_attention_with_output": 96,
+        "torch.ops.vllm_ir.fused_add_rms_norm.maybe_inplace": 192
+      }
+    },
+    {
+      "model": "2.6B",
+      "P": 2,
+      "rank": 0,
+      "graph_operations_equal": true,
+      "leaf_shapes_equal": true,
+      "collective_attention_sequence_equal": true,
+      "different_normalized_leaf_indices": [],
+      "artifact_comparisons": {
+        "0": {
+          "sha256_equal": true,
+          "embedded_source_sha256_equal": true,
+          "call_ast_sha256_equal": true,
+          "runtime_calls_equal": true,
+          "triton_compute_hashes_equal": true
+        },
+        "1": {
+          "sha256_equal": true,
+          "embedded_source_sha256_equal": true,
+          "call_ast_sha256_equal": true,
+          "runtime_calls_equal": true,
+          "triton_compute_hashes_equal": true
+        },
+        "48": {
+          "sha256_equal": true,
+          "embedded_source_sha256_equal": true,
+          "call_ast_sha256_equal": true,
+          "runtime_calls_equal": true,
+          "triton_compute_hashes_equal": true
+        },
+        "192": {
+          "sha256_equal": true,
+          "embedded_source_sha256_equal": true,
+          "call_ast_sha256_equal": true,
+          "runtime_calls_equal": true,
+          "triton_compute_hashes_equal": true
+        }
+      },
+      "graph_metadata": {
+        "alias": {
+          "sha256": "319efccc7323a7c6547f729b0ef457f6ea36b6cab8d13764187498da176c56e0",
+          "leaf_count": 385,
+          "top_weight_arguments": 386,
+          "weight_depth_prefix_counts": {
+            "0": 384
+          }
+        },
+        "copies": {
+          "sha256": "319efccc7323a7c6547f729b0ef457f6ea36b6cab8d13764187498da176c56e0",
+          "leaf_count": 385,
+          "top_weight_arguments": 386,
+          "weight_depth_prefix_counts": {
+            "0": 384
+          }
+        }
+      },
+      "major_operations": {
+        "torch.ops.vllm.all_reduce": 385,
+        "torch.ops.vllm_ir.rms_norm.default": 388,
+        "torch._C._nn.linear": 768,
+        "torch.ops.vllm.unified_attention_with_output": 192,
+        "torch.ops.vllm_ir.fused_add_rms_norm.maybe_inplace": 384
+      }
+    },
+    {
+      "model": "2.6B",
+      "P": 2,
+      "rank": 1,
+      "graph_operations_equal": true,
+      "leaf_shapes_equal": true,
+      "collective_attention_sequence_equal": true,
+      "different_normalized_leaf_indices": [],
+      "artifact_comparisons": {
+        "0": {
+          "sha256_equal": true,
+          "embedded_source_sha256_equal": true,
+          "call_ast_sha256_equal": true,
+          "runtime_calls_equal": true,
+          "triton_compute_hashes_equal": true
+        },
+        "1": {
+          "sha256_equal": true,
+          "embedded_source_sha256_equal": true,
+          "call_ast_sha256_equal": true,
+          "runtime_calls_equal": true,
+          "triton_compute_hashes_equal": true
+        },
+        "48": {
+          "sha256_equal": true,
+          "embedded_source_sha256_equal": true,
+          "call_ast_sha256_equal": true,
+          "runtime_calls_equal": true,
+          "triton_compute_hashes_equal": true
+        },
+        "192": {
+          "sha256_equal": true,
+          "embedded_source_sha256_equal": true,
+          "call_ast_sha256_equal": true,
+          "runtime_calls_equal": true,
+          "triton_compute_hashes_equal": true
+        }
+      },
+      "graph_metadata": {
+        "alias": {
+          "sha256": "bb5f986ebbfc1077bdc3faa84b99b4411581afbabf5fa0637410cccc454f41df",
+          "leaf_count": 385,
+          "top_weight_arguments": 386,
+          "weight_depth_prefix_counts": {
+            "0": 384
+          }
+        },
+        "copies": {
+          "sha256": "bb5f986ebbfc1077bdc3faa84b99b4411581afbabf5fa0637410cccc454f41df",
+          "leaf_count": 385,
+          "top_weight_arguments": 386,
+          "weight_depth_prefix_counts": {
+            "0": 384
+          }
+        }
+      },
+      "major_operations": {
+        "torch.ops.vllm.all_reduce": 385,
+        "torch.ops.vllm_ir.rms_norm.default": 388,
+        "torch._C._nn.linear": 768,
+        "torch.ops.vllm.unified_attention_with_output": 192,
+        "torch.ops.vllm_ir.fused_add_rms_norm.maybe_inplace": 384
+      }
+    },
+    {
+      "model": "2.6B",
+      "P": 4,
+      "rank": 0,
+      "graph_operations_equal": true,
+      "leaf_shapes_equal": true,
+      "collective_attention_sequence_equal": true,
+      "different_normalized_leaf_indices": [],
+      "artifact_comparisons": {
+        "0": {
+          "sha256_equal": false,
+          "embedded_source_sha256_equal": true,
+          "call_ast_sha256_equal": true,
+          "runtime_calls_equal": true,
+          "triton_compute_hashes_equal": true
+        },
+        "1": {
+          "sha256_equal": false,
+          "embedded_source_sha256_equal": true,
+          "call_ast_sha256_equal": true,
+          "runtime_calls_equal": true,
+          "triton_compute_hashes_equal": true
+        },
+        "48": {
+          "sha256_equal": false,
+          "embedded_source_sha256_equal": true,
+          "call_ast_sha256_equal": true,
+          "runtime_calls_equal": true,
+          "triton_compute_hashes_equal": true
+        },
+        "49": {
+          "sha256_equal": false,
+          "embedded_source_sha256_equal": true,
+          "call_ast_sha256_equal": true,
+          "runtime_calls_equal": true,
+          "triton_compute_hashes_equal": true
+        },
+        "96": {
+          "sha256_equal": false,
+          "embedded_source_sha256_equal": true,
+          "call_ast_sha256_equal": true,
+          "runtime_calls_equal": true,
+          "triton_compute_hashes_equal": true
+        },
+        "192": {
+          "sha256_equal": false,
+          "embedded_source_sha256_equal": true,
+          "call_ast_sha256_equal": true,
+          "runtime_calls_equal": true,
+          "triton_compute_hashes_equal": true
+        }
+      },
+      "graph_metadata": {
+        "alias": {
+          "sha256": "a73665f47fa5898d3989457c368c4e41f92daa6586604a05c8b3e251cbe9ace8",
+          "leaf_count": 385,
+          "top_weight_arguments": 1538,
+          "weight_depth_prefix_counts": {
+            "0": 384,
+            "1": 384,
+            "2": 384,
+            "3": 384
+          }
+        },
+        "copies": {
+          "sha256": "a73665f47fa5898d3989457c368c4e41f92daa6586604a05c8b3e251cbe9ace8",
+          "leaf_count": 385,
+          "top_weight_arguments": 1538,
+          "weight_depth_prefix_counts": {
+            "0": 384,
+            "1": 384,
+            "2": 384,
+            "3": 384
+          }
+        }
+      },
+      "major_operations": {
+        "torch.ops.vllm.all_reduce": 385,
+        "torch.ops.vllm_ir.rms_norm.default": 388,
+        "torch._C._nn.linear": 768,
+        "torch.ops.vllm.unified_attention_with_output": 192,
+        "torch.ops.vllm_ir.fused_add_rms_norm.maybe_inplace": 384
+      }
+    },
+    {
+      "model": "2.6B",
+      "P": 4,
+      "rank": 1,
+      "graph_operations_equal": true,
+      "leaf_shapes_equal": true,
+      "collective_attention_sequence_equal": true,
+      "different_normalized_leaf_indices": [],
+      "artifact_comparisons": {
+        "0": {
+          "sha256_equal": false,
+          "embedded_source_sha256_equal": true,
+          "call_ast_sha256_equal": true,
+          "runtime_calls_equal": true,
+          "triton_compute_hashes_equal": true
+        },
+        "1": {
+          "sha256_equal": false,
+          "embedded_source_sha256_equal": true,
+          "call_ast_sha256_equal": true,
+          "runtime_calls_equal": true,
+          "triton_compute_hashes_equal": true
+        },
+        "48": {
+          "sha256_equal": false,
+          "embedded_source_sha256_equal": true,
+          "call_ast_sha256_equal": true,
+          "runtime_calls_equal": true,
+          "triton_compute_hashes_equal": true
+        },
+        "49": {
+          "sha256_equal": false,
+          "embedded_source_sha256_equal": true,
+          "call_ast_sha256_equal": true,
+          "runtime_calls_equal": true,
+          "triton_compute_hashes_equal": true
+        },
+        "96": {
+          "sha256_equal": false,
+          "embedded_source_sha256_equal": true,
+          "call_ast_sha256_equal": true,
+          "runtime_calls_equal": true,
+          "triton_compute_hashes_equal": true
+        },
+        "192": {
+          "sha256_equal": false,
+          "embedded_source_sha256_equal": true,
+          "call_ast_sha256_equal": true,
+          "runtime_calls_equal": true,
+          "triton_compute_hashes_equal": true
+        }
+      },
+      "graph_metadata": {
+        "alias": {
+          "sha256": "635614cb52aeb3c6c4467fd35f9f639202d638a86eb3bcf733f8826b21ffa668",
+          "leaf_count": 385,
+          "top_weight_arguments": 1538,
+          "weight_depth_prefix_counts": {
+            "0": 384,
+            "1": 384,
+            "2": 384,
+            "3": 384
+          }
+        },
+        "copies": {
+          "sha256": "635614cb52aeb3c6c4467fd35f9f639202d638a86eb3bcf733f8826b21ffa668",
+          "leaf_count": 385,
+          "top_weight_arguments": 1538,
+          "weight_depth_prefix_counts": {
+            "0": 384,
+            "1": 384,
+            "2": 384,
+            "3": 384
+          }
+        }
+      },
+      "major_operations": {
+        "torch.ops.vllm.all_reduce": 385,
+        "torch.ops.vllm_ir.rms_norm.default": 388,
+        "torch._C._nn.linear": 768,
+        "torch.ops.vllm.unified_attention_with_output": 192,
+        "torch.ops.vllm_ir.fused_add_rms_norm.maybe_inplace": 384
+      }
+    },
+    {
+      "model": "2.6B",
+      "P": 4,
+      "rank": 2,
+      "graph_operations_equal": true,
+      "leaf_shapes_equal": true,
+      "collective_attention_sequence_equal": true,
+      "different_normalized_leaf_indices": [],
+      "artifact_comparisons": {
+        "0": {
+          "sha256_equal": false,
+          "embedded_source_sha256_equal": true,
+          "call_ast_sha256_equal": true,
+          "runtime_calls_equal": true,
+          "triton_compute_hashes_equal": true
+        },
+        "1": {
+          "sha256_equal": false,
+          "embedded_source_sha256_equal": true,
+          "call_ast_sha256_equal": true,
+          "runtime_calls_equal": true,
+          "triton_compute_hashes_equal": true
+        },
+        "48": {
+          "sha256_equal": false,
+          "embedded_source_sha256_equal": true,
+          "call_ast_sha256_equal": true,
+          "runtime_calls_equal": true,
+          "triton_compute_hashes_equal": true
+        },
+        "49": {
+          "sha256_equal": false,
+          "embedded_source_sha256_equal": true,
+          "call_ast_sha256_equal": true,
+          "runtime_calls_equal": true,
+          "triton_compute_hashes_equal": true
+        },
+        "96": {
+          "sha256_equal": false,
+          "embedded_source_sha256_equal": true,
+          "call_ast_sha256_equal": true,
+          "runtime_calls_equal": true,
+          "triton_compute_hashes_equal": true
+        },
+        "192": {
+          "sha256_equal": false,
+          "embedded_source_sha256_equal": true,
+          "call_ast_sha256_equal": true,
+          "runtime_calls_equal": true,
+          "triton_compute_hashes_equal": true
+        }
+      },
+      "graph_metadata": {
+        "alias": {
+          "sha256": "d0cf8a366bac14b7b46e61a1b37ec705bd733202eefb76e426ae653d8fc5ffdb",
+          "leaf_count": 385,
+          "top_weight_arguments": 1538,
+          "weight_depth_prefix_counts": {
+            "0": 384,
+            "1": 384,
+            "2": 384,
+            "3": 384
+          }
+        },
+        "copies": {
+          "sha256": "d0cf8a366bac14b7b46e61a1b37ec705bd733202eefb76e426ae653d8fc5ffdb",
+          "leaf_count": 385,
+          "top_weight_arguments": 1538,
+          "weight_depth_prefix_counts": {
+            "0": 384,
+            "1": 384,
+            "2": 384,
+            "3": 384
+          }
+        }
+      },
+      "major_operations": {
+        "torch.ops.vllm.all_reduce": 385,
+        "torch.ops.vllm_ir.rms_norm.default": 388,
+        "torch._C._nn.linear": 768,
+        "torch.ops.vllm.unified_attention_with_output": 192,
+        "torch.ops.vllm_ir.fused_add_rms_norm.maybe_inplace": 384
+      }
+    },
+    {
+      "model": "2.6B",
+      "P": 4,
+      "rank": 3,
+      "graph_operations_equal": true,
+      "leaf_shapes_equal": true,
+      "collective_attention_sequence_equal": true,
+      "different_normalized_leaf_indices": [],
+      "artifact_comparisons": {
+        "0": {
+          "sha256_equal": false,
+          "embedded_source_sha256_equal": true,
+          "call_ast_sha256_equal": true,
+          "runtime_calls_equal": true,
+          "triton_compute_hashes_equal": true
+        },
+        "1": {
+          "sha256_equal": false,
+          "embedded_source_sha256_equal": true,
+          "call_ast_sha256_equal": true,
+          "runtime_calls_equal": true,
+          "triton_compute_hashes_equal": true
+        },
+        "48": {
+          "sha256_equal": false,
+          "embedded_source_sha256_equal": true,
+          "call_ast_sha256_equal": true,
+          "runtime_calls_equal": true,
+          "triton_compute_hashes_equal": true
+        },
+        "49": {
+          "sha256_equal": false,
+          "embedded_source_sha256_equal": true,
+          "call_ast_sha256_equal": true,
+          "runtime_calls_equal": true,
+          "triton_compute_hashes_equal": true
+        },
+        "96": {
+          "sha256_equal": false,
+          "embedded_source_sha256_equal": true,
+          "call_ast_sha256_equal": true,
+          "runtime_calls_equal": true,
+          "triton_compute_hashes_equal": true
+        },
+        "192": {
+          "sha256_equal": false,
+          "embedded_source_sha256_equal": true,
+          "call_ast_sha256_equal": true,
+          "runtime_calls_equal": true,
+          "triton_compute_hashes_equal": true
+        }
+      },
+      "graph_metadata": {
+        "alias": {
+          "sha256": "bb5b445d5cb2a67627d05bb87bfe82f4237f18a78ab59d8ca5a0dcb365fc9ee4",
+          "leaf_count": 385,
+          "top_weight_arguments": 1538,
+          "weight_depth_prefix_counts": {
+            "0": 384,
+            "1": 384,
+            "2": 384,
+            "3": 384
+          }
+        },
+        "copies": {
+          "sha256": "bb5b445d5cb2a67627d05bb87bfe82f4237f18a78ab59d8ca5a0dcb365fc9ee4",
+          "leaf_count": 385,
+          "top_weight_arguments": 1538,
+          "weight_depth_prefix_counts": {
+            "0": 384,
+            "1": 384,
+            "2": 384,
+            "3": 384
+          }
+        }
+      },
+      "major_operations": {
+        "torch.ops.vllm.all_reduce": 385,
+        "torch.ops.vllm_ir.rms_norm.default": 388,
+        "torch._C._nn.linear": 768,
+        "torch.ops.vllm.unified_attention_with_output": 192,
+        "torch.ops.vllm_ir.fused_add_rms_norm.maybe_inplace": 384
+      }
+    }
+  ]
+}

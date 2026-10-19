@@ -1,0 +1,906 @@
+{
+  "assumptions": [
+    "One normalized core task costs one unit at every depth",
+    "All ranks retain complete shared weights",
+    "Each logical depth has one fixed KV and compute owner",
+    "Hidden transfers, gates, output head, and publication cost zero",
+    "No operator sharding or batch-efficiency benefit",
+    "The pool is an ideal work-conserving comparison, not measured CDB"
+  ],
+  "evidence_class": "ANALYTIC_BOUND",
+  "fixed_R4": [
+    {
+      "P": 2,
+      "best_depth_owner": [
+        0,
+        0,
+        1,
+        1
+      ],
+      "best_static_rank_work_max": 2,
+      "finite_C": [
+        {
+          "C": 1,
+          "pinned_capacity": 0.25,
+          "pinned_over_pooled_capacity": 1.0,
+          "pooled_capacity": 0.25
+        },
+        {
+          "C": 2,
+          "pinned_capacity": 0.5,
+          "pinned_over_pooled_capacity": 1.0,
+          "pooled_capacity": 0.5
+        },
+        {
+          "C": 4,
+          "pinned_capacity": 0.5,
+          "pinned_over_pooled_capacity": 1.0,
+          "pooled_capacity": 0.5
+        },
+        {
+          "C": 8,
+          "pinned_capacity": 0.5,
+          "pinned_over_pooled_capacity": 1.0,
+          "pooled_capacity": 0.5
+        }
+      ],
+      "normalized_rank_work": [
+        2,
+        2
+      ],
+      "pinned_over_pooled_saturated_capacity": 1.0,
+      "pinned_work_capacity": 0.5,
+      "pooled_work_capacity": 0.5,
+      "visits_per_committed_token": [
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "P": 4,
+      "best_depth_owner": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "best_static_rank_work_max": 1,
+      "finite_C": [
+        {
+          "C": 1,
+          "pinned_capacity": 0.25,
+          "pinned_over_pooled_capacity": 1.0,
+          "pooled_capacity": 0.25
+        },
+        {
+          "C": 2,
+          "pinned_capacity": 0.5,
+          "pinned_over_pooled_capacity": 1.0,
+          "pooled_capacity": 0.5
+        },
+        {
+          "C": 4,
+          "pinned_capacity": 1.0,
+          "pinned_over_pooled_capacity": 1.0,
+          "pooled_capacity": 1.0
+        },
+        {
+          "C": 8,
+          "pinned_capacity": 1.0,
+          "pinned_over_pooled_capacity": 1.0,
+          "pooled_capacity": 1.0
+        }
+      ],
+      "normalized_rank_work": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "pinned_over_pooled_saturated_capacity": 1.0,
+      "pinned_work_capacity": 1.0,
+      "pooled_work_capacity": 1.0,
+      "visits_per_committed_token": [
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "P": 8,
+      "best_depth_owner": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "best_static_rank_work_max": 1,
+      "finite_C": [
+        {
+          "C": 1,
+          "pinned_capacity": 0.25,
+          "pinned_over_pooled_capacity": 1.0,
+          "pooled_capacity": 0.25
+        },
+        {
+          "C": 2,
+          "pinned_capacity": 0.5,
+          "pinned_over_pooled_capacity": 1.0,
+          "pooled_capacity": 0.5
+        },
+        {
+          "C": 4,
+          "pinned_capacity": 1.0,
+          "pinned_over_pooled_capacity": 1.0,
+          "pooled_capacity": 1.0
+        },
+        {
+          "C": 8,
+          "pinned_capacity": 1.0,
+          "pinned_over_pooled_capacity": 0.5,
+          "pooled_capacity": 2.0
+        }
+      ],
+      "normalized_rank_work": [
+        1,
+        1,
+        1,
+        1,
+        0,
+        0,
+        0,
+        0
+      ],
+      "pinned_over_pooled_saturated_capacity": 0.5,
+      "pinned_work_capacity": 1.0,
+      "pooled_work_capacity": 2.0,
+      "visits_per_committed_token": [
+        1,
+        1,
+        1,
+        1
+      ]
+    }
+  ],
+  "limitations": [
+    "No measured throughput, E2E, or candidate quality",
+    "Batched core costs, real communication, and heterogeneous request readiness can change actual results",
+    "No claim against layouts that split a depth, relocate KV, or use another exact representation"
+  ],
+  "meaning": "Service-capacity limits inside a declared unit-cost, unbatched, zero-transfer queueing model. Not a physical latency bound.",
+  "oracle": "The static owner search uses the complete observed calibration depth histogram. It is not a causal scheduler.",
+  "records": [
+    {
+      "N_requests": 8,
+      "P": 2,
+      "P8_status": "CPU_STRUCTURAL_SCREEN",
+      "best_depth_owner": [
+        0,
+        1,
+        0,
+        1
+      ],
+      "best_static_rank_work_max": 1.966551326412918,
+      "dataset": "gsm8k",
+      "finite_C": [
+        {
+          "C": 1,
+          "pinned_capacity": 0.3233867959716524,
+          "pinned_over_pooled_capacity": 1.0,
+          "pooled_capacity": 0.3233867959716524
+        },
+        {
+          "C": 2,
+          "pinned_capacity": 0.5085043988269795,
+          "pinned_over_pooled_capacity": 0.786217008797654,
+          "pooled_capacity": 0.6467735919433047
+        },
+        {
+          "C": 4,
+          "pinned_capacity": 0.5085043988269795,
+          "pinned_over_pooled_capacity": 0.786217008797654,
+          "pooled_capacity": 0.6467735919433047
+        },
+        {
+          "C": 8,
+          "pinned_capacity": 0.5085043988269795,
+          "pinned_over_pooled_capacity": 0.786217008797654,
+          "pooled_capacity": 0.6467735919433047
+        }
+      ],
+      "mode": "original_adaptive",
+      "model": "1.4B",
+      "normalized_rank_work": [
+        1.966551326412918,
+        1.1257208765859286
+      ],
+      "pinned_over_pooled_saturated_capacity": 0.786217008797654,
+      "pinned_work_capacity": 0.5085043988269795,
+      "pooled_work_capacity": 0.6467735919433047,
+      "request_bootstrap_95_CI": [
+        0.7689636752136753,
+        0.8014783526927138
+      ],
+      "visits_per_committed_token": [
+        1.0,
+        1.0,
+        0.9665513264129181,
+        0.12572087658592848
+      ]
+    },
+    {
+      "N_requests": 8,
+      "P": 4,
+      "P8_status": "CPU_STRUCTURAL_SCREEN",
+      "best_depth_owner": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "best_static_rank_work_max": 1.0,
+      "dataset": "gsm8k",
+      "finite_C": [
+        {
+          "C": 1,
+          "pinned_capacity": 0.3233867959716524,
+          "pinned_over_pooled_capacity": 1.0,
+          "pooled_capacity": 0.3233867959716524
+        },
+        {
+          "C": 2,
+          "pinned_capacity": 0.6467735919433047,
+          "pinned_over_pooled_capacity": 1.0,
+          "pooled_capacity": 0.6467735919433047
+        },
+        {
+          "C": 4,
+          "pinned_capacity": 1.0,
+          "pinned_over_pooled_capacity": 0.7730680507497116,
+          "pooled_capacity": 1.2935471838866095
+        },
+        {
+          "C": 8,
+          "pinned_capacity": 1.0,
+          "pinned_over_pooled_capacity": 0.7730680507497116,
+          "pooled_capacity": 1.2935471838866095
+        }
+      ],
+      "mode": "original_adaptive",
+      "model": "1.4B",
+      "normalized_rank_work": [
+        1.0,
+        1.0,
+        0.9665513264129181,
+        0.12572087658592848
+      ],
+      "pinned_over_pooled_saturated_capacity": 0.7730680507497116,
+      "pinned_work_capacity": 1.0,
+      "pooled_work_capacity": 1.2935471838866095,
+      "request_bootstrap_95_CI": [
+        0.7560408921933086,
+        0.7885078219013237
+      ],
+      "visits_per_committed_token": [
+        1.0,
+        1.0,
+        0.9665513264129181,
+        0.12572087658592848
+      ]
+    },
+    {
+      "N_requests": 8,
+      "P": 8,
+      "P8_status": "UNMEASURED_PROJECTION_ONLY",
+      "best_depth_owner": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "best_static_rank_work_max": 1.0,
+      "dataset": "gsm8k",
+      "finite_C": [
+        {
+          "C": 1,
+          "pinned_capacity": 0.3233867959716524,
+          "pinned_over_pooled_capacity": 1.0,
+          "pooled_capacity": 0.3233867959716524
+        },
+        {
+          "C": 2,
+          "pinned_capacity": 0.6467735919433047,
+          "pinned_over_pooled_capacity": 1.0,
+          "pooled_capacity": 0.6467735919433047
+        },
+        {
+          "C": 4,
+          "pinned_capacity": 1.0,
+          "pinned_over_pooled_capacity": 0.7730680507497116,
+          "pooled_capacity": 1.2935471838866095
+        },
+        {
+          "C": 8,
+          "pinned_capacity": 1.0,
+          "pinned_over_pooled_capacity": 0.3865340253748558,
+          "pooled_capacity": 2.587094367773219
+        }
+      ],
+      "mode": "original_adaptive",
+      "model": "1.4B",
+      "normalized_rank_work": [
+        1.0,
+        1.0,
+        0.9665513264129181,
+        0.12572087658592848,
+        0,
+        0,
+        0,
+        0
+      ],
+      "pinned_over_pooled_saturated_capacity": 0.3865340253748558,
+      "pinned_work_capacity": 1.0,
+      "pooled_work_capacity": 2.587094367773219,
+      "request_bootstrap_95_CI": [
+        0.3782181571815718,
+        0.39409368635437886
+      ],
+      "visits_per_committed_token": [
+        1.0,
+        1.0,
+        0.9665513264129181,
+        0.12572087658592848
+      ]
+    },
+    {
+      "N_requests": 8,
+      "P": 2,
+      "P8_status": "CPU_STRUCTURAL_SCREEN",
+      "best_depth_owner": [
+        0,
+        1,
+        0,
+        1
+      ],
+      "best_static_rank_work_max": 1.8515553522415371,
+      "dataset": "math500",
+      "finite_C": [
+        {
+          "C": 1,
+          "pinned_capacity": 0.341295862607338,
+          "pinned_over_pooled_capacity": 1.0,
+          "pooled_capacity": 0.341295862607338
+        },
+        {
+          "C": 2,
+          "pinned_capacity": 0.5400864731315627,
+          "pinned_over_pooled_capacity": 0.7912291537986411,
+          "pooled_capacity": 0.682591725214676
+        },
+        {
+          "C": 4,
+          "pinned_capacity": 0.5400864731315627,
+          "pinned_over_pooled_capacity": 0.7912291537986411,
+          "pooled_capacity": 0.682591725214676
+        },
+        {
+          "C": 8,
+          "pinned_capacity": 0.5400864731315627,
+          "pinned_over_pooled_capacity": 0.7912291537986411,
+          "pooled_capacity": 0.682591725214676
+        }
+      ],
+      "mode": "original_adaptive",
+      "model": "1.4B",
+      "normalized_rank_work": [
+        1.8515553522415371,
+        1.0784537968892955
+      ],
+      "pinned_over_pooled_saturated_capacity": 0.7912291537986411,
+      "pinned_work_capacity": 0.5400864731315627,
+      "pooled_work_capacity": 0.682591725214676,
+      "request_bootstrap_95_CI": [
+        0.785950023573786,
+        0.7957766683881333
+      ],
+      "visits_per_committed_token": [
+        1.0,
+        1.0,
+        0.851555352241537,
+        0.07845379688929552
+      ]
+    },
+    {
+      "N_requests": 8,
+      "P": 4,
+      "P8_status": "CPU_STRUCTURAL_SCREEN",
+      "best_depth_owner": [
+        0,
+        1,
+        2,
+        2
+      ],
+      "best_static_rank_work_max": 1.0,
+      "dataset": "math500",
+      "finite_C": [
+        {
+          "C": 1,
+          "pinned_capacity": 0.341295862607338,
+          "pinned_over_pooled_capacity": 1.0,
+          "pooled_capacity": 0.341295862607338
+        },
+        {
+          "C": 2,
+          "pinned_capacity": 0.682591725214676,
+          "pinned_over_pooled_capacity": 1.0,
+          "pooled_capacity": 0.682591725214676
+        },
+        {
+          "C": 4,
+          "pinned_capacity": 1.0,
+          "pinned_over_pooled_capacity": 0.7325022872827082,
+          "pooled_capacity": 1.365183450429352
+        },
+        {
+          "C": 8,
+          "pinned_capacity": 1.0,
+          "pinned_over_pooled_capacity": 0.7325022872827082,
+          "pooled_capacity": 1.365183450429352
+        }
+      ],
+      "mode": "original_adaptive",
+      "model": "1.4B",
+      "normalized_rank_work": [
+        1.0,
+        1.0,
+        0.9300091491308325,
+        0
+      ],
+      "pinned_over_pooled_saturated_capacity": 0.7325022872827082,
+      "pinned_work_capacity": 1.0,
+      "pooled_work_capacity": 1.365183450429352,
+      "request_bootstrap_95_CI": [
+        0.7126012063250557,
+        0.7608234670436473
+      ],
+      "visits_per_committed_token": [
+        1.0,
+        1.0,
+        0.851555352241537,
+        0.07845379688929552
+      ]
+    },
+    {
+      "N_requests": 8,
+      "P": 8,
+      "P8_status": "UNMEASURED_PROJECTION_ONLY",
+      "best_depth_owner": [
+        0,
+        1,
+        2,
+        2
+      ],
+      "best_static_rank_work_max": 1.0,
+      "dataset": "math500",
+      "finite_C": [
+        {
+          "C": 1,
+          "pinned_capacity": 0.341295862607338,
+          "pinned_over_pooled_capacity": 1.0,
+          "pooled_capacity": 0.341295862607338
+        },
+        {
+          "C": 2,
+          "pinned_capacity": 0.682591725214676,
+          "pinned_over_pooled_capacity": 1.0,
+          "pooled_capacity": 0.682591725214676
+        },
+        {
+          "C": 4,
+          "pinned_capacity": 1.0,
+          "pinned_over_pooled_capacity": 0.7325022872827082,
+          "pooled_capacity": 1.365183450429352
+        },
+        {
+          "C": 8,
+          "pinned_capacity": 1.0,
+          "pinned_over_pooled_capacity": 0.3662511436413541,
+          "pooled_capacity": 2.730366900858704
+        }
+      ],
+      "mode": "original_adaptive",
+      "model": "1.4B",
+      "normalized_rank_work": [
+        1.0,
+        1.0,
+        0.9300091491308325,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "pinned_over_pooled_saturated_capacity": 0.3662511436413541,
+      "pinned_work_capacity": 1.0,
+      "pooled_work_capacity": 2.730366900858704,
+      "request_bootstrap_95_CI": [
+        0.35657578329443385,
+        0.38039454676778617
+      ],
+      "visits_per_committed_token": [
+        1.0,
+        1.0,
+        0.851555352241537,
+        0.07845379688929552
+      ]
+    },
+    {
+      "N_requests": 8,
+      "P": 2,
+      "P8_status": "CPU_STRUCTURAL_SCREEN",
+      "best_depth_owner": [
+        0,
+        1,
+        0,
+        1
+      ],
+      "best_static_rank_work_max": 1.98943661971831,
+      "dataset": "gsm8k",
+      "finite_C": [
+        {
+          "C": 1,
+          "pinned_capacity": 0.331002331002331,
+          "pinned_over_pooled_capacity": 1.0,
+          "pooled_capacity": 0.331002331002331
+        },
+        {
+          "C": 2,
+          "pinned_capacity": 0.5026548672566371,
+          "pinned_over_pooled_capacity": 0.75929203539823,
+          "pooled_capacity": 0.662004662004662
+        },
+        {
+          "C": 4,
+          "pinned_capacity": 0.5026548672566371,
+          "pinned_over_pooled_capacity": 0.75929203539823,
+          "pooled_capacity": 0.662004662004662
+        },
+        {
+          "C": 8,
+          "pinned_capacity": 0.5026548672566371,
+          "pinned_over_pooled_capacity": 0.75929203539823,
+          "pooled_capacity": 0.662004662004662
+        }
+      ],
+      "mode": "original_adaptive",
+      "model": "2.6B",
+      "normalized_rank_work": [
+        1.98943661971831,
+        1.0316901408450705
+      ],
+      "pinned_over_pooled_saturated_capacity": 0.7592920353982301,
+      "pinned_work_capacity": 0.5026548672566371,
+      "pooled_work_capacity": 0.662004662004662,
+      "request_bootstrap_95_CI": [
+        0.7537790697674419,
+        0.7660497397339502
+      ],
+      "visits_per_committed_token": [
+        1.0,
+        1.0,
+        0.9894366197183099,
+        0.03169014084507042
+      ]
+    },
+    {
+      "N_requests": 8,
+      "P": 4,
+      "P8_status": "CPU_STRUCTURAL_SCREEN",
+      "best_depth_owner": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "best_static_rank_work_max": 1.0,
+      "dataset": "gsm8k",
+      "finite_C": [
+        {
+          "C": 1,
+          "pinned_capacity": 0.331002331002331,
+          "pinned_over_pooled_capacity": 1.0,
+          "pooled_capacity": 0.331002331002331
+        },
+        {
+          "C": 2,
+          "pinned_capacity": 0.662004662004662,
+          "pinned_over_pooled_capacity": 1.0,
+          "pooled_capacity": 0.662004662004662
+        },
+        {
+          "C": 4,
+          "pinned_capacity": 1.0,
+          "pinned_over_pooled_capacity": 0.755281690140845,
+          "pooled_capacity": 1.324009324009324
+        },
+        {
+          "C": 8,
+          "pinned_capacity": 1.0,
+          "pinned_over_pooled_capacity": 0.755281690140845,
+          "pooled_capacity": 1.324009324009324
+        }
+      ],
+      "mode": "original_adaptive",
+      "model": "2.6B",
+      "normalized_rank_work": [
+        1.0,
+        1.0,
+        0.9894366197183099,
+        0.03169014084507042
+      ],
+      "pinned_over_pooled_saturated_capacity": 0.7552816901408451,
+      "pinned_work_capacity": 1.0,
+      "pooled_work_capacity": 1.324009324009324,
+      "request_bootstrap_95_CI": [
+        0.75,
+        0.7624716553287981
+      ],
+      "visits_per_committed_token": [
+        1.0,
+        1.0,
+        0.9894366197183099,
+        0.03169014084507042
+      ]
+    },
+    {
+      "N_requests": 8,
+      "P": 8,
+      "P8_status": "UNMEASURED_PROJECTION_ONLY",
+      "best_depth_owner": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "best_static_rank_work_max": 1.0,
+      "dataset": "gsm8k",
+      "finite_C": [
+        {
+          "C": 1,
+          "pinned_capacity": 0.331002331002331,
+          "pinned_over_pooled_capacity": 1.0,
+          "pooled_capacity": 0.331002331002331
+        },
+        {
+          "C": 2,
+          "pinned_capacity": 0.662004662004662,
+          "pinned_over_pooled_capacity": 1.0,
+          "pooled_capacity": 0.662004662004662
+        },
+        {
+          "C": 4,
+          "pinned_capacity": 1.0,
+          "pinned_over_pooled_capacity": 0.755281690140845,
+          "pooled_capacity": 1.324009324009324
+        },
+        {
+          "C": 8,
+          "pinned_capacity": 1.0,
+          "pinned_over_pooled_capacity": 0.3776408450704225,
+          "pooled_capacity": 2.648018648018648
+        }
+      ],
+      "mode": "original_adaptive",
+      "model": "2.6B",
+      "normalized_rank_work": [
+        1.0,
+        1.0,
+        0.9894366197183099,
+        0.03169014084507042,
+        0,
+        0,
+        0,
+        0
+      ],
+      "pinned_over_pooled_saturated_capacity": 0.37764084507042256,
+      "pinned_work_capacity": 1.0,
+      "pooled_work_capacity": 2.648018648018648,
+      "request_bootstrap_95_CI": [
+        0.375,
+        0.38125
+      ],
+      "visits_per_committed_token": [
+        1.0,
+        1.0,
+        0.9894366197183099,
+        0.03169014084507042
+      ]
+    },
+    {
+      "N_requests": 8,
+      "P": 2,
+      "P8_status": "CPU_STRUCTURAL_SCREEN",
+      "best_depth_owner": [
+        0,
+        1,
+        0,
+        1
+      ],
+      "best_static_rank_work_max": 1.7859655142832631,
+      "dataset": "math500",
+      "finite_C": [
+        {
+          "C": 1,
+          "pinned_capacity": 0.3540793390438005,
+          "pinned_over_pooled_capacity": 1.0,
+          "pooled_capacity": 0.3540793390438005
+        },
+        {
+          "C": 2,
+          "pinned_capacity": 0.5599212258033528,
+          "pinned_over_pooled_capacity": 0.790671982323839,
+          "pooled_capacity": 0.708158678087601
+        },
+        {
+          "C": 4,
+          "pinned_capacity": 0.5599212258033528,
+          "pinned_over_pooled_capacity": 0.790671982323839,
+          "pooled_capacity": 0.708158678087601
+        },
+        {
+          "C": 8,
+          "pinned_capacity": 0.5599212258033528,
+          "pinned_over_pooled_capacity": 0.790671982323839,
+          "pooled_capacity": 0.708158678087601
+        }
+      ],
+      "mode": "original_adaptive",
+      "model": "2.6B",
+      "normalized_rank_work": [
+        1.7859655142832631,
+        1.0382602727974608
+      ],
+      "pinned_over_pooled_saturated_capacity": 0.7906719823238388,
+      "pinned_work_capacity": 0.5599212258033528,
+      "pooled_work_capacity": 0.708158678087601,
+      "request_bootstrap_95_CI": [
+        0.7757613607141545,
+        0.8044732047496387
+      ],
+      "visits_per_committed_token": [
+        1.0,
+        1.0,
+        0.7859655142832632,
+        0.038260272797460755
+      ]
+    },
+    {
+      "N_requests": 8,
+      "P": 4,
+      "P8_status": "CPU_STRUCTURAL_SCREEN",
+      "best_depth_owner": [
+        0,
+        1,
+        2,
+        2
+      ],
+      "best_static_rank_work_max": 1.0,
+      "dataset": "math500",
+      "finite_C": [
+        {
+          "C": 1,
+          "pinned_capacity": 0.3540793390438005,
+          "pinned_over_pooled_capacity": 1.0,
+          "pooled_capacity": 0.3540793390438005
+        },
+        {
+          "C": 2,
+          "pinned_capacity": 0.708158678087601,
+          "pinned_over_pooled_capacity": 1.0,
+          "pooled_capacity": 0.708158678087601
+        },
+        {
+          "C": 4,
+          "pinned_capacity": 1.0,
+          "pinned_over_pooled_capacity": 0.706056446770181,
+          "pooled_capacity": 1.416317356175202
+        },
+        {
+          "C": 8,
+          "pinned_capacity": 1.0,
+          "pinned_over_pooled_capacity": 0.706056446770181,
+          "pooled_capacity": 1.416317356175202
+        }
+      ],
+      "mode": "original_adaptive",
+      "model": "2.6B",
+      "normalized_rank_work": [
+        1.0,
+        1.0,
+        0.824225787080724,
+        0
+      ],
+      "pinned_over_pooled_saturated_capacity": 0.706056446770181,
+      "pinned_work_capacity": 1.0,
+      "pooled_work_capacity": 1.416317356175202,
+      "request_bootstrap_95_CI": [
+        0.6895162302613411,
+        0.7270825754819934
+      ],
+      "visits_per_committed_token": [
+        1.0,
+        1.0,
+        0.7859655142832632,
+        0.038260272797460755
+      ]
+    },
+    {
+      "N_requests": 8,
+      "P": 8,
+      "P8_status": "UNMEASURED_PROJECTION_ONLY",
+      "best_depth_owner": [
+        0,
+        1,
+        2,
+        2
+      ],
+      "best_static_rank_work_max": 1.0,
+      "dataset": "math500",
+      "finite_C": [
+        {
+          "C": 1,
+          "pinned_capacity": 0.3540793390438005,
+          "pinned_over_pooled_capacity": 1.0,
+          "pooled_capacity": 0.3540793390438005
+        },
+        {
+          "C": 2,
+          "pinned_capacity": 0.708158678087601,
+          "pinned_over_pooled_capacity": 1.0,
+          "pooled_capacity": 0.708158678087601
+        },
+        {
+          "C": 4,
+          "pinned_capacity": 1.0,
+          "pinned_over_pooled_capacity": 0.706056446770181,
+          "pooled_capacity": 1.416317356175202
+        },
+        {
+          "C": 8,
+          "pinned_capacity": 1.0,
+          "pinned_over_pooled_capacity": 0.3530282233850905,
+          "pooled_capacity": 2.832634712350404
+        }
+      ],
+      "mode": "original_adaptive",
+      "model": "2.6B",
+      "normalized_rank_work": [
+        1.0,
+        1.0,
+        0.824225787080724,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "pinned_over_pooled_saturated_capacity": 0.3530282233850905,
+      "pinned_work_capacity": 1.0,
+      "pooled_work_capacity": 2.832634712350404,
+      "request_bootstrap_95_CI": [
+        0.3445335521894225,
+        0.3635412877409967
+      ],
+      "visits_per_committed_token": [
+        1.0,
+        1.0,
+        0.7859655142832632,
+        0.038260272797460755
+      ]
+    }
+  ],
+  "source": "analysis/adaptive_profile_01/request_profiles.csv"
+}

@@ -1,0 +1,273 @@
+{
+  "schema": "dwdp_dense_transfer_v1",
+  "worker": "/root/independent_axes",
+  "report": "reports/dwdp_dense_transfer_v1.md",
+  "time": {
+    "start_utc": "2026-10-19 13:26:05 UTC",
+    "primary_reading_checkpoint_utc": "2026-10-19 13:29:09 UTC",
+    "evidence_end_utc": "2026-10-19 13:33:51 UTC",
+    "segment_seconds_to_checkpoint": 466,
+    "search_precision": "Queries occurred between these actual checkpoints. Exact per-query times were not captured.",
+    "accounting": "Count this worker interval once. Do not add concurrent worker intervals to campaign elapsed time."
+  },
+  "evidence_class": "PRIMARY_SOURCE_AND_STRUCTURAL_ACCOUNTING",
+  "verdict": "GENERIC_OWNERSHIP_TRANSFER_WITH_UNMEASURED_OURO_COST",
+  "candidate_files_modified": [],
+  "GPU_execution": "NOT_RUN",
+  "model_quality": "NOT_RUN",
+  "runtime_mutation": "NONE",
+  "primary_sources": [
+    {
+      "id": "DWDP",
+      "title": "DWDP: Distributed Weight Data Parallelism for High-Performance LLM Inference on NVL72",
+      "authors": "Wanqian Li, Jintao Peng, Zongfei Jing, Tianyu Zhang, Ze Long, Xianjie Qiao, Xiaoming Chen, Dongxu Yang, Kefeng Duan, June Yang",
+      "url": "https://arxiv.org/html/2604.01621v2",
+      "locators": [
+        "2",
+        "3",
+        "4.1–4.3",
+        "5.1–5.3",
+        "Appendix A"
+      ],
+      "scope": "MoE context workers on GB200 NVL72. NVFP4 MoE weights and FP8 KV.",
+      "transfer": "Staged peer weight prefetch is distinct from activation shipping. No Ouro timing transfer.",
+      "metadata": {
+        "arxiv_v2": "2026-05-12",
+        "body_displayed_date": "2026-08-24",
+        "limit": "Date discrepancy is recorded, not resolved."
+      }
+    },
+    {
+      "id": "DWDP_PR",
+      "url": "https://github.com/NVIDIA/TensorRT-LLM/pull/12136",
+      "merged_at": "2026-04-02T03:51:59Z",
+      "merge_revision": "e92ee4fe550783a5f3a51cd690d89d1fe18ea30b"
+    },
+    {
+      "id": "SiDP",
+      "title": "SiDP: Memory-Efficient Data Parallelism for Offline LLM Inference",
+      "authors": "Alan Zhao, Cyril Y. He",
+      "url": "https://arxiv.org/html/2605.28095v1",
+      "version": "2026-05-27",
+      "locators": [
+        "4.1–4.4",
+        "5.1",
+        "5.3"
+      ],
+      "scope": "Dense offline inference. Weight streaming and owner-side activation compute are explicit modes.",
+      "limit": "No verified official repository link from inspected paper and bounded title/code query. No Ouro adapter or performance result."
+    },
+    {
+      "id": "CUDA_P2P",
+      "url": "https://docs.nvidia.com/cuda/archive/12.9.1/cuda-c-programming-guide/index.html#peer-to-peer-memory-access",
+      "locator": "6.2.9.4",
+      "scope": "Peer pointer access is legal when topology/support/enabling permit it. No dense GEMM performance guarantee."
+    }
+  ],
+  "code_pins": {
+    "merge": "e92ee4fe550783a5f3a51cd690d89d1fe18ea30b",
+    "main": "321a38cd0ecbc22b4931d488cf83d31244cd7db3",
+    "main_date": "2026-10-19T12:39:25Z"
+  },
+  "code_audits": [
+    {
+      "path": "tensorrt_llm/_torch/pyexecutor/dwdp.py",
+      "revision": "e92ee4fe550783a5f3a51cd690d89d1fe18ea30b",
+      "sha256": "92dcf7862403f703681b018192746180fcc36764a5657c21fd67af5cc25b03ea",
+      "lines": [
+        "157–238",
+        "334–387",
+        "416–470",
+        "531–585"
+      ],
+      "observations": [
+        "IPC peer pointers feed local copy buffers.",
+        "Two buffers protect read-after-write and overwrite dependencies.",
+        "NVFP4 weight view combines local and staged weights."
+      ]
+    },
+    {
+      "path": "tensorrt_llm/_torch/pyexecutor/dwdp.py",
+      "revision": "321a38cd0ecbc22b4931d488cf83d31244cd7db3",
+      "sha256": "fc49aa6ada8149483bc01e554ea9976baf172d79e623d9fb0db291a607612bdc",
+      "lines": [
+        "15–28",
+        "220–287"
+      ],
+      "observations": [
+        "VA-based facade delegates prefetch and weight binding.",
+        "Layer registration remains MoE based."
+      ]
+    },
+    {
+      "path": "tensorrt_llm/_torch/modules/dwdp/weight_manager.py",
+      "revision": "321a38cd0ecbc22b4931d488cf83d31244cd7db3",
+      "sha256": "37dfe26b15ee9c4c3ee9acb5d0fea3fb48e0d3417b7b48b3384ce7c012756085",
+      "lines": [
+        "255–335",
+        "413–514"
+      ],
+      "observations": [
+        "Peer slices are copied to local remote-region buffers.",
+        "Optional cudaMemcpyBatchAsync plan uses interleaved slices.",
+        "Compute waits for prefetch, then protects the buffer through consumption."
+      ]
+    },
+    {
+      "path": "tensorrt_llm/_torch/modules/dwdp/weight_buffer.py",
+      "revision": "321a38cd0ecbc22b4931d488cf83d31244cd7db3",
+      "sha256": "f575f68c7a43f7c1485cbe185e3b12783e2edbbd94d3b4c27ec0c8d3bfbc1e8e",
+      "lines": [
+        "16–27",
+        "84–96"
+      ],
+      "observations": [
+        "Local VA region maps its resident handle.",
+        "Remote VA regions are page-pool copy targets, not direct remote GEMM operands."
+      ]
+    },
+    {
+      "path": "tensorrt_llm/_torch/modules/dwdp/setup.py",
+      "revision": "321a38cd0ecbc22b4931d488cf83d31244cd7db3",
+      "sha256": "30d77e0280b755c5e68b241b58c55714b4ae890635bf4ada06b8cfdddfdd0c96",
+      "lines": [
+        "357–422"
+      ],
+      "observations": [
+        "Extracts registered MoE expert tensors.",
+        "Rejects registered layers without the expected expert module.",
+        "No inspected dense Ouro adapter."
+      ]
+    }
+  ],
+  "accounting": {
+    "evidence_class": "CONDITIONAL_LOGICAL_PAYLOAD_NOT_MEASURED_HBM",
+    "dimensions_source": "artifacts/semantics_manifest.json",
+    "D": 2048,
+    "I": 5632,
+    "R": 4,
+    "BF16_bytes": 2,
+    "physical_layers": [
+      24,
+      48
+    ],
+    "MLP_bytes_per_layer": 69206016,
+    "MLP_MiB_per_layer": 66,
+    "attention_dense_MiB_per_layer": 32,
+    "worker_remote_formula": "R*(1-1/P)*L*66 MiB per worker batch without remote retention",
+    "aggregate_all_P_workers_formula": "R*(P-1)*L*66 MiB",
+    "gross_saved_MLP_formula": "(1-1/P)*L*66 MiB before staging",
+    "staging_examples": [
+      "Two per-layer sharded buffers: 2*(1-1/P)*66 MiB.",
+      "Two complete remote MLP layers: 132 MiB."
+    ],
+    "rows": [
+      {
+        "L": 24,
+        "P": 2,
+        "MLP_layer_bytes": 69206016,
+        "unique_MLP_MiB": 1584,
+        "unique_attention_MiB": 768,
+        "remote_R4_MLP_operand_MiB_per_worker_batch_without_retention": 3168,
+        "saved_MLP_resident_MiB_per_rank_before_staging": 792,
+        "remote_all_active_P_worker_batches_MiB": 6336
+      },
+      {
+        "L": 24,
+        "P": 4,
+        "MLP_layer_bytes": 69206016,
+        "unique_MLP_MiB": 1584,
+        "unique_attention_MiB": 768,
+        "remote_R4_MLP_operand_MiB_per_worker_batch_without_retention": 4752,
+        "saved_MLP_resident_MiB_per_rank_before_staging": 1188,
+        "remote_all_active_P_worker_batches_MiB": 19008
+      },
+      {
+        "L": 24,
+        "P": 8,
+        "MLP_layer_bytes": 69206016,
+        "unique_MLP_MiB": 1584,
+        "unique_attention_MiB": 768,
+        "remote_R4_MLP_operand_MiB_per_worker_batch_without_retention": 5544,
+        "saved_MLP_resident_MiB_per_rank_before_staging": 1386,
+        "remote_all_active_P_worker_batches_MiB": 44352
+      },
+      {
+        "L": 48,
+        "P": 2,
+        "MLP_layer_bytes": 69206016,
+        "unique_MLP_MiB": 3168,
+        "unique_attention_MiB": 1536,
+        "remote_R4_MLP_operand_MiB_per_worker_batch_without_retention": 6336,
+        "saved_MLP_resident_MiB_per_rank_before_staging": 1584,
+        "remote_all_active_P_worker_batches_MiB": 12672
+      },
+      {
+        "L": 48,
+        "P": 4,
+        "MLP_layer_bytes": 69206016,
+        "unique_MLP_MiB": 3168,
+        "unique_attention_MiB": 1536,
+        "remote_R4_MLP_operand_MiB_per_worker_batch_without_retention": 9504,
+        "saved_MLP_resident_MiB_per_rank_before_staging": 2376,
+        "remote_all_active_P_worker_batches_MiB": 38016
+      },
+      {
+        "L": 48,
+        "P": 8,
+        "MLP_layer_bytes": 69206016,
+        "unique_MLP_MiB": 3168,
+        "unique_attention_MiB": 1536,
+        "remote_R4_MLP_operand_MiB_per_worker_batch_without_retention": 11088,
+        "saved_MLP_resident_MiB_per_rank_before_staging": 2772,
+        "remote_all_active_P_worker_batches_MiB": 88704
+      }
+    ],
+    "activation_roundtrip_bytes_formula": "8192*B",
+    "complete_MLP_weight_to_activation_payload_ratio": "8448/B",
+    "payload_ratio_at_B8": 1056,
+    "limits": [
+      "One batch shares each weight transfer across ready rows.",
+      "A cache can reduce refetches but consumes HBM.",
+      "Count each wire byte once, even though source and destination both process it.",
+      "No advertised-bandwidth latency or speedup estimate."
+    ]
+  },
+  "transfer_contract": {
+    "staged_weights": "Source read, link transfer, destination write, local GEMM read, and buffer ordering.",
+    "dense_layout_gap": "Dense TP shards do not necessarily match expert-block contiguity. Charge compatible views or packing.",
+    "direct_peer_GEMM": "Can avoid complete staging. Still needs remote operand service, valid mappings, and kernel qualification.",
+    "compute_owner": "Both activation directions plus queue, packing, compute and complete-return dependency.",
+    "recurrence": "Unique physical weights are not four copies. Retaining every remote weight restores local replication.",
+    "readiness": "Future immutable weights can prefetch before hidden states. Future dense compute still needs exact prior hidden/KV.",
+    "adaptive": "Charge prefetched unused later-pass weights and preserve original gates and depth-indexed KV.",
+    "baseline": "Same-P native async TP and generic DP/AFD/TSP/dense weight-sharing controls with aliased unrolling.",
+    "prior_remote_MLP_limit": "The tested activation round trip does not reject every remote-weight layout.",
+    "new_candidate": "NONE"
+  },
+  "searches": [
+    "\"Distributed Weight Data Parallelism\" code github DWDP",
+    "\"DWDP\" \"dense\" NVL72",
+    "\"Distributed Weight Data Parallelism\" prefetch peer",
+    "dense LLM inference GPU peer weight streaming data parallel distributed weights direct peer access bandwidth",
+    "dense transformer peer GPU weight prefetch tensor parallel data parallel ZeRO inference FlexGen",
+    "\"SiDP\" \"scitix\" \"github\"",
+    "site:docs.nvidia.com/cuda/archive/12.9.1 \"Peer-to-Peer Memory Access\" \"kernel\""
+  ],
+  "validation": {
+    "JSON_parse": "PASS",
+    "report_prose_lint_findings": 0,
+    "report_prose_lint_hard_findings": 0,
+    "structural_rows_checked": 6,
+    "aggregate_payload_identity": "PASS. Aggregate equals P times each worker's payload in the all-active balanced case.",
+    "R4_identity": "PASS. R4 remote payload equals four times gross remote resident MLP bytes.",
+    "scope": "These checks do not validate an engine, measured traffic, timing, or model quality."
+  },
+  "inspection_limits": [
+    "Primary HTML text and targeted official source only.",
+    "No figure-derived performance value enters the transfer argument.",
+    "Current source differs from the paper and initial merge.",
+    "Initial blog constraints are not asserted as universal current constraints.",
+    "No installations, downloaded weights, GPU initialization, or model execution."
+  ]
+}

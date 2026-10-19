@@ -1,0 +1,942 @@
+{
+  "schema_version": 1,
+  "start_UTC": "2026-10-19T14:02:39.420149+00:00",
+  "end_UTC": "2026-10-19T14:02:39.436628+00:00",
+  "command": "python scripts/candidate_round6_replica_screen.py --output artifacts/candidate_round6_replica_screen_v1.json",
+  "GPU_execution_this_run": false,
+  "model_execution_this_run": false,
+  "script_sha256": "d26b6e8406c72eb205f1ef9e38289e52eb43b38f03275d9257d30fc9621b6f48",
+  "input_records": [
+    {
+      "path": "outputs/components_base14_P2_graph_v1/components.json",
+      "sha256": "203716c3e85c0f3c1cf47cf4f3e8d85937edff2faa92047ea813b31f17a25110",
+      "source_UTC": "2026-10-19T10:34:52.088103+00:00",
+      "checkpoint_revision": "574fa66cb8bf5abdc979642d01cf2b79b16bfab1"
+    },
+    {
+      "path": "outputs/components_base14_P4_graph_v1/components.json",
+      "sha256": "177e9f28b2035d56cd8cd63beaf65b749a8e45accef9c710359b461ae8814450",
+      "source_UTC": "2026-10-19T10:47:42.788080+00:00",
+      "checkpoint_revision": "574fa66cb8bf5abdc979642d01cf2b79b16bfab1"
+    },
+    {
+      "path": "outputs/components_base26_P2_graph_v1/components.json",
+      "sha256": "c1dfdf53ae9db81fcf2b03ef4a96ec13d728a99d8aeea0c01c2ce2c53999b716",
+      "source_UTC": "2026-10-19T10:35:53.072390+00:00",
+      "checkpoint_revision": "1ed04250da1a9936042725d302e81c8fa2ab5abd"
+    },
+    {
+      "path": "outputs/components_base26_P4_graph_v1/components.json",
+      "sha256": "1cb79a73a3345f80ed5185c06d8a9d2cb88a65a431f29cf8380df51f850231a3",
+      "source_UTC": "2026-10-19T10:49:17.923975+00:00",
+      "checkpoint_revision": "1ed04250da1a9936042725d302e81c8fa2ab5abd"
+    }
+  ],
+  "numerical_control": {
+    "evidence_class": "CPU_ALGEBRA_CONTROL",
+    "scope": "Constructed non-model down projection. No model quality claim.",
+    "activation": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "weights": [
+      256.0,
+      1.0,
+      -256.0,
+      0.0
+    ],
+    "real_full_and_sharded_sum": 1.0,
+    "unrounded_shard_outputs": [
+      257.0,
+      -256.0
+    ],
+    "BF16_shard_outputs": [
+      256.0,
+      -256.0
+    ],
+    "full_output_BF16": 1.0,
+    "sharded_output_BF16": 0.0,
+    "claim": "A BF16 cast at each shard can change the final projection value.",
+    "native_kernel_order_reproduction": false
+  },
+  "structural_accounting": [
+    {
+      "model": "1.4B",
+      "P": 2,
+      "L": 24,
+      "R": 4,
+      "evidence_class": "ANALYTIC_ACCOUNTING",
+      "physical_MLP_bytes_per_replica": 1660944384,
+      "MLP_extra_bytes_per_rank_vs_TP": 830472192,
+      "TP_core_bytes_per_rank": 1233125376,
+      "replicated_MLP_TP_attention_core_bytes_per_rank": 2063597568,
+      "four_materialized_MLP_copies_per_rank_bytes": 6643777536,
+      "fixed_MLP_reductions_removed_per_token": 96,
+      "fixed_attention_reductions_retained_per_token": 96,
+      "full_MLP_logical_weight_operand_bytes_per_rank_per_R4_batch": 6643777536,
+      "aggregate_MLP_dense_work_multiple_vs_TP": 2,
+      "full_MLP_FLOPs_per_ready_row_per_layer": 69206016,
+      "KV_bytes_per_cached_token_total_unchanged": 786432,
+      "KV_bytes_per_cached_token_per_rank_unchanged": 393216,
+      "fixed_ready_row_upper_bounds": {
+        "1": 1,
+        "2": 2,
+        "4": 4,
+        "8": 8
+      },
+      "adaptive_ready_row_upper_bounds": {
+        "1": 1,
+        "2": 2,
+        "4": 4,
+        "8": 8
+      },
+      "adaptive_note": "Actual continuation decisions can reduce this frontier. No oracle exit trace is assumed.",
+      "excluded_capacity_bytes": "Embedding, LM head, norms, gate, allocator, graphs, communication buffers, scratch.",
+      "HBM_traffic_measured": false,
+      "P8_performance": "NOT_RUN"
+    },
+    {
+      "model": "1.4B",
+      "P": 4,
+      "L": 24,
+      "R": 4,
+      "evidence_class": "ANALYTIC_ACCOUNTING",
+      "physical_MLP_bytes_per_replica": 1660944384,
+      "MLP_extra_bytes_per_rank_vs_TP": 1245708288,
+      "TP_core_bytes_per_rank": 616562688,
+      "replicated_MLP_TP_attention_core_bytes_per_rank": 1862270976,
+      "four_materialized_MLP_copies_per_rank_bytes": 6643777536,
+      "fixed_MLP_reductions_removed_per_token": 96,
+      "fixed_attention_reductions_retained_per_token": 96,
+      "full_MLP_logical_weight_operand_bytes_per_rank_per_R4_batch": 6643777536,
+      "aggregate_MLP_dense_work_multiple_vs_TP": 4,
+      "full_MLP_FLOPs_per_ready_row_per_layer": 69206016,
+      "KV_bytes_per_cached_token_total_unchanged": 786432,
+      "KV_bytes_per_cached_token_per_rank_unchanged": 196608,
+      "fixed_ready_row_upper_bounds": {
+        "1": 1,
+        "2": 2,
+        "4": 4,
+        "8": 8
+      },
+      "adaptive_ready_row_upper_bounds": {
+        "1": 1,
+        "2": 2,
+        "4": 4,
+        "8": 8
+      },
+      "adaptive_note": "Actual continuation decisions can reduce this frontier. No oracle exit trace is assumed.",
+      "excluded_capacity_bytes": "Embedding, LM head, norms, gate, allocator, graphs, communication buffers, scratch.",
+      "HBM_traffic_measured": false,
+      "P8_performance": "NOT_RUN"
+    },
+    {
+      "model": "1.4B",
+      "P": 8,
+      "L": 24,
+      "R": 4,
+      "evidence_class": "ANALYTIC_ACCOUNTING",
+      "physical_MLP_bytes_per_replica": 1660944384,
+      "MLP_extra_bytes_per_rank_vs_TP": 1453326336,
+      "TP_core_bytes_per_rank": 308281344,
+      "replicated_MLP_TP_attention_core_bytes_per_rank": 1761607680,
+      "four_materialized_MLP_copies_per_rank_bytes": 6643777536,
+      "fixed_MLP_reductions_removed_per_token": 96,
+      "fixed_attention_reductions_retained_per_token": 96,
+      "full_MLP_logical_weight_operand_bytes_per_rank_per_R4_batch": 6643777536,
+      "aggregate_MLP_dense_work_multiple_vs_TP": 8,
+      "full_MLP_FLOPs_per_ready_row_per_layer": 69206016,
+      "KV_bytes_per_cached_token_total_unchanged": 786432,
+      "KV_bytes_per_cached_token_per_rank_unchanged": 98304,
+      "fixed_ready_row_upper_bounds": {
+        "1": 1,
+        "2": 2,
+        "4": 4,
+        "8": 8
+      },
+      "adaptive_ready_row_upper_bounds": {
+        "1": 1,
+        "2": 2,
+        "4": 4,
+        "8": 8
+      },
+      "adaptive_note": "Actual continuation decisions can reduce this frontier. No oracle exit trace is assumed.",
+      "excluded_capacity_bytes": "Embedding, LM head, norms, gate, allocator, graphs, communication buffers, scratch.",
+      "HBM_traffic_measured": false,
+      "P8_performance": "NOT_RUN"
+    },
+    {
+      "model": "2.6B",
+      "P": 2,
+      "L": 48,
+      "R": 4,
+      "evidence_class": "ANALYTIC_ACCOUNTING",
+      "physical_MLP_bytes_per_replica": 3321888768,
+      "MLP_extra_bytes_per_rank_vs_TP": 1660944384,
+      "TP_core_bytes_per_rank": 2466250752,
+      "replicated_MLP_TP_attention_core_bytes_per_rank": 4127195136,
+      "four_materialized_MLP_copies_per_rank_bytes": 13287555072,
+      "fixed_MLP_reductions_removed_per_token": 192,
+      "fixed_attention_reductions_retained_per_token": 192,
+      "full_MLP_logical_weight_operand_bytes_per_rank_per_R4_batch": 13287555072,
+      "aggregate_MLP_dense_work_multiple_vs_TP": 2,
+      "full_MLP_FLOPs_per_ready_row_per_layer": 69206016,
+      "KV_bytes_per_cached_token_total_unchanged": 1572864,
+      "KV_bytes_per_cached_token_per_rank_unchanged": 786432,
+      "fixed_ready_row_upper_bounds": {
+        "1": 1,
+        "2": 2,
+        "4": 4,
+        "8": 8
+      },
+      "adaptive_ready_row_upper_bounds": {
+        "1": 1,
+        "2": 2,
+        "4": 4,
+        "8": 8
+      },
+      "adaptive_note": "Actual continuation decisions can reduce this frontier. No oracle exit trace is assumed.",
+      "excluded_capacity_bytes": "Embedding, LM head, norms, gate, allocator, graphs, communication buffers, scratch.",
+      "HBM_traffic_measured": false,
+      "P8_performance": "NOT_RUN"
+    },
+    {
+      "model": "2.6B",
+      "P": 4,
+      "L": 48,
+      "R": 4,
+      "evidence_class": "ANALYTIC_ACCOUNTING",
+      "physical_MLP_bytes_per_replica": 3321888768,
+      "MLP_extra_bytes_per_rank_vs_TP": 2491416576,
+      "TP_core_bytes_per_rank": 1233125376,
+      "replicated_MLP_TP_attention_core_bytes_per_rank": 3724541952,
+      "four_materialized_MLP_copies_per_rank_bytes": 13287555072,
+      "fixed_MLP_reductions_removed_per_token": 192,
+      "fixed_attention_reductions_retained_per_token": 192,
+      "full_MLP_logical_weight_operand_bytes_per_rank_per_R4_batch": 13287555072,
+      "aggregate_MLP_dense_work_multiple_vs_TP": 4,
+      "full_MLP_FLOPs_per_ready_row_per_layer": 69206016,
+      "KV_bytes_per_cached_token_total_unchanged": 1572864,
+      "KV_bytes_per_cached_token_per_rank_unchanged": 393216,
+      "fixed_ready_row_upper_bounds": {
+        "1": 1,
+        "2": 2,
+        "4": 4,
+        "8": 8
+      },
+      "adaptive_ready_row_upper_bounds": {
+        "1": 1,
+        "2": 2,
+        "4": 4,
+        "8": 8
+      },
+      "adaptive_note": "Actual continuation decisions can reduce this frontier. No oracle exit trace is assumed.",
+      "excluded_capacity_bytes": "Embedding, LM head, norms, gate, allocator, graphs, communication buffers, scratch.",
+      "HBM_traffic_measured": false,
+      "P8_performance": "NOT_RUN"
+    },
+    {
+      "model": "2.6B",
+      "P": 8,
+      "L": 48,
+      "R": 4,
+      "evidence_class": "ANALYTIC_ACCOUNTING",
+      "physical_MLP_bytes_per_replica": 3321888768,
+      "MLP_extra_bytes_per_rank_vs_TP": 2906652672,
+      "TP_core_bytes_per_rank": 616562688,
+      "replicated_MLP_TP_attention_core_bytes_per_rank": 3523215360,
+      "four_materialized_MLP_copies_per_rank_bytes": 13287555072,
+      "fixed_MLP_reductions_removed_per_token": 192,
+      "fixed_attention_reductions_retained_per_token": 192,
+      "full_MLP_logical_weight_operand_bytes_per_rank_per_R4_batch": 13287555072,
+      "aggregate_MLP_dense_work_multiple_vs_TP": 8,
+      "full_MLP_FLOPs_per_ready_row_per_layer": 69206016,
+      "KV_bytes_per_cached_token_total_unchanged": 1572864,
+      "KV_bytes_per_cached_token_per_rank_unchanged": 196608,
+      "fixed_ready_row_upper_bounds": {
+        "1": 1,
+        "2": 2,
+        "4": 4,
+        "8": 8
+      },
+      "adaptive_ready_row_upper_bounds": {
+        "1": 1,
+        "2": 2,
+        "4": 4,
+        "8": 8
+      },
+      "adaptive_note": "Actual continuation decisions can reduce this frontier. No oracle exit trace is assumed.",
+      "excluded_capacity_bytes": "Embedding, LM head, norms, gate, allocator, graphs, communication buffers, scratch.",
+      "HBM_traffic_measured": false,
+      "P8_performance": "NOT_RUN"
+    }
+  ],
+  "component_comparisons": [
+    {
+      "source": "outputs/components_base14_P2_graph_v1/components.json",
+      "model": "ByteDance/Ouro-1.4B",
+      "P": 2,
+      "rows": 1,
+      "target_low_C_shape": true,
+      "evidence_class": "CPU_ANALYSIS_OF_EXISTING_GPU_MICROBENCH",
+      "full_local_critical_stream_median_ms": 0.037073999643325806,
+      "TP_plus_reduction_critical_stream_median_ms": 0.029944000765681267,
+      "TP_over_full_local_latency_ratio": 0.8076819618536057,
+      "full_local_minus_TP_ms": 0.007129998877644539,
+      "full_local_faster_at_median": false,
+      "trials_per_arm": 31,
+      "source_numerical_TP": {
+        "explanation": "Numerically reordered TP sum. Not a full-model quality or token-parity result.",
+        "max_abs": 0.001953125,
+        "relative_L2": 0.00021519436268135905
+      },
+      "residency": "Repeated same operator and inputs. Warm-resident microbenchmark, not full-stack reuse distance."
+    },
+    {
+      "source": "outputs/components_base14_P2_graph_v1/components.json",
+      "model": "ByteDance/Ouro-1.4B",
+      "P": 2,
+      "rows": 2,
+      "target_low_C_shape": true,
+      "evidence_class": "CPU_ANALYSIS_OF_EXISTING_GPU_MICROBENCH",
+      "full_local_critical_stream_median_ms": 0.039000000804662704,
+      "TP_plus_reduction_critical_stream_median_ms": 0.030724000185728073,
+      "TP_over_full_local_latency_ratio": 0.7877948603030495,
+      "full_local_minus_TP_ms": 0.008276000618934631,
+      "full_local_faster_at_median": false,
+      "trials_per_arm": 31,
+      "source_numerical_TP": {
+        "explanation": "Numerically reordered TP sum. Not a full-model quality or token-parity result.",
+        "max_abs": 0.001953125,
+        "relative_L2": 0.00021693395683541894
+      },
+      "residency": "Repeated same operator and inputs. Warm-resident microbenchmark, not full-stack reuse distance."
+    },
+    {
+      "source": "outputs/components_base14_P2_graph_v1/components.json",
+      "model": "ByteDance/Ouro-1.4B",
+      "P": 2,
+      "rows": 4,
+      "target_low_C_shape": true,
+      "evidence_class": "CPU_ANALYSIS_OF_EXISTING_GPU_MICROBENCH",
+      "full_local_critical_stream_median_ms": 0.039145998656749725,
+      "TP_plus_reduction_critical_stream_median_ms": 0.030559999868273735,
+      "TP_over_full_local_latency_ratio": 0.7806672691183073,
+      "full_local_minus_TP_ms": 0.00858599878847599,
+      "full_local_faster_at_median": false,
+      "trials_per_arm": 31,
+      "source_numerical_TP": {
+        "explanation": "Numerically reordered TP sum. Not a full-model quality or token-parity result.",
+        "max_abs": 0.0625,
+        "relative_L2": 0.0024652150459587574
+      },
+      "residency": "Repeated same operator and inputs. Warm-resident microbenchmark, not full-stack reuse distance."
+    },
+    {
+      "source": "outputs/components_base14_P2_graph_v1/components.json",
+      "model": "ByteDance/Ouro-1.4B",
+      "P": 2,
+      "rows": 8,
+      "target_low_C_shape": true,
+      "evidence_class": "CPU_ANALYSIS_OF_EXISTING_GPU_MICROBENCH",
+      "full_local_critical_stream_median_ms": 0.03962799906730652,
+      "TP_plus_reduction_critical_stream_median_ms": 0.03044000081717968,
+      "TP_over_full_local_latency_ratio": 0.7681437754522654,
+      "full_local_minus_TP_ms": 0.009187998250126839,
+      "full_local_faster_at_median": false,
+      "trials_per_arm": 31,
+      "source_numerical_TP": {
+        "explanation": "Numerically reordered TP sum. Not a full-model quality or token-parity result.",
+        "max_abs": 0.125,
+        "relative_L2": 0.002244410803541541
+      },
+      "residency": "Repeated same operator and inputs. Warm-resident microbenchmark, not full-stack reuse distance."
+    },
+    {
+      "source": "outputs/components_base14_P2_graph_v1/components.json",
+      "model": "ByteDance/Ouro-1.4B",
+      "P": 2,
+      "rows": 16,
+      "target_low_C_shape": false,
+      "evidence_class": "CPU_ANALYSIS_OF_EXISTING_GPU_MICROBENCH",
+      "full_local_critical_stream_median_ms": 0.04014600068330765,
+      "TP_plus_reduction_critical_stream_median_ms": 0.03170600160956383,
+      "TP_over_full_local_latency_ratio": 0.7897673758259787,
+      "full_local_minus_TP_ms": 0.00843999907374382,
+      "full_local_faster_at_median": false,
+      "trials_per_arm": 31,
+      "source_numerical_TP": {
+        "explanation": "Numerically reordered TP sum. Not a full-model quality or token-parity result.",
+        "max_abs": 0.125,
+        "relative_L2": 0.003065703669562936
+      },
+      "residency": "Repeated same operator and inputs. Warm-resident microbenchmark, not full-stack reuse distance."
+    },
+    {
+      "source": "outputs/components_base14_P2_graph_v1/components.json",
+      "model": "ByteDance/Ouro-1.4B",
+      "P": 2,
+      "rows": 32,
+      "target_low_C_shape": false,
+      "evidence_class": "CPU_ANALYSIS_OF_EXISTING_GPU_MICROBENCH",
+      "full_local_critical_stream_median_ms": 0.04158800095319748,
+      "TP_plus_reduction_critical_stream_median_ms": 0.035367999225854874,
+      "TP_over_full_local_latency_ratio": 0.8504375881316704,
+      "full_local_minus_TP_ms": 0.006220001727342606,
+      "full_local_faster_at_median": false,
+      "trials_per_arm": 31,
+      "source_numerical_TP": {
+        "explanation": "Numerically reordered TP sum. Not a full-model quality or token-parity result.",
+        "max_abs": 0.125,
+        "relative_L2": 0.0026988331228494644
+      },
+      "residency": "Repeated same operator and inputs. Warm-resident microbenchmark, not full-stack reuse distance."
+    },
+    {
+      "source": "outputs/components_base14_P2_graph_v1/components.json",
+      "model": "ByteDance/Ouro-1.4B",
+      "P": 2,
+      "rows": 128,
+      "target_low_C_shape": false,
+      "evidence_class": "CPU_ANALYSIS_OF_EXISTING_GPU_MICROBENCH",
+      "full_local_critical_stream_median_ms": 0.043699998408555984,
+      "TP_plus_reduction_critical_stream_median_ms": 0.038072001188993454,
+      "TP_over_full_local_latency_ratio": 0.8712128735807773,
+      "full_local_minus_TP_ms": 0.0056279972195625305,
+      "full_local_faster_at_median": false,
+      "trials_per_arm": 31,
+      "source_numerical_TP": {
+        "explanation": "Numerically reordered TP sum. Not a full-model quality or token-parity result.",
+        "max_abs": 0.125,
+        "relative_L2": 0.002698886673897505
+      },
+      "residency": "Repeated same operator and inputs. Warm-resident microbenchmark, not full-stack reuse distance."
+    },
+    {
+      "source": "outputs/components_base14_P2_graph_v1/components.json",
+      "model": "ByteDance/Ouro-1.4B",
+      "P": 2,
+      "rows": 512,
+      "target_low_C_shape": false,
+      "evidence_class": "CPU_ANALYSIS_OF_EXISTING_GPU_MICROBENCH",
+      "full_local_critical_stream_median_ms": 0.07169400155544281,
+      "TP_plus_reduction_critical_stream_median_ms": 0.07885800302028656,
+      "TP_over_full_local_latency_ratio": 1.099924698153494,
+      "full_local_minus_TP_ms": -0.00716400146484375,
+      "full_local_faster_at_median": true,
+      "trials_per_arm": 31,
+      "source_numerical_TP": {
+        "explanation": "Numerically reordered TP sum. Not a full-model quality or token-parity result.",
+        "max_abs": 0.125,
+        "relative_L2": 0.002698886673897505
+      },
+      "residency": "Repeated same operator and inputs. Warm-resident microbenchmark, not full-stack reuse distance."
+    },
+    {
+      "source": "outputs/components_base14_P4_graph_v1/components.json",
+      "model": "ByteDance/Ouro-1.4B",
+      "P": 4,
+      "rows": 1,
+      "target_low_C_shape": true,
+      "evidence_class": "CPU_ANALYSIS_OF_EXISTING_GPU_MICROBENCH",
+      "full_local_critical_stream_median_ms": 0.03724600002169609,
+      "TP_plus_reduction_critical_stream_median_ms": 0.02759999968111515,
+      "TP_over_full_local_latency_ratio": 0.7410191608505056,
+      "full_local_minus_TP_ms": 0.00964600034058094,
+      "full_local_faster_at_median": false,
+      "trials_per_arm": 31,
+      "source_numerical_TP": {
+        "explanation": "Numerically reordered TP sum. Not a full-model quality or token-parity result.",
+        "max_abs": 0.001953125,
+        "relative_L2": 0.0002959889534395188
+      },
+      "residency": "Repeated same operator and inputs. Warm-resident microbenchmark, not full-stack reuse distance."
+    },
+    {
+      "source": "outputs/components_base14_P4_graph_v1/components.json",
+      "model": "ByteDance/Ouro-1.4B",
+      "P": 4,
+      "rows": 2,
+      "target_low_C_shape": true,
+      "evidence_class": "CPU_ANALYSIS_OF_EXISTING_GPU_MICROBENCH",
+      "full_local_critical_stream_median_ms": 0.03930800035595894,
+      "TP_plus_reduction_critical_stream_median_ms": 0.02983199991285801,
+      "TP_over_full_local_latency_ratio": 0.7589294709145792,
+      "full_local_minus_TP_ms": 0.00947600044310093,
+      "full_local_faster_at_median": false,
+      "trials_per_arm": 31,
+      "source_numerical_TP": {
+        "explanation": "Numerically reordered TP sum. Not a full-model quality or token-parity result.",
+        "max_abs": 0.001953125,
+        "relative_L2": 0.00029209096101112664
+      },
+      "residency": "Repeated same operator and inputs. Warm-resident microbenchmark, not full-stack reuse distance."
+    },
+    {
+      "source": "outputs/components_base14_P4_graph_v1/components.json",
+      "model": "ByteDance/Ouro-1.4B",
+      "P": 4,
+      "rows": 4,
+      "target_low_C_shape": true,
+      "evidence_class": "CPU_ANALYSIS_OF_EXISTING_GPU_MICROBENCH",
+      "full_local_critical_stream_median_ms": 0.039292000234127045,
+      "TP_plus_reduction_critical_stream_median_ms": 0.029505999758839607,
+      "TP_over_full_local_latency_ratio": 0.7509416569027756,
+      "full_local_minus_TP_ms": 0.009786000475287437,
+      "full_local_faster_at_median": false,
+      "trials_per_arm": 31,
+      "source_numerical_TP": {
+        "explanation": "Numerically reordered TP sum. Not a full-model quality or token-parity result.",
+        "max_abs": 0.0625,
+        "relative_L2": 0.0024724199902266264
+      },
+      "residency": "Repeated same operator and inputs. Warm-resident microbenchmark, not full-stack reuse distance."
+    },
+    {
+      "source": "outputs/components_base14_P4_graph_v1/components.json",
+      "model": "ByteDance/Ouro-1.4B",
+      "P": 4,
+      "rows": 8,
+      "target_low_C_shape": true,
+      "evidence_class": "CPU_ANALYSIS_OF_EXISTING_GPU_MICROBENCH",
+      "full_local_critical_stream_median_ms": 0.03959599882364273,
+      "TP_plus_reduction_critical_stream_median_ms": 0.02943200059235096,
+      "TP_over_full_local_latency_ratio": 0.7433074418311464,
+      "full_local_minus_TP_ms": 0.010163998231291771,
+      "full_local_faster_at_median": false,
+      "trials_per_arm": 31,
+      "source_numerical_TP": {
+        "explanation": "Numerically reordered TP sum. Not a full-model quality or token-parity result.",
+        "max_abs": 0.125,
+        "relative_L2": 0.0027151466347277164
+      },
+      "residency": "Repeated same operator and inputs. Warm-resident microbenchmark, not full-stack reuse distance."
+    },
+    {
+      "source": "outputs/components_base14_P4_graph_v1/components.json",
+      "model": "ByteDance/Ouro-1.4B",
+      "P": 4,
+      "rows": 16,
+      "target_low_C_shape": false,
+      "evidence_class": "CPU_ANALYSIS_OF_EXISTING_GPU_MICROBENCH",
+      "full_local_critical_stream_median_ms": 0.04098999872803688,
+      "TP_plus_reduction_critical_stream_median_ms": 0.03238600119948387,
+      "TP_over_full_local_latency_ratio": 0.7900951989376879,
+      "full_local_minus_TP_ms": 0.008603997528553009,
+      "full_local_faster_at_median": false,
+      "trials_per_arm": 31,
+      "source_numerical_TP": {
+        "explanation": "Numerically reordered TP sum. Not a full-model quality or token-parity result.",
+        "max_abs": 0.125,
+        "relative_L2": 0.003690719837322831
+      },
+      "residency": "Repeated same operator and inputs. Warm-resident microbenchmark, not full-stack reuse distance."
+    },
+    {
+      "source": "outputs/components_base14_P4_graph_v1/components.json",
+      "model": "ByteDance/Ouro-1.4B",
+      "P": 4,
+      "rows": 32,
+      "target_low_C_shape": false,
+      "evidence_class": "CPU_ANALYSIS_OF_EXISTING_GPU_MICROBENCH",
+      "full_local_critical_stream_median_ms": 0.04103799909353256,
+      "TP_plus_reduction_critical_stream_median_ms": 0.03239800035953522,
+      "TP_over_full_local_latency_ratio": 0.7894634503425637,
+      "full_local_minus_TP_ms": 0.008639998733997345,
+      "full_local_faster_at_median": false,
+      "trials_per_arm": 31,
+      "source_numerical_TP": {
+        "explanation": "Numerically reordered TP sum. Not a full-model quality or token-parity result.",
+        "max_abs": 0.25,
+        "relative_L2": 0.004088586661964655
+      },
+      "residency": "Repeated same operator and inputs. Warm-resident microbenchmark, not full-stack reuse distance."
+    },
+    {
+      "source": "outputs/components_base14_P4_graph_v1/components.json",
+      "model": "ByteDance/Ouro-1.4B",
+      "P": 4,
+      "rows": 128,
+      "target_low_C_shape": false,
+      "evidence_class": "CPU_ANALYSIS_OF_EXISTING_GPU_MICROBENCH",
+      "full_local_critical_stream_median_ms": 0.04374599829316139,
+      "TP_plus_reduction_critical_stream_median_ms": 0.03736000135540962,
+      "TP_over_full_local_latency_ratio": 0.8540210033622649,
+      "full_local_minus_TP_ms": 0.00638599693775177,
+      "full_local_faster_at_median": false,
+      "trials_per_arm": 31,
+      "source_numerical_TP": {
+        "explanation": "Numerically reordered TP sum. Not a full-model quality or token-parity result.",
+        "max_abs": 0.25,
+        "relative_L2": 0.0033779218792915344
+      },
+      "residency": "Repeated same operator and inputs. Warm-resident microbenchmark, not full-stack reuse distance."
+    },
+    {
+      "source": "outputs/components_base14_P4_graph_v1/components.json",
+      "model": "ByteDance/Ouro-1.4B",
+      "P": 4,
+      "rows": 512,
+      "target_low_C_shape": false,
+      "evidence_class": "CPU_ANALYSIS_OF_EXISTING_GPU_MICROBENCH",
+      "full_local_critical_stream_median_ms": 0.07172200083732605,
+      "TP_plus_reduction_critical_stream_median_ms": 0.060614001005887985,
+      "TP_over_full_local_latency_ratio": 0.845124233822864,
+      "full_local_minus_TP_ms": 0.011107999831438065,
+      "full_local_faster_at_median": false,
+      "trials_per_arm": 31,
+      "source_numerical_TP": {
+        "explanation": "Numerically reordered TP sum. Not a full-model quality or token-parity result.",
+        "max_abs": 0.25,
+        "relative_L2": 0.003617828479036689
+      },
+      "residency": "Repeated same operator and inputs. Warm-resident microbenchmark, not full-stack reuse distance."
+    },
+    {
+      "source": "outputs/components_base26_P2_graph_v1/components.json",
+      "model": "ByteDance/Ouro-2.6B",
+      "P": 2,
+      "rows": 1,
+      "target_low_C_shape": true,
+      "evidence_class": "CPU_ANALYSIS_OF_EXISTING_GPU_MICROBENCH",
+      "full_local_critical_stream_median_ms": 0.03704800084233284,
+      "TP_plus_reduction_critical_stream_median_ms": 0.029015999287366867,
+      "TP_over_full_local_latency_ratio": 0.7832001357064261,
+      "full_local_minus_TP_ms": 0.008032001554965973,
+      "full_local_faster_at_median": false,
+      "trials_per_arm": 31,
+      "source_numerical_TP": {
+        "explanation": "Numerically reordered TP sum. Not a full-model quality or token-parity result.",
+        "max_abs": 0.0078125,
+        "relative_L2": 0.00032656730036251247
+      },
+      "residency": "Repeated same operator and inputs. Warm-resident microbenchmark, not full-stack reuse distance."
+    },
+    {
+      "source": "outputs/components_base26_P2_graph_v1/components.json",
+      "model": "ByteDance/Ouro-2.6B",
+      "P": 2,
+      "rows": 2,
+      "target_low_C_shape": true,
+      "evidence_class": "CPU_ANALYSIS_OF_EXISTING_GPU_MICROBENCH",
+      "full_local_critical_stream_median_ms": 0.038975998759269714,
+      "TP_plus_reduction_critical_stream_median_ms": 0.030233999714255333,
+      "TP_over_full_local_latency_ratio": 0.775708145440782,
+      "full_local_minus_TP_ms": 0.008741999045014381,
+      "full_local_faster_at_median": false,
+      "trials_per_arm": 31,
+      "source_numerical_TP": {
+        "explanation": "Numerically reordered TP sum. Not a full-model quality or token-parity result.",
+        "max_abs": 0.0078125,
+        "relative_L2": 0.0002984167367685586
+      },
+      "residency": "Repeated same operator and inputs. Warm-resident microbenchmark, not full-stack reuse distance."
+    },
+    {
+      "source": "outputs/components_base26_P2_graph_v1/components.json",
+      "model": "ByteDance/Ouro-2.6B",
+      "P": 2,
+      "rows": 4,
+      "target_low_C_shape": true,
+      "evidence_class": "CPU_ANALYSIS_OF_EXISTING_GPU_MICROBENCH",
+      "full_local_critical_stream_median_ms": 0.03912400081753731,
+      "TP_plus_reduction_critical_stream_median_ms": 0.03044999949634075,
+      "TP_over_full_local_latency_ratio": 0.7782946237617795,
+      "full_local_minus_TP_ms": 0.008674001321196556,
+      "full_local_faster_at_median": false,
+      "trials_per_arm": 31,
+      "source_numerical_TP": {
+        "explanation": "Numerically reordered TP sum. Not a full-model quality or token-parity result.",
+        "max_abs": 0.0625,
+        "relative_L2": 0.0006583129288628697
+      },
+      "residency": "Repeated same operator and inputs. Warm-resident microbenchmark, not full-stack reuse distance."
+    },
+    {
+      "source": "outputs/components_base26_P2_graph_v1/components.json",
+      "model": "ByteDance/Ouro-2.6B",
+      "P": 2,
+      "rows": 8,
+      "target_low_C_shape": true,
+      "evidence_class": "CPU_ANALYSIS_OF_EXISTING_GPU_MICROBENCH",
+      "full_local_critical_stream_median_ms": 0.03962799906730652,
+      "TP_plus_reduction_critical_stream_median_ms": 0.02995000034570694,
+      "TP_over_full_local_latency_ratio": 0.7557787688154051,
+      "full_local_minus_TP_ms": 0.009677998721599579,
+      "full_local_faster_at_median": false,
+      "trials_per_arm": 31,
+      "source_numerical_TP": {
+        "explanation": "Numerically reordered TP sum. Not a full-model quality or token-parity result.",
+        "max_abs": 0.125,
+        "relative_L2": 0.002757821697741747
+      },
+      "residency": "Repeated same operator and inputs. Warm-resident microbenchmark, not full-stack reuse distance."
+    },
+    {
+      "source": "outputs/components_base26_P2_graph_v1/components.json",
+      "model": "ByteDance/Ouro-2.6B",
+      "P": 2,
+      "rows": 16,
+      "target_low_C_shape": false,
+      "evidence_class": "CPU_ANALYSIS_OF_EXISTING_GPU_MICROBENCH",
+      "full_local_critical_stream_median_ms": 0.04021799936890602,
+      "TP_plus_reduction_critical_stream_median_ms": 0.03093400038778782,
+      "TP_over_full_local_latency_ratio": 0.7691581101297645,
+      "full_local_minus_TP_ms": 0.009283998981118202,
+      "full_local_faster_at_median": false,
+      "trials_per_arm": 31,
+      "source_numerical_TP": {
+        "explanation": "Numerically reordered TP sum. Not a full-model quality or token-parity result.",
+        "max_abs": 0.125,
+        "relative_L2": 0.0023749140091240406
+      },
+      "residency": "Repeated same operator and inputs. Warm-resident microbenchmark, not full-stack reuse distance."
+    },
+    {
+      "source": "outputs/components_base26_P2_graph_v1/components.json",
+      "model": "ByteDance/Ouro-2.6B",
+      "P": 2,
+      "rows": 32,
+      "target_low_C_shape": false,
+      "evidence_class": "CPU_ANALYSIS_OF_EXISTING_GPU_MICROBENCH",
+      "full_local_critical_stream_median_ms": 0.041095998138189316,
+      "TP_plus_reduction_critical_stream_median_ms": 0.03234599903225899,
+      "TP_over_full_local_latency_ratio": 0.7870839132192969,
+      "full_local_minus_TP_ms": 0.008749999105930328,
+      "full_local_faster_at_median": false,
+      "trials_per_arm": 31,
+      "source_numerical_TP": {
+        "explanation": "Numerically reordered TP sum. Not a full-model quality or token-parity result.",
+        "max_abs": 0.125,
+        "relative_L2": 0.002071403432637453
+      },
+      "residency": "Repeated same operator and inputs. Warm-resident microbenchmark, not full-stack reuse distance."
+    },
+    {
+      "source": "outputs/components_base26_P2_graph_v1/components.json",
+      "model": "ByteDance/Ouro-2.6B",
+      "P": 2,
+      "rows": 128,
+      "target_low_C_shape": false,
+      "evidence_class": "CPU_ANALYSIS_OF_EXISTING_GPU_MICROBENCH",
+      "full_local_critical_stream_median_ms": 0.04385799914598465,
+      "TP_plus_reduction_critical_stream_median_ms": 0.03805200010538101,
+      "TP_over_full_local_latency_ratio": 0.8676182417424485,
+      "full_local_minus_TP_ms": 0.005805999040603638,
+      "full_local_faster_at_median": false,
+      "trials_per_arm": 31,
+      "source_numerical_TP": {
+        "explanation": "Numerically reordered TP sum. Not a full-model quality or token-parity result.",
+        "max_abs": 0.125,
+        "relative_L2": 0.0020713265985250473
+      },
+      "residency": "Repeated same operator and inputs. Warm-resident microbenchmark, not full-stack reuse distance."
+    },
+    {
+      "source": "outputs/components_base26_P2_graph_v1/components.json",
+      "model": "ByteDance/Ouro-2.6B",
+      "P": 2,
+      "rows": 512,
+      "target_low_C_shape": false,
+      "evidence_class": "CPU_ANALYSIS_OF_EXISTING_GPU_MICROBENCH",
+      "full_local_critical_stream_median_ms": 0.0719200000166893,
+      "TP_plus_reduction_critical_stream_median_ms": 0.0791419968008995,
+      "TP_over_full_local_latency_ratio": 1.1004170854078743,
+      "full_local_minus_TP_ms": -0.007221996784210205,
+      "full_local_faster_at_median": true,
+      "trials_per_arm": 31,
+      "source_numerical_TP": {
+        "explanation": "Numerically reordered TP sum. Not a full-model quality or token-parity result.",
+        "max_abs": 0.125,
+        "relative_L2": 0.0020713265985250473
+      },
+      "residency": "Repeated same operator and inputs. Warm-resident microbenchmark, not full-stack reuse distance."
+    },
+    {
+      "source": "outputs/components_base26_P4_graph_v1/components.json",
+      "model": "ByteDance/Ouro-2.6B",
+      "P": 4,
+      "rows": 1,
+      "target_low_C_shape": true,
+      "evidence_class": "CPU_ANALYSIS_OF_EXISTING_GPU_MICROBENCH",
+      "full_local_critical_stream_median_ms": 0.03713399916887283,
+      "TP_plus_reduction_critical_stream_median_ms": 0.0274679996073246,
+      "TP_over_full_local_latency_ratio": 0.7396994727772103,
+      "full_local_minus_TP_ms": 0.009665999561548233,
+      "full_local_faster_at_median": false,
+      "trials_per_arm": 31,
+      "source_numerical_TP": {
+        "explanation": "Numerically reordered TP sum. Not a full-model quality or token-parity result.",
+        "max_abs": 0.125,
+        "relative_L2": 0.003020704025402665
+      },
+      "residency": "Repeated same operator and inputs. Warm-resident microbenchmark, not full-stack reuse distance."
+    },
+    {
+      "source": "outputs/components_base26_P4_graph_v1/components.json",
+      "model": "ByteDance/Ouro-2.6B",
+      "P": 4,
+      "rows": 2,
+      "target_low_C_shape": true,
+      "evidence_class": "CPU_ANALYSIS_OF_EXISTING_GPU_MICROBENCH",
+      "full_local_critical_stream_median_ms": 0.0390780009329319,
+      "TP_plus_reduction_critical_stream_median_ms": 0.029068000614643097,
+      "TP_over_full_local_latency_ratio": 0.743845640019596,
+      "full_local_minus_TP_ms": 0.010010000318288803,
+      "full_local_faster_at_median": false,
+      "trials_per_arm": 31,
+      "source_numerical_TP": {
+        "explanation": "Numerically reordered TP sum. Not a full-model quality or token-parity result.",
+        "max_abs": 0.125,
+        "relative_L2": 0.0018621425842866302
+      },
+      "residency": "Repeated same operator and inputs. Warm-resident microbenchmark, not full-stack reuse distance."
+    },
+    {
+      "source": "outputs/components_base26_P4_graph_v1/components.json",
+      "model": "ByteDance/Ouro-2.6B",
+      "P": 4,
+      "rows": 4,
+      "target_low_C_shape": true,
+      "evidence_class": "CPU_ANALYSIS_OF_EXISTING_GPU_MICROBENCH",
+      "full_local_critical_stream_median_ms": 0.039264000952243805,
+      "TP_plus_reduction_critical_stream_median_ms": 0.02953599952161312,
+      "TP_over_full_local_latency_ratio": 0.752241208366343,
+      "full_local_minus_TP_ms": 0.009728001430630684,
+      "full_local_faster_at_median": false,
+      "trials_per_arm": 31,
+      "source_numerical_TP": {
+        "explanation": "Numerically reordered TP sum. Not a full-model quality or token-parity result.",
+        "max_abs": 0.125,
+        "relative_L2": 0.0020441822707653046
+      },
+      "residency": "Repeated same operator and inputs. Warm-resident microbenchmark, not full-stack reuse distance."
+    },
+    {
+      "source": "outputs/components_base26_P4_graph_v1/components.json",
+      "model": "ByteDance/Ouro-2.6B",
+      "P": 4,
+      "rows": 8,
+      "target_low_C_shape": true,
+      "evidence_class": "CPU_ANALYSIS_OF_EXISTING_GPU_MICROBENCH",
+      "full_local_critical_stream_median_ms": 0.03961800038814545,
+      "TP_plus_reduction_critical_stream_median_ms": 0.029411999508738518,
+      "TP_over_full_local_latency_ratio": 0.7423898031345171,
+      "full_local_minus_TP_ms": 0.010206000879406929,
+      "full_local_faster_at_median": false,
+      "trials_per_arm": 31,
+      "source_numerical_TP": {
+        "explanation": "Numerically reordered TP sum. Not a full-model quality or token-parity result.",
+        "max_abs": 0.125,
+        "relative_L2": 0.0020655994303524494
+      },
+      "residency": "Repeated same operator and inputs. Warm-resident microbenchmark, not full-stack reuse distance."
+    },
+    {
+      "source": "outputs/components_base26_P4_graph_v1/components.json",
+      "model": "ByteDance/Ouro-2.6B",
+      "P": 4,
+      "rows": 16,
+      "target_low_C_shape": false,
+      "evidence_class": "CPU_ANALYSIS_OF_EXISTING_GPU_MICROBENCH",
+      "full_local_critical_stream_median_ms": 0.04019799828529358,
+      "TP_plus_reduction_critical_stream_median_ms": 0.029913999140262604,
+      "TP_over_full_local_latency_ratio": 0.7441663867926137,
+      "full_local_minus_TP_ms": 0.010283999145030975,
+      "full_local_faster_at_median": false,
+      "trials_per_arm": 31,
+      "source_numerical_TP": {
+        "explanation": "Numerically reordered TP sum. Not a full-model quality or token-parity result.",
+        "max_abs": 0.125,
+        "relative_L2": 0.0029160475824028254
+      },
+      "residency": "Repeated same operator and inputs. Warm-resident microbenchmark, not full-stack reuse distance."
+    },
+    {
+      "source": "outputs/components_base26_P4_graph_v1/components.json",
+      "model": "ByteDance/Ouro-2.6B",
+      "P": 4,
+      "rows": 32,
+      "target_low_C_shape": false,
+      "evidence_class": "CPU_ANALYSIS_OF_EXISTING_GPU_MICROBENCH",
+      "full_local_critical_stream_median_ms": 0.04091399908065796,
+      "TP_plus_reduction_critical_stream_median_ms": 0.030163999646902084,
+      "TP_over_full_local_latency_ratio": 0.7372537597079352,
+      "full_local_minus_TP_ms": 0.010749999433755875,
+      "full_local_faster_at_median": false,
+      "trials_per_arm": 31,
+      "source_numerical_TP": {
+        "explanation": "Numerically reordered TP sum. Not a full-model quality or token-parity result.",
+        "max_abs": 0.125,
+        "relative_L2": 0.0027413296047598124
+      },
+      "residency": "Repeated same operator and inputs. Warm-resident microbenchmark, not full-stack reuse distance."
+    },
+    {
+      "source": "outputs/components_base26_P4_graph_v1/components.json",
+      "model": "ByteDance/Ouro-2.6B",
+      "P": 4,
+      "rows": 128,
+      "target_low_C_shape": false,
+      "evidence_class": "CPU_ANALYSIS_OF_EXISTING_GPU_MICROBENCH",
+      "full_local_critical_stream_median_ms": 0.04339199885725975,
+      "TP_plus_reduction_critical_stream_median_ms": 0.03545000031590462,
+      "TP_over_full_local_latency_ratio": 0.8169708990018931,
+      "full_local_minus_TP_ms": 0.007941998541355133,
+      "full_local_faster_at_median": false,
+      "trials_per_arm": 31,
+      "source_numerical_TP": {
+        "explanation": "Numerically reordered TP sum. Not a full-model quality or token-parity result.",
+        "max_abs": 0.125,
+        "relative_L2": 0.003215098287910223
+      },
+      "residency": "Repeated same operator and inputs. Warm-resident microbenchmark, not full-stack reuse distance."
+    },
+    {
+      "source": "outputs/components_base26_P4_graph_v1/components.json",
+      "model": "ByteDance/Ouro-2.6B",
+      "P": 4,
+      "rows": 512,
+      "target_low_C_shape": false,
+      "evidence_class": "CPU_ANALYSIS_OF_EXISTING_GPU_MICROBENCH",
+      "full_local_critical_stream_median_ms": 0.07175800204277039,
+      "TP_plus_reduction_critical_stream_median_ms": 0.06078999862074852,
+      "TP_over_full_local_latency_ratio": 0.8471528873464936,
+      "full_local_minus_TP_ms": 0.010968003422021866,
+      "full_local_faster_at_median": false,
+      "trials_per_arm": 31,
+      "source_numerical_TP": {
+        "explanation": "Numerically reordered TP sum. Not a full-model quality or token-parity result.",
+        "max_abs": 0.125,
+        "relative_L2": 0.002961923135444522
+      },
+      "residency": "Repeated same operator and inputs. Warm-resident microbenchmark, not full-stack reuse distance."
+    }
+  ],
+  "target_screen": {
+    "comparisons": 16,
+    "full_local_faster_at_median": 0,
+    "TP_over_full_local_latency_ratio_range": [
+      0.7396994727772103,
+      0.8076819618536057
+    ],
+    "scope": "Rows1/2/4/8, both Base checkpoints, P2/P4, physical layer0, frozen isolated operator records.",
+    "full_stack_or_native_fused_kernel_disproof": false
+  },
+  "outside_target_full_local_faster_shapes": [
+    {
+      "model": "ByteDance/Ouro-1.4B",
+      "P": 2,
+      "rows": 512,
+      "TP_over_full_local_latency_ratio": 1.099924698153494
+    },
+    {
+      "model": "ByteDance/Ouro-2.6B",
+      "P": 2,
+      "rows": 512,
+      "TP_over_full_local_latency_ratio": 1.1004170854078743
+    }
+  ]
+}

@@ -29,3 +29,33 @@ The following actions supersede its completed items.
 10. Continue substantive research. The ten-hour normal-completion condition is not met.
 
 No candidate implementation, natural candidate-quality result, or architecture E2E speedup is available at this checkpoint.
+
+## Current actions after the 13:24 UTC checkpoint
+
+1. Complete the fully isolated v4 P2/P4 jobs for both Base sizes.
+2. Check saved graph provenance before any timing interpretation.
+3. Capture lifted runtime weight bindings in a separate metadata-only lane.
+4. Keep cached decode pointer identity distinct from one prefill-call binding.
+5. Test direct graph event nodes on a constant fixture before any native model diagnostic.
+6. Preserve fused boundary kernels when defining any graph timing cut.
+7. Continue distinct execution-axis searches and exact state-ownership tests.
+8. Inspect the newly located distributed-weight prior without changing the empirical target to MoE.
+9. Keep held-out quality untouched until a primary mechanism and tolerances freeze.
+10. Push another scoped evidence checkpoint. Continue until the duration requirement is met or a real runtime limit intervenes.
+
+No final campaign verdict is available at this checkpoint.
+
+## Current actions after the 13:56 UTC checkpoint
+
+1. Summarize the successful read-only typed CUDA edge export.
+2. Preserve all programmatic dependency metadata. Do not interpret endpoint order as full kernel serialization.
+3. Keep the storage binding PASS separate from cached decode pointer identity and numerical parity.
+4. Retain the same-arm repeat as a confound check, not an identified numerical cause.
+5. Prepare a fixed-R4 low-concurrency native ready-work control after the sampler audit.
+6. Continue new execution-axis and primary-source searches outside optional graph instrumentation.
+7. Keep candidate held-out quality untouched until a mechanism and tolerances freeze.
+8. Validate and push a scoped evidence checkpoint.
+9. Continue substantive research. Approximately 4.05 coordinator hours are recorded, not ten hours.
+
+The fully isolated v4 queue, both binding probes, and the same-arm repeat finished.
+No candidate runtime or architecture speedup is available.

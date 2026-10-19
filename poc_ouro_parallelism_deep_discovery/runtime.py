@@ -16,6 +16,11 @@ def configure_native_imports():
     """The tested vLLM environment uses its own pinned Transformers, not CDB's version."""
     native=Path(NATIVE_PYTHON).parents[1]/'lib/python3.14/site-packages'
     sys.path.insert(0,str(native))
+    # A cold vLLM model registry launches sys.executable in a subprocess.
+    # That subprocess does not inherit runtime edits to sys.path.
+    # Export the same read-only roots inside this job's environment only.
+    inherited=[p for p in os.environ.get('PYTHONPATH','').split(os.pathsep) if p]
+    os.environ['PYTHONPATH']=os.pathsep.join(dict.fromkeys([str(native),str(PROJECT)]+inherited))
     # Native FlashInfer can invoke the existing Ninja executable at first use.
     # The isolated interpreter has no installed binaries of its own.
     os.environ['PATH']=str(Path(NATIVE_PYTHON).parent)+':'+os.environ.get('PATH','')

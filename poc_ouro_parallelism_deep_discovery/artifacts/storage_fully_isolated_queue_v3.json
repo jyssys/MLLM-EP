@@ -1,0 +1,42 @@
+{
+  "end_utc": "2026-10-19T13:08:32.417071+00:00",
+  "jobs": [
+    {
+      "command": [
+        "/home/esjung/.venvs/llada2-mini-reference/bin/python",
+        "-m",
+        "poc_ouro_parallelism_deep_discovery.scripts.gpu_session",
+        "--gpus",
+        "4,6",
+        "--output",
+        "outputs/storage_alias_base14_P2_fully_isolated_v3",
+        "--timeout",
+        "3600",
+        "--",
+        "/home/esjung/.venvs/ouro-deep-discovery/bin/python",
+        "-m",
+        "poc_ouro_parallelism_deep_discovery.scripts.native_baseline",
+        "--size",
+        "1.4B",
+        "--tp",
+        "2",
+        "--R",
+        "4",
+        "--async-scheduling",
+        "--weight-storage-control",
+        "alias",
+        "--isolate-all-compile-caches"
+      ],
+      "end_utc": "2026-10-19T13:08:32.416192+00:00",
+      "exit_code": 1,
+      "name": "storage_alias_base14_P2_fully_isolated_v3",
+      "start_utc": "2026-10-19T13:08:15.185233+00:00",
+      "status": "FAIL"
+    }
+  ],
+  "pid": 2790452,
+  "reason": "v2 left the global AOT model cache shared. No v1/v2 storage-effect conclusion is valid.",
+  "scope": "Counterfactual only, not a candidate method or natural quality result.",
+  "start_utc": "2026-10-19T13:08:15.185049+00:00",
+  "status": "STOPPED_AFTER_FAILURE"
+}

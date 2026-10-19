@@ -1,4 +1,5 @@
 {
+  "end_utc": "2026-10-19T12:45:40.827163+00:00",
   "jobs": [
     {
       "command": [
@@ -58,14 +59,80 @@
         "copies",
         "--isolate-compile-cache"
       ],
+      "end_utc": "2026-10-19T12:40:49.431516+00:00",
+      "exit_code": 0,
       "name": "storage_copies_base14_P2_isolated_v2",
       "start_utc": "2026-10-19T12:39:06.579029+00:00",
-      "status": "RUNNING"
+      "status": "PASS"
+    },
+    {
+      "command": [
+        "/home/esjung/.venvs/llada2-mini-reference/bin/python",
+        "-m",
+        "poc_ouro_parallelism_deep_discovery.scripts.gpu_session",
+        "--gpus",
+        "4,6",
+        "--output",
+        "outputs/storage_copies_base26_P2_isolated_v2",
+        "--timeout",
+        "3600",
+        "--",
+        "/home/esjung/.venvs/ouro-deep-discovery/bin/python",
+        "-m",
+        "poc_ouro_parallelism_deep_discovery.scripts.native_baseline",
+        "--size",
+        "2.6B",
+        "--tp",
+        "2",
+        "--R",
+        "4",
+        "--async-scheduling",
+        "--weight-storage-control",
+        "copies",
+        "--isolate-compile-cache"
+      ],
+      "end_utc": "2026-10-19T12:43:20.233260+00:00",
+      "exit_code": 0,
+      "name": "storage_copies_base26_P2_isolated_v2",
+      "start_utc": "2026-10-19T12:40:49.877031+00:00",
+      "status": "PASS"
+    },
+    {
+      "command": [
+        "/home/esjung/.venvs/llada2-mini-reference/bin/python",
+        "-m",
+        "poc_ouro_parallelism_deep_discovery.scripts.gpu_session",
+        "--gpus",
+        "4,6",
+        "--output",
+        "outputs/storage_alias_base26_P2_isolated_v2",
+        "--timeout",
+        "3600",
+        "--",
+        "/home/esjung/.venvs/ouro-deep-discovery/bin/python",
+        "-m",
+        "poc_ouro_parallelism_deep_discovery.scripts.native_baseline",
+        "--size",
+        "2.6B",
+        "--tp",
+        "2",
+        "--R",
+        "4",
+        "--async-scheduling",
+        "--weight-storage-control",
+        "alias",
+        "--isolate-compile-cache"
+      ],
+      "end_utc": "2026-10-19T12:45:40.826579+00:00",
+      "exit_code": 0,
+      "name": "storage_alias_base26_P2_isolated_v2",
+      "start_utc": "2026-10-19T12:43:20.363076+00:00",
+      "status": "PASS"
     }
   ],
   "pid": 2725762,
   "reason": "The v1 arms shared a native compilation cache. Keep v1 evidence but do not use it for a residency conclusion.",
   "start_utc": "2026-10-19T12:36:02.370170+00:00",
-  "status": "RUNNING",
+  "status": "COMPLETE",
   "waiting_is_substantive_research": false
 }

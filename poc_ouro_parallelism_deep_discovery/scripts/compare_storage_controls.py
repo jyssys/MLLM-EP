@@ -71,7 +71,10 @@ def main():
                 raw = read(path / 'storage_control.json')
                 storage[arm] = [{k:v for k,v in row.items() if k != 'explicitly_initialized_copy_names'} for row in raw]
             records.append(dict(model=size, R=4, P=P, alias_path=str(alias), copies_path=str(copies),
-                                compile_cache_paths=caches,compile_cache_isolated=all(caches) and caches[0]!=caches[1],
+                                compile_cache_paths=caches,vllm_index_cache_isolated=all(caches) and caches[0]!=caches[1],
+                                global_cache_environment_records=[read(path/'cache_environment.json')
+                                    if (path/'cache_environment.json').exists() else None for path in [alias,copies]],
+                                compiled_storage_execution='Requires separate generated-graph operand validation. Parameter allocation and numerical equality alone do not establish execution ownership.',
                                 timing=observations, capture_comparisons=captures, storage=storage,
                                 evidence_class='LIVE_E2E', quality='Four controlled teacher-forced positions only. Natural accuracy NOT_RUN.',
                                 attribution='Physical sharing changes parameter/module aliases and may change compilation. HBM counters unavailable.',

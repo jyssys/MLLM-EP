@@ -1,0 +1,231 @@
+{
+  "schema": "candidate_search_v5_source_observations",
+  "worker": "/root/independent_axes",
+  "report": "reports/candidate_search_v5_independent_axes.md",
+  "executable": "scripts/candidate_round5_cpu.py",
+  "executable_sha256": "08989a56b08d72bdd930c3edc8e352259508390320020a9410474a5522c0bd7f",
+  "artifact": "artifacts/candidate_round5_cpu_v1.json",
+  "time": {
+    "start_utc": "2026-10-19 13:36:53 UTC",
+    "source_and_CPU_checkpoint_utc": "2026-10-19 13:47:02 UTC",
+    "evidence_end_utc": "2026-10-19 13:48:19 UTC",
+    "segment_seconds_to_checkpoint": 686,
+    "first_CPU_run": {
+      "begin_utc": "2026-10-19T13:43:22.537719+00:00",
+      "end_utc": "2026-10-19T13:43:25.294824+00:00"
+    },
+    "final_CPU_run": {
+      "begin_utc": "2026-10-19T13:44:18.524252+00:00",
+      "end_utc": "2026-10-19T13:44:21.258761+00:00"
+    },
+    "rerun_reason": "Added two shared-scale representation unit tests. The final run reproduced the bounded component statistics.",
+    "query_time_precision": "Queries occurred within the recorded segment. Exact per-query times were not captured.",
+    "accounting": "No arbitrary wait. Count overlapping worker time once within campaign wall time."
+  },
+  "evidence_classes": [
+    "PRIMARY_SOURCE_AUDIT",
+    "CONSTRUCTED_CPU_ALGEBRA_CONTROL",
+    "BOUNDED_CPU_CHECKPOINT_COMPONENT_SCREEN"
+  ],
+  "new_candidate_cards": 0,
+  "coordinator_state_modified": false,
+  "GPU_execution": "NOT_RUN",
+  "quality": "NOT_RUN",
+  "engine": "NOT_BUILT",
+  "required_interpretation": "Read reports/alias_equivalence_interpretation.md. Generic alias representability alone does not reject a concrete memory or ownership benefit.",
+  "hypotheses": [
+    {
+      "id": "R5-A",
+      "name": "Certified-zero SwiGLU channel execution",
+      "causal_inputs": "Fresh normalized x and actual gate weights/cast contract.",
+      "concurrent_unit": "Channel certificates and surviving up/down tiles.",
+      "state_owners": "Existing request/depth/layer KV owner and versioned hidden/residual owner. Immutable channel weights remain with compute owners.",
+      "exactness": "Zero elimination is conditional on finite unused operands and matching cast/reduction semantics.",
+      "saved_work": "Selected up rows and down columns.",
+      "added_costs": [
+        "Gate-first serialization",
+        "Certificate and finite-result checks",
+        "Mask transport",
+        "Indexing and sparse packing",
+        "Irregular memory access",
+        "Output merge"
+      ],
+      "baseline": "Same-P native fused gate/up dense path plus generic exact zero skipping.",
+      "cheap_disproof": "Count qualified zeros and removable tiles before engine work.",
+      "outcome": "No zero supply in this bounded CPU reconstruction. Native GPU hit rate remains unmeasured."
+    },
+    {
+      "id": "R5-B",
+      "name": "Lossless arithmetic-component contraction",
+      "causal_inputs": "Fresh current BF16 x, unchanged W, complete exact slice metadata.",
+      "concurrent_unit": "Independent integer slice-pair contractions and reconstruction.",
+      "state_owners": "Original KV owners unchanged. Arithmetic workers own static W slices and versioned partial sums.",
+      "exactness": "Lossless operands do not imply the same FP32 accumulation result.",
+      "saved_work": "Hypothesized cheaper operand/arithmetic path, not skipped recurrent passes.",
+      "added_costs": [
+        "Expanded static weights",
+        "Dynamic x conversion",
+        "Multiple pair contractions",
+        "Partial buffers",
+        "Inter-worker partial transport",
+        "Reconstruction",
+        "Exceptional-value support"
+      ],
+      "baseline": "Same-P native BF16 GEMM/TP and generic Ozaki/emulation controls.",
+      "cheap_disproof": "Check exact representation width and full pair count, then qualify accumulation.",
+      "outcome": "One-slice replacement fails for the tested format. Multiple slices and numerical gaps supply no supported engine headroom."
+    }
+  ],
+  "CPU_summaries": [
+    {
+      "size": "1.4B",
+      "revision": "574fa66cb8bf5abdc979642d01cf2b79b16bfab1",
+      "layers": [
+        0,
+        12,
+        23
+      ],
+      "reconstructed_rows": 24,
+      "channel_denominator": 135168,
+      "zero_gate_values": 0,
+      "zero_rounded_SiLU_values": 0,
+      "complete_zero_checker_tiles_width32": 0,
+      "input_slices_range": [
+        3,
+        4
+      ],
+      "weight_row_slices_range": [
+        3,
+        6
+      ],
+      "best_weight_row_complete_pair_counts": [
+        9,
+        12
+      ]
+    },
+    {
+      "size": "2.6B",
+      "revision": "1ed04250da1a9936042725d302e81c8fa2ab5abd",
+      "layers": [
+        0,
+        24,
+        47
+      ],
+      "reconstructed_rows": 24,
+      "channel_denominator": 135168,
+      "zero_gate_values": 0,
+      "zero_rounded_SiLU_values": 0,
+      "complete_zero_checker_tiles_width32": 0,
+      "input_slices_range": [
+        3,
+        4
+      ],
+      "weight_row_slices_range": [
+        3,
+        6
+      ],
+      "best_weight_row_complete_pair_counts": [
+        9,
+        12
+      ]
+    }
+  ],
+  "scope_limits": [
+    "FP64 CPU gate projection followed by BF16/FP32 casts is not the native GPU gate/activation path.",
+    "Two bounded prompts are not independent benchmark requests.",
+    "Fixed-R4 samples do not establish adaptive hit rates.",
+    "Logical width-32 tiles are not measured kernel geometry.",
+    "Complete pair expansion counts do not bound every exact arithmetic algorithm.",
+    "No task-quality, E2E, traffic, or GPU-latency claim."
+  ],
+  "sources": [
+    {
+      "title": "Training-Free Activation Sparsity in Large Language Models",
+      "authors": "James Liu, Pragaash Ponnusamy, Tianle Cai, Han Guo, Yoon Kim, Ben Athiwaratkun",
+      "identifier": "arXiv:2408.14690v2",
+      "version_date": "2024-10-11",
+      "url": "https://arxiv.org/html/2408.14690v2",
+      "locators": [
+        "3",
+        "4.2",
+        "4.4",
+        "5.4.1"
+      ],
+      "supports": "Approximate magnitude sparsity and the generic up/down gating mechanism. Not exact removal of arbitrary nonzero activations."
+    },
+    {
+      "title": "Model Casting and Low-Parameter Gating: Towards More Sparsely Activated FFNs",
+      "authors": "Maria Lomeli, Antoine Groudiev, Matthijs Douze, Loïc Cabannes, Pierre Emmanuel Mazaré, François Fleuret, Maximilian Beck, Gergely Szilvasy, Naila Murray, Hervé Jégou",
+      "identifier": "arXiv:2609.31975v1",
+      "version_date": "2026-09-25",
+      "url": "https://arxiv.org/html/2609.31975v1",
+      "locators": [
+        "3.1",
+        "3.2"
+      ],
+      "supports": "Explicit gate-first up/down skipping. Uses changed activations and further training, outside this campaign."
+    },
+    {
+      "title": "DGEMM on Integer Matrix Multiplication Unit",
+      "authors": "Hiroyuki Ootomo, Katsuhisa Ozaki, Rio Yokota",
+      "identifier": "arXiv:2306.11975v3",
+      "version_date": "2023-12-28",
+      "url": "https://arxiv.org/html/2306.11975v3",
+      "locators": [
+        "2.3",
+        "3.1–3.2",
+        "4.3"
+      ],
+      "supports": "Integer slice contraction and reconstruction. Charges expanded workspace and multiple component products. FP64 target, not an Ouro result."
+    },
+    {
+      "title": "cuBLAS",
+      "authors": "NVIDIA",
+      "version": "CUDA 13.0.3 documentation",
+      "url": "https://docs.nvidia.com/cuda/archive/13.0.3/cublas/index.html#floating-point-emulation",
+      "locators": [
+        "1.5"
+      ],
+      "supports": "Generic floating-point emulation with declared target precision, support matrix and workspace. No enabled feature or local installation."
+    }
+  ],
+  "code_audit": {
+    "local_wrapper": "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/model_executor/layers/activation.py",
+    "local_wrapper_sha256": "16db0b0a5aa1a20a14d74b543658c30683b921284387ec8b7104dc0585435008",
+    "local_lines": "120–157",
+    "official_source": "https://github.com/vllm-project/vllm/blob/81f7c69577433b938ee16539020792dae37c7d0c/csrc/activation_kernels.cu",
+    "revision": "81f7c69577433b938ee16539020792dae37c7d0c",
+    "revision_date": "2026-10-19T13:25:33Z",
+    "sha256": "27ba079b069fab4fa633b0ed23aad7fee6428c2a31330013dc98a1e2a6ef1e08",
+    "lines": [
+      "28–83",
+      "164–177",
+      "299–303"
+    ],
+    "observation": "Activated gate casts to its scalar/packed dtype before multiplication.",
+    "limit": "Current official source, not installed binary identity. The attempted v0.26.0 release-tag source URL returned 404."
+  },
+  "searches": [
+    "exact zero skipping SiLU SwiGLU inference floating point underflow activation sparsity",
+    "Ozaki scheme exact matrix multiplication integer tensor cores BF16 mantissa exponent GEMM",
+    "site:docs.nvidia.com cublas floating point emulation fixed point integer tensor cores",
+    "\"SiLU\" \"exact\" \"sparsity\" inference",
+    "\"DGEMM on integer matrix multiplication unit\"",
+    "site:docs.nvidia.com/cuda/cublas \"Floating Point Emulation\" \"fixed-point\"",
+    "\"SiLU\" \"activation sparsity\" \"exact\"",
+    "\"TEAL\" training-free activation sparsity paper",
+    "\"PowerInfer\" \"ReLU\" \"SiLU\""
+  ],
+  "validation": {
+    "report_prose_lint_findings": 0,
+    "report_prose_lint_hard_findings": 0,
+    "CPU_JSON_parse": "PASS",
+    "source_JSON_parse": "PASS",
+    "checked_rows": 48,
+    "checked_channels": 270336,
+    "GPU_parity": "NOT_CHECKED",
+    "scope": "Tests cover constructed arithmetic, representation unit cases, bounded CPU components, and summary consistency."
+  },
+  "no_performance_transfer": "Primary-paper speedups are not copied into an Ouro cost model.",
+  "stop": "No candidate cards or engine from this round. Reopening needs a different certified-zero supply or exact representation/cost result."
+}

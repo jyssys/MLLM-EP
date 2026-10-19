@@ -96,6 +96,40 @@ The guard restored owned burners after completed GPU probes.
 Natural baseline pilots remain active on physical GPUs 5 and 7.
 No foreign job or predecessor worktree changed.
 
+## Global-cache correction and topology checkpoint
+
+Coordinator segments cover 12717.320978 seconds through 2026-10-19T13:24:50.320978Z.
+This is about 3.53 hours, not ten hours.
+The campaign remains active. No new architecture receives a GO.
+
+The v2 storage jobs isolated ordinary index caches but reused global whole-model AOT artifacts.
+The lifted weight arguments did not distinguish several intended alias/copies arms.
+All v1/v2 storage attribution remains invalid or unvalidated.
+The earlier tentative interpretation of bitwise-equal P2 results is withdrawn.
+No audit identified the cause of the P4 numerical differences.
+
+The v4 controls isolate every compiler-cache root before vLLM imports.
+Completed early pairs now pass saved-graph provenance checks.
+Runtime argument binding and cached kernel pointers remain separate evidence questions.
+No current storage timing becomes a causal HBM-sharing result.
+
+The actual Base1.4B P1 decode graph contains 1154 nodes and 1153 edges in one captured chain.
+It contains 96 current-KV writes and 96 attention-core kernels.
+This is topology, not a latency breakdown or proof of unavoidable serial execution.
+The graph debug capture differs numerically from an independently compiled baseline.
+All four sampled top-1 choices match. Natural parity is untested.
+
+New source screens cover LoopAhead, trained Parallel Track architectures, breadth-first PP, folded tensor/sequence layouts, and device-launched graphs.
+They add nearest-prior controls, not a surviving new candidate.
+The refreshed ledger contains 121 observations, 68 arXiv work keys, and 95 search records.
+These counts include partial reads and metadata checks.
+Nineteen candidate dispositions still produce no shortlist.
+
+The untouched held-out cohort remains unused.
+The predecessor-preservation check passes.
+Checkpoint a1dcf761ef57a905417257c416d3d929b74ee382 is pushed.
+New evidence remains scoped to this campaign directory.
+
 ## Baseline strengthening and storage-counterfactual checkpoint
 
 Coordinator segments cover 9938.535710 seconds through 2026-10-19T12:38:31.535710Z.
@@ -130,3 +164,29 @@ The source index has 98 observations, 61 arXiv work keys, and 73 search records.
 Those counts include partial and metadata-only reads.
 They do not claim 61 deep paper reads.
 The latest predecessor-preservation check passes.
+
+## Typed dependency and binding checkpoint, 13:56 UTC
+
+Coordinator segments cover 14,591.389456 seconds through 2026-10-19T13:56:04.389456Z.
+This is about 4.05 hours. The campaign remains active.
+Concurrent worker time does not multiply elapsed campaign time.
+
+All eight fully isolated v4 jobs pass saved-graph provenance.
+The separate binding audit checks 1,928 prefill weight operands and 11,568 metadata fields without a mismatch.
+Those calls do not establish cached decode-kernel pointer identity.
+A fresh same-alias repeat also differs numerically.
+The cause of the numerical differences remains unresolved.
+
+The read-only Base1.4B P1 graph export succeeds on physical GPU5.
+It retains 1,154 nodes, 1,153 edges, and 96 programmatic dependency records.
+No event nodes or dependency changes enter that export.
+Endpoint-chain topology therefore does not establish full kernel serialization.
+
+The depth-affinity capacity screen exposes a structural adaptive-load penalty under its stipulated fixed-owner model.
+It is not measured CDB performance or a hardware lower bound.
+Independent search round 5 adds no candidate card.
+Its two tested arithmetic proposals lack a supported net-cost argument.
+
+The held-out cohort remains untouched.
+No new architecture has qualifying evidence.
+The predecessor-preservation check passes.

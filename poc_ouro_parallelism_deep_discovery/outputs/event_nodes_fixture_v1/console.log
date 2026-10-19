@@ -1,0 +1,60 @@
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/scripts/event_nodes_fixture.py", line 94, in <module>
+    if __name__=='__main__':main()
+                            ~~~~^^
+  File "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/scripts/event_nodes_fixture.py", line 61, in main
+    for _ in range(7):fn(x)
+                      ~~^^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/_dynamo/eval_frame.py", line 1024, in compile_wrapper
+    return fn(*args, **kwargs)
+  File "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/scripts/event_nodes_fixture.py", line 42, in marked
+    def marked(value):
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/_dynamo/eval_frame.py", line 1263, in _fn
+    return fn(*args, **kwargs)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/_functorch/aot_autograd.py", line 1200, in forward
+    return compiled_fn(full_args)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/_functorch/_aot_autograd/runtime_wrappers.py", line 580, in runtime_wrapper
+    all_outs = call_func_at_runtime_with_args(
+        compiled_fn, args, disable_amp=disable_amp, steal_args=True
+    )
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/_functorch/_aot_autograd/utils.py", line 138, in call_func_at_runtime_with_args
+    out = normalize_as_list(f(args))
+                            ~^^^^^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/_functorch/_aot_autograd/runtime_wrappers.py", line 783, in wrapper
+    return compiled_fn(runtime_args)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/_functorch/_aot_autograd/runtime_wrappers.py", line 1011, in inner_fn
+    outs = compiled_fn(args)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/_inductor/output_code.py", line 656, in __call__
+    return self.current_callable(inputs)
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/_inductor/utils.py", line 3401, in run
+    out = model(new_inputs)
+  File "/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/outputs/event_nodes_fixture_v1/inductor_cache/xx/cxxm4gypy6bnbj3gxx6icjlcuykknncecymmpctrrkvx55lc72u6.py", line 192, in call
+    torch.ops.streams.record_event.default(0, 1)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/_ops.py", line 865, in __call__
+    return self._op(*args, **kwargs)
+           ~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/_compile.py", line 54, in inner
+    return disable_fn(*args, **kwargs)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/_dynamo/eval_frame.py", line 1263, in _fn
+    return fn(*args, **kwargs)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/_functorch/_aot_autograd/runtime_wrappers.py", line 409, in __torch_dispatch__
+    res = func(*args, **kwargs)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/_ops.py", line 865, in __call__
+    return self._op(*args, **kwargs)
+           ~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/_library/custom_ops.py", line 347, in backend_impl
+    result = self._backend_fns[device_type](*args, **kwargs)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/_compile.py", line 54, in inner
+    return disable_fn(*args, **kwargs)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/_dynamo/eval_frame.py", line 1263, in _fn
+    return fn(*args, **kwargs)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/_library/custom_ops.py", line 382, in wrapped_fn
+    return fn(*args, **kwargs)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/_dynamo/variables/streams.py", line 128, in record_event
+    stream.record_event(event)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^
+RuntimeError: expected event to be a torch.Event object

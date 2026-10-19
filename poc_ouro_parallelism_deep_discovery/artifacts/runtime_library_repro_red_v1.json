@@ -1,0 +1,27 @@
+{
+  "CUDA_VISIBLE_DEVICES": "",
+  "GPU_context_requested": false,
+  "baseline_runtime": "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/nvidia/cuda_runtime/lib/libcudart.so.12",
+  "deliberately_loaded_alternate": "/usr/local/cuda-12.8/targets/x86_64-linux/lib/libcudart.so.12.8.90",
+  "error_type": "RuntimeError",
+  "relevant_mapping_lines": [
+    "7f6187600000-7f61876ad000 r-xp 00000000 fc:01 529722                     /usr/local/cuda-12.8/targets/x86_64-linux/lib/libcudart.so.12.8.90",
+    "7f61876ad000-7f61878ad000 ---p 000ad000 fc:01 529722                     /usr/local/cuda-12.8/targets/x86_64-linux/lib/libcudart.so.12.8.90",
+    "7f61878ad000-7f61878b1000 r--p 000ad000 fc:01 529722                     /usr/local/cuda-12.8/targets/x86_64-linux/lib/libcudart.so.12.8.90",
+    "7f61878b1000-7f61878b2000 rw-p 000b1000 fc:01 529722                     /usr/local/cuda-12.8/targets/x86_64-linux/lib/libcudart.so.12.8.90",
+    "7f622d857000-7f622e1b5000 r--p 00000000 fc:01 469916945                  /home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/lib/libtorch_cuda.so",
+    "7f622e1b5000-7f62316b3000 r-xp 0095e000 fc:01 469916945                  /home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/lib/libtorch_cuda.so",
+    "7f62316b3000-7f627c12f000 r--p 03e5c000 fc:01 469916945                  /home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/lib/libtorch_cuda.so",
+    "7f627c12f000-7f627c19e000 r--p 4e8d7000 fc:01 469916945                  /home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/lib/libtorch_cuda.so",
+    "7f627c19e000-7f627c1bf000 rw-p 4e946000 fc:01 469916945                  /home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/lib/libtorch_cuda.so",
+    "7f627cf0b000-7f627d5fd000 rw-p 503f7000 fc:01 469916945                  /home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/lib/libtorch_cuda.so",
+    "7f6366800000-7f63668b0000 r-xp 00000000 fc:01 469397500                  /home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/nvidia/cuda_runtime/lib/libcudart.so.12",
+    "7f63668b0000-7f6366ab0000 ---p 000b0000 fc:01 469397500                  /home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/nvidia/cuda_runtime/lib/libcudart.so.12",
+    "7f6366ab0000-7f6366ab4000 r--p 000b0000 fc:01 469397500                  /home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/nvidia/cuda_runtime/lib/libcudart.so.12",
+    "7f6366ab4000-7f6366ab5000 rw-p 000b4000 fc:01 469397500                  /home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/nvidia/cuda_runtime/lib/libcudart.so.12"
+  ],
+  "scope": "Reproduce the actual two-library pattern without model loading or GPU execution.",
+  "status": "FAIL",
+  "torch_cuda_initialized": false,
+  "traceback": "Traceback (most recent call last):\n  File \"/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/scripts/runtime_library_resolver_regression.py\", line 34, in main\n    selected = loaded_cudart_path()\n  File \"/home/esjung/MLLM-EP-ouro-deep-discovery/poc_ouro_parallelism_deep_discovery/cuda_graph_event_nodes.py\", line 117, in loaded_cudart_path\n    raise RuntimeError('Exactly one already-loaded libcudart is required. '\n                       f'Observed runtime libraries: {sorted(paths)!r}')\nRuntimeError: Exactly one already-loaded libcudart is required. Observed runtime libraries: ['/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/nvidia/cuda_runtime/lib/libcudart.so.12', '/usr/local/cuda-12.8/targets/x86_64-linux/lib/libcudart.so.12.8.90']\n"
+}

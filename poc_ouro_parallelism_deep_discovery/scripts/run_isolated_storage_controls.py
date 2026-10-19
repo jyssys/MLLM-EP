@@ -1,4 +1,5 @@
 """Fresh per-arm compile caches for the storage counterfactual."""
+import argparse
 import datetime as dt
 import os
 import subprocess
@@ -10,20 +11,22 @@ def stamp():return dt.datetime.now(dt.timezone.utc).isoformat()
 
 
 def main():
-    target=ROOT/'artifacts/storage_isolated_queue_v2.json'
+    parser=argparse.ArgumentParser();parser.add_argument('--P',type=int,choices=[2,4],default=2)
+    args=parser.parse_args()
+    target=ROOT/('artifacts/storage_isolated_queue_v2.json' if args.P==2 else 'artifacts/storage_isolated_P4_queue_v2.json')
     assert not target.exists()
     state=dict(pid=os.getpid(),start_utc=stamp(),status='WAITING_FOR_OWN_PREREQUISITE',jobs=[],
                reason='The v1 arms shared a native compilation cache. Keep v1 evidence but do not use it for a residency conclusion.',
                waiting_is_substantive_research=False)
     write(target,state)
-    prerequisite=ROOT/'outputs/storage_alias_base14_P4_v1/guard_status.json'
+    prerequisite=ROOT/('outputs/storage_alias_base14_P4_v1/guard_status.json' if args.P==2 else 'outputs/storage_alias_base26_P2_isolated_v2/guard_status.json')
     deadline=time.monotonic()+3600
     while not prerequisite.exists():
         if time.monotonic()>deadline:raise TimeoutError(str(prerequisite))
         time.sleep(1)
     assert read(prerequisite).get('success')
-    for size,arm,gpus,P in [('1.4B','alias','4,6',2),('1.4B','copies','4,6',2),
-                            ('2.6B','copies','4,6',2),('2.6B','alias','4,6',2)]:
+    P=args.P;gpus='4,6' if P==2 else '4,5,6,7'
+    for size,arm in [('1.4B','alias'),('1.4B','copies'),('2.6B','copies'),('2.6B','alias')]:
         short=size.replace('.','').replace('B','')
         name=f'storage_{arm}_base{short}_P{P}_isolated_v2'
         command=[REFERENCE_PYTHON,'-m','poc_ouro_parallelism_deep_discovery.scripts.gpu_session',
