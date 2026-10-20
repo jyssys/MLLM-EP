@@ -1,0 +1,81 @@
+{
+  "source": "profiles/clean2_tp_operator_diagnostic.sqlite",
+  "source_sha256": "25ac7a635d653bbc7a55e7e43319358bda61c0c6439ecee0e6d3debaacd9a224",
+  "evidence": "DIAGNOSTIC_NSIGHT_ACTIVITY, not clean serving latency",
+  "window_ms": 287.526475,
+  "physical_logical_mapping": "Profiler device 0/1/2/3 = validated physical GPU 4/5/6/7",
+  "ranks": [
+    {
+      "rank": 0,
+      "physical_GPU": 4,
+      "kernel_count": 820,
+      "kernel_service_ms": 14.302489,
+      "NCCL_kernel_count": 32,
+      "NCCL_kernel_service_ms": 12.146522,
+      "activity_union_ms": 14.541593,
+      "no_recorded_activity_fraction": 0.9494252033660553
+    },
+    {
+      "rank": 1,
+      "physical_GPU": 5,
+      "kernel_count": 820,
+      "kernel_service_ms": 37.220858,
+      "NCCL_kernel_count": 32,
+      "NCCL_kernel_service_ms": 35.076385,
+      "activity_union_ms": 37.46265,
+      "no_recorded_activity_fraction": 0.8697071287087563
+    },
+    {
+      "rank": 2,
+      "physical_GPU": 6,
+      "kernel_count": 820,
+      "kernel_service_ms": 17.35966,
+      "NCCL_kernel_count": 32,
+      "NCCL_kernel_service_ms": 15.187722,
+      "activity_union_ms": 17.596812,
+      "no_recorded_activity_fraction": 0.9387993331744494
+    },
+    {
+      "rank": 3,
+      "physical_GPU": 7,
+      "kernel_count": 820,
+      "kernel_service_ms": 64.326482,
+      "NCCL_kernel_count": 32,
+      "NCCL_kernel_service_ms": 62.118359,
+      "activity_union_ms": 64.565712,
+      "no_recorded_activity_fraction": 0.7754442890867702
+    }
+  ],
+  "NCCL_kernel_names": {
+    "ncclDevKernel_AllReduce_Sum_f32_RING_LL": 128
+  },
+  "different_request_kernel_overlap_ms": 0.0,
+  "max_simultaneous_kernel_ranks": 0,
+  "tagged_kernels": 0,
+  "kernels": 3280,
+  "copies": [
+    {
+      "kind": 1,
+      "count": 176,
+      "bytes": 3481728,
+      "service_ms": 0.396447
+    },
+    {
+      "kind": 2,
+      "count": 192,
+      "bytes": 5537792,
+      "service_ms": 0.560831
+    }
+  ],
+  "CUDA_API_diagnostics": {
+    "cudaMemcpyAsync_v3020": {
+      "count": 368,
+      "host_service_ms": 42.745438000000014
+    },
+    "cudaStreamSynchronize_v3020": {
+      "count": 368,
+      "host_service_ms": 60.96434800000001
+    }
+  },
+  "limitation": "Correctness/operator observer lane. CUDA service and inactivity do not establish an E2E critical-path decomposition."
+}
