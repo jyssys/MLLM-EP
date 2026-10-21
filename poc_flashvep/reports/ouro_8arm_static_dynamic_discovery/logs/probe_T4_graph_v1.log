@@ -1,0 +1,43 @@
+NCCL version 2.27.3+cuda12.9
+`torch_dtype` is deprecated! Use `dtype` instead!
+`torch_dtype` is deprecated! Use `dtype` instead!
+`torch_dtype` is deprecated! Use `dtype` instead!
+`torch_dtype` is deprecated! Use `dtype` instead!
+QUALITY T4 probe-0 8 4.0
+QUALITY T4 probe-1 8 4.0
+QUALITY T4 probe-2 8 4.0
+QUALITY T4 probe-3 8 4.0
+W1021 15:20:24.122000 1162237 site-packages/torch/distributed/elastic/agent/server/api.py:723] Received 15 death signal, shutting down workers
+W1021 15:20:24.123000 1162237 site-packages/torch/distributed/elastic/multiprocessing/api.py:900] Sending process 1162253 closing signal SIGTERM
+W1021 15:20:24.123000 1162237 site-packages/torch/distributed/elastic/multiprocessing/api.py:900] Sending process 1162254 closing signal SIGTERM
+W1021 15:20:24.124000 1162237 site-packages/torch/distributed/elastic/multiprocessing/api.py:900] Sending process 1162256 closing signal SIGTERM
+W1021 15:20:24.125000 1162237 site-packages/torch/distributed/elastic/multiprocessing/api.py:900] Sending process 1162257 closing signal SIGTERM
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/esjung/anaconda3/envs/dinfer-ep-poc/lib/python3.11/site-packages/torch/distributed/run.py", line 905, in <module>
+    main()
+  File "/home/esjung/anaconda3/envs/dinfer-ep-poc/lib/python3.11/site-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py", line 357, in wrapper
+    return f(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/anaconda3/envs/dinfer-ep-poc/lib/python3.11/site-packages/torch/distributed/run.py", line 901, in main
+    run(args)
+  File "/home/esjung/anaconda3/envs/dinfer-ep-poc/lib/python3.11/site-packages/torch/distributed/run.py", line 892, in run
+    elastic_launch(
+  File "/home/esjung/anaconda3/envs/dinfer-ep-poc/lib/python3.11/site-packages/torch/distributed/launcher/api.py", line 143, in __call__
+    return launch_agent(self._config, self._entrypoint, list(args))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/anaconda3/envs/dinfer-ep-poc/lib/python3.11/site-packages/torch/distributed/launcher/api.py", line 268, in launch_agent
+    result = agent.run()
+             ^^^^^^^^^^^
+  File "/home/esjung/anaconda3/envs/dinfer-ep-poc/lib/python3.11/site-packages/torch/distributed/elastic/metrics/api.py", line 138, in wrapper
+    result = f(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/anaconda3/envs/dinfer-ep-poc/lib/python3.11/site-packages/torch/distributed/elastic/agent/server/api.py", line 715, in run
+    result = self._invoke_run(role)
+             ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/anaconda3/envs/dinfer-ep-poc/lib/python3.11/site-packages/torch/distributed/elastic/agent/server/api.py", line 879, in _invoke_run
+    time.sleep(monitor_interval)
+  File "/home/esjung/anaconda3/envs/dinfer-ep-poc/lib/python3.11/site-packages/torch/distributed/elastic/multiprocessing/api.py", line 84, in _terminate_process_handler
+    raise SignalException(f"Process {os.getpid()} got signal: {sigval}", sigval=sigval)
+torch.distributed.elastic.multiprocessing.api.SignalException: Process 1162237 got signal: 15

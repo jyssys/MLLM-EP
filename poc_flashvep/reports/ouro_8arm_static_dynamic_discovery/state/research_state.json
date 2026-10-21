@@ -1,0 +1,29 @@
+{
+  "stage": "S4/L4/O4 canonical Static pilots complete. Custom T4 Static pilot is running. Continuation waits for its parent campaign.",
+  "numeric": "Five-engine fresh synthetic traces collected",
+  "current_GPU_session": 32706,
+  "next": [
+    "Complete canonical-ID custom Static pilot. S4 resumes only missing or input-mismatched whole C4 cohorts.",
+    "Validate CDB Single and dynamic ports",
+    "Matched 5-repeat replay",
+    "Aggregate paired accuracy and commit/push"
+  ],
+  "full_eval": "USER_REDUCED_NOT_RUN. Target now 400 per main arm: 300 GSM8K + 100 MATH. See evaluation_subset400.json.",
+  "continuation_session": "Read the newest state/continuation_controller.json and live process command before any restart.",
+  "completed": {
+    "native_S4_v1": "114 actual generations. TTFT/TPOT invalid, outputs preserved.",
+    "native_S4_v2": "114 actual generations. GSM8K 46/64. MATH-500 32/50.",
+    "native_T4_v2": "114 actual generations. GSM8K 45/64. MATH-500 34/50. Exploratory fidelity.",
+    "FP32_seams": "90 bounded same-input operation references, including historical P512 steps.",
+    "CPU_contract": "10 tests PASS, including fixed 400-question metadata, cohort integrity, and metric formulas.",
+    "Static_quality_parity": "Canonical S4 vs L4/O4: all 114 request output token sequences match. GSM8K 46/64; MATH 31/50 for each custom arm.",
+    "Static_PP_probe": "probe_S4_v3 vs L4_v3/O4_v3: output/depth/all96KV bitwise PASS for four requests.",
+    "TP_graph_probe": "probe_T4_graph_v2: bounded four-rank run exits zero. Numeric qualification unresolved."
+  },
+  "fixed_new_runtime_bugs": ["Self-IPC initialization", "Graph mask input lifetime", "NCCL Graph teardown order", "Tokenizer-version whitespace mismatch: explicit frozen native IDs"],
+  "do_not_use_as_quality": ["probe_S4_v2", "probe_L4_v2", "probe_O4_v2", "all synthetic, forced-exit, or frozen-feedback probes"],
+  "continuation_stages": ["dynamic-probes", "dynamic-quality", "matched-natural", "freeze-dynamic-replay", "static-replay", "eight-arm-depth-replay C1/C4/C8/C16", "extension400", "heavy-trace", "CPU aggregation and report snapshot"],
+  "report_review": "Required after raw campaigns. report_snapshot writes IN_PROGRESS status, not an automatic GO verdict.",
+  "time_scope_warning": "Prototype service clocks exclude cohort-specific graph preparation. New cohorts record a separate preparation-inclusive resident-model clock. Earlier coverage is PARTIAL.",
+  "push_scope": "Only this study's code, artifacts, and report directory. A checkpoint commit is not a completed eight-arm result."
+}

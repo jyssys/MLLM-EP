@@ -1,0 +1,48 @@
+`torch_dtype` is deprecated! Use `dtype` instead!
+[W1021 15:12:52.828660211 CudaIPCTypes.cpp:16] Producer process has been terminated before all shared CUDA tensors released. See Note [Sharing CUDA tensors]
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/esjung/MLLM-EP-ouro-request-pp/poc_flashvep/ouro_8arm/request_runtime.py", line 184, in <module>
+    if __name__=='__main__':main()
+                            ^^^^^^
+  File "/home/esjung/MLLM-EP-ouro-request-pp/poc_flashvep/ouro_8arm/request_runtime.py", line 181, in main
+    mp.spawn(worker,args=(queues,init,acks,args,groups),nprocs=args.n,join=True)
+  File "/home/esjung/anaconda3/envs/dinfer-ep-poc/lib/python3.11/site-packages/torch/multiprocessing/spawn.py", line 340, in spawn
+    return start_processes(fn, args, nprocs, join, daemon, start_method="spawn")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/anaconda3/envs/dinfer-ep-poc/lib/python3.11/site-packages/torch/multiprocessing/spawn.py", line 296, in start_processes
+    while not context.join():
+              ^^^^^^^^^^^^^^
+  File "/home/esjung/anaconda3/envs/dinfer-ep-poc/lib/python3.11/site-packages/torch/multiprocessing/spawn.py", line 215, in join
+    raise ProcessRaisedException(msg, error_index, failed_process.pid)
+torch.multiprocessing.spawn.ProcessRaisedException: 
+
+-- Process 0 terminated with the following error:
+Traceback (most recent call last):
+  File "/home/esjung/anaconda3/envs/dinfer-ep-poc/lib/python3.11/site-packages/torch/multiprocessing/spawn.py", line 90, in _wrap
+    fn(i, *args)
+  File "/home/esjung/anaconda3/envs/dinfer-ep-poc/lib/python3.11/site-packages/torch/utils/_contextlib.py", line 120, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/MLLM-EP-ouro-request-pp/poc_flashvep/ouro_8arm/request_runtime.py", line 36, in worker
+    peers=dict(init[rank].get(timeout=300) for _ in range(n))
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/MLLM-EP-ouro-request-pp/poc_flashvep/ouro_8arm/request_runtime.py", line 36, in <genexpr>
+    peers=dict(init[rank].get(timeout=300) for _ in range(n))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/anaconda3/envs/dinfer-ep-poc/lib/python3.11/multiprocessing/queues.py", line 122, in get
+    return _ForkingPickler.loads(res)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/anaconda3/envs/dinfer-ep-poc/lib/python3.11/site-packages/torch/multiprocessing/reductions.py", line 181, in rebuild_cuda_tensor
+    storage = storage_cls._new_shared_cuda(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/anaconda3/envs/dinfer-ep-poc/lib/python3.11/site-packages/torch/storage.py", line 1457, in _new_shared_cuda
+    return torch.UntypedStorage._new_shared_cuda(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+torch.AcceleratorError: CUDA error: invalid device context
+CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+For debugging consider passing CUDA_LAUNCH_BLOCKING=1
+Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.
+
+

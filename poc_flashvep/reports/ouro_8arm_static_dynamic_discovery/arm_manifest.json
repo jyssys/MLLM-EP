@@ -1,0 +1,104 @@
+{
+  "arms": {
+    "S4": {
+      "parallelism": "single",
+      "mode": "static",
+      "GPUs": [
+        4
+      ]
+    },
+    "T4": {
+      "parallelism": "tp4",
+      "mode": "static",
+      "GPUs": [
+        4,
+        5,
+        6,
+        7
+      ]
+    },
+    "L4": {
+      "parallelism": "layer_pp4",
+      "mode": "static",
+      "GPUs": [
+        4,
+        5,
+        6,
+        7
+      ]
+    },
+    "O4": {
+      "parallelism": "loop_pp4",
+      "mode": "static",
+      "GPUs": [
+        4,
+        5,
+        6,
+        7
+      ]
+    },
+    "SD": {
+      "parallelism": "single",
+      "mode": "dynamic",
+      "GPUs": [
+        4
+      ]
+    },
+    "TD": {
+      "parallelism": "tp4",
+      "mode": "dynamic",
+      "GPUs": [
+        4,
+        5,
+        6,
+        7
+      ]
+    },
+    "LD": {
+      "parallelism": "layer_pp4",
+      "mode": "dynamic",
+      "GPUs": [
+        4,
+        5,
+        6,
+        7
+      ]
+    },
+    "OD": {
+      "parallelism": "loop_pp4",
+      "mode": "dynamic",
+      "GPUs": [
+        4,
+        5,
+        6,
+        7
+      ]
+    }
+  },
+  "model": "ByteDance/Ouro-1.4B",
+  "revision": "574fa66cb8bf5abdc979642d01cf2b79b16bfab1",
+  "BF16": true,
+  "static_R": 4,
+  "dynamic": {
+    "reference": "/home/esjung/external/decode-first-cdb-upstream",
+    "revision": "abdfae0adbdd12be8c6123ccb34eee98a38afb39",
+    "q": 0.5,
+    "min_R": 2,
+    "max_R": 4,
+    "KV": "last_exited",
+    "prefill": "full R4",
+    "refill": false,
+    "policy_choice": "Prior validated CDB synchronous no-refill, same policy on every candidate."
+  },
+  "natural_C": 4,
+  "replay_C": [
+    1,
+    4,
+    8,
+    16
+  ],
+  "primary_repeats": 5,
+  "accuracy_cap": 4096,
+  "primary_T4": "Native vLLM 0.26.0. Engine differences must remain visible.",
+  "custom_TP": "Diagnostic and architecture-controlled exploratory candidate, not replacement of native T4"
+}

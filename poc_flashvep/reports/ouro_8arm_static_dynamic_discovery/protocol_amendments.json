@@ -1,0 +1,33 @@
+{
+  "scope": "Implementation and measurement corrections. No model, gate threshold, precision, or answer-based policy tuning.",
+  "canonical_input_IDs": {
+    "reason": "Two tokenizer software stacks encoded repeated whitespace differently despite identical checkpoint tokenizer files.",
+    "canonical": "Native frontend IDs, independently checked against all 342 completed native pilot records.",
+    "preservation": "The original text manifest and mismatched raw records remain unchanged. A separate frozen ID manifest and source-reuse manifest record the correction."
+  },
+  "dynamic_no_refill": {
+    "audited_source": "continuous_depth_batching/continuous_api.py:_run_no_refill_decode_wave",
+    "rule": "No token successor enters a new wave until every active token in the current cohort exits.",
+    "admission_order": "Original canonical request order, not completion order or predicted depth.",
+    "frozen_values_unchanged": "q=0.5, R2-R4, original gate, full R4 prefill, last_exited, BF16.",
+    "timing": "Implemented before any Dynamic GPU result.",
+    "packing_limit": "Prototype stage calls use B1. The official CDB reference can batch four rows and batches coda after the wave drains."
+  },
+  "static_scheduling_scope": {
+    "task_PP": "Preserves the earlier asynchronous whole-request pipeline.",
+    "custom_TP": "Per-token round-robin waves.",
+    "primary_controlled_replay": "Common no-refill token waves on all Static and Dynamic arms.",
+    "qualification": "Static task timing is not fully scheduler-matched. Use the separate controlled replay and production-oriented comparisons."
+  },
+  "evaluation_scope_400": {
+    "authority": "The user approved approximately 400-500 questions per setting and requested faster completion.",
+    "target_per_arm": 400,
+    "domain_counts": {"gsm8k": 300, "math500": 100},
+    "selection": "Retain the frozen 114-question pilot. Add 236 GSM8K and 50 MATH questions with seed 20261021. Use question metadata only.",
+    "source": "evaluation_subset400.json",
+    "unchanged": "Checkpoint, BF16, canonical prompt IDs, 4096-token generation cap, greedy decoding, gate, q=0.5, last_exited, and historical numerical failure records.",
+    "full_1819_status": "USER_REDUCED_NOT_RUN",
+    "limitation": "This continuity pilot plus randomized extension is not a uniform random sample of the full suites. Small accuracy differences can remain uncertain."
+  },
+  "reporting": "Historical strict P512 numerical FAIL remains unchanged. All unresolved numerical serving results remain exploratory."
+}
