@@ -113,6 +113,9 @@ Restore archive members relative to this report root, not the repository root.
 The archive writer checks each decompressed member before publication.
 `local_large_artifacts.json` lists captures that remain local.
 Model weights and compilation caches are not Git artifacts.
+`portable_mlp_witness.pt` contains only three 2,048-element BF16 vectors.
+It is not a model checkpoint.
+The operator replay can use it when the large local captures are absent.
 
 ## Burners
 
