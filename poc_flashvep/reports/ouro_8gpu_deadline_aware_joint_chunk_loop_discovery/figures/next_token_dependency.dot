@@ -1,0 +1,18 @@
+digraph NextToken {
+  rankdir=LR;
+  label="Exact Static R4 next-token dependency. Definitions, not a measured speedup.";
+  node [shape=box];
+  past [label="Last observed token"];
+  pre [label="Decode prelude"];
+  r1 [label="R1 + KV publish"];
+  r2 [label="R2 + KV publish"];
+  r3 [label="R3 + KV publish"];
+  r4 [label="R4 + KV publish"];
+  post [label="Coda / sampling / readback"];
+  next [label="Next observed token"];
+  past -> pre -> r1 -> r2 -> r3 -> r4 -> post -> next;
+  q [label="Independent prefill quantum\nMay consume scheduling time\nMust preserve its own KV frontier"];
+  q -> r3 [style=dashed,label="possible resource delay, not data reuse"];
+  events [label="Pending GPU events\nLogical issued depth is not publication"];
+  events -> r1;
+}

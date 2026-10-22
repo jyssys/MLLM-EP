@@ -1,6 +1,8 @@
 # Natural-answer quality protocol
 
-Status: input selection frozen. New quality generation is NOT_RUN.
+Status: all 342 pilot generations completed and received scores.
+The pilot covers 114 cases for each of three fixed policies.
+Read `quality_summary.md` for results and limits.
 
 The pilot uses the first 64 GSM8K test and first 50 MATH-500 cases from the preserved dataset manifest.
 `quality_manifest.json` records the original manifest hash, prompts, answers, and token IDs.
@@ -19,7 +21,9 @@ The model checkpoint and BF16 precision remain unchanged.
 Atomic C1024, Grouped C1024, and Mixed C512 receive the same 114 cases.
 Each GPU receives all three policies for its assigned case block.
 Policy order rotates across GPUs.
-The pilot is exploratory while the batched numerical cause remains unresolved.
+The pilot remains exploratory.
+One historical mismatch now has an exact BF16 GEMM geometry reproduction.
+This reproduction does not explain every historical mismatch.
 
 The evaluator must report correct/N, parse failures, caps, and complete-correct counts separately.
 Paired accuracy differences require question-level resampling with recorded seed and 95% intervals.

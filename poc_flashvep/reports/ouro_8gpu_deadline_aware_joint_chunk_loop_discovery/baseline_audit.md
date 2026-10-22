@@ -12,7 +12,16 @@ This campaign does not adopt that historical description.
 The new runtime checkout uses RLT commit `4a350344027960a48384626aa646f1765fda6d4f`.
 It applies the preserved removable G2 patch.
 It also permits G3 in the configuration validator.
-G3 remains unqualified until the isolated numerical and full-work tests pass.
+G3 required an additional homogeneous execution-boundary check.
+A CPU regression first failed when a batch mixed G3 and its G1 remainder.
+A separate candidate checkout fixes that batch selection.
+Its preserved red/green test includes the actual scheduler and executor.
+The original calibration checkout did not change during measurement.
+The controller selected the candidate only after all Phase 0 jobs finished.
+`active_runtime.json` records that selection and its diff hash.
+All 160 subsequent isolated GPU comparisons pass exactly.
+These compare tokens, hidden states, logits, and all 96 KV namespaces.
+They do not establish batched benchmark accuracy.
 The original checkout remains unchanged.
 
 The model is Base Ouro-1.4B, not the Thinking checkpoint.

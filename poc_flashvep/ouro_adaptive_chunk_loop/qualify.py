@@ -10,7 +10,13 @@ def run_job(model,job,target):
     from vllm_rlt import SamplingParams
     from vllm_rlt.request import RequestPhase
     from .worker import engine,dispose
-    from poc_flashvep.ouro_chunk_loop_prefill.smoke import differences
+    from poc_flashvep.ouro_chunk_loop_prefill.smoke import differences as full_differences
+    def differences(a,b):
+        # Exact equality implies both reported error values are zero.
+        # Avoid redundant FP32 conversion of multi-GiB equal CPU KV snapshots.
+        if torch.equal(a,b):
+            return dict(exact=True,max_abs=0.0,rel_l2=0.0)
+        return full_differences(a,b)
     tokenizer=AutoTokenizer.from_pretrained(MODEL,local_files_only=True,trust_remote_code=True)
     # Explicit numerical fixture, not a natural-serving workload.
     ids=tokenizer.encode('A rectangle has length twelve and width seven. Its area equals eighty-four. Explain the multiplication. '*3000)

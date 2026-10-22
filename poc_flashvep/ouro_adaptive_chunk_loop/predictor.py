@@ -6,7 +6,7 @@ import time
 import numpy as np
 from .common import ROOT, write
 
-FEATURE_NAMES=('actual_C','actual_G','context_max','actual_total_rows','actual_decode_rows','N','graph_entries','staged_bytes')
+FEATURE_NAMES=('actual_C','actual_G','context_max','actual_total_rows','actual_decode_rows','N','graph_entries','staged_bytes','host_load1','pending_submission_events','load_missing','graph_ready','graph_eligible')
 PATHS=('atomic','split','grouped','grouped3','staged4','mixed')
 
 def phase(row):
@@ -23,19 +23,22 @@ def feature_dict(row):
     actual_C=sum(s['tokens'] for s in row['spans'] if s['phase'].startswith('prefill'))
     return dict(actual_C=actual_C,actual_G=row['actual_G'],context_max=row['context_max'],
         actual_total_rows=row['actual_total_rows'],actual_decode_rows=row['actual_decode_rows'],
-        N=row['N'],graph_entries=row['graph_entries'],staged_bytes=row['staged_bytes'])
+        N=row['N'],graph_entries=row['graph_entries'],staged_bytes=row['staged_bytes'],
+        host_load1=row.get('host_load1',0.),pending_submission_events=row.get('pending_submission_events',0),
+        load_missing=float(row.get('load_missing','host_load1' not in row)),graph_ready=float(row.get('graph_ready',-1)),
+        graph_eligible=float(row.get('graph_eligible',-1)))
 
 def vector(row):
     f=feature_dict(row)
-    c,g,l,b,d,n,graph,stage=(float(f[k]) for k in FEATURE_NAMES)
-    return [1.,c/1024,g,c*g/1024,math.log2(max(1,l)),b/1024,d,n,graph/32,stage/2**30]+[
+    c,g,l,b,d,n,graph,stage,load,pending,missing,ready,eligible=(float(f[k]) for k in FEATURE_NAMES)
+    return [1.,c/1024,g,c*g/1024,math.log2(max(1,l)),b/1024,d,n,graph/32,stage/2**30,load/8,pending,missing,ready,eligible]+[
         float(row['policy']==p) for p in PATHS]+[float(phase(row)==p) for p in ['atomic_prefill','staged_prefill','prefill_prelude','recurrent','coda','prelude','mixed']]
 
 def key(row):
     f=feature_dict(row)
     def bucket(x):
         return int(math.ceil(math.log2(max(1,x))))
-    return (row['policy'],phase(row),bucket(f['actual_C']),f['actual_G'],bucket(f['context_max']),bucket(f['actual_total_rows']),bucket(f['N']))
+    return (row['policy'],phase(row),bucket(f['actual_C']),f['actual_G'],bucket(f['context_max']),bucket(f['actual_total_rows']),bucket(f['N']),f['graph_ready'],f['graph_eligible'])
 
 @dataclass
 class Predictor:
@@ -90,7 +93,7 @@ def assess(model,rows):
 
 def extract():
     rows=[]
-    for folder in (ROOT/'raw').glob('p2_*'):
+    for folder in (ROOT/'raw').glob('p2_P*'):
         if not (folder/'completed.json').exists():
             continue
         for file in folder.glob('*_T*.json'):

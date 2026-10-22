@@ -15,6 +15,15 @@ Static R4 can require several more recurrent passes and coda/sampling.
 The stock fairness counter resets on a recurrent batch, not an emitted token.
 Therefore one decode scheduling turn does not establish deadline safety.
 
+Native `loops_done` is a logical issued frontier.
+It can advance before the corresponding GPU event completes.
+Consumers remain event-ordered in RLT.
+A deadline model must also account for pending submitted GPU work.
+It cannot interpret every issued loop as physically complete.
+The cost observer records pending submission-event count in newer rows.
+The full-token target includes the actual observed queue and completion delay.
+An online readiness test must use causal event status, not future measured completion time.
+
 C can change only at a new safe chunk boundary.
 An existing staged chunk retains its token span.
 G can change only at a legal recurrent frontier.

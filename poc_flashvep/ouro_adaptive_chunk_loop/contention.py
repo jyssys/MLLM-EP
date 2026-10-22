@@ -54,6 +54,32 @@ def main():
         status='COMPLETE_REQUIRES_CONCURRENCY_REVIEW' if complete==expected else 'PARTIAL',
         limitation='Only two independent starts per GPU/concurrency. Interference trigger is not a neutrality theorem. Second-context phases are not separately barrier-aligned.')
     write(ROOT/'contention_summary.json',value)
+    if complete==expected:
+        lines=['# GPU contention calibration','',
+            'All 64 registered device/start jobs completed.',
+            'Each GPU has two independent starts for each of the 1/2/4/8-worker conditions.',
+            'Each start has three warmed cohorts at P≈2K/N4 and P≈8K/N8.',
+            'These are bounded natural calibration runs on legacy inputs, not new held-out serving results.','',
+            '| Prompt bin | N | Workers | Median-ITL drift range across GPUs, % | Drained throughput drift range, % |',
+            '| --- | ---: | ---: | ---: | ---: |']
+        for p,n in [(2048,4),(8192,8)]:
+            for k in (2,4,8):
+                med=[r['percent_change'] for r in comparisons if r['P']==p and r['parallel_workers']==k and r['metric']=='median_ITL_ms']
+                rate=[r['percent_change'] for r in comparisons if r['P']==p and r['parallel_workers']==k and r['metric']=='drained_output_tokens_s']
+                lines.append(f'| ≈{p} | {n} | {k} | [{min(med):.3f}, {max(med):.3f}] | [{min(rate):.3f}, {max(rate):.3f}] |')
+        lines+=['','Positive ITL drift means slower token gaps. Negative throughput drift means lower drained output rate.',
+            'The paired CSV preserves same-GPU/start comparisons and 95% bootstrap intervals.',
+            'Only two process starts support each device/concurrency cell.',
+            'The 3% threshold is a review trigger, not a proof of neutral interference.','',
+            'The first context has a warmed group-start barrier.',
+            'The second context can have start skew across workers.',
+            'Telemetry retains power, clocks, load, memory, and disk counters.',
+            'The present analysis does not establish the physical cause of drift.',
+            'CPU control, driver contention, graph preparation, and power effects need separate attribution.','',
+            'Numerical diagnostics can continue under their explicit non-performance scope.',
+            'Clean serving comparisons require matched worker load and GPU rotation.',
+            'No adaptive policy gain or sustainable capacity follows from this calibration.']
+        (ROOT/'gpu_contention.md').write_text('\n'.join(lines)+'\n')
     print(json.dumps(value,indent=2))
 
 if __name__=='__main__':

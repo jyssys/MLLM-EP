@@ -6,7 +6,7 @@ import torch
 from .common import ROOT, write, digest
 
 class Capture:
-    def __init__(self,model,e,rid,stop_index=8,layers=(0,5,11,17,23),kv_steps=(0,8)):
+    def __init__(self,model,e,rid,stop_index=8,layers=(0,5,11,17,23),kv_steps=(0,8),forced_prefixes=None,capture_attention=False):
         self.model,self.e,self.rid=model,e,rid
         self.stop_index=stop_index
         self.records=[]
@@ -15,6 +15,12 @@ class Capture:
         self.token_index=0
         self.kv_steps=kv_steps
         self.handles=[]
+        self.forced_prefixes=forced_prefixes
+        self.coda_ids=[]
+        self.sample_index=0
+        self.sample_counts={}
+        self.original_sample=e.model_runner.sampler.sample
+        self.original_attend=e.cache_manager._attend_prepared
         self.original_core=model.recurrent_prepared
         self.original_forward=e.model_runner.runtime.forward
         self.original_graph=e.model_runner.graphs.execute if e.model_runner.graphs else None
@@ -22,6 +28,11 @@ class Capture:
         e.model_runner.runtime.forward=self.forward
         if self.original_graph:
             e.model_runner.graphs.execute=self.graph
+        if forced_prefixes is not None:
+            e.model_runner.sampler.sample=self.sample
+        self.capture_attention=capture_attention
+        if capture_attention:
+            e.cache_manager._attend_prepared=self.attend
         for i in layers:
             layer=model.model.layers[i]
             for name,module in [('input_norm',layer.input_layernorm),('Q_projection',layer.self_attn.q_proj),
@@ -34,6 +45,9 @@ class Capture:
                         self.save(f"t{self.token_index}_d{meta['depth']}_l{layer_idx}_{kind}",out[index])
                         if self.token_index==0 and layer_idx==0:
                             self.save(f"t0_d{meta['depth']}_l0_{kind}_all_target_rows",out[meta['target_indices']])
+                        if self.token_index==0 and layer_idx<2 and self.capture_attention:
+                            positions=meta['target_positions']
+                            self.save(f"t0_d{meta['depth']}_l{layer_idx}_{kind}_p{positions[0]}_{positions[-1]}",out[meta['target_indices']])
                 self.handles.append(module.register_forward_hook(hook))
 
     def save(self,key,tensor):
@@ -90,6 +104,8 @@ class Capture:
         if batch.operation.value=='coda':
             scheduled=self.e.last_schedule
             ids=[r.request.request_id for r in scheduled.requests]
+            self.coda_ids=ids
+            self.sample_index=0
             if self.rid in ids:
                 i=ids.index(self.rid)
                 self.save(f't{self.token_index}_coda_hidden',batch.hidden[i])
@@ -107,6 +123,39 @@ class Capture:
                 self.token_index+=1
         return result
 
+    def sample(self,logits,params,generator=None):
+        native=self.original_sample(logits,params,generator)
+        rid=self.coda_ids[self.sample_index]
+        self.sample_index+=1
+        index=self.sample_counts.get(rid,0)
+        self.sample_counts[rid]=index+1
+        prefix=self.forced_prefixes.get(rid,[])
+        cutoff=self.stop_index if rid==self.rid else len(prefix)
+        if index<min(cutoff,len(prefix)):
+            # Diagnostic-only common prefix. Never used for serving or quality.
+            return native.new_tensor(prefix[index])
+        return native
+
+    def attend(self,layer,metadata,q):
+        info=self.row(metadata)
+        tag=None
+        if info and self.token_index==0 and layer<2:
+            meta,index=info
+            positions=meta['target_positions']
+            tag=f"t0_d{meta['depth']}_l{layer}_p{positions[0]}_{positions[-1]}"
+            self.save(tag+'_post_rope_Q',q[meta['target_indices']])
+            self.save(tag+'_device_positions',metadata.position_ids[meta['target_indices']])
+            self.save(tag+'_context_lengths',metadata.context_lengths)
+            if metadata.cu_seqlens_q is not None:
+                self.save(tag+'_cu_seqlens_q',metadata.cu_seqlens_q)
+            k,v=self.e.cache_manager.read(layer,self.rid,meta['depth'],positions[-1]+1)
+            self.save(tag+'_prefix_K',k)
+            self.save(tag+'_prefix_V',v)
+        result=self.original_attend(layer,metadata,q)
+        if tag:
+            self.save(tag+'_attention_pre_output_projection',result[meta['target_indices']])
+        return result
+
     def finish(self,target,mode):
         self.e.model_runner.synchronize()
         cpu={k:t.cpu() for k,t in self.tensors.items()}
@@ -119,6 +168,8 @@ class Capture:
         write(target/f'{mode}_core_metadata.json',self.records)
         self.model.recurrent_prepared=self.original_core
         self.e.model_runner.runtime.forward=self.original_forward
+        self.e.model_runner.sampler.sample=self.original_sample
+        self.e.cache_manager._attend_prepared=self.original_attend
         if self.original_graph:
             self.e.model_runner.graphs.execute=self.original_graph
         for handle in self.handles:
@@ -156,11 +207,17 @@ def run_job(model,job,target):
     bind_legacy(job)
     tensors={}
     outputs={}
+    prefixes=None
+    if job.get('prefix_reference_path'):
+        source=__import__('pathlib').Path(job['prefix_reference_path'])
+        assert digest(source)==job['prefix_reference_sha256'],'Frozen prefix evidence changed'
+        prefixes={r['id']:r['output_ids'] for r in json.loads(source.read_text())['requests']}
     for mode in job.get('modes',['atomic','grouped']):
         e=engine(model,mode,job.get('chunk',1024),8,job)
         run(model,mode,1024,8192,8,0,False,job.get('graphs',True),False,e)
         capture=Capture(model,e,job.get('target','bg_11_3'),stop_index=job.get('stop_index',8),
-            layers=job.get('layers',[0,5,11,17,23]),kv_steps=job.get('kv_steps',[0,8]))
+            layers=job.get('layers',[0,5,11,17,23]),kv_steps=job.get('kv_steps',[0,8]),forced_prefixes=prefixes,
+            capture_attention=job.get('capture_attention',False))
         data=run(model,mode,1024,8192,8,job.get('trial',11),False,job.get('graphs',True),True,e)
         write(target/f'{mode}_diagnostic_generation.json',data)
         tensors[mode]=capture.finish(target,mode)
@@ -179,4 +236,5 @@ def run_job(model,job,target):
         for mode in outputs if mode!=reference for rid in outputs[reference]]
     write(target/'parity.json',parity)
     return dict(scope='HEAVY_DIAGNOSTIC_NOT_CLEAN_TIMING',parity=parity,
+        forced_common_prefix=prefixes is not None,
         limitations='Targeted clones can change host timing. Graph replay does not run Python operator hooks. Eager operator controls are separate.')

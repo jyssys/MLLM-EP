@@ -8,6 +8,7 @@ import time
 from .common import ROOT, UUIDS, write, append
 
 SCRIPT = '/home/esjung/vllm-ep/utilize.py'
+APPROVED_LOGS = {ROOT/'burner.log', Path('/home/esjung/MLLM-EP-ouro-request-pp/poc_flashvep/reports/ouro_8arm_static_dynamic_discovery/burner_restore.log')}
 
 def processes():
     rows = []
@@ -26,7 +27,8 @@ def burners():
             continue
         try:
             words = (proc/'cmdline').read_bytes().decode().split('\0')
-            if proc.stat().st_uid == os.getuid() and SCRIPT in words and '--worker' in words:
+            if (proc.stat().st_uid == os.getuid() and SCRIPT in words and '--worker' in words
+                    and (proc/'fd/1').resolve() in APPROVED_LOGS):
                 gpu = int(words[words.index('--gpu')+1])
                 pid = int(proc.name)
                 if os.getsid(pid) == pid and gpu in UUIDS:
@@ -67,9 +69,10 @@ def stop(gpus):
             except ProcessLookupError:
                 pass
     until = time.monotonic()+45
-    while any(r['gpu'] in gpus for r in processes()) and time.monotonic() < until:
+    while (any(r['gpu'] in gpus for r in processes()) or set(burners())&set(gpus)) and time.monotonic() < until:
         time.sleep(.5)
     assert not [r for r in processes() if r['gpu'] in gpus], 'A device remains occupied. No escalation.'
+    assert not set(burners())&set(gpus),'An owned burner worker has not exited'
 
 def restore(gpus):
     occupied = {r['gpu'] for r in processes()}

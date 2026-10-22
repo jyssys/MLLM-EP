@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Independent single-GPU experiment job",
+  "type": "object",
+  "required": ["id", "kind", "gpu", "split"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^[a-zA-Z0-9_]+$"},
+    "kind": {"enum": ["calibration", "continuity", "diagnostic", "qualify", "surface", "quality"]},
+    "gpu": {"type": "integer", "minimum": 0, "maximum": 7},
+    "split": {"type": "string"},
+    "budget": {"type": "integer", "minimum": 1},
+    "timeout_s": {"type": "number", "exclusiveMinimum": 0},
+    "graphs": {"type": "boolean"},
+    "streams": {"type": "boolean"}
+  },
+  "additionalProperties": true
+}

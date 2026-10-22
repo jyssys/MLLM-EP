@@ -24,6 +24,7 @@ def launch(job,gpu):
         return dict(job=job['id'],GPU=gpu,status='SKIPPED_COMPLETE')
     target=ROOT/'raw'/job['id']
     assert not (target/'failure.json').exists(), 'Preserve failure. Register a new attempt ID.'
+    assert not (target/'identity.json').exists(), 'Interrupted attempt is immutable. Register a reviewed retry ID.'
     assert not [r for r in processes() if r['gpu']==gpu], f'GPU{gpu} occupied'
     path=ROOT/'jobs'/f"{job['id']}.json"
     if path.exists():
@@ -94,10 +95,14 @@ def run_group(jobs,barrier=None):
     return results
 
 def main():
+    import fcntl
     p=argparse.ArgumentParser()
     p.add_argument('--manifest',required=True)
     p.add_argument('--manage-burners',action='store_true')
     a=p.parse_args()
+    (ROOT/'state').mkdir(parents=True,exist_ok=True)
+    lease_file=(ROOT/'state'/'dispatcher.lock').open('a')
+    fcntl.flock(lease_file.fileno(),fcntl.LOCK_EX|fcntl.LOCK_NB)
     plan=json.loads(open(a.manifest).read())
     devices=plan.get('gpus',list(range(8)))
     assert set(devices)<=set(range(8))
@@ -110,14 +115,23 @@ def main():
                 if jobs:
                     run_group(jobs,group.get('barrier'))
         else:
-            # One serial queue per GPU. Every queue contains a policy rotation.
+            # Prefer registered crossover devices. Movable blocks retain all
+            # paired policies inside one physical GPU/process-start job.
+            pending=list(plan['jobs'])
+            claim_lock=threading.Lock()
             def worker(gpu):
                 try:
-                    for job in plan['jobs']:
-                        if job['gpu']==gpu:
-                            result=launch(job,gpu)
-                            if result['status']=='FAILED':
-                                raise RuntimeError(result)
+                    while True:
+                        with claim_lock:
+                            index=next((i for i,j in enumerate(pending) if j['gpu']==gpu),None)
+                            if index is None:
+                                index=next((i for i,j in enumerate(pending) if j.get('allow_any_gpu')),None)
+                            job=pending.pop(index) if index is not None else None
+                        if job is None:
+                            break
+                        result=launch(job,gpu)
+                        if result['status']=='FAILED':
+                            raise RuntimeError(result)
                 finally:
                     if a.manage_burners:
                         restore([gpu])

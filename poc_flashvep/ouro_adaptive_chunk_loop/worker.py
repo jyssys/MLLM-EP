@@ -12,19 +12,26 @@ import numpy as np
 from .common import ROOT, LEGACY, FORK, MODEL, UUIDS, config, guard, write, digest
 
 def identity():
+    import vllm_rlt
     gpu = guard()
+    loaded=Path(vllm_rlt.__file__).resolve()
+    assert loaded.parent==(FORK/'vllm_rlt').resolve(),('WRONG_RUNTIME_IMPORT',loaded)
     assert torch.cuda.device_count() == 1
     torch.cuda.init()
+    assert not torch.distributed.is_initialized(),'This worker must not form a TP/PP process group'
     actual = str(torch.cuda.get_device_properties(0).uuid)
     assert actual.removeprefix('GPU-') == UUIDS[gpu].removeprefix('GPU-'), (gpu, actual)
     return dict(physical_GPU=gpu, UUID=UUIDS[gpu], torch_UUID=actual,
         pid=os.getpid(), uid=os.getuid(), CVD=os.environ['CUDA_VISIBLE_DEVICES'],
+        actual_runtime_import=str(loaded),loader_sha256=digest(FORK/'vllm_rlt/models/ouro.py'),
         logical_GPU=0, affinity=sorted(os.sched_getaffinity(0)), scope='INDEPENDENT_SINGLE_GPU')
 
 def engine(model, mode, chunk, width, job):
     from vllm_rlt.engine.stage_engine import StageEngine
-    return StageEngine(model, **config(mode, chunk, width, blocks=job.get('blocks',18432),
+    result=StageEngine(model, **config(mode, chunk, width, blocks=job.get('blocks',18432),
         budget=job.get('budget',2048), graphs=job.get('graphs',True), streams=job.get('streams',True)))
+    assert result.cache_manager.layout=='last_exited' and result.cache_manager.storage_depths==4
+    return result
 
 def dispose(e):
     e.close()
@@ -121,6 +128,17 @@ def main():
         from vllm_rlt.models import OuroForCausalLM
         torch.set_num_threads(1)
         model=OuroForCausalLM.from_pretrained(MODEL,device='cuda:0',dtype=torch.bfloat16)
+        assert len(model.model.layers)==24 and model.config.total_ut_steps==4
+        assert all(p.dtype==torch.bfloat16 for p in model.parameters())
+        tensors=list(model.parameters())+list(model.buffers())
+        storages={t.untyped_storage().data_ptr():t.untyped_storage().nbytes() for t in tensors}
+        write(target/'loaded_model_accounting.json',dict(parameter_numel=sum(p.numel() for p in model.parameters()),
+            unique_parameter_buffer_storage_bytes=sum(storages.values()),physical_layers=24,static_R=4,
+            parameter_dtypes=sorted(set(str(p.dtype) for p in model.parameters())),
+            buffer_dtypes=sorted(set(str(p.dtype) for p in model.buffers())),
+            allocated_before_KV=torch.cuda.memory_allocated(),reserved_before_KV=torch.cuda.memory_reserved(),
+            scope='Loaded parameter/buffer storage and allocator state. Not measured HBM read traffic.'))
+        del tensors,storages
         if job['kind']=='calibration':
             summary=calibration(model,job,target)
         elif job['kind']=='continuity':
@@ -136,6 +154,12 @@ def main():
             summary=run_job(model,job,target)
         elif job['kind']=='quality':
             from .quality import run_job
+            summary=run_job(model,job,target)
+        elif job['kind']=='mlp_replay':
+            from .mlp_replay import run_job
+            summary=run_job(model,job,target)
+        elif job['kind']=='measurement_controls':
+            from .measurement_controls import run_job
             summary=run_job(model,job,target)
         else:
             raise ValueError(job['kind'])

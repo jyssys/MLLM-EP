@@ -30,13 +30,36 @@ def main():
             time.sleep(5)
         # Allow the calibration dispatcher to finish its owned-burner restoration.
         # Starting the next lease before it exits could race with that restoration.
-        active=ROOT/'state'/'active_group.json'
-        time.sleep(5)
+        def p0_dispatch_live():
+            from pathlib import Path
+            import os
+            for proc in Path('/proc').iterdir():
+                if not proc.name.isdecimal():
+                    continue
+                try:
+                    words=(proc/'cmdline').read_bytes().decode().split('\0')
+                    if proc.stat().st_uid==os.getuid() and 'poc_flashvep.ouro_adaptive_chunk_loop.dispatch' in words:
+                        if '--manifest' in words and words[words.index('--manifest')+1].endswith('p0_contention_plan.json'):
+                            return True
+                except (OSError,UnicodeError):
+                    continue
+            return False
+        while p0_dispatch_live():
+            assert time.monotonic()<until,'P0 dispatcher did not finish its lease'
+            time.sleep(1)
         run('poc_flashvep.ouro_adaptive_chunk_loop.contention')
         summary=json.loads((ROOT/'contention_summary.json').read_text())
         assert summary['completed_jobs']==summary['registered_jobs']
         append(ROOT/'phase_exit_decisions.jsonl',dict(phase=0,status='CONDITIONAL' if summary['triggered_pairs'] else 'PASS',
             wall_s=time.time(),reason='Identity and source qualified. Interference cells retain observed drift. Numerical diagnostics may continue. No neutrality or adaptive speedup claim.',summary=summary))
+        candidate=json.loads((ROOT/'qualified_runtime_candidate.json').read_text())
+        assert candidate['status']=='CPU_QUALIFIED_GPU_NOT_RUN'
+        import hashlib
+        from pathlib import Path
+        actual=subprocess.check_output(['git','diff','--binary'],cwd=candidate['runtime'])
+        assert hashlib.sha256(actual).hexdigest()==candidate['patch_sha256'],'Qualified source changed'
+        write(ROOT/'active_runtime.json',dict(path=candidate['runtime'],patch_sha256=candidate['patch_sha256'],
+            selected_after_P0=True,reason='G3 heterogeneous-boundary CPU regression fixed. GPU numerical qualification follows.'))
         run('poc_flashvep.ouro_adaptive_chunk_loop.dispatch','--manifest',str(ROOT/'p1_diagnostic_plan.json'),'--manage-burners')
         qualification=[]
         for j in all_jobs('p1_diagnostic_plan.json'):

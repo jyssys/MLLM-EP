@@ -1,0 +1,15 @@
+{
+  "status": "REGISTERED_BEFORE_FIRST_FIT",
+  "partition_roles": {"TRAIN": "fit", "VALIDATION": "model selection", "CALIBRATION": "safety residuals only", "HELDOUT": "blind test", "FINAL_ONLINE": "unused future serving"},
+  "model_menu": {"quantum": ["E0", "E1", "E2"], "next_completed_token": ["D0", "D1", "D2"]},
+  "selection": "Lowest process-group-weighted validation MAE. Prefer simpler model within 5 percent of minimum MAE.",
+  "complexity_order": ["constant", "lookup", "ridge"],
+  "margin": "Nonnegative 99th percentile of calibration positive residuals. No held-out recalibration.",
+  "initial_coverage_target": 0.95,
+  "scope": "Coverage target applies separately to quantum and full-next-completed-token targets. It is not a hard deadline guarantee.",
+  "coverage_CI": "Bootstrap independent process-start groups, 2000 draws, seed 20261023. Do not treat quanta as independent samples.",
+  "query_budget_us": 200,
+  "online_gate": "Both selected models require held-out coverage >=0.95 and query overhead <=200 us. Report prefill phase, shape, schema and OOD failures separately. Any unresolved candidate-specific DAG or queue cost remains a block on SLO guarantees.",
+  "failure_action": "Keep offline diagnostic upper bounds. Do not tune features, margins, or thresholds after blind results.",
+  "forbidden_features": ["future duration", "future output IDs", "future arrivals", "actual next-token completion", "future output length"]
+}

@@ -1,0 +1,60 @@
+[
+  {
+    "lane": "RED_UNFILTERED_G3",
+    "runtime": "/home/esjung/external/ouro-deadline-adaptive-rlt",
+    "command": [
+      "/home/esjung/.venvs/ouro-chunk-loop-prefill/bin/python",
+      "-m",
+      "unittest",
+      "poc_flashvep.ouro_adaptive_chunk_loop.test_frontier"
+    ],
+    "exit_code": 1,
+    "stdout": "",
+    "stderr": "E..\n======================================================================\nERROR: test_batched_G3_heterogeneous_frontiers (poc_flashvep.ouro_adaptive_chunk_loop.test_frontier.FrontierTests.test_batched_G3_heterogeneous_frontiers)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/home/esjung/MLLM-EP-github/poc_flashvep/ouro_adaptive_chunk_loop/test_frontier.py\", line 51, in test_batched_G3_heterogeneous_frontiers\n    e.step()\n    ~~~~~~^^\n  File \"/home/esjung/external/ouro-deadline-adaptive-rlt/vllm_rlt/engine/stage_engine.py\", line 394, in step\n    return self._step()\n           ~~~~~~~~~~^^\n  File \"/home/esjung/external/ouro-deadline-adaptive-rlt/vllm_rlt/engine/stage_engine.py\", line 435, in _step\n    ticket = self.executor.submit(batch)\n  File \"/home/esjung/external/ouro-deadline-adaptive-rlt/vllm_rlt/worker/executor.py\", line 95, in submit\n    batch = build_execution_batch(scheduled_batch, self.runner.model.config.total_ut_steps)\n  File \"/home/esjung/external/ouro-deadline-adaptive-rlt/vllm_rlt/worker/executor.py\", line 75, in build_execution_batch\n    raise ValueError(\"batch requests must share an operation and execution boundary\")\nValueError: batch requests must share an operation and execution boundary\n\n----------------------------------------------------------------------\nRan 3 tests in 1.839s\n\nFAILED (errors=1)\n",
+    "scope": "CPU scheduler/executor regression. Not pretrained accuracy or GPU timing."
+  },
+  {
+    "lane": "RED_UNFILTERED_G3",
+    "runtime": "/home/esjung/external/ouro-deadline-adaptive-rlt",
+    "command": [
+      "/home/esjung/.venvs/ouro-chunk-loop-prefill/bin/python",
+      "-m",
+      "pytest",
+      "-q",
+      "/home/esjung/external/ouro-deadline-adaptive-rlt/tests/test_split_prefill.py"
+    ],
+    "exit_code": 0,
+    "stdout": "...sssss.s................ssssssssssss...........ssss.s.sssss            [100%]\n33 passed, 28 skipped in 0.68s\n",
+    "stderr": "",
+    "scope": "CPU scheduler/executor regression. Not pretrained accuracy or GPU timing."
+  },
+  {
+    "lane": "GREEN_HOMOGENEOUS_BOUNDARY",
+    "runtime": "/home/esjung/external/ouro-deadline-g3-candidate-rlt",
+    "command": [
+      "/home/esjung/.venvs/ouro-chunk-loop-prefill/bin/python",
+      "-m",
+      "unittest",
+      "poc_flashvep.ouro_adaptive_chunk_loop.test_frontier"
+    ],
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": "...\n----------------------------------------------------------------------\nRan 3 tests in 3.443s\n\nOK\n",
+    "scope": "CPU scheduler/executor regression. Not pretrained accuracy or GPU timing."
+  },
+  {
+    "lane": "GREEN_HOMOGENEOUS_BOUNDARY",
+    "runtime": "/home/esjung/external/ouro-deadline-g3-candidate-rlt",
+    "command": [
+      "/home/esjung/.venvs/ouro-chunk-loop-prefill/bin/python",
+      "-m",
+      "pytest",
+      "-q",
+      "/home/esjung/external/ouro-deadline-g3-candidate-rlt/tests/test_split_prefill.py"
+    ],
+    "exit_code": 0,
+    "stdout": "...sssss.s................ssssssssssss...........ssss.s.sssss            [100%]\n33 passed, 28 skipped in 1.34s\n",
+    "stderr": "",
+    "scope": "CPU scheduler/executor regression. Not pretrained accuracy or GPU timing."
+  }
+]

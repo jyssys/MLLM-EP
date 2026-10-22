@@ -8,7 +8,10 @@ REPO = Path(__file__).resolve().parents[2]
 ROOT = REPO / 'poc_flashvep/reports/ouro_8gpu_deadline_aware_joint_chunk_loop_discovery'
 LEGACY = REPO / 'poc_flashvep/reports/ouro_chunk_loop_slo_sensitivity_discovery'
 MODEL = Path('/home/esjung/.cache/huggingface/hub/models--ByteDance--Ouro-1.4B/snapshots/574fa66cb8bf5abdc979642d01cf2b79b16bfab1')
-FORK = Path('/home/esjung/external/ouro-deadline-adaptive-rlt')
+SELECTION = ROOT/'active_runtime.json'
+FORK = Path(os.environ.get('OURO_CG_RUNTIME',
+    json.loads(SELECTION.read_text())['path'] if SELECTION.exists()
+    else '/home/esjung/external/ouro-deadline-adaptive-rlt'))
 PYTHON = '/home/esjung/.venvs/ouro-chunk-loop-prefill/bin/python'
 SPEC = REPO / 'poc_flashvep/reports/ouro_8gpu_deadline_aware_joint_chunk_loop_poc_spec.md'
 UPSTREAM = '4a350344027960a48384626aa646f1765fda6d4f'
