@@ -1,0 +1,396 @@
+{
+  "recorded_UTC": "2026-10-22T15:52:59.626082+00:00",
+  "evidence": "SOURCE_AND_ENVIRONMENT_SNAPSHOT_NOT_PERFORMANCE",
+  "repo_branch": "flashvep/ouro-chunk-loop-slo-sensitivity-poc",
+  "parent": "c458f6a2a764f667a0da6784bcb2592b36626837",
+  "RLT_revision": "4a350344027960a48384626aa646f1765fda6d4f",
+  "RLT_diff_stat": "vllm_rlt/config.py          |  6 ++++++\n vllm_rlt/core/scheduler.py  | 21 ++++++++++++++-------\n vllm_rlt/worker/executor.py |  5 +++--\n 3 files changed, 23 insertions(+), 9 deletions(-)",
+  "RLT_diff_sha256": "5f0662f20102981b47c8ea846c8b02c377ce5b1c0168aafa1a9d620927e71c02",
+  "RLT_diff": "diff --git a/vllm_rlt/config.py b/vllm_rlt/config.py\nindex f2ae951..ae28ee6 100644\n--- a/vllm_rlt/config.py\n+++ b/vllm_rlt/config.py\n@@ -57,11 +57,17 @@ class SchedulerConfig:\n     admission_scan_limit: int = 64\n     max_admission_bypasses: int = 8\n     prefill_chunk_size: int = 128\n+    # PoC: consecutive prefill-only loops per scheduling boundary.\n+    prefill_loop_group_size: int = 1\n     max_prefill_batches_before_decode: int = 1\n     policy: str = \"fcfs\"\n     enable_preemption: bool = False\n \n     def __post_init__(self):\n+        if self.prefill_loop_group_size not in (1, 2, 4):\n+            raise ValueError(\"prefill_loop_group_size must be 1, 2 or 4\")\n+        if self.mode == \"mixed\" and self.prefill_loop_group_size != 1:\n+            raise ValueError(\"grouped prefill must not advance mixed decode rows\")\n         for name in (\n             \"max_num_seqs\",\n             \"max_num_batched_tokens\",\ndiff --git a/vllm_rlt/core/scheduler.py b/vllm_rlt/core/scheduler.py\nindex b2442d7..2dd2489 100644\n--- a/vllm_rlt/core/scheduler.py\n+++ b/vllm_rlt/core/scheduler.py\n@@ -33,6 +33,7 @@ class ScheduledRequest:\n     chunk_start: int | None = None\n     completes_prompt: bool = False\n     phase: RequestPhase | None = None\n+    loop_count: int = 1\n \n \n @dataclass(frozen=True)\n@@ -531,6 +532,8 @@ class Scheduler:\n             # plane's causal prefix covers the run. Tokens past num_preluded_tokens\n             # have no resident prelude and cannot run yet.\n             boundary = request.prefill_depth_ranges[first_token_depth]\n+            group = min(self.config.prefill_loop_group_size,\n+                        self.total_ut_steps - first_token_depth)\n             count = min(\n                 token_budget,\n                 self.config.prefill_chunk_size,\n@@ -544,8 +547,9 @@ class Scheduler:\n                 count,\n                 depth=first_token_depth,\n                 chunk_start=request.prefill_chunk_start,\n+                loop_count=group,\n                 completes_prompt=(\n-                    first_token_depth == len(request.prefill_depth_ranges) - 1\n+                    first_token_depth + group == len(request.prefill_depth_ranges)\n                     and start + count == len(request.prompt_token_ids)\n                 ),\n             )\n@@ -707,14 +711,17 @@ class Scheduler:\n         # Assertion: phase == RequestPhase.PREFILLING_RECURRENT\n         depth = scheduled_request.depth\n         boundaries = request.prefill_depth_ranges\n-        boundaries[depth][0] = end\n-        if depth + 1 < total_depths:\n-            boundaries[depth + 1][1] = end\n-        else:\n-            request.num_prefilled_tokens = end\n+        group_end = depth + scheduled_request.loop_count\n+        for advanced_depth in range(depth, group_end):\n+            assert boundaries[advanced_depth][0] == start, \"causal prompt frontier hole\"\n+            boundaries[advanced_depth][0] = end\n+            if advanced_depth + 1 < total_depths:\n+                boundaries[advanced_depth + 1][1] = end\n+            else:\n+                request.num_prefilled_tokens = end\n \n         chunk_complete = end == request.num_preluded_tokens\n-        if depth + 1 < total_depths or not chunk_complete:\n+        if group_end < total_depths or not chunk_complete:\n             self.enqueue(request, RequestPhase.PREFILLING_RECURRENT)\n             return PrefillProgress(False, False)\n \ndiff --git a/vllm_rlt/worker/executor.py b/vllm_rlt/worker/executor.py\nindex 87ba27d..700d6a8 100644\n--- a/vllm_rlt/worker/executor.py\n+++ b/vllm_rlt/worker/executor.py\n@@ -56,7 +56,7 @@ def build_execution_batch(scheduled_batch: SchedulerOutput, total_depths: int) -\n                 token_count=scheduled_request.token_count,\n                 depth=depth,\n                 chunk_start=scheduled_request.chunk_start if chunk else None,\n-                retain_chunk=chunk and (operation == Operation.PRELUDE or depth + 1 < total_depths),\n+                retain_chunk=chunk and (operation == Operation.PRELUDE or depth + scheduled_request.loop_count < total_depths),\n                 retain_last=scheduled_request.completes_prompt if chunk else True,\n                 emit_gate=phase == RequestPhase.RECURRENT,\n                 input_tokens=tuple(\n@@ -68,7 +68,8 @@ def build_execution_batch(scheduled_batch: SchedulerOutput, total_depths: int) -\n         )\n         operations.add(operation)\n         loop_counts.add(\n-            total_depths if phase == RequestPhase.PREFILL else int(operation == Operation.RECURRENT)\n+            total_depths if phase == RequestPhase.PREFILL else\n+            scheduled_request.loop_count if operation == Operation.RECURRENT else 0\n         )\n     if len(operations) != 1 or len(loop_counts) != 1:\n         raise ValueError(\"batch requests must share an operation and execution boundary\")",
+  "reused_experiment_code": [
+    {
+      "path": "poc_flashvep/ouro_chunk_loop_prefill/__init__.py",
+      "sha256": "947da8da3c64991dc9f6174c9afbc1a1e3609a1b3c88c6c7f2a3b2336c76b2c3"
+    },
+    {
+      "path": "poc_flashvep/ouro_chunk_loop_prefill/analyze.py",
+      "sha256": "82a404b0db32399aaaec79e574b3d9b953fb78ef5846e140a470d386f00389f7"
+    },
+    {
+      "path": "poc_flashvep/ouro_chunk_loop_prefill/archive.py",
+      "sha256": "41d8769b18890ace44efd70ae75b58104445c325301881ae791b1d90d7c2b55a"
+    },
+    {
+      "path": "poc_flashvep/ouro_chunk_loop_prefill/bench.py",
+      "sha256": "aaa7f5a328782f2fd667d7004d1e991abead9f90953f14e3e153d30a64f5d89b"
+    },
+    {
+      "path": "poc_flashvep/ouro_chunk_loop_prefill/common.py",
+      "sha256": "4f5c3e6790b00d573d23082add254702a56766821b4161d3a060820ffd4721c8"
+    },
+    {
+      "path": "poc_flashvep/ouro_chunk_loop_prefill/confirmation_analysis.py",
+      "sha256": "c0cf04a6143aae6ab106d04719197a4b6204f4e21a3ad70bdffdff7122ef7f8e"
+    },
+    {
+      "path": "poc_flashvep/ouro_chunk_loop_prefill/decode_control.py",
+      "sha256": "eeedc56e1456df39bf948c8714ef392eeafd2b9ce4e6592ca549f17222006a6e"
+    },
+    {
+      "path": "poc_flashvep/ouro_chunk_loop_prefill/diagnostics.py",
+      "sha256": "51c5be35bce78f78b5d91463359ea0a941c87c899092b8a79dd2a1ddb05f84a5"
+    },
+    {
+      "path": "poc_flashvep/ouro_chunk_loop_prefill/figures.py",
+      "sha256": "960eb34d63d6e0486f7af7f8658c362eafb7c98e6571bd889c5e132724e6112f"
+    },
+    {
+      "path": "poc_flashvep/ouro_chunk_loop_prefill/nsys_analysis.py",
+      "sha256": "9aba951c6d1d1a6fa6b11943b1d3a927a41c11d908458521725f3917ddde4e93"
+    },
+    {
+      "path": "poc_flashvep/ouro_chunk_loop_prefill/provenance.py",
+      "sha256": "eab4f170abbe88b3be2cfa35c414f162b156394c60143145f3eff395e3e3d4cb"
+    },
+    {
+      "path": "poc_flashvep/ouro_chunk_loop_prefill/report_tables.py",
+      "sha256": "3848dbe158d59e19075380bcafba1bbd9451766ed60871ce31cc22135891a4d0"
+    },
+    {
+      "path": "poc_flashvep/ouro_chunk_loop_prefill/smoke.py",
+      "sha256": "aba5e8fde0703cac13de5eff941e30bea2bf0505c56f77cd4d23c3f432f710ea"
+    },
+    {
+      "path": "poc_flashvep/ouro_chunk_loop_prefill/test_grouped.py",
+      "sha256": "cd3ea457c28b9cb655c530bcf17b84e75163d4ef0365ecde0ae344831212ce95"
+    },
+    {
+      "path": "poc_flashvep/ouro_chunk_loop_prefill/validate_artifacts.py",
+      "sha256": "8932c9a195272f2095e311b4284fd23cd98aaaf3468476e82302e9fb6a28d67f"
+    }
+  ],
+  "authoritative_specification": {
+    "path": "poc_flashvep/reports/ouro_chunk_loop_slo_sensitivity_discovery/inputs/authoritative_spec.md",
+    "sha256": "2a80670ac531057e86f0f19dcd1dfa52ea1c06f60669c2b2ab77ecc86e9ca5f4"
+  },
+  "local_profiler_files": [
+    {
+      "name": "nsys_atomic_C1024.nsys-rep",
+      "bytes": 26596724,
+      "sha256": "ec3ec6e6ae21d4fa62b8022f887d3789931936652fa91775d9bae3d41fa14c95",
+      "publication": "LOCAL_ONLY. Portable CSV exports are archived separately."
+    },
+    {
+      "name": "nsys_atomic_C1024.sqlite",
+      "bytes": 80039936,
+      "sha256": "39781e8f3d6ce7c5f66f30f4830f3284b4dec3ac2af0213e36e5897cfcbd1f25",
+      "publication": "LOCAL_ONLY. Portable CSV exports are archived separately."
+    },
+    {
+      "name": "nsys_atomic_C128.nsys-rep",
+      "bytes": 42895964,
+      "sha256": "7a38d6755599341a08500235a2c234bd46c90e345439e86d677fecde6f6a5107",
+      "publication": "LOCAL_ONLY. Portable CSV exports are archived separately."
+    },
+    {
+      "name": "nsys_atomic_C128.sqlite",
+      "bytes": 125300736,
+      "sha256": "e8b673ee12170fd2d09cc4a7423bb1a353cf4939a8eaff06518d881e8626cdc3",
+      "publication": "LOCAL_ONLY. Portable CSV exports are archived separately."
+    },
+    {
+      "name": "nsys_grouped_C1024.nsys-rep",
+      "bytes": 27740810,
+      "sha256": "d22fbf4914c60ac8cc6f0d06ae237a641c2be7112fbdfca979696c84bf306e97",
+      "publication": "LOCAL_ONLY. Portable CSV exports are archived separately."
+    },
+    {
+      "name": "nsys_grouped_C1024.sqlite",
+      "bytes": 83308544,
+      "sha256": "d0d3ba885fe30fb3a2d54d481a7fc71a47fddedd11fc6768045d5c1f4c2b4022",
+      "publication": "LOCAL_ONLY. Portable CSV exports are archived separately."
+    },
+    {
+      "name": "nsys_mixed_C512.nsys-rep",
+      "bytes": 28243621,
+      "sha256": "88a4cca04d672004cf8196e1730f60fda599767c04453c4893382900b5978c16",
+      "publication": "LOCAL_ONLY. Portable CSV exports are archived separately."
+    },
+    {
+      "name": "nsys_mixed_C512.sqlite",
+      "bytes": 83984384,
+      "sha256": "4d03f56d4cb2906dad055706ab51260b5553efb4f51e7f6842c27486ba733fb9",
+      "publication": "LOCAL_ONLY. Portable CSV exports are archived separately."
+    }
+  ],
+  "model": "/home/esjung/.cache/huggingface/hub/models--ByteDance--Ouro-1.4B/snapshots/574fa66cb8bf5abdc979642d01cf2b79b16bfab1",
+  "model_files": [
+    {
+      "name": "config.json",
+      "sha256": "ce9cc13da41591b8b4deca053d7dfee06424c0228628ee862ea86d725bc163f3",
+      "bytes": 1472
+    },
+    {
+      "name": "configuration_ouro.py",
+      "sha256": "950443e32929047aa08d02abad2e1888bc1914b3db988d3d675f70787f65dafb",
+      "bytes": 11550
+    },
+    {
+      "name": "model.safetensors",
+      "sha256": "58872a72616c736595b8b7662079c5b12c5a162ec16eae94f21c348dfa9885af",
+      "bytes": 2869336434
+    },
+    {
+      "name": "modeling_ouro.py",
+      "sha256": "c5c68fbb368ce2909c257ae2afc50719be8c91539333d3295e19312c4316f413",
+      "bytes": 33350
+    },
+    {
+      "name": "special_tokens_map.json",
+      "sha256": "55087bb8409060d9cb0f80495e34f4e0d8a84f68a799a6b0cab3132be0aae319",
+      "bytes": 825
+    },
+    {
+      "name": "tokenizer.json",
+      "sha256": "fcb808fe5e7642f5299be28aea07fc7f6d4f4364c3ac5e408e15a772cbc8fa8d",
+      "bytes": 3522644
+    },
+    {
+      "name": "tokenizer_config.json",
+      "sha256": "7e010da95d71b0fa1aa809552922c74cc1dd98d628f21ba39ca6c35aa18d5d91",
+      "bytes": 4211
+    },
+    {
+      "name": "vocab.json",
+      "sha256": "7b9de3f47796abf8d00ab96be299fea0dc9afdf1827f34e7e0b9fb44593efe5c",
+      "bytes": 800656
+    }
+  ],
+  "versions": {
+    "torch": "2.11.0+cu129",
+    "flash-attn-4": "4.0.0b30",
+    "triton": "3.6.0",
+    "transformers": "5.16.1",
+    "numpy": "2.4.6",
+    "matplotlib": "3.11.2",
+    "pytest": "9.1.1",
+    "ruff": "0.17.1"
+  },
+  "GPUs": "index, uuid, name, pci.bus_id, memory.total [MiB], driver_version\n4, GPU-6076e2f2-5b63-3761-5586-56ceb7df8139, NVIDIA H100 80GB HBM3, 00000000:17:00.0, 81559 MiB, 570.211.01\n5, GPU-a1a1cfcf-93a1-3544-9a5e-e58144b68730, NVIDIA H100 80GB HBM3, 00000000:1C:00.0, 81559 MiB, 570.211.01\n6, GPU-e3f3998e-0f1a-e94a-b97c-4abb0e8c2c28, NVIDIA H100 80GB HBM3, 00000000:21:00.0, 81559 MiB, 570.211.01\n7, GPU-4cc26b88-19fc-1988-f9e0-17858aa7a99b, NVIDIA H100 80GB HBM3, 00000000:26:00.0, 81559 MiB, 570.211.01",
+  "nsys": "NVIDIA Nsight Systems version 2024.6.2.225-246235244400v0",
+  "manifests": [
+    {
+      "path": "poc_flashvep/reports/ouro_chunk_loop_slo_sensitivity_discovery/final_controls_manifest.json",
+      "sha256": "11d6e265431b285ae1736df632fa5da20d7e16c2e9426e7bfe59adb58bc1a2c0"
+    },
+    {
+      "path": "poc_flashvep/reports/ouro_chunk_loop_slo_sensitivity_discovery/fixed_grid_manifest.json",
+      "sha256": "1478691b56450a0851691aeb7ad8b25be95fd9faa45229ee620499e5f5bd2924"
+    },
+    {
+      "path": "poc_flashvep/reports/ouro_chunk_loop_slo_sensitivity_discovery/gpu_affinity_manifest.json",
+      "sha256": "94fa9edc55c765a5fe8db7367d48e117a691e6a744abf1bf28b20a0d0952480c"
+    },
+    {
+      "path": "poc_flashvep/reports/ouro_chunk_loop_slo_sensitivity_discovery/heldout_burst_manifest.json",
+      "sha256": "862ced78c6a0e9d92211b6ba075442e13cc800d10c2e7f3d6798a7d62f0579e3"
+    },
+    {
+      "path": "poc_flashvep/reports/ouro_chunk_loop_slo_sensitivity_discovery/heldout_poisson_manifest.json",
+      "sha256": "c7aea62444a2da30626b0ddf1facffdb04f70b6e19ffb9c649a6056230f71581"
+    },
+    {
+      "path": "poc_flashvep/reports/ouro_chunk_loop_slo_sensitivity_discovery/manifest_extensions.json",
+      "sha256": "c804afa45ed78d86d40eabddde47420d7a87656a5cf977505e1c90774149c9ad"
+    },
+    {
+      "path": "poc_flashvep/reports/ouro_chunk_loop_slo_sensitivity_discovery/numerical_manifest.json",
+      "sha256": "e49dc8ea5b0efcb5c5fff8841189938174a2f6fd67ea7d2c11af1dce372018a1"
+    },
+    {
+      "path": "poc_flashvep/reports/ouro_chunk_loop_slo_sensitivity_discovery/paired_observer_manifest.json",
+      "sha256": "65a7f6e17bfc28833f472b0c8c76e9d57ae5c82cb7332f7b1133932929307c1f"
+    },
+    {
+      "path": "poc_flashvep/reports/ouro_chunk_loop_slo_sensitivity_discovery/parallel_calibration_manifest.json",
+      "sha256": "879adc0f6707f78ab364ba0d4fbf14605cea3cda5bc47704dc05dfeb9690cfb4"
+    },
+    {
+      "path": "poc_flashvep/reports/ouro_chunk_loop_slo_sensitivity_discovery/parallel_calibration_manifest_v2.json",
+      "sha256": "89f57db241c346228a96feeda245765013731e6019baa41e99b1413e4d8a3d46"
+    },
+    {
+      "path": "poc_flashvep/reports/ouro_chunk_loop_slo_sensitivity_discovery/quantum_midpoints_manifest.json",
+      "sha256": "55bdc377111fa42249823f8d547cd2334a80a745abc316e2a04c6ebaa2a06a6b"
+    },
+    {
+      "path": "poc_flashvep/reports/ouro_chunk_loop_slo_sensitivity_discovery/rate_calibration_manifest.json",
+      "sha256": "e9874934d76cee02c0120d6e9c9e81198f3d1d71a370a49818d9d4733e0c3383"
+    },
+    {
+      "path": "poc_flashvep/reports/ouro_chunk_loop_slo_sensitivity_discovery/repeated_shortlist_manifest.json",
+      "sha256": "d2bc5e05c06395086f157a99eefc859ea1d8abd717522ad36772e51faf5fba63"
+    },
+    {
+      "path": "poc_flashvep/reports/ouro_chunk_loop_slo_sensitivity_discovery/separate_profiling_manifest.json",
+      "sha256": "ad7fa0889898b561deeee75cf7716edf9b11a88def04f6ac291bff26a0f9ad7b"
+    },
+    {
+      "path": "poc_flashvep/reports/ouro_chunk_loop_slo_sensitivity_discovery/separate_profiling_manifest_resolved.json",
+      "sha256": "26088420adb17aad5f3281bc60efd08fc9a7afe7eb93dfe51db147aedacd5d8b"
+    },
+    {
+      "path": "poc_flashvep/reports/ouro_chunk_loop_slo_sensitivity_discovery/separate_profiling_manifest_resolved_74ddb076846b.json",
+      "sha256": "dafa55449509d35c3da54cb11160fbe61c13c9181ebb2842824ec13fba0e24a9"
+    },
+    {
+      "path": "poc_flashvep/reports/ouro_chunk_loop_slo_sensitivity_discovery/solo_manifest.json",
+      "sha256": "2528fac4b8f437ba964ff17d64ae1512bdf6bdebccf5ad2d5f919150de9aacda"
+    },
+    {
+      "path": "poc_flashvep/reports/ouro_chunk_loop_slo_sensitivity_discovery/solo_manifest_v2.json",
+      "sha256": "c4dfc9ed155825ad7ae11c7b4062af2568e0f84b77d0fbdc2968e41901422ca6"
+    },
+    {
+      "path": "poc_flashvep/reports/ouro_chunk_loop_slo_sensitivity_discovery/solo_policy_verification_manifest.json",
+      "sha256": "7ac9a37fa6a95bd039f16c4fd3921931efe04b2b9418afc37611a21aab430b7e"
+    },
+    {
+      "path": "poc_flashvep/reports/ouro_chunk_loop_slo_sensitivity_discovery/tail_fill_manifest.json",
+      "sha256": "b7819f99e7125a84be7ce3677f5e5dd44c0b5ca9c1873f67d7d0626fba95968b"
+    },
+    {
+      "path": "poc_flashvep/reports/ouro_chunk_loop_slo_sensitivity_discovery/tail_observer_manifest.json",
+      "sha256": "aeb8b12833cfcef900ff7ddc9eac717e0ceeaed30b0e5f0e831930f68b3329d9"
+    },
+    {
+      "path": "poc_flashvep/reports/ouro_chunk_loop_slo_sensitivity_discovery/traffic_pilot_manifest.json",
+      "sha256": "f6b80eb5e94ebdb2a0fbd08075683731a3660e19811d93f70564ecc31046ebb2"
+    },
+    {
+      "path": "poc_flashvep/reports/ouro_chunk_loop_slo_sensitivity_discovery/traffic_workload_manifest.json",
+      "sha256": "e6b3f78a160e4cd8079bc1c413889c187b6682e30909e9604686836a8b882c7e"
+    }
+  ],
+  "code": [
+    {
+      "path": "poc_flashvep/ouro_chunk_loop_slo/__init__.py",
+      "sha256": "07271c10f45e74e3995d8b81e46a1ac2ddffd464783751c44f892f3e675d8171"
+    },
+    {
+      "path": "poc_flashvep/ouro_chunk_loop_slo/after.py",
+      "sha256": "05aaf46780eb5a441897caa0e67df109857dc5c1607c640ef6c90d10db06d492"
+    },
+    {
+      "path": "poc_flashvep/ouro_chunk_loop_slo/analyse.py",
+      "sha256": "7631641064e9a805c0a0f06476a6b5fae320215ba4634001ec7731cc37724725"
+    },
+    {
+      "path": "poc_flashvep/ouro_chunk_loop_slo/audit.py",
+      "sha256": "89ff9daeb1e631ae8eb08fe10df99b6f5069b7b69bd0e09f90e045e9c7930bc7"
+    },
+    {
+      "path": "poc_flashvep/ouro_chunk_loop_slo/calibrate.sh",
+      "sha256": "0850e100d6622e0e298fe56768eba5964fa03344099a08e3feef13c7bf1fc5ee"
+    },
+    {
+      "path": "poc_flashvep/ouro_chunk_loop_slo/characterize.py",
+      "sha256": "435255d4358c16ef64885f1fb140979027c3c3811c8586c7e25ffcba8de7d14c"
+    },
+    {
+      "path": "poc_flashvep/ouro_chunk_loop_slo/common.py",
+      "sha256": "e9d5f90958e03f1fff1be6b813ad66190c4cb0da70644ddcf7664c376c123eeb"
+    },
+    {
+      "path": "poc_flashvep/ouro_chunk_loop_slo/controls.py",
+      "sha256": "cfdda6285d025206e4180499a130df6063193b41b95a803be935f351a599545c"
+    },
+    {
+      "path": "poc_flashvep/ouro_chunk_loop_slo/cpu_checks.py",
+      "sha256": "e6edb153056a332d619bb3ab2bb7cbcb80c2ea2a09bfc5eb9cf9ce6a1fe1f496"
+    },
+    {
+      "path": "poc_flashvep/ouro_chunk_loop_slo/dispatch.py",
+      "sha256": "d334e4935362dd64aa959058dc0e0ec8320ed66d3cbabe3b20fb1d7c2303c860"
+    },
+    {
+      "path": "poc_flashvep/ouro_chunk_loop_slo/figures.py",
+      "sha256": "033f61ab85170b0b120b40efbf1efd5e1f8e8c939f7117a20ef885056b8e3311"
+    },
+    {
+      "path": "poc_flashvep/ouro_chunk_loop_slo/finish_analysis.py",
+      "sha256": "919fcc8926a1baa68bd4f6223eab917869c05a707db9ff41d1c4e6b56679add6"
+    },
+    {
+      "path": "poc_flashvep/ouro_chunk_loop_slo/history.py",
+      "sha256": "7ed578a466875d754e1437028bea0de0e5ada946b761abd2beaee094b531b18a"
+    },
+    {
+      "path": "poc_flashvep/ouro_chunk_loop_slo/inventory.py",
+      "sha256": "a92d6cb3d4e03c90d1ed7c639d1c93e94b57c5b153349f91c9ecc89ecbac32cf"
+    },
+    {
+      "path": "poc_flashvep/ouro_chunk_loop_slo/metrics.py",
+      "sha256": "4c72583b285317deceb3aa9617e576faa97bb0955aca8716e44d146ea7d530ba"
+    },
+    {
+      "path": "poc_flashvep/ouro_chunk_loop_slo/mismatch_audit.py",
+      "sha256": "77f7f008e963f421864d942d5f8a7197f0461361b3c9d1f52530c05d18cb67cc"
+    },
+    {
+      "path": "poc_flashvep/ouro_chunk_loop_slo/nsys_analysis.py",
+      "sha256": "cdaecbd4cafaedb2fb2f645572618988a305601e44c028968388b12d95440c9a"
+    },
+    {
+      "path": "poc_flashvep/ouro_chunk_loop_slo/numerical.py",
+      "sha256": "74036c4fbef177dbda21a4c09476fc16de4129cc3d28e5f8ee6214e31a306d99"
+    },
+    {
+      "path": "poc_flashvep/ouro_chunk_loop_slo/pack.py",
+      "sha256": "9aace68506a7a7129ef871607845aa27d267095542d073951433a42dcc75f403"
+    },
+    {
+      "path": "poc_flashvep/ouro_chunk_loop_slo/prepare_followup.py",
+      "sha256": "d6fe5c76c6f95e54ce80914c6c1fea7b662c25ee126466fd11f5175e7d629c27"
+    },
+    {
+      "path": "poc_flashvep/ouro_chunk_loop_slo/register.py",
+      "sha256": "296c3416cfc43fda23019f3c2091d29357972b744a9dd12073ccca676bed7462"
+    },
+    {
+      "path": "poc_flashvep/ouro_chunk_loop_slo/report_tables.py",
+      "sha256": "7f7d8a4c15855758d9cd5ac7fa6a7cb660b61a8885c3fa5328308c5afd28b248"
+    },
+    {
+      "path": "poc_flashvep/ouro_chunk_loop_slo/resolve_manifest.py",
+      "sha256": "f7eeaf34e635db0754b24b234c838e0ec25f3f4e4bf34c65c540f6d296f722c3"
+    },
+    {
+      "path": "poc_flashvep/ouro_chunk_loop_slo/run_manifest.sh",
+      "sha256": "2b55a4de684dbfa0b1ed9c17cb63cc81b323aaf254773cd53bee99d443dfb078"
+    },
+    {
+      "path": "poc_flashvep/ouro_chunk_loop_slo/test_metrics.py",
+      "sha256": "0ed7be3684dc2153a245bc737ca1a656d87c50965a18b56cdef976ed23a9109a"
+    },
+    {
+      "path": "poc_flashvep/ouro_chunk_loop_slo/traffic.py",
+      "sha256": "79dda77439b37682ce03301db3ec40d1159e51391ffb6d4de737e6e891c26f51"
+    },
+    {
+      "path": "poc_flashvep/ouro_chunk_loop_slo/verify.py",
+      "sha256": "70fc984ba04b9cd1a952d244fa9e49205e0f6a00250ee2f6d97f9b99ebfb4511"
+    },
+    {
+      "path": "poc_flashvep/ouro_chunk_loop_slo/worker.py",
+      "sha256": "296141ebc1296060735fda4639b1164e9f5a4d03a3a28ce4c0dfecec4c04ea60"
+    },
+    {
+      "path": "poc_flashvep/ouro_chunk_loop_slo/workloads.py",
+      "sha256": "6263e3731e884928c16a8410afef409014eed21a2bfd4b52311482c23aca47f0"
+    }
+  ],
+  "paused_project": "Native-vLLM Ouro Loop PP. Not resumed.",
+  "old_staged_diff_sha256": "7018be31bd8a517574711055a72afbd6ae90737e4a585578c98ec255dbf7e1d9",
+  "GPU_parallelism": "Four independent Single-GPU experiments. Not TP, PP or shared DP serving scaling."
+}

@@ -1,0 +1,221 @@
+{
+  "purpose": "Separate CUDA-event quantum and observer controls. Never headline heavy wall time.",
+  "jobs": [
+    {
+      "id": "profile_quantum_block0",
+      "kind": "grid",
+      "shape": [
+        8192,
+        8
+      ],
+      "startup": "heavy_0",
+      "trials": [
+        3
+      ],
+      "cells": [
+        [
+          "atomic",
+          128
+        ],
+        [
+          "atomic",
+          1024
+        ],
+        [
+          "staged4",
+          1024
+        ]
+      ],
+      "trace": true
+    },
+    {
+      "id": "profile_quantum_block1",
+      "kind": "grid",
+      "shape": [
+        8192,
+        8
+      ],
+      "startup": "heavy_1",
+      "trials": [
+        3
+      ],
+      "cells": [
+        [
+          "split",
+          128
+        ],
+        [
+          "split",
+          1024
+        ],
+        [
+          "staged4",
+          1024
+        ]
+      ],
+      "trace": true
+    },
+    {
+      "id": "profile_quantum_block2",
+      "kind": "grid",
+      "shape": [
+        8192,
+        8
+      ],
+      "startup": "heavy_2",
+      "trials": [
+        3
+      ],
+      "cells": [
+        [
+          "grouped",
+          128
+        ],
+        [
+          "grouped",
+          1024
+        ],
+        [
+          "staged4",
+          1024
+        ]
+      ],
+      "trace": true
+    },
+    {
+      "id": "profile_quantum_block3",
+      "kind": "grid",
+      "shape": [
+        8192,
+        8
+      ],
+      "startup": "heavy_3",
+      "trials": [
+        3
+      ],
+      "cells": [
+        [
+          "mixed",
+          128
+        ],
+        [
+          "mixed",
+          1024
+        ],
+        [
+          "staged4",
+          1024
+        ]
+      ],
+      "trace": true
+    },
+    {
+      "id": "observer_control_s0",
+      "kind": "grid",
+      "shape": [
+        2048,
+        4
+      ],
+      "startup": "observer_0",
+      "trials": [
+        2,
+        6,
+        9
+      ],
+      "cells": [
+        [
+          "atomic",
+          1024
+        ]
+      ],
+      "trace": false,
+      "observer_off": false
+    },
+    {
+      "id": "observer_control_s1",
+      "kind": "grid",
+      "shape": [
+        2048,
+        4
+      ],
+      "startup": "observer_1",
+      "trials": [
+        2,
+        6,
+        9
+      ],
+      "cells": [
+        [
+          "atomic",
+          1024
+        ]
+      ],
+      "trace": false,
+      "observer_off": true
+    },
+    {
+      "id": "observer_control_s2",
+      "kind": "grid",
+      "shape": [
+        2048,
+        4
+      ],
+      "startup": "observer_2",
+      "trials": [
+        2,
+        6,
+        9
+      ],
+      "cells": [
+        [
+          "atomic",
+          1024
+        ]
+      ],
+      "trace": false,
+      "observer_off": false
+    },
+    {
+      "id": "observer_control_s3",
+      "kind": "grid",
+      "shape": [
+        2048,
+        4
+      ],
+      "startup": "observer_3",
+      "trials": [
+        2,
+        6,
+        9
+      ],
+      "cells": [
+        [
+          "atomic",
+          1024
+        ]
+      ],
+      "trace": false,
+      "observer_off": true
+    },
+    {
+      "id": "traffic_pilot_d_v2",
+      "kind": "traffic",
+      "pilot": true,
+      "requests": 8,
+      "cap": 512,
+      "trials": [
+        0
+      ],
+      "cells": [
+        [
+          "no_chunk",
+          16384
+        ],
+        [
+          "staged4",
+          1024
+        ]
+      ]
+    }
+  ]
+}

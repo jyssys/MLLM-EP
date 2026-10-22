@@ -1,0 +1,56 @@
+{
+  "evidence": "LIVE_CALIBRATION_THEN_FROZEN_DESIGN",
+  "lambda_reference_per_s": 0.25,
+  "source": "rate_calibration_manifest.json",
+  "rule": "Highest tested Atomic calibration rate satisfying all preregistered finite-window stability rules.",
+  "caution": "0.5/s had near-flat queued backlog, but 4/39 unfinished exceeded the frozen 10% end-window rule. This alone does not prove divergence.",
+  "heldout_rates": [
+    0.125,
+    0.25,
+    0.5,
+    1.0
+  ],
+  "rationale": "Include low load, reference, near-flat calibration boundary, and measured growing-queue overload. Broad rate brackets are exploratory.",
+  "duration_s": 90,
+  "drain_s": 120,
+  "starts": 4,
+  "cap": 512,
+  "arrival_clock": "Scheduled arrival to actual last token. Independent producer without backpressure.",
+  "qualification": "Expected sample counts are below 1000/arm/rate. No production-capacity or qualified p99 claim.",
+  "policy_menu": [
+    [
+      "atomic",
+      256
+    ],
+    [
+      "atomic",
+      1024
+    ],
+    [
+      "split",
+      512
+    ],
+    [
+      "grouped",
+      512
+    ],
+    [
+      "grouped",
+      1024
+    ],
+    [
+      "mixed",
+      128
+    ],
+    [
+      "mixed",
+      512
+    ],
+    [
+      "staged4",
+      1024
+    ]
+  ],
+  "workload_sha256": "e6b3f78a160e4cd8079bc1c413889c187b6682e30909e9604686836a8b882c7e",
+  "slo_sha256": "8e763b5e64c6c6aa5a0a6f3b626a99363d18798735001c783629ec9b06e5cba8"
+}
