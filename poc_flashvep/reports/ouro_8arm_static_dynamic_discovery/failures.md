@@ -1,5 +1,20 @@
 # Failure ledger
 
+## Native profiler child executable path
+
+All eight custom 400-question runs and both native 400-question controls completed before this failure.
+The first native TP1 heavy trace then stopped during engine initialization.
+The error was `FileNotFoundError: ninja`.
+The native environment contained `bin/ninja`, but the launch wrapper prepended the `nsys` directory instead of the Python environment.
+The CPU regression reproduced the missing executable with an explicit minimal PATH.
+The launch helper now uses the actual child interpreter's environment directory.
+The same regression passes after the change.
+The native TP1 retry completed with code zero under the separate label `profile_native_TP1_v2`.
+The original failed log and completion record remain unchanged.
+The profile-resume map links the original comparison label to the retry.
+No quality answer was rerun or replaced by this repair.
+See `state/profile_PATH_regression.json` and `state/profile_resume_map.json`.
+
 ## Historical strict TP4 gate
 
 The previous P512 strict gate remains FAIL. This study does not change its thresholds.

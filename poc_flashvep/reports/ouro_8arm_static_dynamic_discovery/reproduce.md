@@ -39,6 +39,11 @@ cd /home/esjung/MLLM-EP-ouro-request-pp
 /home/esjung/.venvs/llada2-mini-reference/bin/python -m poc_flashvep.ouro_8arm.scoring
 /home/esjung/.venvs/llada2-mini-reference/bin/python -m poc_flashvep.ouro_8arm.paired_analysis
 /home/esjung/.venvs/llada2-mini-reference/bin/python -m poc_flashvep.ouro_8arm.serving_analysis
+/home/esjung/.venvs/llada2-mini-reference/bin/python -m poc_flashvep.ouro_8arm.subset400_serving
+/home/esjung/.venvs/llada2-mini-reference/bin/python -m poc_flashvep.ouro_8arm.subset400_serving --extension-only
+/home/esjung/.venvs/llada2-mini-reference/bin/python -m poc_flashvep.ouro_8arm.behavior_analysis
+/home/esjung/.venvs/llada2-mini-reference/bin/python -m poc_flashvep.ouro_8arm.gate_margin_analysis
+/home/esjung/.venvs/llada2-mini-reference/bin/python -m poc_flashvep.ouro_8arm.placement_accounting
 /home/esjung/.venvs/llada2-mini-reference/bin/python -m poc_flashvep.ouro_8arm.plots
 ```
 
@@ -107,12 +112,19 @@ Heavy profiling uses a different label and a separate execution.
 
 ```bash
 /home/esjung/.venvs/llada2-mini-reference/bin/python -m poc_flashvep.ouro_8arm.replay_campaign
+/home/esjung/.venvs/llada2-mini-reference/bin/python -m poc_flashvep.ouro_8arm.replay_campaign --dynamic
 /home/esjung/.venvs/llada2-mini-reference/bin/python -m poc_flashvep.ouro_8arm.replay_campaign --trace
 ```
 
 Only an actually completed command establishes a measured result.
 A command listed here does not imply that its experiment completed.
 Check the command's completion record and the final arm-status table.
+
+`serving_layout_profile_plan.json` defines an additional bounded profile stratum.
+It uses `--limit 4 --cap 32 --serving-KV-shape` with separate control and Nsight labels.
+The flag keeps the task's O4096 KV allocation but generates at most 32 tokens.
+It does not change primary task or replay defaults.
+These prefixes do not count as complete-task accuracy or whole-generation E2E profiling.
 
 ## Payloads
 
@@ -121,3 +133,36 @@ Derived CSV and JSON preserve numerical seams, scoring, ownership, and timing su
 Git excludes model files, full tensor caches, and Nsight binary databases through the repository's existing rules.
 Those local payloads remain available in `.tensor_cache/` and `profiles/`.
 The measurement scripts regenerate them. The study does not delete those payloads.
+
+After all export stages finish, create verified lossless SQLite archives:
+
+```bash
+/home/esjung/.venvs/llada2-mini-reference/bin/python -m poc_flashvep.ouro_8arm.archive_profiles
+```
+
+The command requires a completed controller status: `NEEDS_REVIEW` or `FINAL_REVIEW_COMPLETE`.
+It preserves the original profiler files and writes `.sqlite.gz` files with SHA256 verification.
+`profile_archive_manifest.json` identifies those archives and their original local sources.
+
+## Resume after the preserved native profiling failure
+
+The initial controller stopped after the completed 400-question quality campaign.
+The failed native profile used an incomplete executable PATH.
+The repaired launcher retains all completed runs and gives the failed profile a new retry label.
+
+```bash
+cd /home/esjung/MLLM-EP-ouro-request-pp
+/home/esjung/.venvs/llada2-mini-reference/bin/python -m unittest poc_flashvep.ouro_8arm.test_contract -v
+/home/esjung/.venvs/llada2-mini-reference/bin/python -u -m poc_flashvep.ouro_8arm.resume_review
+/home/esjung/.venvs/llada2-mini-reference/bin/python -m poc_flashvep.ouro_8arm.final_tables
+```
+
+The resume command skips completed profile captures and exports.
+It preserves failed logs. It does not rerun successful quality or hardware-replay jobs.
+It rebuilds derived analysis and lossless profiler archives.
+The final-tables command requires `NEEDS_REVIEW` or `FINAL_REVIEW_COMPLETE`.
+The main agent then reviews the evidence and writes the final decision.
+Do not run `report_snapshot` after that final review. It writes an in-progress template.
+
+The native profile command must inherit the native Python environment's `bin` directory in PATH.
+`commands/*_source.tar.gz` preserves the source used by each actual run.

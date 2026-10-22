@@ -15,14 +15,19 @@ class Probe(FourModelProbe):
     def safety_start(self):
         import torch
         self.finite=torch.ones((),dtype=torch.bool,device=self.device)
+        self.safety_calls=0
         self.safety_original=self.get_model().compute_logits
         def compute(*args,**kwargs):
+            self.safety_calls+=1
             z=self.safety_original(*args,**kwargs);self.finite.logical_and_(torch.isfinite(z).all());return z
         self.get_model().compute_logits=compute
         return True
     def safety_finish(self):
         self.get_model().compute_logits=self.safety_original
         return bool(self.finite)
+    def safety_audit(self):
+        return dict(compute_logits_wrapper_calls=self.safety_calls,
+            scope='Python wrapper calls in this cohort. A positive count checks that the installed observer was reached.')
     def start_trace(self):
         from vllm.distributed import get_tensor_model_parallel_rank
         from .numerical_trace import Trace

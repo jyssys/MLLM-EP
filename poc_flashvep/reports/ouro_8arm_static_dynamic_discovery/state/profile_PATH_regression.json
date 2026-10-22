@@ -1,0 +1,10 @@
+{
+  "failure": "profile_native_TP1_v1 stopped before inference because ninja was absent from the inherited PATH",
+  "preserved_log": "logs/profile_native_TP1_v1.log",
+  "installation_check": "The pinned native environment contains its own executable bin/ninja",
+  "regression_command": "/home/esjung/.venvs/llada2-mini-reference/bin/python -m unittest poc_flashvep.ouro_8arm.test_contract.ContractTests.test_profiled_native_environment_finds_ninja",
+  "before_fix": "FAIL: shutil.which returned None for the profiled native interpreter",
+  "change": "Prepend the child Python environment bin directory, not the nsys wrapper directory",
+  "after_fix": "PASS. The exact regression finds and executes the pinned native ninja binary. The full CPU suite passes all 18 tests.",
+  "scope": "Launch environment only. No model, sampling, tensor math, graph, gate, or KV policy change."
+}

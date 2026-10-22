@@ -14,6 +14,17 @@ def main():
     assert __import__('os').environ['CUDA_VISIBLE_DEVICES']=='4'
     output=ROOT/'raw'/a.label;output.mkdir(exist_ok=False)
     model,tok,engine=load_engine(.5,graphs=True,batch=a.batch,blocks=max(640,512*a.batch),refill=False,max_model_len=8192)
+    from safetensors import safe_open
+    state=model.state_dict();checked=[];total=0
+    with safe_open(MODEL/'model.safetensors',framework='pt',device='cpu') as checkpoint:
+        for name in checkpoint.keys():
+            expected=checkpoint.get_tensor(name).to(torch.bfloat16)
+            assert name in state and torch.equal(state[name].detach().cpu(),expected),name
+            checked.append(name);total+=expected.numel()*expected.element_size()
+    write(output/'weights_validation.json',dict(original_checkpoint_tensors=len(checked),original_checkpoint_bytes=total,
+        every_original_tensor_bitwise=True,checkpoint_revision=REVISION,
+        extra_adapter_state_names=sorted(set(state)-set(checked)),
+        scope='Startup audit of original checkpoint tensors. Extra optional adapter state is not substituted for the original trained gate.'))
     finite=torch.ones((),device='cuda',dtype=torch.bool)
     def finite_hook(module,inputs,value):finite.logical_and_(torch.isfinite(value).all())
     handle=model.lm_head.register_forward_hook(finite_hook)

@@ -28,6 +28,13 @@ Trace runs use NVTX, CUDA events, and optional Nsight Systems.
 Trace wall time never substitutes for clean serving time.
 Per-rank CUDA event durations are service intervals. They are not additive E2E percentages.
 
+The custom heavy lane records its host origin before `cudaProfilerStart`.
+Its recorded host service duration can therefore include profiler-start latency.
+The Nsight activity parser uses the later `EIGHT_COHORT` NVTX window for GPU activity accounting.
+Observer wall overhead and the GPU timeline window consequently have different boundaries.
+Semantic observer parity does not validate heavy wall time as a serving baseline.
+All heavy-profile latency remains unqualified for headline speedups.
+
 ## Admission and metrics
 
 Each cohort admits all requests at a common rank-zero host time.
@@ -40,6 +47,8 @@ Output throughput divides the generated token count by cohort makespan.
 
 Single uses physical GPU4. Distributed arms use physical GPUs4,5,6,7.
 Authorized unused GPUs run the requested burners. The environment record must identify those concurrent burners.
+Single measurements therefore do not describe a node with all other GPUs idle.
+Run-boundary clock snapshots do not exclude shared host or power effects from those burners.
 There is no performance claim about GPU efficiency from a raw four-GPU versus one-GPU ratio alone.
 
 ## Engine differences
@@ -52,6 +61,37 @@ The custom TP diagnostic shares this mask policy, but its four-head attention ge
 Production-oriented and custom engine-matched comparisons require separate tables.
 Custom serving preloads prompt IDs onto each GPU before admission. Native frontend staging remains part of native task E2E.
 Custom TP retains the generated token on the GPU for the next forward. It does not require a second CPU-to-GPU token upload.
+
+## Allocation shape in bounded profiles
+
+The custom graph attends over a full-capacity KV view with a mask.
+Its KV key dimension depends on the configured output cap.
+An O32 trace therefore has a different allocation and mask shape from an O4096 task run.
+That source fact does not establish which future-masked tiles the selected CUDA kernel actually reads.
+The kernel trace must determine the actual backend.
+
+The original O32 replay/profile stratum remains unchanged.
+A separate serving-layout stratum generates at most 32 tokens but allocates the original O4096 KV shape.
+It uses the same four frozen GSM8K requests in all eight custom arms.
+Unprofiled controls use the identical allocation shape.
+The optional flag does not change any primary task or replay default.
+See `serving_layout_profile_plan.json`.
+
+These bounded traces can explain kernel, transfer, and scheduling behavior at the real task allocation shape.
+They do not measure a complete long-generation critical path.
+Their profiler wall time never supplies the clean performance headline.
+
+Heavy Dynamic traces also record NVTX intervals for KV export, remote import, local repair messages, and acknowledgement waits.
+These are host protocol intervals, not pure payload-movement measurements.
+Some local repair kernels can finish after their host launch range ends.
+Nested repair, export, and wait ranges overlap. Do not add them into an exclusive E2E breakdown.
+The remote import and export handlers retain their existing CUDA completion waits.
+The added NVTX markers do not add a new completion wait or change a primary inference default.
+
+Later native controls additionally count calls to the installed finite-logit wrapper.
+They require a positive count on each rank.
+Earlier pilot records contain the finite flag but lack this explicit call-count audit.
+Do not retroactively claim that the older records measured this count.
 
 ## Validity
 

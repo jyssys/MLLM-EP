@@ -21,13 +21,16 @@ def worker(rank,queues,init,acks,args,groups):
     n=args.n;torch.cuda.set_device(rank);torch.set_num_threads(1)
     if n>1:dist.init_process_group('gloo',init_method='file://'+str(ROOT/'control'/f'{args.label}.gloo'),rank=rank,world_size=n)
     arm=args.arm;placement=ARMS[arm]['parallelism'];dynamic=ARMS[arm]['mode']=='dynamic'
+    tracing=args.trace or args.nsys
     part=Stage(rank,'layer_pp4' if placement=='layer_pp4' else 'loop_pp4');tok=tokenizer();route=path_for(arm)
     owned=[(loop,first,last) for target,loop,first,last in route if target==rank]
     for batch_index,requests in enumerate(groups):
         batch_index=requests[0].get('original_cohort',batch_index)
         for row in requests:
             if 'input_ids' not in row:row['input_ids']=tok.encode(row['prompt'],add_special_tokens=False)
-        prep=time.perf_counter();torch.cuda.reset_peak_memory_stats(rank);part.local_graphs.clear();part.prepare(requests,args.cap,owned)
+        allocation=KV_allocation_cap(args.cap,args.serving_KV_shape)
+        assert all(len(r['input_ids'])+allocation<=8192 for r in requests)
+        prep=time.perf_counter();torch.cuda.reset_peak_memory_stats(rank);part.local_graphs.clear();part.prepare(requests,allocation,owned)
         bank={};receive={}
         for row in requests:
             rid=row['id']
@@ -84,7 +87,8 @@ def worker(rank,queues,init,acks,args,groups):
                         finish_reason='eos' if actual==tok.eos_token_id else 'length' if step+1>=args.cap else 'stop',
                         output_tokens=len(out['ids']),depths=out['depths'],mean_depth=sum(out['depths'])/len(out['depths']),
                         token_publications=out['times'],E2E_s=finish-origin,TTFT_s=out['times'][0],
-                        max_new_tokens=args.cap,evaluation_eligible=args.cap==4096 and not args.probe and not args.forced_depths and not replay,
+                        max_new_tokens=args.cap,KV_allocation_output_cap=allocation,
+                        evaluation_eligible=args.cap==4096 and not args.probe and not args.forced_depths and not replay,
                         token_successor_policy='NO_REFILL_COHORT_WAVES' if no_refill else 'ASYNCHRONOUS_REQUEST_FIFO',
                         TPOT_s=(out['times'][-1]-out['times'][0])/(len(out['ids'])-1) if len(out['ids'])>1 else None,
                         lane='FROZEN_TOKEN_HARDWARE_REPLAY' if replay else 'FORCED_EXIT_DIAGNOSTIC' if args.forced_depths else 'SYNTHETIC_PROBE' if args.probe else 'ACTUAL_GREEDY_TASK_GENERATION',
@@ -106,14 +110,19 @@ def worker(rank,queues,init,acks,args,groups):
                 continue
             if m[0]=='fill_local':
                 _,rid,loop,position,source=m
+                if tracing:torch.cuda.nvtx.range_push(f'EIGHT_KV_LOCAL|{arm}|rank{rank}|{rid}|R{loop+1}|pos{position}')
                 part.fill_local(rid,loop,position);torch.cuda.synchronize(rank);acks[source].put((rid,rank))
                 counts['local_exit_fills']+=1
+                if tracing:torch.cuda.nvtx.range_pop()
                 continue
             if m[0]=='fill':
                 _,rid,source,loop,position,targets=m
+                if tracing:torch.cuda.nvtx.range_push(f'EIGHT_KV_REMOTE|{arm}|rank{rank}|{rid}|R{loop+1}|pos{position}|from{source}')
                 incoming=receive[rid,'exit'];incoming.copy_(peers[source][rid,'exit'],non_blocking=True)
                 part.import_exit(rid,loop,targets,position,incoming);torch.cuda.synchronize(rank)
-                counts['exit_KV_copies']+=1;bytes_['exit_KV']+=incoming.numel()*incoming.element_size();acks[source].put((rid,rank));continue
+                counts['exit_KV_copies']+=1;bytes_['exit_KV']+=incoming.numel()*incoming.element_size();acks[source].put((rid,rank))
+                if tracing:torch.cuda.nvtx.range_pop()
+                continue
             _,rid,step,visit,source,kind,cdf,survival,ready=m
             _,loop,first,last=route[visit];row=byid[rid];position=0 if step==0 else len(row['input_ids'])+step-1
             torch.cuda.nvtx.range_push(f'EIGHT|{arm}|{rid}|step{step}|R{loop+1}|L{first}-{last}')
@@ -141,17 +150,23 @@ def worker(rank,queues,init,acks,args,groups):
                 outputs[rid]['gates'].append(dict(step=step,loop=loop+1,hazard=hazard,cdf=cdf))
             if terminal:
                 if dynamic and step>0 and loop<3:
+                    if tracing:torch.cuda.nvtx.range_push(f'EIGHT_KV_REPAIR|{arm}|rank{rank}|{rid}|R{loop+1}|pos{position}')
                     if placement=='layer_pp4':
                         part.fill_local(rid,loop,position);targets=[k for k in range(n) if k!=rank]
                         for target in targets:queues[target].put(('fill_local',rid,loop,position,rank))
                         # Layer-local filling is handled below through the same ordered worker protocol.
                     elif placement=='single':part.fill_local(rid,loop,position);targets=[]
                     else:
+                        if tracing:torch.cuda.nvtx.range_push(f'EIGHT_KV_EXPORT|{arm}|rank{rank}|{rid}|R{loop+1}|pos{position}')
                         part.export_exit(rid,loop,position,bank[rid,'exit']);torch.cuda.synchronize(rank)
+                        if tracing:torch.cuda.nvtx.range_pop()
                         targets=list(range(loop+1,4))
                         for target in targets:queues[target].put(('fill',rid,rank,loop,position,[target]))
+                    if tracing and targets:torch.cuda.nvtx.range_push(f'EIGHT_KV_ACK_WAIT|{arm}|rank{rank}|{rid}|R{loop+1}|pos{position}')
                     for _ in targets:
                         acknowledged=acks[rank].get(timeout=1200);assert acknowledged[0]==rid,acknowledged
+                    if tracing and targets:torch.cuda.nvtx.range_pop()
+                    if tracing:torch.cuda.nvtx.range_pop()
                 z=part.head(h[:,-1:,:]);token=z[:,-1].argmax(-1).view(1,1)
                 if args.replay_case is None:assert torch.isfinite(z).all()
                 actual=int(token);predicted=actual
@@ -184,7 +199,7 @@ def worker(rank,queues,init,acks,args,groups):
             counts=counts,bytes=bytes_,memory=mem,events=events,controller_events=sample_events,gates={rid:v['gates'] for rid,v in outputs.items()},
             ownership=dict(physical_layers=part.indices,loop_stage_tuples=owned,parameter_devices=sorted({str(p.device) for p in part.layers.parameters()}),
                 UUID=str(torch.cuda.get_device_properties(rank).uuid),mask=os.environ['CUDA_VISIBLE_DEVICES']),
-            graph_count=len(part.local_graphs),replay_case=args.replay_case,repeat=batch_index,
+            graph_count=len(part.local_graphs),KV_allocation_output_cap=allocation,replay_case=args.replay_case,repeat=batch_index,
             lane='TRACE' if args.trace or args.nsys else 'CLEAN_REPLAY' if args.replay_case is not None else 'TASK_OBSERVER',
             scope='Graph construction precedes admission. Warm-up repeat zero is excluded from replay headline.'))
         if args.probe:
@@ -204,7 +219,10 @@ def main():
     p.add_argument('--lockstep',action='store_true')
     p.add_argument('--ids',type=lambda s:s.split(','))
     p.add_argument('--extension400',action='store_true')
+    p.add_argument('--serving-KV-shape',action='store_true',help='Bounded O32 trace with the unchanged O4096 serving KV allocation.')
     args=p.parse_args();args.n=len(ARMS[args.arm]['GPUs']);rows=dataset(not args.full)
+    if args.serving_KV_shape:
+        assert args.cap==32 and args.limit==4 and args.replay_case is None and not args.depth_replay and not args.probe and not args.extension400
     if args.extension400:rows=subset400(extension_only=True)
     if args.ids:
         selected=set(args.ids);rows=[r for r in rows if r['id'] in selected];assert {r['id'] for r in rows}==selected

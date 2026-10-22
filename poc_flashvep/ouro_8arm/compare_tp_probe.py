@@ -12,14 +12,18 @@ def compare(reference,candidate):
     for rid,slots in gold.items():
         a=read(ROOT/'raw'/reference/(rid+'.json'));b=read(ROOT/'raw'/candidate/(rid+'.json'))
         assert a['prompt_ids']==b['prompt_ids']
-        worst=0.
+        worst=0.;squared_error=0.;squared_reference=0.;per_loop={i:[0.,0.] for i in range(4)}
         for slot,kv in slots.items():
             for which,x in enumerate(kv):
                 y=torch.cat([rank[rid][slot][which] for rank in ranks],dim=1)
                 assert y.shape==x.shape and torch.isfinite(y).all(),(rid,slot,y.shape,x.shape)
                 worst=max(worst,errors(y,x)['relative_L2'])
+                e=float((y.float()-x.float()).square().sum());s=float(x.float().square().sum())
+                squared_error+=e;squared_reference+=s;per_loop[slot//24][0]+=e;per_loop[slot//24][1]+=s
         result.append(dict(id=rid,reference=reference,candidate=candidate,token_exact=a['output_ids']==b['output_ids'],
             depth_exact=a['depths']==b['depths'],max_KV_slot_relative_L2=worst,KV_slots=len(slots),
+            assembled_all_slots_KV_relative_L2=(squared_error/max(squared_reference,1e-30))**.5,
+            per_loop_KV_relative_L2={str(i+1):(e/max(s,1e-30))**.5 for i,(e,s) in per_loop.items()},
             TP_local_head_count=4,assembled_head_count=16,
             scope='Bounded sharded KV comparison. Every rank separately checks bitwise current-row last_exited copies. Historical full-model TP qualification remains unresolved.'))
     write(ROOT/'numerical'/f'{candidate}_vs_SD.json',result)

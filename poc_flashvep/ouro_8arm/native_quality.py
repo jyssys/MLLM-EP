@@ -46,6 +46,8 @@ def main():
         if a.nsys:llm.collective_rpc('profile_begin')
         begin=time.perf_counter();output=llm.generate(inputs,params,use_tqdm=False);end=time.perf_counter()
         finite=llm.collective_rpc('safety_finish');assert all(finite),finite
+        safety_calls=llm.collective_rpc('safety_audit')
+        assert all(v['compute_logits_wrapper_calls']>0 for v in safety_calls),'The native finite observer did not run on every rank.'
         if a.nsys:llm.collective_rpc('profile_end')
         cohort=[]
         for row,prompt,result in zip(group,inputs,output):
@@ -64,7 +66,8 @@ def main():
                 lane='TASK_GENERATION_WITH_GPU_FINITE_OBSERVER. Not an observer-free hardware speedup.')
             write(path/(row['id'].replace('/','_')+'.json'),record);cohort.append(record['id'])
             print('QUALITY',arm,row['id'],count,value.finish_reason,flush=True)
-        write(path/f'cohort_{cohort_index:03d}.json',dict(ids=cohort,makespan_s=end-begin,output_tokens=sum(len(r.outputs[0].token_ids) for r in output)))
+        write(path/f'cohort_{cohort_index:03d}.json',dict(ids=cohort,makespan_s=end-begin,output_tokens=sum(len(r.outputs[0].token_ids) for r in output),
+            finite_observer_call_audit=safety_calls))
     llm.llm_engine.step=original
     write(path/'after_ownership.json',llm.collective_rpc('inspect_ownership'))
     llm.llm_engine.engine_core.shutdown()

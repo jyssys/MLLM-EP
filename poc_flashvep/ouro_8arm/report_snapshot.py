@@ -136,6 +136,9 @@ Forced-depth probes and live-gate probes remain different lanes.
 The official CDB versus custom comparison, when present, is `numerical/dynamic_reference_comparison.json`.
 Its backend warning must remain visible if outputs or gate decisions differ.
 The official cache-copy checks and prototype tests independently check last_exited current-row semantics.
+The four-request reference match does not extend to all natural pilot outputs or exit traces.
+See `dynamic_reference_validation.md` for the measured cross-backend drift and recorded gate margins.
+Those gate observations do not identify one unique faulty upstream kernel.
 
 ## Preserved failures
 

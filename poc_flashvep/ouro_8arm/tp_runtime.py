@@ -59,11 +59,14 @@ class Engine(TPModel):
                 control=torch.tensor([int(end)],device=self.device);dist.broadcast(control,src=0)
                 gates.append(dict(loop=loop+1,hazard=hazard,cdf=cdf))
                 if bool(control):
+                    trace_repair=getattr(self,'trace_ranges',False) and loop<3
+                    if trace_repair:torch.cuda.nvtx.range_push(f'EIGHT_KV_REPAIR|TD|rank{self.rank}|{rid}|R{loop+1}|pos{position}')
                     for later in range(loop+1,4):
                         self.pool[rid][24*later:24*(later+1),:,:,: ,position:position+1].copy_(self.pool[rid][24*loop:24*(loop+1),:,:,: ,position:position+1])
                         if validate_KV:
                             assert torch.equal(self.pool[rid][24*later:24*(later+1),:,:,:,position:position+1],
                                 self.pool[rid][24*loop:24*(loop+1),:,:,:,position:position+1])
+                    if trace_repair:torch.cuda.nvtx.range_pop()
                     break
         z=self.head(h[:,-1:,:])
         if check_finite:assert torch.isfinite(z).all()
@@ -79,11 +82,15 @@ def main():
     p.add_argument('--depth-replay')
     p.add_argument('--ids',type=lambda s:s.split(','))
     p.add_argument('--extension400',action='store_true')
+    p.add_argument('--serving-KV-shape',action='store_true',help='Bounded O32 trace with the unchanged O4096 serving KV allocation.')
     p.add_argument('--forced-depths',type=lambda s:list(map(int,s.split(','))))
     args=p.parse_args();rank=int(os.environ['LOCAL_RANK']);torch.cuda.set_device(rank);torch.set_num_threads(1)
+    if args.serving_KV_shape:
+        assert args.cap==32 and args.limit==4 and args.replay_case is None and not args.depth_replay and not args.probe and not args.extension400
     assert not args.forced_depths or (args.dynamic and args.probe and all(v in [2,3,4] for v in args.forced_depths))
     assert os.environ['WORLD_SIZE']=='4' and os.environ['CUDA_VISIBLE_DEVICES']=='4,5,6,7'
     dist.init_process_group('nccl',device_id=torch.device('cuda',rank));model=Engine(rank);tok=tokenizer();arm='TD' if args.dynamic else 'T4'
+    model.trace_ranges=args.nsys
     rows=dataset(not args.full)
     if args.extension400:rows=subset400(extension_only=True)
     if args.ids:
@@ -110,7 +117,9 @@ def main():
     for cohort_index,group in enumerate(groups):
         cohort_index=group[0].get('cohort400',cohort_index)
         preparation_begin=time.perf_counter()
-        torch.cuda.reset_peak_memory_stats(rank);model.prepare(group,args.cap);dist.barrier();torch.cuda.synchronize(rank)
+        allocation=KV_allocation_cap(args.cap,args.serving_KV_shape)
+        assert all(len(r['input_ids'])+allocation<=8192 for r in group)
+        torch.cuda.reset_peak_memory_stats(rank);model.prepare(group,allocation);dist.barrier();torch.cuda.synchronize(rank)
         preparation_peak=torch.cuda.max_memory_allocated(rank);torch.cuda.reset_peak_memory_stats(rank)
         prompt_inputs={r['id']:torch.tensor([r['input_ids']],device=rank) for r in group}
         outputs={r['id']:dict(ids=[],predictions=[],depths=[],times=[],gates=[]) for r in group};live=list(group);samples=[];origin=time.perf_counter()
@@ -136,7 +145,8 @@ def main():
                         record=dict(id=r['id'],dataset=r['dataset'],arm=arm,engine='Custom TP4 / four-head full-capacity graph',GPUs=[4,5,6,7],
                             prompt_sha256=r['prompt_sha256'],prompt_ids=r['input_ids'],output_ids=out['ids'],predicted_ids=out['predictions'],text=text,
                             finish_reason=finish,output_tokens=len(out['ids']),depths=out['depths'],mean_depth=sum(out['depths'])/len(out['depths']),
-                            max_new_tokens=args.cap,evaluation_eligible=args.cap==4096 and not args.probe and not args.forced_depths and args.replay_case is None,
+                            max_new_tokens=args.cap,KV_allocation_output_cap=allocation,
+                            evaluation_eligible=args.cap==4096 and not args.probe and not args.forced_depths and args.replay_case is None,
                             token_successor_policy='NO_REFILL_COHORT_WAVES',
                             E2E_s=out['times'][-1],TTFT_s=out['times'][0],TPOT_s=(out['times'][-1]-out['times'][0])/(len(out['ids'])-1) if len(out['ids'])>1 else None,
                             gates=out['gates'],lane='FROZEN_TOKEN_HARDWARE_REPLAY' if args.replay_case is not None else 'FORCED_EXIT_DIAGNOSTIC' if args.forced_depths else 'SYNTHETIC_PROBE' if args.probe else 'ACTUAL_GREEDY_TASK_GENERATION',status='NUMERICALLY_UNQUALIFIED_EXPLORATORY',cohort_index=cohort_index)
@@ -163,6 +173,7 @@ def main():
             preparation_peak_allocated=preparation_peak,
             forward_loop_invocations=sum(sum(v['depths']) for v in outputs.values()),
             token_loop_work=4*sum(len(r['input_ids']) for r in group)+sum(sum(v['depths'][1:]) for v in outputs.values()),graph_tapes=len(model.tapes),
+            KV_allocation_output_cap=allocation,
             replay_case=args.replay_case,repeat=cohort_index,lane='TRACE' if args.nsys else 'CLEAN_REPLAY' if args.replay_case is not None else 'TASK_OBSERVER'))
         if args.probe:
             snapshot={r['id']:{slot:(value[slot,0,:,:,:len(r['input_ids'])+len(outputs[r['id']]['ids'])-1].cpu(),

@@ -14,13 +14,19 @@ def GPU_telemetry(gpus):
             '--query-gpu=index,uuid,pstate,temperature.gpu,clocks.current.sm,clocks.current.memory,power.draw,memory.used',
             '--format=csv'],text=True),scope='Run-boundary snapshot outside serving. Not a continuous clock or power trace.')
 
+def execution_environment(argv,gpus):
+    env=os.environ.copy();env.update(CUDA_VISIBLE_DEVICES=','.join(map(str,gpus)),OMP_NUM_THREADS='1',OPENBLAS_NUM_THREADS='1',
+        HF_HUB_OFFLINE='1',TOKENIZERS_PARALLELISM='false',NCCL_DEBUG='WARN',VLLM_WORKER_MULTIPROC_METHOD='spawn')
+    interpreter=next((word for word in argv if word in [PYTHON,VLLM_PYTHON]),argv[0])
+    env['PATH']=str(Path(interpreter).parent)+os.pathsep+env['PATH']
+    return env
+
+
 def execute(label,argv,gpus=(4,5,6,7),timeout=14400,restore_after=True):
     assert not (ROOT/'logs'/f'{label}.log').exists(),label
     stop(gpus)
     write(ROOT/'commands'/f'{label}_GPU_before.json',GPU_telemetry(gpus))
-    env=os.environ.copy();env.update(CUDA_VISIBLE_DEVICES=','.join(map(str,gpus)),OMP_NUM_THREADS='1',OPENBLAS_NUM_THREADS='1',
-        HF_HUB_OFFLINE='1',TOKENIZERS_PARALLELISM='false',NCCL_DEBUG='WARN',VLLM_WORKER_MULTIPROC_METHOD='spawn')
-    env['PATH']=str(Path(argv[0]).parent)+os.pathsep+env['PATH']
+    env=execution_environment(argv,gpus)
     write(ROOT/'commands'/f'{label}.json',dict(argv=argv,GPUs=gpus,cwd=PROJECT,
         env={k:env[k] for k in ['CUDA_VISIBLE_DEVICES','OMP_NUM_THREADS','HF_HUB_OFFLINE','PATH']},
         source_hashes={str(p.relative_to(PROJECT)):sha(p) for p in (PROJECT/'poc_flashvep/ouro_8arm').glob('*.py')}))

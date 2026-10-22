@@ -1,0 +1,17 @@
+{
+  "status": "FROZEN_BEFORE_EXECUTION",
+  "reason": "A source audit found that the custom full-capacity mask uses P + output_cap - 1 KV columns. An O32 profile therefore does not have the O4096 task KV layout.",
+  "new_method": false,
+  "primary_inference_default_changed": false,
+  "arms": ["S4", "T4", "L4", "O4", "SD", "TD", "LD", "OD"],
+  "requests": ["gsm8k/test/0", "gsm8k/test/1", "gsm8k/test/2", "gsm8k/test/3"],
+  "generated_output_cap": 32,
+  "KV_allocation_output_cap": 4096,
+  "selection": "The same first four requests as the original live profile controls. No task answer or latency selects the requests.",
+  "lanes": ["unprofiled control", "separate Nsight and CUDA-event trace"],
+  "correctness": "Compare control and trace outputs, exit depths, and computed argmax IDs. Separately compare the control prefix against the completed primary task output.",
+  "limit": "A bounded generation prefix with the actual serving allocation shape. It is not complete-task accuracy, an observer-free E2E result, or a whole-generation critical-path decomposition.",
+  "original_profiles_preserved": true,
+  "GPU_mask": "4,5,6,7",
+  "Single_GPU_mask": "4"
+}

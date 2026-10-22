@@ -10,6 +10,8 @@ Each token starts with CDF zero and survival one.
 Each completed loop evaluates the original trained gate.
 The hazard is `sigmoid(gate_logit)` in the model's output dtype, then converted to FP32.
 The policy accumulates `CDF += hazard * survival` and `survival *= 1 - hazard`.
+The host stores CDF and survival as Python floating-point scalars, as the pinned reference does.
+The FP32 hazard conversion does not imply an FP32 tensor accumulator for those host scalars.
 The threshold is 0.5. The minimum depth is two. The maximum depth is four.
 The first loop contributes to the CDF, although that loop cannot terminate the token.
 Prefill always executes four loops. Only subsequent decode forwards can terminate early.

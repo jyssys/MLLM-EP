@@ -3,6 +3,7 @@ import ast
 import hashlib
 import importlib.util
 import unittest
+from unittest import mock
 import torch
 from .contract import *
 from .stage import Stage,decision
@@ -12,6 +13,62 @@ from .wave import NoRefillWave
 
 
 class ContractTests(unittest.TestCase):
+    def test_profiled_native_environment_finds_ninja(self):
+        import os
+        import shutil
+        import subprocess
+        from .launch import execution_environment
+        argv=['nsys','profile','--trace=cuda,nvtx',VLLM_PYTHON,'-u','-m','poc_flashvep.ouro_8arm.native_quality']
+        with mock.patch.dict(os.environ,{'PATH':'/usr/bin:/bin'}):
+            env=execution_environment(argv,[4])
+        self.assertEqual(shutil.which('ninja',path=env['PATH']),str(Path(VLLM_PYTHON).parent/'ninja'))
+        self.assertTrue(subprocess.check_output(['ninja','--version'],env=env,text=True).strip())
+
+    def test_profile_resume_preserves_success_and_failure(self):
+        import tempfile
+        from . import replay_campaign
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory)
+            for folder in ['logs','commands','profiles','state','raw']:(root/folder).mkdir()
+            for label,code in [('profile_done_v1',0),('profile_retry_v1',1)]:
+                (root/'logs'/f'{label}.log').write_text('Preserved original log.\n')
+                write(root/'commands'/f'{label}_completion.json',dict(code=code))
+                if code==0:
+                    write(root/'raw'/label/'complete.json',dict(success=True))
+                    (root/'profiles'/f'{label}.sqlite').touch()
+            with mock.patch.object(replay_campaign,'ROOT',root),mock.patch.object(replay_campaign,'execute') as run_,\
+                    mock.patch.object(replay_campaign.subprocess,'run') as export_:
+                replay_campaign.capture_profile('profile_done_v1',['nsys','-o',str(root/'profiles/profile_done_v1'),'--label','profile_done_v1'],[4],True)
+                run_.assert_not_called();export_.assert_not_called()
+                replay_campaign.capture_profile('profile_retry_v1',['nsys','-o',str(root/'profiles/profile_retry_v1'),'--label','profile_retry_v1'],[4],True)
+                self.assertEqual(run_.call_args.args[0],'profile_retry_v2')
+                self.assertIn(str(root/'profiles/profile_retry_v2'),run_.call_args.args[1])
+                self.assertEqual(read(root/'commands/profile_retry_v1_completion.json')['code'],1)
+                self.assertEqual((root/'logs/profile_retry_v1.log').read_text(),'Preserved original log.\n')
+                self.assertEqual(read(root/'state/profile_resume_map.json')['profile_retry_v1'],'profile_retry_v2')
+
+    def test_bounded_serving_layout_trace(self):
+        self.assertEqual(KV_allocation_cap(4096),4096)
+        self.assertEqual(KV_allocation_cap(32),32)
+        self.assertEqual(KV_allocation_cap(32,True),4096)
+        with self.assertRaises(AssertionError):KV_allocation_cap(4096,True)
+
+    def test_trace_command_plan_without_GPU(self):
+        from . import replay_campaign
+        status={arm:dict(status='PASS') for arm in ['SD','TD','LD','OD']}
+        with mock.patch('sys.argv',['replay_campaign','--trace']),mock.patch.object(replay_campaign,'run') as run_,\
+                mock.patch.object(replay_campaign,'execute') as execute_,mock.patch.object(replay_campaign,'restore'),\
+                mock.patch.object(replay_campaign,'read',side_effect=lambda file:status if file.name=='dynamic_probe_status.json' else read(file)),\
+                mock.patch.object(replay_campaign.subprocess,'run'):
+            replay_campaign.main()
+        serving=[call for call in execute_.call_args_list if call.args[0].startswith('profile_serving_shape_')]
+        self.assertEqual(len(serving),8)
+        for call in serving:
+            self.assertIn('--serving-KV-shape',call.args[1])
+            self.assertEqual(call.args[1][call.args[1].index('--cap')+1],'32')
+            self.assertTrue(set(call.args[2])<={4,5,6,7})
+        self.assertEqual(len(execute_.call_args_list),18)
+        self.assertEqual(len([call for call in run_.call_args_list if call.args[0].startswith('observer_serving_shape_')]),8)
     def test_subset400_metadata_and_cohorts(self):
         rows=subset400();extra=subset400(True);plan=read(ROOT/'evaluation_subset400.json')
         self.assertEqual(len(rows),400)
@@ -33,6 +90,35 @@ class ContractTests(unittest.TestCase):
         self.assertEqual(low,2.)
         self.assertEqual(high,2.)
         self.assertEqual(ratio_CI([2.],[4.]),(.5,None,None))
+
+    def test_task_cohort_stratified_ratio(self):
+        import numpy as np
+        from .final_tables import ratio_interval
+        groups=[np.array([0,1]),np.array([2,3])]
+        self.assertEqual(ratio_interval([2.,4.,6.,8.],[1.,2.,3.,4.],groups),(2.,2.,2.))
+        self.assertEqual(ratio_interval([1.,2.,3.,4.],[1.,2.,3.,4.],groups),(1.,1.,1.))
+
+    def test_free_running_first_difference(self):
+        from .behavior_analysis import first_difference
+        self.assertIsNone(first_difference([2,3],[2,3]))
+        self.assertEqual(first_difference([2,3],[2,4]),1)
+        self.assertEqual(first_difference([2,3],[2,3,4]),2)
+        self.assertEqual(first_difference([],[]),None)
+
+    def test_collective_kernel_labels(self):
+        from .profile_analysis import collective_kind
+        self.assertEqual(collective_kind('ncclDevKernel_AllReduce_Sum_f32'),'NCCL')
+        self.assertEqual(collective_kind('vllm::cross_device_reduce_1stage<4>'),'VLLM_CUSTOM_ALL_REDUCE')
+        self.assertEqual(collective_kind('vllm::cross_device_reduce_2stage<4>'),'VLLM_CUSTOM_ALL_REDUCE')
+        self.assertIsNone(collective_kind('reduce_kernel<float>'))
+        self.assertIsNone(collective_kind('unclassified_allreduce_fusion'))
+
+    def test_rank_work_balance(self):
+        from .placement_accounting import balance
+        self.assertEqual(balance([1,1,1,1]),dict(CV=0.,max_over_mean=1.))
+        self.assertAlmostEqual(balance([1,1,1,5])['CV'],3**.5/2)
+        self.assertEqual(balance([1,1,1,5])['max_over_mean'],2.5)
+        self.assertEqual(balance([0,0]),dict(CV=None,max_over_mean=None))
 
     def test_no_refill_and_canonical_admission(self):
         wave=NoRefillWave(['A','B','C','D'])

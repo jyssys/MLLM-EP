@@ -81,6 +81,10 @@ def main():
             return float(np.mean(x)) if x else None
         serving.append(dict(run=folder.name,arm=arm,N=len(values),N_answer_records=all_count,run_complete=(folder/'complete.json').exists(),completed_cohorts=completed,
             cohort_makespan_sum_s=total if completed else None,mean_E2E_s=mean('E2E_s'),
+            P50_E2E_s=float(np.quantile([r['E2E_s'] for r in values],.50)),
+            P90_E2E_s=float(np.quantile([r['E2E_s'] for r in values],.90)),
+            P95_E2E_s=float(np.quantile([r['E2E_s'] for r in values],.95)),
+            P99_E2E_s=float(np.quantile([r['E2E_s'] for r in values],.99)),
             mean_TTFT_s=mean('TTFT_s') if timing_valid else None,mean_TPOT_s=mean('TPOT_s') if timing_valid else None,
             output_tokens=sum(r['output_tokens'] for r in values),
             output_tokens_per_s=sum(r['output_tokens'] for r in values)/total if total else None,

@@ -1,29 +1,39 @@
 {
-  "stage": "S4/L4/O4 canonical Static pilots complete. Custom T4 Static pilot is running. Continuation waits for its parent campaign.",
-  "numeric": "Five-engine fresh synthetic traces collected",
-  "current_GPU_session": 32706,
-  "next": [
-    "Complete canonical-ID custom Static pilot. S4 resumes only missing or input-mismatched whole C4 cohorts.",
-    "Validate CDB Single and dynamic ports",
-    "Matched 5-repeat replay",
-    "Aggregate paired accuracy and commit/push"
-  ],
-  "full_eval": "USER_REDUCED_NOT_RUN. Target now 400 per main arm: 300 GSM8K + 100 MATH. See evaluation_subset400.json.",
-  "continuation_session": "Read the newest state/continuation_controller.json and live process command before any restart.",
+  "stage": "FINAL_REVIEW_COMPLETE",
+  "verdict": "NO-GO",
+  "verdict_scope": "No demonstrated Loop-PP serving advantage over optimized native TP. This does not exclude all future optimized PP implementations.",
   "completed": {
-    "native_S4_v1": "114 actual generations. TTFT/TPOT invalid, outputs preserved.",
-    "native_S4_v2": "114 actual generations. GSM8K 46/64. MATH-500 32/50.",
-    "native_T4_v2": "114 actual generations. GSM8K 45/64. MATH-500 34/50. Exploratory fidelity.",
-    "FP32_seams": "90 bounded same-input operation references, including historical P512 steps.",
-    "CPU_contract": "10 tests PASS, including fixed 400-question metadata, cohort integrity, and metric formulas.",
-    "Static_quality_parity": "Canonical S4 vs L4/O4: all 114 request output token sequences match. GSM8K 46/64; MATH 31/50 for each custom arm.",
-    "Static_PP_probe": "probe_S4_v3 vs L4_v3/O4_v3: output/depth/all96KV bitwise PASS for four requests.",
-    "TP_graph_probe": "probe_T4_graph_v2: bounded four-rank run exits zero. Numeric qualification unresolved."
+    "primary_quality": {
+      "arms": 8,
+      "questions_per_arm": 400,
+      "GSM8K": 300,
+      "MATH": 100
+    },
+    "native_static_controls": {
+      "engines": 2,
+      "questions_each": 400
+    },
+    "official_CDB_reference": {
+      "questions": 114
+    },
+    "clean_replay": {
+      "comparisons": 72,
+      "measured_repeats_each": 5
+    },
+    "physical_profiles": 18,
+    "observer_output_parity_comparisons": 18,
+    "CPU_tests_passed": 18,
+    "protected_earlier_files_unchanged": 122
   },
-  "fixed_new_runtime_bugs": ["Self-IPC initialization", "Graph mask input lifetime", "NCCL Graph teardown order", "Tokenizer-version whitespace mismatch: explicit frozen native IDs"],
-  "do_not_use_as_quality": ["probe_S4_v2", "probe_L4_v2", "probe_O4_v2", "all synthetic, forced-exit, or frozen-feedback probes"],
-  "continuation_stages": ["dynamic-probes", "dynamic-quality", "matched-natural", "freeze-dynamic-replay", "static-replay", "eight-arm-depth-replay C1/C4/C8/C16", "extension400", "heavy-trace", "CPU aggregation and report snapshot"],
-  "report_review": "Required after raw campaigns. report_snapshot writes IN_PROGRESS status, not an automatic GO verdict.",
-  "time_scope_warning": "Prototype service clocks exclude cohort-specific graph preparation. New cohorts record a separate preparation-inclusive resident-model clock. Earlier coverage is PARTIAL.",
-  "push_scope": "Only this study's code, artifacts, and report directory. A checkpoint commit is not a completed eight-arm result."
+  "numeric": "Historical strict P512 gate remains FAIL. T4, TD, and native TP4 remain numerically exploratory.",
+  "policy": "Original CDB cumulative hazard q=0.5, R2-R4, last_exited, full R4 prefill. Native/custom long behavioral parity is not established.",
+  "full_eval": "USER_REDUCED_NOT_RUN. Same frozen 300 GSM8K and 100 MATH questions per primary arm.",
+  "failures": "The earlier profiler PATH failure and all earlier raw failures remain preserved. Recovery completed successfully.",
+  "artifact_review": "state/final_report_validation.json",
+  "report": "analysis.md",
+  "optional_next": "Only a proposed optimized-attention, pooled-graph PP control. No new campaign is running.",
+  "GPU_end_state": "Burners confirmed active at 100% utilization on physical GPUs4,5,6,7.",
+  "branch": "flashvep/ouro-8arm-static-dynamic-discovery",
+  "revision_note": "The containing Git commit identifies the final study. Per-run source archives preserve actual executed code.",
+  "reviewed_UTC": "2026-10-22T02:06:20Z"
 }

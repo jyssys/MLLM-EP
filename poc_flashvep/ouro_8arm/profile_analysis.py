@@ -15,6 +15,16 @@ from .contract import *
 STAGE=re.compile(r'^EIGHT\|([A-Z0-9]+)\|([^|]+)\|step(\d+)\|R(\d+)\|L(\d+)-(\d+)$')
 
 
+def collective_kind(name):
+    lowered=name.lower()
+    if 'nccl' in lowered:return 'NCCL'
+    # These names identify the vLLM custom reduction kernels, not NCCL.
+    # A kernel count is not automatically a logical collective-call count.
+    if any(symbol in lowered for symbol in ['cross_device_reduce_1stage','cross_device_reduce_2stage']):
+        return 'VLLM_CUSTOM_ALL_REDUCE'
+    return None
+
+
 def parse(file):
     db=sqlite3.connect(file);db.row_factory=sqlite3.Row
     command=read(ROOT/'commands'/f'{file.stem}.json')
@@ -34,11 +44,18 @@ def parse(file):
         if metadata:
             assert metadata['UUID'].removeprefix('GPU-')==UUIDS[device_map[record['rank']]-4]
             owner_checks.append(dict(rank=record['rank'],UUID=metadata['UUID']))
-    strings=dict(db.execute('SELECT id,value FROM StringIds'));windows=[];stages=collections.defaultdict(list);controllers=[]
+    strings=dict(db.execute('SELECT id,value FROM StringIds'));windows=[];stages=collections.defaultdict(list);controllers=[];KV_ranges=[]
     for row in db.execute('SELECT * FROM NVTX_EVENTS WHERE end IS NOT NULL'):
         r=dict(row);name=r.get('text') or strings.get(r.get('textId'),'')
         if name=='EIGHT_COHORT':windows.append((r['start'],r['end']))
         if name.startswith('EIGHT_CONTROLLER|'):controllers.append(dict(start=r['start'],end=r['end'],name=name))
+        if name.startswith('EIGHT_KV_'):
+            parts=name.split('|')
+            assert len(parts)>=6 and parts[2].startswith('rank'),name
+            rank=int(parts[2][4:]);assert rank in device_map
+            KV_ranges.append(dict(kind=parts[0][9:],arm=parts[1],rank=rank,physical_GPU=device_map[rank],request=parts[3],
+                loop=int(parts[4][1:]),position=int(parts[5][3:]),source_rank=int(parts[6][4:]) if len(parts)>6 else None,
+                start=r['start'],end=r['end'],host_interval_ms=(r['end']-r['start'])/1e6))
         match=STAGE.match(name)
         if match:
             arm,rid,step,loop,first,last=match.groups()
@@ -53,6 +70,7 @@ def parse(file):
         name=strings.get(r.get('shortName'),'')
         tag=next((s for s in stages[rank] if s['start']<=r['start'] and r['end']<=s['end']),None)
         kernels.append(dict(rank=rank,start=r['start'],end=r['end'],name=name,NCCL='nccl' in name.lower(),
+            collective_class=collective_kind(name),
             request=tag['request'] if tag else None,step=tag['step'] if tag else None,loop=tag['loop'] if tag else None))
     tables={r[0] for r in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
     if 'CUPTI_ACTIVITY_KIND_MEMCPY' in tables:
@@ -64,10 +82,12 @@ def parse(file):
     ranks=[]
     for rank in sorted({k['rank'] for k in kernels}):
         ks=[k for k in kernels if k['rank']==rank];cs=[c for c in copies if c['rank']==rank];nccl=[k for k in ks if k['NCCL']]
+        custom=[k for k in ks if k['collective_class']=='VLLM_CUSTOM_ALL_REDUCE']
         busy=union([(k['start'],k['end']) for k in ks+cs])
         ranks.append(dict(rank=rank,physical_GPU=device_map[rank],kernel_count=len(ks),kernel_service_ms=sum(k['end']-k['start'] for k in ks)/1e6,
             GPU_activity_union_ms=busy/1e6,no_recorded_activity_ms=(right-left-busy)/1e6,
-            NCCL_kernel_count=len(nccl),NCCL_kernel_service_ms=sum(k['end']-k['start'] for k in nccl)/1e6))
+            NCCL_kernel_count=len(nccl),NCCL_kernel_service_ms=sum(k['end']-k['start'] for k in nccl)/1e6,
+            custom_all_reduce_kernel_count=len(custom),custom_all_reduce_kernel_service_ms=sum(k['end']-k['start'] for k in custom)/1e6))
     edges=[]
     for i,k in enumerate(kernels):
         if k['request'] is not None:edges.extend([(k['start'],1,i),(k['end'],-1,i)])
@@ -81,9 +101,15 @@ def parse(file):
         before=now
     result=dict(label=file.stem,source_sha256=sha(file),window_ms=(right-left)/1e6,ranks=ranks,
         CUDA_logical_to_physical=device_map,UUID_owner_checks=owner_checks,
+        KV_protocol_interval_count=len(KV_ranges),
+        KV_protocol_scope='DIRECTLY_TIMED_HOST_INTERVAL NVTX ranges. Nested kinds overlap. REPAIR can end before asynchronous local copies finish. These are not pure data-movement intervals or exclusive E2E shares.',
         mapping_rule='CUPTI deviceId is CUDA-visible ordinal. The launch mask and owner UUIDs define physical placement. TARGET_INFO_GPU.id is the system inventory index, not this CUDA ordinal.',
         different_request_actual_kernel_overlap_ms=overlap/1e6,max_simultaneous_tagged_kernel_ranks=maximum,
         NCCL_names=dict(collections.Counter(k['name'] for k in kernels if k['NCCL'])),
+        custom_all_reduce_names=dict(collections.Counter(k['name'] for k in kernels if k['collective_class']=='VLLM_CUSTOM_ALL_REDUCE')),
+        collective_classification='KERNEL_CLASSIFIED by backend-specific kernel names. Counts are GPU kernels, not independently timed logical collective calls.',
+        unclassified_reduce_name_candidates=dict(collections.Counter(k['name'] for k in kernels if not k['collective_class'] and
+            any(s in k['name'].lower() for s in ['all_reduce','allreduce','all_gather','allgather','reduce_scatter','reducescatter']))),
         controller_NVTX_ms=sum(r['end']-r['start'] for r in controllers)/1e6 if controllers else None,
         lane='HEAVY_TRACE. CUDA service sums and no-recorded-activity are not a non-overlapped E2E breakdown.')
     APIs=collections.defaultdict(lambda:dict(count=0,host_service_ms=0.))
@@ -96,8 +122,16 @@ def parse(file):
                 APIs[name]['count']+=1;APIs[name]['host_service_ms']+=(r['end']-r['start'])/1e6
     result['CUDA_API_service']=dict(APIs)
     directory=ROOT/'timelines'/file.stem;directory.mkdir(exist_ok=True)
+    if KV_ranges:
+        with (directory/'KV_protocol_intervals.csv').open('w') as f:
+            writer=csv.DictWriter(f,fieldnames=list(KV_ranges[0]),lineterminator='\n');writer.writeheader();writer.writerows(KV_ranges)
+        grouped=collections.defaultdict(list)
+        for row in KV_ranges:grouped[row['kind'],row['rank']].append(row['host_interval_ms'])
+        result['KV_protocol_by_kind_rank']=[dict(kind=key[0],rank=key[1],physical_GPU=device_map[key[1]],
+            count=len(values),host_interval_service_sum_ms=sum(values),median_host_interval_ms=float(np.median(values)))
+            for key,values in sorted(grouped.items())]
     write(directory/'summary.json',result)
-    with gzip.open(directory/'gpu_events.json.gz','wt') as f:json.dump(dict(kernels=kernels,copies=copies,controller_NVTX=controllers),f,separators=(',',':'))
+    with gzip.open(directory/'gpu_events.json.gz','wt') as f:json.dump(dict(kernels=kernels,copies=copies,controller_NVTX=controllers,KV_protocol_NVTX=KV_ranges),f,separators=(',',':'))
     if ranks:
         with (directory/'gpu_activity.csv').open('w') as f:
             w=csv.DictWriter(f,fieldnames=list(ranks[0]),lineterminator='\n');w.writeheader();w.writerows(ranks)

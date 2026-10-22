@@ -1,0 +1,426 @@
+INFO 10-22 03:58:28 [api_utils.py:273] non-default args: {'trust_remote_code': True, 'dtype': 'bfloat16', 'max_model_len': 8192, 'tensor_parallel_size': 4, 'enable_prefix_caching': False, 'gpu_memory_utilization': 0.8, 'kv_cache_memory_bytes': 4294967296, 'max_num_batched_tokens': 8192, 'max_num_seqs': 4, 'disable_log_stats': True, 'hf_overrides': {'total_ut_steps': 4, 'early_exit_threshold': 1.0}, 'enable_chunked_prefill': False, 'worker_extension_cls': 'poc_flashvep.ouro_8arm.native_probe.Probe', 'async_scheduling': False, 'model': '/home/esjung/.cache/huggingface/hub/models--ByteDance--Ouro-1.4B/snapshots/574fa66cb8bf5abdc979642d01cf2b79b16bfab1'}
+/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/transformers/modeling_rope_utils.py:1080: FutureWarning: `rope_config_validation` is deprecated and has been removed. Its functionality has been moved to RotaryEmbeddingConfigMixin.validate_rope method. PreTrainedConfig inherits this class, so please call self.validate_rope() instead. Also, make sure to use the new rope_parameters syntax. You can call self.standardize_rope_params() in the meantime.
+  warnings.warn(
+[transformers] `layer_type_validation` is deprecated and will be removed in v5.20. Use `PreTrainedConfig.validate_layer_type` instead
+[transformers] `layer_type_validation` is deprecated and will be removed in v5.20. Use `PreTrainedConfig.validate_layer_type` instead
+INFO 10-22 03:58:28 [model.py:623] Resolved architecture: OuroForCausalLM
+INFO 10-22 03:58:28 [model.py:1788] Using max model len 8192
+WARNING 10-22 03:58:28 [arg_utils.py:2536] This model does not officially support disabling chunked prefill. Disabling this manually may cause the engine to crash or produce incorrect outputs.
+INFO 10-22 03:58:28 [vllm.py:1109] Asynchronous scheduling is disabled.
+INFO 10-22 03:58:28 [kernel.py:295] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native'])
+[transformers] `layer_type_validation` is deprecated and will be removed in v5.20. Use `PreTrainedConfig.validate_layer_type` instead
+[transformers] `layer_type_validation` is deprecated and will be removed in v5.20. Use `PreTrainedConfig.validate_layer_type` instead
+[transformers] `layer_type_validation` is deprecated and will be removed in v5.20. Use `PreTrainedConfig.validate_layer_type` instead
+[transformers] `layer_type_validation` is deprecated and will be removed in v5.20. Use `PreTrainedConfig.validate_layer_type` instead
+[transformers] `layer_type_validation` is deprecated and will be removed in v5.20. Use `PreTrainedConfig.validate_layer_type` instead
+[transformers] `layer_type_validation` is deprecated and will be removed in v5.20. Use `PreTrainedConfig.validate_layer_type` instead
+(EngineCore pid=1868796) INFO 10-22 03:58:35 [core.py:116] Initializing a V1 LLM engine (v0.26.0) with config: model='/home/esjung/.cache/huggingface/hub/models--ByteDance--Ouro-1.4B/snapshots/574fa66cb8bf5abdc979642d01cf2b79b16bfab1', speculative_config=None, tokenizer='/home/esjung/.cache/huggingface/hub/models--ByteDance--Ouro-1.4B/snapshots/574fa66cb8bf5abdc979642d01cf2b79b16bfab1', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, tokenizer_revision=None, trust_remote_code=True, dtype=torch.bfloat16, max_seq_len=8192, download_dir=None, load_format=auto, tensor_parallel_size=4, pipeline_parallel_size=1, data_parallel_size=1, decode_context_parallel_size=1, dcp_comm_backend=ag_rs, disable_custom_all_reduce=False, quantization=None, quantization_config=None, enforce_eager=False, enable_return_routed_experts=False, kv_cache_dtype=auto, device_config=cuda, structured_outputs_config=StructuredOutputsConfig(backend='auto', disable_any_whitespace=False, disable_additional_properties=False, reasoning_parser='', reasoning_parser_plugin='', enable_in_reasoning=False), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None, kv_cache_metrics=False, kv_cache_metrics_sample=0.01, cudagraph_metrics=False, enable_layerwise_nvtx_tracing=False, enable_mfu_metrics=False, enable_mm_processor_stats=False, enable_logging_iteration_details=False, jit_monitor_mode='warn', jit_monitor_verbose=False), seed=0, served_model_name=/home/esjung/.cache/huggingface/hub/models--ByteDance--Ouro-1.4B/snapshots/574fa66cb8bf5abdc979642d01cf2b79b16bfab1, enable_prefix_caching=False, enable_chunked_prefill=False, pooler_config=None, compilation_config={'mode': <CompilationMode.VLLM_COMPILE: 3>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', 'custom_ops': ['none'], 'ir_enable_torch_wrap': True, 'splitting_ops': ['vllm::unified_attention_with_output', 'vllm::unified_mla_attention_with_output', 'vllm::mamba_mixer2', 'vllm::mamba_mixer', 'vllm::short_conv', 'vllm::linear_attention', 'vllm::plamo2_mamba_mixer', 'vllm::qwen_gdn_attention_core', 'vllm::gdn_attention_core_xpu', 'vllm::olmo_hybrid_gdn_full_forward', 'vllm::kda_attention', 'vllm::sparse_attn_indexer', 'vllm::rocm_aiter_sparse_attn_indexer', 'vllm::deepseek_v4_attention', 'vllm::hpc_rope_norm_forward', 'vllm::unified_kv_cache_update', 'vllm::unified_mla_kv_cache_update'], 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'compile_sizes': [], 'compile_ranges_endpoints': [8192], 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'size_asserts': False, 'alignment_asserts': False, 'scalar_asserts': False, 'combo_kernels': True, 'benchmark_combo_kernel': True}, 'inductor_passes': {}, 'cudagraph_mode': <CUDAGraphMode.FULL_AND_PIECEWISE: (2, 1)>, 'cudagraph_num_of_warmups': 1, 'cudagraph_capture_sizes': [1, 2, 4, 8], 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': False, 'pass_config': {'fuse_norm_quant': False, 'fuse_act_quant': False, 'fuse_attn_quant': False, 'enable_sp': False, 'fuse_gemm_comms': False, 'fuse_allreduce_rms': False, 'enable_qk_norm_rope_fusion': False, 'fuse_rope_kvcache_cat_mla': False, 'fuse_act_padding': False, 'fuse_qk_norm_rope_kvcache': False}, 'max_cudagraph_capture_size': 8, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': False, 'static_all_moe_layers': []}, kernel_config=KernelConfig(ir_op_priority=IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native']), enable_flashinfer_autotune=True, enable_cutedsl_warmup=True, enable_bf16x3_router_gemm=False, moe_backend='auto', linear_backend='auto')
+(EngineCore pid=1868796) INFO 10-22 03:58:35 [multiproc_executor.py:140] DP group leader: node_rank=0, node_rank_within_dp=0, master_addr=127.0.0.1, mq_connect_ip=192.168.0.2 (local), world_size=4, local_world_size=4
+INFO 10-22 03:58:42 [worker_base.py:282] Injected <class 'poc_flashvep.ouro_8arm.native_probe.Probe'> into <class 'vllm.v1.worker.gpu_worker.Worker'> for extended collective_rpc calls ['enable_loop_trace', 'finish_kernel_profile', 'finish_loop_trace', 'finish_outer_events', 'finish_parity_capture', 'finish_trace', 'inspect_four', 'inspect_memory', 'inspect_ownership', 'profile_begin', 'profile_end', 'runtime_counts_finish', 'runtime_counts_start', 'safety_audit', 'safety_finish', 'safety_start', 'start_kernel_profile', 'start_outer_events', 'start_parity_capture', 'start_trace', 'teacher']
+INFO 10-22 03:58:42 [worker_base.py:282] Injected <class 'poc_flashvep.ouro_8arm.native_probe.Probe'> into <class 'vllm.v1.worker.gpu_worker.Worker'> for extended collective_rpc calls ['enable_loop_trace', 'finish_kernel_profile', 'finish_loop_trace', 'finish_outer_events', 'finish_parity_capture', 'finish_trace', 'inspect_four', 'inspect_memory', 'inspect_ownership', 'profile_begin', 'profile_end', 'runtime_counts_finish', 'runtime_counts_start', 'safety_audit', 'safety_finish', 'safety_start', 'start_kernel_profile', 'start_outer_events', 'start_parity_capture', 'start_trace', 'teacher']
+(Worker pid=1868856) INFO 10-22 03:58:44 [parallel_state.py:1615] world_size=4 rank=2 local_rank=2 distributed_init_method=tcp://127.0.0.1:49835 backend=nccl
+(Worker pid=1868855) INFO 10-22 03:58:44 [parallel_state.py:1615] world_size=4 rank=1 local_rank=1 distributed_init_method=tcp://127.0.0.1:49835 backend=nccl
+INFO 10-22 03:58:44 [worker_base.py:282] Injected <class 'poc_flashvep.ouro_8arm.native_probe.Probe'> into <class 'vllm.v1.worker.gpu_worker.Worker'> for extended collective_rpc calls ['enable_loop_trace', 'finish_kernel_profile', 'finish_loop_trace', 'finish_outer_events', 'finish_parity_capture', 'finish_trace', 'inspect_four', 'inspect_memory', 'inspect_ownership', 'profile_begin', 'profile_end', 'runtime_counts_finish', 'runtime_counts_start', 'safety_audit', 'safety_finish', 'safety_start', 'start_kernel_profile', 'start_outer_events', 'start_parity_capture', 'start_trace', 'teacher']
+(Worker pid=1868854) INFO 10-22 03:58:44 [parallel_state.py:1615] world_size=4 rank=0 local_rank=0 distributed_init_method=tcp://127.0.0.1:49835 backend=nccl
+INFO 10-22 03:58:44 [worker_base.py:282] Injected <class 'poc_flashvep.ouro_8arm.native_probe.Probe'> into <class 'vllm.v1.worker.gpu_worker.Worker'> for extended collective_rpc calls ['enable_loop_trace', 'finish_kernel_profile', 'finish_loop_trace', 'finish_outer_events', 'finish_parity_capture', 'finish_trace', 'inspect_four', 'inspect_memory', 'inspect_ownership', 'profile_begin', 'profile_end', 'runtime_counts_finish', 'runtime_counts_start', 'safety_audit', 'safety_finish', 'safety_start', 'start_kernel_profile', 'start_outer_events', 'start_parity_capture', 'start_trace', 'teacher']
+(Worker pid=1868857) INFO 10-22 03:58:45 [parallel_state.py:1615] world_size=4 rank=3 local_rank=3 distributed_init_method=tcp://127.0.0.1:49835 backend=nccl
+(Worker pid=1868854) <frozen importlib._bootstrap_external>:1061: FutureWarning: The cuda.cudart module is deprecated and will be removed in a future release, please switch to use the cuda.bindings.runtime module instead.
+(Worker pid=1868854) <frozen importlib._bootstrap_external>:1061: FutureWarning: The cuda.nvrtc module is deprecated and will be removed in a future release, please switch to use the cuda.bindings.nvrtc module instead.
+(Worker pid=1868856) <frozen importlib._bootstrap_external>:1061: FutureWarning: The cuda.cudart module is deprecated and will be removed in a future release, please switch to use the cuda.bindings.runtime module instead.
+(Worker pid=1868856) <frozen importlib._bootstrap_external>:1061: FutureWarning: The cuda.nvrtc module is deprecated and will be removed in a future release, please switch to use the cuda.bindings.nvrtc module instead.
+(Worker pid=1868854) INFO 10-22 03:58:46 [pynccl.py:113] vLLM is using nccl==2.28.9
+(Worker pid=1868855) <frozen importlib._bootstrap_external>:1061: FutureWarning: The cuda.cudart module is deprecated and will be removed in a future release, please switch to use the cuda.bindings.runtime module instead.
+(Worker pid=1868855) <frozen importlib._bootstrap_external>:1061: FutureWarning: The cuda.nvrtc module is deprecated and will be removed in a future release, please switch to use the cuda.bindings.nvrtc module instead.
+(Worker pid=1868857) <frozen importlib._bootstrap_external>:1061: FutureWarning: The cuda.cudart module is deprecated and will be removed in a future release, please switch to use the cuda.bindings.runtime module instead.
+(Worker pid=1868857) <frozen importlib._bootstrap_external>:1061: FutureWarning: The cuda.nvrtc module is deprecated and will be removed in a future release, please switch to use the cuda.bindings.nvrtc module instead.
+(Worker pid=1868854) INFO 10-22 03:58:48 [cuda_communicator.py:264] Using ['CUSTOM', 'SYMM_MEM', 'PYNCCL'] all-reduce backends (in dispatch order) for group 'tp:0' out of potential backends: ['NCCL_SYMM_MEM', 'QUICK_REDUCE', 'FLASHINFER', 'AITER_CUSTOM', 'CUSTOM', 'SYMM_MEM', 'PYNCCL'].
+(Worker pid=1868854) INFO 10-22 03:58:48 [parallel_state.py:1946] rank 0 in world size 4 is assigned as DP rank 0, PP rank 0, PCP rank 0, TP rank 0, EP rank N/A, EPLB rank N/A
+(Worker pid=1868854) INFO 10-22 03:58:48 [gpu_worker.py:378] Using V2 Model Runner
+(Worker_TP3 pid=1868857) INFO 10-22 03:58:49 [model_runner.py:284] Loading model from scratch...
+(Worker_TP2 pid=1868856) INFO 10-22 03:58:49 [model_runner.py:284] Loading model from scratch...
+(Worker_TP1 pid=1868855) INFO 10-22 03:58:49 [model_runner.py:284] Loading model from scratch...
+(Worker_TP0 pid=1868854) INFO 10-22 03:58:49 [model_runner.py:284] Loading model from scratch...
+(Worker_TP0 pid=1868854) INFO 10-22 03:58:49 [cuda.py:482] Using FLASH_ATTN attention backend out of potential backends: ['FLASH_ATTN', 'FLASHINFER', 'TRITON_ATTN', 'FLEX_ATTENTION'].
+(Worker_TP0 pid=1868854) INFO 10-22 03:58:49 [flash_attn.py:776] Using FlashAttention version 3
+(Worker_TP0 pid=1868854) INFO 10-22 03:58:50 [weight_utils.py:869] Filesystem type for checkpoints: EXT4. Checkpoint size: 2.67 GiB. Available RAM: 1850.95 GiB.
+(Worker_TP0 pid=1868854) INFO 10-22 03:58:50 [weight_utils.py:892] Auto-prefetch is disabled because the filesystem (EXT4) is not a recognized network FS (NFS/Lustre). If you want to force prefetching, start vLLM with --safetensors-load-strategy=prefetch.
+(Worker_TP0 pid=1868854) Loading safetensors checkpoint shards:   0% Completed | 0/1 [00:00<?, ?it/s]
+(Worker_TP0 pid=1868854) Loading safetensors checkpoint shards: 100% Completed | 1/1 [00:00<00:00,  3.93it/s]
+(Worker_TP0 pid=1868854) Loading safetensors checkpoint shards: 100% Completed | 1/1 [00:00<00:00,  3.93it/s]
+(Worker_TP0 pid=1868854) 
+(Worker_TP0 pid=1868854) INFO 10-22 03:58:50 [default_loader.py:430] Loading weights took 0.30 seconds
+(Worker_TP3 pid=1868857) INFO 10-22 03:58:50 [model_runner.py:305] Model loading took 0.72 GiB and 1.586452 seconds
+(Worker_TP0 pid=1868854) INFO 10-22 03:58:51 [model_runner.py:305] Model loading took 0.72 GiB and 1.846004 seconds
+(Worker_TP2 pid=1868856) INFO 10-22 03:58:51 [model_runner.py:305] Model loading took 0.72 GiB and 1.857293 seconds
+(Worker_TP1 pid=1868855) INFO 10-22 03:58:51 [model_runner.py:305] Model loading took 0.72 GiB and 1.865167 seconds
+(Worker_TP0 pid=1868854) INFO 10-22 03:58:51 [topk_topp_sampler.py:55] Using FlashInfer for top-p & top-k sampling.
+(Worker_TP3 pid=1868857) /home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/transformers/modeling_rope_utils.py:1080: FutureWarning: `rope_config_validation` is deprecated and has been removed. Its functionality has been moved to RotaryEmbeddingConfigMixin.validate_rope method. PreTrainedConfig inherits this class, so please call self.validate_rope() instead. Also, make sure to use the new rope_parameters syntax. You can call self.standardize_rope_params() in the meantime.
+(Worker_TP3 pid=1868857)   warnings.warn(
+(Worker_TP3 pid=1868857) [transformers] `layer_type_validation` is deprecated and will be removed in v5.20. Use `PreTrainedConfig.validate_layer_type` instead
+(Worker_TP3 pid=1868857) [transformers] `layer_type_validation` is deprecated and will be removed in v5.20. Use `PreTrainedConfig.validate_layer_type` instead
+(Worker_TP1 pid=1868855) /home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/transformers/modeling_rope_utils.py:1080: FutureWarning: `rope_config_validation` is deprecated and has been removed. Its functionality has been moved to RotaryEmbeddingConfigMixin.validate_rope method. PreTrainedConfig inherits this class, so please call self.validate_rope() instead. Also, make sure to use the new rope_parameters syntax. You can call self.standardize_rope_params() in the meantime.
+(Worker_TP1 pid=1868855)   warnings.warn(
+(Worker_TP1 pid=1868855) [transformers] `layer_type_validation` is deprecated and will be removed in v5.20. Use `PreTrainedConfig.validate_layer_type` instead
+(Worker_TP1 pid=1868855) [transformers] `layer_type_validation` is deprecated and will be removed in v5.20. Use `PreTrainedConfig.validate_layer_type` instead
+(Worker_TP2 pid=1868856) /home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/transformers/modeling_rope_utils.py:1080: FutureWarning: `rope_config_validation` is deprecated and has been removed. Its functionality has been moved to RotaryEmbeddingConfigMixin.validate_rope method. PreTrainedConfig inherits this class, so please call self.validate_rope() instead. Also, make sure to use the new rope_parameters syntax. You can call self.standardize_rope_params() in the meantime.
+(Worker_TP2 pid=1868856)   warnings.warn(
+(Worker_TP2 pid=1868856) [transformers] `layer_type_validation` is deprecated and will be removed in v5.20. Use `PreTrainedConfig.validate_layer_type` instead
+(Worker_TP2 pid=1868856) [transformers] `layer_type_validation` is deprecated and will be removed in v5.20. Use `PreTrainedConfig.validate_layer_type` instead
+(Worker_TP0 pid=1868854) /home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/transformers/modeling_rope_utils.py:1080: FutureWarning: `rope_config_validation` is deprecated and has been removed. Its functionality has been moved to RotaryEmbeddingConfigMixin.validate_rope method. PreTrainedConfig inherits this class, so please call self.validate_rope() instead. Also, make sure to use the new rope_parameters syntax. You can call self.standardize_rope_params() in the meantime.
+(Worker_TP0 pid=1868854)   warnings.warn(
+(Worker_TP0 pid=1868854) [transformers] `layer_type_validation` is deprecated and will be removed in v5.20. Use `PreTrainedConfig.validate_layer_type` instead
+(Worker_TP0 pid=1868854) [transformers] `layer_type_validation` is deprecated and will be removed in v5.20. Use `PreTrainedConfig.validate_layer_type` instead
+(Worker_TP3 pid=1868857) [transformers] `layer_type_validation` is deprecated and will be removed in v5.20. Use `PreTrainedConfig.validate_layer_type` instead
+(Worker_TP3 pid=1868857) [transformers] `layer_type_validation` is deprecated and will be removed in v5.20. Use `PreTrainedConfig.validate_layer_type` instead
+(Worker_TP2 pid=1868856) [transformers] `layer_type_validation` is deprecated and will be removed in v5.20. Use `PreTrainedConfig.validate_layer_type` instead
+(Worker_TP2 pid=1868856) [transformers] `layer_type_validation` is deprecated and will be removed in v5.20. Use `PreTrainedConfig.validate_layer_type` instead
+(Worker_TP1 pid=1868855) [transformers] `layer_type_validation` is deprecated and will be removed in v5.20. Use `PreTrainedConfig.validate_layer_type` instead
+(Worker_TP1 pid=1868855) [transformers] `layer_type_validation` is deprecated and will be removed in v5.20. Use `PreTrainedConfig.validate_layer_type` instead
+(Worker_TP0 pid=1868854) [transformers] `layer_type_validation` is deprecated and will be removed in v5.20. Use `PreTrainedConfig.validate_layer_type` instead
+(Worker_TP0 pid=1868854) [transformers] `layer_type_validation` is deprecated and will be removed in v5.20. Use `PreTrainedConfig.validate_layer_type` instead
+(Worker_TP0 pid=1868854) INFO 10-22 03:58:56 [backends.py:1094] Using cache directory: /home/esjung/.cache/vllm/torch_compile_cache/64adbf09ff/rank_0_0/backbone for vLLM's torch.compile
+(Worker_TP0 pid=1868854) INFO 10-22 03:58:56 [backends.py:1155] Dynamo bytecode transform time: 5.59 s
+(Worker_TP3 pid=1868857) INFO 10-22 03:59:00 [decorators.py:311] Directly load AOT compilation from path /home/esjung/.cache/vllm/torch_compile_cache/torch_aot_compile/e4b268efdc4b31dff799b0eb7557771f929dcf06cdbed0862e049729196ac6de/rank_3_0/model
+(Worker_TP2 pid=1868856) INFO 10-22 03:59:00 [decorators.py:311] Directly load AOT compilation from path /home/esjung/.cache/vllm/torch_compile_cache/torch_aot_compile/e4b268efdc4b31dff799b0eb7557771f929dcf06cdbed0862e049729196ac6de/rank_2_0/model
+(Worker_TP0 pid=1868854) INFO 10-22 03:59:00 [backends.py:292] Directly load the compiled graph(s) for compile range (1, 8192) from the cache, took 2.899 s
+(Worker_TP1 pid=1868855) INFO 10-22 03:59:00 [decorators.py:311] Directly load AOT compilation from path /home/esjung/.cache/vllm/torch_compile_cache/torch_aot_compile/e4b268efdc4b31dff799b0eb7557771f929dcf06cdbed0862e049729196ac6de/rank_1_0/model
+(Worker_TP0 pid=1868854) INFO 10-22 03:59:00 [decorators.py:311] Directly load AOT compilation from path /home/esjung/.cache/vllm/torch_compile_cache/torch_aot_compile/e4b268efdc4b31dff799b0eb7557771f929dcf06cdbed0862e049729196ac6de/rank_0_0/model
+(Worker_TP0 pid=1868854) INFO 10-22 03:59:00 [monitor.py:53] torch.compile took 9.23 s in total
+(Worker_TP0 pid=1868854) INFO 10-22 03:59:00 [monitor.py:81] Initial profiling/warmup run took 0.41 s
+(Worker_TP3 pid=1868857) INFO 10-22 03:59:01 [gpu_worker.py:479] Initial free memory 77.65 GiB, reserved 4.0 GiB memory for KV Cache as specified by kv_cache_memory_bytes config and skipped memory profiling. This does not respect the gpu_memory_utilization config. Only use kv_cache_memory_bytes config when you want manual control of KV cache memory size. If OOM'ed, check the difference of initial free memory between the current run and the previous run where kv_cache_memory_bytes is suggested and update it correspondingly.
+(Worker_TP0 pid=1868854) INFO 10-22 03:59:01 [gpu_worker.py:479] Initial free memory 77.65 GiB, reserved 4.0 GiB memory for KV Cache as specified by kv_cache_memory_bytes config and skipped memory profiling. This does not respect the gpu_memory_utilization config. Only use kv_cache_memory_bytes config when you want manual control of KV cache memory size. If OOM'ed, check the difference of initial free memory between the current run and the previous run where kv_cache_memory_bytes is suggested and update it correspondingly.
+(Worker_TP2 pid=1868856) INFO 10-22 03:59:01 [gpu_worker.py:479] Initial free memory 77.65 GiB, reserved 4.0 GiB memory for KV Cache as specified by kv_cache_memory_bytes config and skipped memory profiling. This does not respect the gpu_memory_utilization config. Only use kv_cache_memory_bytes config when you want manual control of KV cache memory size. If OOM'ed, check the difference of initial free memory between the current run and the previous run where kv_cache_memory_bytes is suggested and update it correspondingly.
+(Worker_TP1 pid=1868855) INFO 10-22 03:59:01 [gpu_worker.py:479] Initial free memory 77.65 GiB, reserved 4.0 GiB memory for KV Cache as specified by kv_cache_memory_bytes config and skipped memory profiling. This does not respect the gpu_memory_utilization config. Only use kv_cache_memory_bytes config when you want manual control of KV cache memory size. If OOM'ed, check the difference of initial free memory between the current run and the previous run where kv_cache_memory_bytes is suggested and update it correspondingly.
+(EngineCore pid=1868796) INFO 10-22 03:59:01 [kv_cache_utils.py:2177] GPU KV cache size: 21,840 tokens
+(EngineCore pid=1868796) INFO 10-22 03:59:01 [kv_cache_utils.py:2178] Maximum concurrency for 8,192 tokens per request: 2.67x
+(Worker_TP1 pid=1868855) INFO 10-22 03:59:01 [kernel_warmup.py:65] Warming up ll_bf16 router GEMM kernels.
+(Worker_TP2 pid=1868856) INFO 10-22 03:59:01 [kernel_warmup.py:65] Warming up ll_bf16 router GEMM kernels.
+(Worker_TP0 pid=1868854) INFO 10-22 03:59:01 [kernel_warmup.py:65] Warming up ll_bf16 router GEMM kernels.
+(Worker_TP3 pid=1868857) INFO 10-22 03:59:01 [kernel_warmup.py:65] Warming up ll_bf16 router GEMM kernels.
+(Worker_TP3 pid=1868857) INFO 10-22 03:59:10 [cutedsl_warmup.py:101] Skipping CuTeDSL warmup because no compile units were requested.
+(Worker_TP0 pid=1868854) INFO 10-22 03:59:10 [cutedsl_warmup.py:101] Skipping CuTeDSL warmup because no compile units were requested.
+(Worker_TP2 pid=1868856) INFO 10-22 03:59:10 [cutedsl_warmup.py:101] Skipping CuTeDSL warmup because no compile units were requested.
+(Worker_TP1 pid=1868855) INFO 10-22 03:59:10 [cutedsl_warmup.py:101] Skipping CuTeDSL warmup because no compile units were requested.
+(Worker_TP0 pid=1868854) Capturing CUDA graphs (PIECEWISE):   0%|          | 0/4 [00:00<?, ?it/s]Capturing CUDA graphs (PIECEWISE):  25%|██▌       | 1/4 [00:00<00:00,  8.04it/s]Capturing CUDA graphs (PIECEWISE):  50%|█████     | 2/4 [00:00<00:00,  8.25it/s]Capturing CUDA graphs (PIECEWISE): 100%|██████████| 4/4 [00:00<00:00,  9.22it/s]Capturing CUDA graphs (PIECEWISE): 100%|██████████| 4/4 [00:00<00:00,  8.98it/s]
+(Worker_TP0 pid=1868854) Capturing CUDA graphs (FULL):   0%|          | 0/3 [00:00<?, ?it/s]Capturing CUDA graphs (FULL):  67%|██████▋   | 2/3 [00:00<00:00, 12.89it/s](Worker_TP3 pid=1868857) INFO 10-22 03:59:11 [custom_all_reduce.py:213] Registering 1351 cuda graph addresses
+(Worker_TP2 pid=1868856) INFO 10-22 03:59:11 [custom_all_reduce.py:213] Registering 1351 cuda graph addresses
+Capturing CUDA graphs (FULL): 100%|██████████| 3/3 [00:00<00:00, 13.12it/s]
+(Worker_TP0 pid=1868854) INFO 10-22 03:59:11 [custom_all_reduce.py:213] Registering 1351 cuda graph addresses
+(Worker_TP1 pid=1868855) INFO 10-22 03:59:11 [custom_all_reduce.py:213] Registering 1351 cuda graph addresses
+(Worker_TP0 pid=1868854) INFO 10-22 03:59:11 [model_runner.py:747] Graph capturing finished in 1 secs, took 0.18 GiB
+(Worker_TP1 pid=1868855) INFO 10-22 03:59:11 [model_runner.py:747] Graph capturing finished in 1 secs, took 0.18 GiB
+(Worker_TP2 pid=1868856) INFO 10-22 03:59:11 [model_runner.py:747] Graph capturing finished in 1 secs, took 0.18 GiB
+(Worker_TP3 pid=1868857) INFO 10-22 03:59:11 [model_runner.py:747] Graph capturing finished in 1 secs, took 0.18 GiB
+(Worker_TP3 pid=1868857) INFO 10-22 03:59:12 [jit_monitor.py:79] Kernel JIT monitor activated; monitored JIT compilations during inference will use mode=warn.
+(Worker_TP1 pid=1868855) INFO 10-22 03:59:12 [jit_monitor.py:79] Kernel JIT monitor activated; monitored JIT compilations during inference will use mode=warn.
+(Worker_TP0 pid=1868854) INFO 10-22 03:59:12 [jit_monitor.py:79] Kernel JIT monitor activated; monitored JIT compilations during inference will use mode=warn.
+(Worker_TP2 pid=1868856) INFO 10-22 03:59:12 [jit_monitor.py:79] Kernel JIT monitor activated; monitored JIT compilations during inference will use mode=warn.
+(EngineCore pid=1868796) INFO 10-22 03:59:13 [core.py:340] init engine (profile, create kv cache, warmup model) took 21.98 s (compilation: 9.23 s)
+(EngineCore pid=1868796) /home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/transformers/modeling_rope_utils.py:1080: FutureWarning: `rope_config_validation` is deprecated and has been removed. Its functionality has been moved to RotaryEmbeddingConfigMixin.validate_rope method. PreTrainedConfig inherits this class, so please call self.validate_rope() instead. Also, make sure to use the new rope_parameters syntax. You can call self.standardize_rope_params() in the meantime.
+(EngineCore pid=1868796)   warnings.warn(
+(EngineCore pid=1868796) [transformers] `layer_type_validation` is deprecated and will be removed in v5.20. Use `PreTrainedConfig.validate_layer_type` instead
+(EngineCore pid=1868796) [transformers] `layer_type_validation` is deprecated and will be removed in v5.20. Use `PreTrainedConfig.validate_layer_type` instead
+(EngineCore pid=1868796) [transformers] `layer_type_validation` is deprecated and will be removed in v5.20. Use `PreTrainedConfig.validate_layer_type` instead
+(EngineCore pid=1868796) [transformers] `layer_type_validation` is deprecated and will be removed in v5.20. Use `PreTrainedConfig.validate_layer_type` instead
+(EngineCore pid=1868796) INFO 10-22 03:59:13 [vllm.py:1109] Asynchronous scheduling is disabled.
+(EngineCore pid=1868796) INFO 10-22 03:59:13 [kernel.py:295] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native'])
+QUALITY T4 gsm8k/test/64 93 stop
+QUALITY T4 gsm8k/test/72 88 stop
+QUALITY T4 gsm8k/test/75 110 stop
+QUALITY T4 gsm8k/test/79 69 stop
+QUALITY T4 gsm8k/test/81 113 stop
+QUALITY T4 gsm8k/test/86 105 stop
+QUALITY T4 gsm8k/test/90 109 stop
+QUALITY T4 gsm8k/test/94 109 stop
+QUALITY T4 gsm8k/test/98 80 stop
+QUALITY T4 gsm8k/test/101 89 stop
+QUALITY T4 gsm8k/test/118 102 stop
+QUALITY T4 gsm8k/test/122 138 stop
+QUALITY T4 gsm8k/test/125 103 stop
+QUALITY T4 gsm8k/test/138 131 stop
+QUALITY T4 gsm8k/test/144 206 stop
+QUALITY T4 gsm8k/test/152 90 stop
+QUALITY T4 gsm8k/test/156 142 stop
+QUALITY T4 gsm8k/test/159 57 stop
+QUALITY T4 gsm8k/test/161 129 stop
+QUALITY T4 gsm8k/test/164 90 stop
+QUALITY T4 gsm8k/test/166 76 stop
+QUALITY T4 gsm8k/test/174 85 stop
+QUALITY T4 gsm8k/test/176 86 stop
+QUALITY T4 gsm8k/test/178 71 stop
+QUALITY T4 gsm8k/test/181 87 stop
+QUALITY T4 gsm8k/test/190 61 stop
+QUALITY T4 gsm8k/test/194 65 stop
+QUALITY T4 gsm8k/test/200 80 stop
+QUALITY T4 gsm8k/test/207 131 stop
+QUALITY T4 gsm8k/test/213 102 stop
+QUALITY T4 gsm8k/test/214 4096 length
+QUALITY T4 gsm8k/test/223 103 stop
+QUALITY T4 gsm8k/test/238 93 stop
+QUALITY T4 gsm8k/test/239 153 stop
+QUALITY T4 gsm8k/test/248 87 stop
+QUALITY T4 gsm8k/test/249 128 stop
+QUALITY T4 gsm8k/test/258 81 stop
+QUALITY T4 gsm8k/test/270 132 stop
+QUALITY T4 gsm8k/test/275 144 stop
+QUALITY T4 gsm8k/test/276 84 stop
+QUALITY T4 gsm8k/test/280 86 stop
+QUALITY T4 gsm8k/test/287 116 stop
+QUALITY T4 gsm8k/test/288 67 stop
+QUALITY T4 gsm8k/test/289 142 stop
+QUALITY T4 gsm8k/test/290 106 stop
+QUALITY T4 gsm8k/test/291 146 stop
+QUALITY T4 gsm8k/test/298 75 stop
+QUALITY T4 gsm8k/test/300 75 stop
+QUALITY T4 gsm8k/test/301 105 stop
+QUALITY T4 gsm8k/test/305 60 stop
+QUALITY T4 gsm8k/test/306 92 stop
+QUALITY T4 gsm8k/test/307 79 stop
+QUALITY T4 gsm8k/test/310 291 stop
+QUALITY T4 gsm8k/test/314 119 stop
+QUALITY T4 gsm8k/test/317 63 stop
+QUALITY T4 gsm8k/test/319 70 stop
+QUALITY T4 gsm8k/test/322 100 stop
+QUALITY T4 gsm8k/test/335 112 stop
+QUALITY T4 gsm8k/test/349 106 stop
+QUALITY T4 gsm8k/test/352 65 stop
+QUALITY T4 gsm8k/test/366 68 stop
+QUALITY T4 gsm8k/test/372 92 stop
+QUALITY T4 gsm8k/test/373 108 stop
+QUALITY T4 gsm8k/test/376 106 stop
+QUALITY T4 gsm8k/test/377 84 stop
+QUALITY T4 gsm8k/test/382 149 stop
+QUALITY T4 gsm8k/test/385 123 stop
+QUALITY T4 gsm8k/test/408 146 stop
+QUALITY T4 gsm8k/test/412 81 stop
+QUALITY T4 gsm8k/test/415 162 stop
+QUALITY T4 gsm8k/test/417 194 stop
+QUALITY T4 gsm8k/test/426 95 stop
+QUALITY T4 gsm8k/test/427 89 stop
+QUALITY T4 gsm8k/test/430 129 stop
+QUALITY T4 gsm8k/test/435 70 stop
+QUALITY T4 gsm8k/test/460 80 stop
+QUALITY T4 gsm8k/test/480 98 stop
+QUALITY T4 gsm8k/test/481 92 stop
+QUALITY T4 gsm8k/test/487 121 stop
+QUALITY T4 gsm8k/test/499 150 stop
+QUALITY T4 gsm8k/test/505 67 stop
+QUALITY T4 gsm8k/test/507 90 stop
+QUALITY T4 gsm8k/test/508 68 stop
+QUALITY T4 gsm8k/test/509 64 stop
+QUALITY T4 gsm8k/test/510 106 stop
+QUALITY T4 gsm8k/test/513 112 stop
+QUALITY T4 gsm8k/test/515 101 stop
+QUALITY T4 gsm8k/test/516 67 stop
+QUALITY T4 gsm8k/test/520 113 stop
+QUALITY T4 gsm8k/test/522 166 stop
+QUALITY T4 gsm8k/test/523 82 stop
+QUALITY T4 gsm8k/test/527 90 stop
+QUALITY T4 gsm8k/test/533 118 stop
+QUALITY T4 gsm8k/test/541 108 stop
+QUALITY T4 gsm8k/test/543 79 stop
+QUALITY T4 gsm8k/test/544 50 stop
+QUALITY T4 gsm8k/test/545 61 stop
+QUALITY T4 gsm8k/test/546 118 stop
+QUALITY T4 gsm8k/test/547 76 stop
+QUALITY T4 gsm8k/test/558 92 stop
+QUALITY T4 gsm8k/test/572 138 stop
+QUALITY T4 gsm8k/test/575 100 stop
+QUALITY T4 gsm8k/test/579 55 stop
+QUALITY T4 gsm8k/test/582 110 stop
+QUALITY T4 gsm8k/test/586 140 stop
+QUALITY T4 gsm8k/test/589 115 stop
+QUALITY T4 gsm8k/test/592 108 stop
+QUALITY T4 gsm8k/test/594 90 stop
+QUALITY T4 gsm8k/test/603 154 stop
+QUALITY T4 gsm8k/test/604 85 stop
+QUALITY T4 gsm8k/test/609 86 stop
+QUALITY T4 gsm8k/test/610 120 stop
+QUALITY T4 gsm8k/test/614 112 stop
+QUALITY T4 gsm8k/test/618 139 stop
+QUALITY T4 gsm8k/test/619 99 stop
+QUALITY T4 gsm8k/test/624 82 stop
+QUALITY T4 gsm8k/test/626 110 stop
+QUALITY T4 gsm8k/test/627 129 stop
+QUALITY T4 gsm8k/test/630 81 stop
+QUALITY T4 gsm8k/test/634 65 stop
+QUALITY T4 gsm8k/test/636 92 stop
+QUALITY T4 gsm8k/test/640 173 stop
+QUALITY T4 gsm8k/test/645 58 stop
+QUALITY T4 gsm8k/test/646 99 stop
+QUALITY T4 gsm8k/test/657 142 stop
+QUALITY T4 gsm8k/test/660 73 stop
+QUALITY T4 gsm8k/test/668 87 stop
+QUALITY T4 gsm8k/test/684 84 stop
+QUALITY T4 gsm8k/test/695 77 stop
+QUALITY T4 gsm8k/test/698 143 stop
+QUALITY T4 gsm8k/test/707 83 stop
+QUALITY T4 gsm8k/test/714 109 stop
+QUALITY T4 gsm8k/test/724 177 stop
+QUALITY T4 gsm8k/test/728 115 stop
+QUALITY T4 gsm8k/test/731 113 stop
+QUALITY T4 gsm8k/test/732 76 stop
+QUALITY T4 gsm8k/test/735 106 stop
+QUALITY T4 gsm8k/test/737 133 stop
+QUALITY T4 gsm8k/test/740 108 stop
+QUALITY T4 gsm8k/test/750 134 stop
+QUALITY T4 gsm8k/test/756 89 stop
+QUALITY T4 gsm8k/test/757 144 stop
+QUALITY T4 gsm8k/test/759 94 stop
+QUALITY T4 gsm8k/test/772 161 stop
+QUALITY T4 gsm8k/test/794 71 stop
+QUALITY T4 gsm8k/test/796 89 stop
+QUALITY T4 gsm8k/test/813 82 stop
+QUALITY T4 gsm8k/test/816 101 stop
+QUALITY T4 gsm8k/test/826 120 stop
+QUALITY T4 gsm8k/test/837 145 stop
+QUALITY T4 gsm8k/test/843 116 stop
+QUALITY T4 gsm8k/test/844 90 stop
+QUALITY T4 gsm8k/test/846 158 stop
+QUALITY T4 gsm8k/test/848 120 stop
+QUALITY T4 gsm8k/test/852 101 stop
+QUALITY T4 gsm8k/test/859 110 stop
+QUALITY T4 gsm8k/test/862 131 stop
+QUALITY T4 gsm8k/test/863 69 stop
+QUALITY T4 gsm8k/test/875 89 stop
+QUALITY T4 gsm8k/test/881 165 stop
+QUALITY T4 gsm8k/test/892 94 stop
+QUALITY T4 gsm8k/test/894 106 stop
+QUALITY T4 gsm8k/test/900 110 stop
+QUALITY T4 gsm8k/test/905 100 stop
+QUALITY T4 gsm8k/test/906 83 stop
+QUALITY T4 gsm8k/test/932 110 stop
+QUALITY T4 gsm8k/test/936 197 stop
+QUALITY T4 gsm8k/test/937 136 stop
+QUALITY T4 gsm8k/test/940 68 stop
+QUALITY T4 gsm8k/test/945 196 stop
+QUALITY T4 gsm8k/test/946 71 stop
+QUALITY T4 gsm8k/test/947 59 stop
+QUALITY T4 gsm8k/test/953 143 stop
+QUALITY T4 gsm8k/test/955 127 stop
+QUALITY T4 gsm8k/test/970 72 stop
+QUALITY T4 gsm8k/test/980 78 stop
+QUALITY T4 gsm8k/test/982 146 stop
+QUALITY T4 gsm8k/test/985 73 stop
+QUALITY T4 gsm8k/test/992 129 stop
+QUALITY T4 gsm8k/test/994 127 stop
+QUALITY T4 gsm8k/test/999 94 stop
+QUALITY T4 gsm8k/test/1006 80 stop
+QUALITY T4 gsm8k/test/1008 101 stop
+QUALITY T4 gsm8k/test/1009 224 stop
+QUALITY T4 gsm8k/test/1019 163 stop
+QUALITY T4 gsm8k/test/1024 111 stop
+QUALITY T4 gsm8k/test/1047 162 stop
+QUALITY T4 gsm8k/test/1048 151 stop
+QUALITY T4 gsm8k/test/1050 76 stop
+QUALITY T4 gsm8k/test/1082 65 stop
+QUALITY T4 gsm8k/test/1086 165 stop
+QUALITY T4 gsm8k/test/1088 203 stop
+QUALITY T4 gsm8k/test/1105 204 stop
+QUALITY T4 gsm8k/test/1106 80 stop
+QUALITY T4 gsm8k/test/1110 111 stop
+QUALITY T4 gsm8k/test/1119 94 stop
+QUALITY T4 gsm8k/test/1123 81 stop
+QUALITY T4 gsm8k/test/1124 63 stop
+QUALITY T4 gsm8k/test/1127 110 stop
+QUALITY T4 gsm8k/test/1137 118 stop
+QUALITY T4 gsm8k/test/1142 85 stop
+QUALITY T4 gsm8k/test/1143 66 stop
+QUALITY T4 gsm8k/test/1146 131 stop
+QUALITY T4 gsm8k/test/1147 162 stop
+QUALITY T4 gsm8k/test/1168 143 stop
+QUALITY T4 gsm8k/test/1182 80 stop
+QUALITY T4 gsm8k/test/1194 75 stop
+QUALITY T4 gsm8k/test/1195 166 stop
+QUALITY T4 gsm8k/test/1196 91 stop
+QUALITY T4 gsm8k/test/1199 140 stop
+QUALITY T4 gsm8k/test/1200 53 stop
+QUALITY T4 gsm8k/test/1204 72 stop
+QUALITY T4 gsm8k/test/1205 91 stop
+QUALITY T4 gsm8k/test/1207 111 stop
+QUALITY T4 gsm8k/test/1211 82 stop
+QUALITY T4 gsm8k/test/1213 104 stop
+QUALITY T4 gsm8k/test/1219 82 stop
+QUALITY T4 gsm8k/test/1224 59 stop
+QUALITY T4 gsm8k/test/1226 138 stop
+QUALITY T4 gsm8k/test/1232 82 stop
+QUALITY T4 gsm8k/test/1234 95 stop
+QUALITY T4 gsm8k/test/1242 100 stop
+QUALITY T4 gsm8k/test/1252 91 stop
+QUALITY T4 gsm8k/test/1258 70 stop
+QUALITY T4 gsm8k/test/1265 129 stop
+QUALITY T4 gsm8k/test/1267 107 stop
+QUALITY T4 gsm8k/test/1268 68 stop
+QUALITY T4 gsm8k/test/1279 188 stop
+QUALITY T4 gsm8k/test/1283 124 stop
+QUALITY T4 gsm8k/test/1288 175 stop
+QUALITY T4 gsm8k/test/1298 81 stop
+QUALITY T4 gsm8k/test/1303 145 stop
+QUALITY T4 gsm8k/test/1305 81 stop
+QUALITY T4 gsm8k/test/1306 172 stop
+QUALITY T4 gsm8k/test/1307 84 stop
+QUALITY T4 gsm8k/test/1310 71 stop
+QUALITY T4 math500/test/51 1962 stop
+QUALITY T4 math500/test/59 307 stop
+QUALITY T4 math500/test/61 4096 length
+QUALITY T4 math500/test/79 993 stop
+QUALITY T4 math500/test/89 858 stop
+QUALITY T4 math500/test/91 400 stop
+QUALITY T4 math500/test/100 1918 stop
+QUALITY T4 math500/test/113 229 stop
+QUALITY T4 math500/test/125 280 stop
+QUALITY T4 math500/test/129 1749 stop
+QUALITY T4 math500/test/133 515 stop
+QUALITY T4 math500/test/143 636 stop
+QUALITY T4 math500/test/144 241 stop
+QUALITY T4 math500/test/175 886 stop
+QUALITY T4 math500/test/182 3611 stop
+QUALITY T4 math500/test/189 1890 stop
+QUALITY T4 math500/test/190 586 stop
+QUALITY T4 math500/test/192 1072 stop
+QUALITY T4 math500/test/212 2608 stop
+QUALITY T4 math500/test/219 4096 length
+QUALITY T4 math500/test/231 844 stop
+QUALITY T4 math500/test/248 4096 length
+QUALITY T4 math500/test/252 623 stop
+QUALITY T4 math500/test/257 398 stop
+QUALITY T4 math500/test/262 1340 stop
+QUALITY T4 math500/test/274 859 stop
+QUALITY T4 math500/test/298 1060 stop
+QUALITY T4 math500/test/308 4096 length
+QUALITY T4 math500/test/327 2638 stop
+QUALITY T4 math500/test/329 3963 stop
+QUALITY T4 math500/test/339 788 stop
+QUALITY T4 math500/test/344 476 stop
+QUALITY T4 math500/test/346 368 stop
+QUALITY T4 math500/test/352 4096 length
+QUALITY T4 math500/test/359 1106 stop
+QUALITY T4 math500/test/375 1755 stop
+QUALITY T4 math500/test/380 1320 stop
+QUALITY T4 math500/test/381 729 stop
+QUALITY T4 math500/test/392 4096 length
+QUALITY T4 math500/test/396 4096 length
+QUALITY T4 math500/test/400 1151 stop
+QUALITY T4 math500/test/422 2189 stop
+QUALITY T4 math500/test/433 442 stop
+QUALITY T4 math500/test/437 647 stop
+QUALITY T4 math500/test/452 625 stop
+QUALITY T4 math500/test/458 659 stop
+QUALITY T4 math500/test/464 859 stop
+QUALITY T4 math500/test/473 1778 stop
+QUALITY T4 math500/test/489 1277 stop
+QUALITY T4 math500/test/499 539 stop
+INFO 10-22 04:07:01 [core_client.py:655] [shutdown] MPClient: start timeout=default
+INFO 10-22 04:07:01 [core_client.py:657] [shutdown] MPClient: stopping engine manager
+(EngineCore pid=1868796) INFO 10-22 04:07:01 [core.py:1313] [shutdown] EngineCore: trigger received signal=SIGTERM
+(EngineCore pid=1868796) INFO 10-22 04:07:01 [core.py:1432] [shutdown] EngineCore: start mode=abort timeout=0s
+(EngineCore pid=1868796) INFO 10-22 04:07:01 [core.py:1463] [shutdown] EngineCore: request processing complete; starting resource teardown
+(EngineCore pid=1868796) INFO 10-22 04:07:01 [core.py:1326] [shutdown] EngineCore: exiting busy loop
+(EngineCore pid=1868796) INFO 10-22 04:07:01 [multiproc_executor.py:429] [shutdown] Executor: waiting for worker exit count=4
+(Worker_TP0 pid=1868854) INFO 10-22 04:07:01 [multiproc_executor.py:793] Parent process exited, terminating worker queues
+NCCL version 2.28.9+cuda12.9
+(EngineCore pid=1868796) INFO 10-22 04:07:06 [multiproc_executor.py:436] [shutdown] Executor: all workers exited gracefully
+WARNING 10-22 04:07:06 [utils.py:626] [shutdown] Process manager: force killing remaining processes count=1
+INFO 10-22 04:07:06 [core_client.py:659] [shutdown] MPClient: engine manager stopped
+INFO 10-22 04:07:06 [core_client.py:660] [shutdown] MPClient: cleaning up background resources
+INFO 10-22 04:07:06 [core_client.py:662] [shutdown] MPClient: complete

@@ -24,6 +24,13 @@ def dataset(pilot=True):
     return [r for r in values if r['pilot']] if pilot else values
 
 
+def KV_allocation_cap(output_cap,serving_shape=False):
+    if serving_shape:
+        assert output_cap==32,'The serving-layout trace is a bounded 32-token diagnostic.'
+        return 4096
+    return output_cap
+
+
 def subset400(extension_only=False):
     manifest=read(ROOT/'evaluation_subset400.json');byid={r['id']:r for r in dataset(False)}
     selected=[]
