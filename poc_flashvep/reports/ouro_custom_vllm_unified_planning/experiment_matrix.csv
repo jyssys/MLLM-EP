@@ -1,0 +1,22 @@
+id,phase,purpose,arms,mode,physical_gpus,concurrency,prompt_tokens,output_rule,requests,repeats,arrival,graph_policy,evidence_class,required_gate,status
+P0_AUDIT,0,Source and historical evidence audit,vLLM_RLT_CDB,none,none,none,none,none,0,1,none,none,SOURCE_VERIFIED,G0,PASS
+P1_CAL,1,Independent numerical calibration,TP1_TP4,static_R4,4|4_5_6_7,1,128|256|512|2048,numerical_probe,8_disjoint,3,closed_loop,native_fixed,NOT_RUN,G1,NOT_RUN
+P1_NUM,1,Held-out numerical and natural smoke,TP1_TP4,static_R4,4|4_5_6_7,1|4,128|256|512|2048,natural_EOS_cap4096,24_frozen,3,closed_loop,native_fixed,NOT_RUN,G1,NOT_RUN
+P1_PILOT,1,Native quality pilot,TP1_TP4,static_R4,4|4_5_6_7,1|4,natural_manifest,natural_EOS_cap4096,GSM64_MATH50,1_quality_3_restarts_timing,closed_loop,native_fixed,NOT_RUN,G1,NOT_RUN
+P2_OWN,2,Placement and namespace fixtures,Layer_PP_Loop_PP_Contiguous_PP,static_R4,none,none,none,none,CPU_fixtures,1,none,none,NOT_RUN,G2,NOT_RUN
+P2_LINEAR,2,Linear PP2 correctness,Loop_PP2_Contiguous_PP2,static_R4,4_5,1|2|4,128|512,natural_EOS_cap4096,24_frozen,3,closed_loop,stage_native,NOT_RUN,G2,NOT_RUN
+P2_CYCLIC,2,Cyclic reentry and residual proof,Physical_PP2,static_R4,4_5,1|2|4,128|512,natural_EOS_cap4096,24_frozen,3,closed_loop,stage_native,NOT_RUN,G2,NOT_RUN
+P2_STATIC4,2,Matched natural Static comparison,TP1_TP4_Physical_PP4_Loop_PP4_Contiguous_PP4,static_R4,4|4_5_6_7,1|4|8,128|512|2048,natural_EOS_cap4096,24_minimum_then114,10_paired_and3_restarts,closed_loop,native_plus_graph_cut_control,NOT_RUN,G2,NOT_RUN
+P2_PROFILE,2,Actual GPU overlap and payload,TP4_Physical_PP4_Loop_PP4,static_R4,4_5_6_7,4,128|512,bounded_trace_not_quality,4,1_separate_clean_pair,closed_loop,matched_heavy_trace,NOT_RUN,G2,NOT_RUN
+P3_POLICY,3,CDB arithmetic and TP gate fixtures,Single_TP4,dynamic_q05_R2_R4,4|4_5_6_7,1|4,128|512,natural_plus_forced_exit_diagnostics,24_frozen,3,closed_loop,depth_native_plus_static_cut,NOT_RUN,G3,NOT_RUN
+P3_QUALITY,3,Dynamic Single TP pilot,Single_TP4,dynamic_q05_R2_R4,4|4_5_6_7,1|4,natural_manifest,natural_EOS_cap4096,GSM64_MATH50,1_quality_3_restarts_timing,closed_loop,no_refill_depth_native,NOT_RUN,G3,NOT_RUN
+P4_DYNAMICPP,4,Dynamic PP row repair and coda,Physical_PP4_Loop_PP4,dynamic_q05_R2_R4,4_5_6_7,1|4|8,128|512|2048,natural_EOS_cap4096,24_then114_then400,3,closed_loop,sync_no_refill,NOT_RUN,G4,NOT_RUN
+P5_COPY,5,Repair and compute contention,Loop_owner_transfer_microbench,dynamic_row_fixture,4_5_then4_5_6_7,1|4,128|512|2048,no_accuracy_claim,24_layer_rows_R2_R3,100_component_samples,controlled,serial_and_concurrent,NOT_RUN,G5,NOT_RUN
+P5_FACTORIAL,5,Separate barrier from copy overlap,Loop_PP4_sync_async,dynamic_q05_R2_R4,4_5_6_7,1|4|8,128|512|2048,natural_EOS_cap4096,24_then114,10_paired_and3_restarts,closed_loop,strict_vs_deferred_no_refill,NOT_RUN,G5,NOT_RUN
+P5_REFILL,5,Conditional admission ablation,Loop_PP4_sync_async,dynamic_q05_R2_R4,4_5_6_7,4|8|16,128|512|2048,natural_EOS_cap4096,frozen_serving_manifest,10_paired_and3_restarts,closed_loop,refill_separate_policy,NOT_RUN,G5_conditional,NOT_RUN
+P6_QUALITY400,6,Primary quality anchor,all8_qualified_arms,both,4|4_5_6_7,4,natural_manifest,natural_EOS_cap4096,GSM300_MATH100,1_paired_quality,closed_loop,frozen_per_lane,NOT_RUN,G6,NOT_RUN
+P6_QUALITY1819,6,Conditional full quality,all_qualified_arms,both,4|4_5_6_7,4,natural_manifest,natural_EOS_cap4096,GSM1319_MATH500,1_paired_quality,closed_loop,frozen_per_lane,NOT_RUN,G6_conditional,NOT_RUN
+P6_CLOSED,6,Client serving distributions,all8_plus_native_controls,both,4|4_5_6_7,1|4|8|16,128|512|2048,natural_EOS_cap4096,1000_min_per_tail_cell,3_server_starts,closed_loop,frozen_per_lane,NOT_RUN,G6,NOT_RUN
+P6_OPEN,6,SLO and saturation,qualified_P4_and_Single,both,4|4_5_6_7,offered_rate_controlled,128|512|2048,natural_EOS_cap4096,1000_min_per_tail_cell,3_server_starts,Poisson_and_burst_025to110_lambda0,frozen_per_lane,NOT_RUN,G6,NOT_RUN
+P6_CAPACITY,6,Conditional safe capacity,qualified_arms_optional_DP4,both,4|4_5_6_7,32|64,2048_then_supported_larger,natural_EOS_memory_checked,safe_frontier_cohort,3,closed_loop,matched_pool_safety_rule,NOT_RUN,G6_conditional,NOT_RUN
+ABL_REPLAY,2to6,Hardware attribution only,qualified_arms,both,4|4_5_6_7,1|4|8|16,128|512|2048,frozen_output_and_observed_depth32to128,24_frozen,10,matched_admission,frozen_per_lane,NOT_RUN,replay_not_main,NOT_RUN
