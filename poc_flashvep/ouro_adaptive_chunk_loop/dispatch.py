@@ -112,11 +112,15 @@ def main():
         else:
             # One serial queue per GPU. Every queue contains a policy rotation.
             def worker(gpu):
-                for job in plan['jobs']:
-                    if job['gpu']==gpu:
-                        result=launch(job,gpu)
-                        if result['status']=='FAILED':
-                            raise RuntimeError(result)
+                try:
+                    for job in plan['jobs']:
+                        if job['gpu']==gpu:
+                            result=launch(job,gpu)
+                            if result['status']=='FAILED':
+                                raise RuntimeError(result)
+                finally:
+                    if a.manage_burners:
+                        restore([gpu])
             with concurrent.futures.ThreadPoolExecutor(max_workers=len(devices)) as pool:
                 list(pool.map(worker,devices))
     finally:

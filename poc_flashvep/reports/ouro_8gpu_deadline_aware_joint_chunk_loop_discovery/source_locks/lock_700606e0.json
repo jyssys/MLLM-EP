@@ -1,0 +1,411 @@
+{
+  "python": "3.14.6 | packaged by Anaconda, Inc. | (main, Jul  9 2026, 14:37:38) [GCC 14.3.0]",
+  "versions": {
+    "torch": "2.11.0+cu129",
+    "triton": "3.6.0",
+    "transformers": "5.16.1",
+    "numpy": "2.4.6",
+    "flash-attn-4": "4.0.0b30",
+    "pytest": "9.1.1",
+    "matplotlib": "3.11.2"
+  },
+  "model_revision": "574fa66cb8bf5abdc979642d01cf2b79b16bfab1",
+  "model_files": [
+    {
+      "name": "config.json",
+      "bytes": 1472,
+      "sha256": "ce9cc13da41591b8b4deca053d7dfee06424c0228628ee862ea86d725bc163f3"
+    },
+    {
+      "name": "configuration_ouro.py",
+      "bytes": 11550,
+      "sha256": "950443e32929047aa08d02abad2e1888bc1914b3db988d3d675f70787f65dafb"
+    },
+    {
+      "name": "model.safetensors",
+      "bytes": 2869336434,
+      "sha256": "58872a72616c736595b8b7662079c5b12c5a162ec16eae94f21c348dfa9885af"
+    },
+    {
+      "name": "modeling_ouro.py",
+      "bytes": 33350,
+      "sha256": "c5c68fbb368ce2909c257ae2afc50719be8c91539333d3295e19312c4316f413"
+    },
+    {
+      "name": "special_tokens_map.json",
+      "bytes": 825,
+      "sha256": "55087bb8409060d9cb0f80495e34f4e0d8a84f68a799a6b0cab3132be0aae319"
+    },
+    {
+      "name": "tokenizer.json",
+      "bytes": 3522644,
+      "sha256": "fcb808fe5e7642f5299be28aea07fc7f6d4f4364c3ac5e408e15a772cbc8fa8d"
+    },
+    {
+      "name": "tokenizer_config.json",
+      "bytes": 4211,
+      "sha256": "7e010da95d71b0fa1aa809552922c74cc1dd98d628f21ba39ca6c35aa18d5d91"
+    },
+    {
+      "name": "vocab.json",
+      "bytes": 800656,
+      "sha256": "7b9de3f47796abf8d00ab96be299fea0dc9afdf1827f34e7e0b9fb44593efe5c"
+    }
+  ],
+  "runtime_revision": "4a350344027960a48384626aa646f1765fda6d4f",
+  "runtime_diff": "diff --git a/vllm_rlt/config.py b/vllm_rlt/config.py\nindex f2ae951..04d395b 100644\n--- a/vllm_rlt/config.py\n+++ b/vllm_rlt/config.py\n@@ -57,11 +57,17 @@ class SchedulerConfig:\n     admission_scan_limit: int = 64\n     max_admission_bypasses: int = 8\n     prefill_chunk_size: int = 128\n+    # PoC: consecutive prefill-only loops per scheduling boundary.\n+    prefill_loop_group_size: int = 1\n     max_prefill_batches_before_decode: int = 1\n     policy: str = \"fcfs\"\n     enable_preemption: bool = False\n \n     def __post_init__(self):\n+        if self.prefill_loop_group_size not in (1, 2, 3, 4):\n+            raise ValueError(\"prefill_loop_group_size must be 1, 2, 3 or 4\")\n+        if self.mode == \"mixed\" and self.prefill_loop_group_size != 1:\n+            raise ValueError(\"grouped prefill must not advance mixed decode rows\")\n         for name in (\n             \"max_num_seqs\",\n             \"max_num_batched_tokens\",\ndiff --git a/vllm_rlt/core/scheduler.py b/vllm_rlt/core/scheduler.py\nindex b2442d7..2dd2489 100644\n--- a/vllm_rlt/core/scheduler.py\n+++ b/vllm_rlt/core/scheduler.py\n@@ -33,6 +33,7 @@ class ScheduledRequest:\n     chunk_start: int | None = None\n     completes_prompt: bool = False\n     phase: RequestPhase | None = None\n+    loop_count: int = 1\n \n \n @dataclass(frozen=True)\n@@ -531,6 +532,8 @@ class Scheduler:\n             # plane's causal prefix covers the run. Tokens past num_preluded_tokens\n             # have no resident prelude and cannot run yet.\n             boundary = request.prefill_depth_ranges[first_token_depth]\n+            group = min(self.config.prefill_loop_group_size,\n+                        self.total_ut_steps - first_token_depth)\n             count = min(\n                 token_budget,\n                 self.config.prefill_chunk_size,\n@@ -544,8 +547,9 @@ class Scheduler:\n                 count,\n                 depth=first_token_depth,\n                 chunk_start=request.prefill_chunk_start,\n+                loop_count=group,\n                 completes_prompt=(\n-                    first_token_depth == len(request.prefill_depth_ranges) - 1\n+                    first_token_depth + group == len(request.prefill_depth_ranges)\n                     and start + count == len(request.prompt_token_ids)\n                 ),\n             )\n@@ -707,14 +711,17 @@ class Scheduler:\n         # Assertion: phase == RequestPhase.PREFILLING_RECURRENT\n         depth = scheduled_request.depth\n         boundaries = request.prefill_depth_ranges\n-        boundaries[depth][0] = end\n-        if depth + 1 < total_depths:\n-            boundaries[depth + 1][1] = end\n-        else:\n-            request.num_prefilled_tokens = end\n+        group_end = depth + scheduled_request.loop_count\n+        for advanced_depth in range(depth, group_end):\n+            assert boundaries[advanced_depth][0] == start, \"causal prompt frontier hole\"\n+            boundaries[advanced_depth][0] = end\n+            if advanced_depth + 1 < total_depths:\n+                boundaries[advanced_depth + 1][1] = end\n+            else:\n+                request.num_prefilled_tokens = end\n \n         chunk_complete = end == request.num_preluded_tokens\n-        if depth + 1 < total_depths or not chunk_complete:\n+        if group_end < total_depths or not chunk_complete:\n             self.enqueue(request, RequestPhase.PREFILLING_RECURRENT)\n             return PrefillProgress(False, False)\n \ndiff --git a/vllm_rlt/worker/executor.py b/vllm_rlt/worker/executor.py\nindex 87ba27d..700d6a8 100644\n--- a/vllm_rlt/worker/executor.py\n+++ b/vllm_rlt/worker/executor.py\n@@ -56,7 +56,7 @@ def build_execution_batch(scheduled_batch: SchedulerOutput, total_depths: int) -\n                 token_count=scheduled_request.token_count,\n                 depth=depth,\n                 chunk_start=scheduled_request.chunk_start if chunk else None,\n-                retain_chunk=chunk and (operation == Operation.PRELUDE or depth + 1 < total_depths),\n+                retain_chunk=chunk and (operation == Operation.PRELUDE or depth + scheduled_request.loop_count < total_depths),\n                 retain_last=scheduled_request.completes_prompt if chunk else True,\n                 emit_gate=phase == RequestPhase.RECURRENT,\n                 input_tokens=tuple(\n@@ -68,7 +68,8 @@ def build_execution_batch(scheduled_batch: SchedulerOutput, total_depths: int) -\n         )\n         operations.add(operation)\n         loop_counts.add(\n-            total_depths if phase == RequestPhase.PREFILL else int(operation == Operation.RECURRENT)\n+            total_depths if phase == RequestPhase.PREFILL else\n+            scheduled_request.loop_count if operation == Operation.RECURRENT else 0\n         )\n     if len(operations) != 1 or len(loop_counts) != 1:\n         raise ValueError(\"batch requests must share an operation and execution boundary\")",
+  "runtime_sources": [
+    {
+      "path": "vllm_rlt/__init__.py",
+      "sha256": "6182fa7a786e92456887ee2b9ebd2bf51b46beef0a4c62ce9871c3c3e4f7f849"
+    },
+    {
+      "path": "vllm_rlt/attention/__init__.py",
+      "sha256": "be826f33e112661b417c781e7b5589466814d6bf9cc5fec1a2b34b08cc041356"
+    },
+    {
+      "path": "vllm_rlt/attention/backend.py",
+      "sha256": "898cf352ae22f7b133653719eb0e442c888f1b3aa2ae5db60c1c6d713729ae30"
+    },
+    {
+      "path": "vllm_rlt/attention/metadata.py",
+      "sha256": "0083f6928386a6b071f58a1c28c73a79563fcb4aa4e63da3dcfe2b1fea52636a"
+    },
+    {
+      "path": "vllm_rlt/config.py",
+      "sha256": "038604427bcacf880a0b444f78c9714d9b4d96da749571bd4a83f869421a76d2"
+    },
+    {
+      "path": "vllm_rlt/core/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "vllm_rlt/core/kv_cache_manager.py",
+      "sha256": "38c97d7f087acd6d23ca4c2cfc9e2c035c48934b904b0012f74ebef228d0a515"
+    },
+    {
+      "path": "vllm_rlt/core/memory.py",
+      "sha256": "6bf3d0a9decd92b5acb340566e8b41bc446eb666265dfa48d4fa553a53110268"
+    },
+    {
+      "path": "vllm_rlt/core/scheduler.py",
+      "sha256": "b3421d809e3ed8de4b13dd4e4e40b08bfa8f05f8593a2e37ad5de25a7b7ec8f9"
+    },
+    {
+      "path": "vllm_rlt/core/scheduling_policy.py",
+      "sha256": "fa8692b38ddd71bcd7380b1d3005e3961abe035e31a3ad1f5b013368525d1848"
+    },
+    {
+      "path": "vllm_rlt/engine/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "vllm_rlt/engine/connector.py",
+      "sha256": "1ca74044e2e6bf2606179f4dde447054016a08dda2fd4f66586ab28c22ad7a6f"
+    },
+    {
+      "path": "vllm_rlt/engine/llm_engine.py",
+      "sha256": "ec9c75f8747f72651755a51e11b4eebdff7bd4ee2df4472997519bb45131aa75"
+    },
+    {
+      "path": "vllm_rlt/engine/preemption.py",
+      "sha256": "1ef246377bde4edf902697dd5445f3bfc7a19a469cb7da55f91fa4de3347adab"
+    },
+    {
+      "path": "vllm_rlt/engine/stage_config.py",
+      "sha256": "4feb6ec692d43a4ac1713d5a10fa6653cf465f5d13cddceb1002af5eda17ec15"
+    },
+    {
+      "path": "vllm_rlt/engine/stage_engine.py",
+      "sha256": "faf106a8106f2d8713e7d5d32586731607191d3061581919ad9a457977aec9ed"
+    },
+    {
+      "path": "vllm_rlt/engine/worker.py",
+      "sha256": "4dccea19beb3340c30f3b639fe42a941d220be490595c11e28f8177d603afdb0"
+    },
+    {
+      "path": "vllm_rlt/entrypoints/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "vllm_rlt/entrypoints/chat_template.py",
+      "sha256": "2853dc4f165b5f75b24d92957282a9daeb39ad701480525486793cb7a7a627d0"
+    },
+    {
+      "path": "vllm_rlt/entrypoints/cli.py",
+      "sha256": "49b91b6acdfd0b7a4346b3fcd3cdbb7a3757e2605fa13cc8bab7807e734292a1"
+    },
+    {
+      "path": "vllm_rlt/entrypoints/llm.py",
+      "sha256": "c74484b3677f31311ee29504f8fab417a201e5e6f06a993f99492db17c8da013"
+    },
+    {
+      "path": "vllm_rlt/entrypoints/pd_serve.py",
+      "sha256": "8031942b48d1e8cee147553bf7fa482b05c296c833524c0df70881e2529d60fa"
+    },
+    {
+      "path": "vllm_rlt/entrypoints/runtime_args.py",
+      "sha256": "7fde9cf5ba84c9f206599f226964b5cfdfeaf245611f058e960674644a25cbc4"
+    },
+    {
+      "path": "vllm_rlt/entrypoints/serve.py",
+      "sha256": "3cc3a89c6379ae5a3c4c070a379c4d80a319dd37432465a8f77d0ee55b349a75"
+    },
+    {
+      "path": "vllm_rlt/kernels/__init__.py",
+      "sha256": "3ce880bacb0d2565857d13c161ab0831e40d95c0ab9bd307694a08a9bc6478a5"
+    },
+    {
+      "path": "vllm_rlt/kernels/flash_attention.py",
+      "sha256": "4d63c9f198b582a34c1e94b4e9b274a9829f4c98733ab1a88d3ea6b55f106bb1"
+    },
+    {
+      "path": "vllm_rlt/kernels/metadata.py",
+      "sha256": "48f894d4abdbf0730676ddb0b379edf3cc9aea539c5c485b7af576334468fb43"
+    },
+    {
+      "path": "vllm_rlt/kernels/paged_attention.py",
+      "sha256": "0b8426436c4e004fd748a5b3d2fbde09c3694688dec03a443884f0326cb9a6b1"
+    },
+    {
+      "path": "vllm_rlt/kernels/routing.py",
+      "sha256": "20e0ce4f772a85f47ff53d99a814bc66ca2cb6772e56034c3cf31e3d93a8f95e"
+    },
+    {
+      "path": "vllm_rlt/kernels/tensor_transfer.py",
+      "sha256": "a8b8c4f338b57b376e36ff1624dd18f128005560589ac26f92efd5191bcd795f"
+    },
+    {
+      "path": "vllm_rlt/kernels/triton_attention.py",
+      "sha256": "5dca0c113ef07622ff61daa38f7d0d71ed2d27647dfd7cd43ed9208d746f73f8"
+    },
+    {
+      "path": "vllm_rlt/layers/__init__.py",
+      "sha256": "3cd59909bb787a93fb6ee1bfc91278a547c31fb26f8efd32bf7745cac33448e5"
+    },
+    {
+      "path": "vllm_rlt/layers/normalization.py",
+      "sha256": "0d95a98a62ad6bc0069d1aa71593da1844ad9b61a948af41d9461fc139e427e4"
+    },
+    {
+      "path": "vllm_rlt/layers/rotary_embedding.py",
+      "sha256": "6626e2b34f8fed807c8af9eb461dc0331f7f7b372e6cbd925b4350cfb262dd72"
+    },
+    {
+      "path": "vllm_rlt/models/__init__.py",
+      "sha256": "880fe8593c5f3fc709a738a54204eba0a9d2ad23389676a0679cb5115e741702"
+    },
+    {
+      "path": "vllm_rlt/models/huginn.py",
+      "sha256": "4f21dcb622875f85dc5e33eecde749cc0515147e77734e2bdc72c93fe42d8f34"
+    },
+    {
+      "path": "vllm_rlt/models/nanbeige.py",
+      "sha256": "e2b622e36e81480898d236cb9dbc348f0d2bc75f37b94fd3c971f1adf5dda48f"
+    },
+    {
+      "path": "vllm_rlt/models/ouro.py",
+      "sha256": "40bf2a982cee75994af88ea4cbffa1ea7ccb1ab75e3db1bdd1af073273cc8996"
+    },
+    {
+      "path": "vllm_rlt/pd/__init__.py",
+      "sha256": "ce97d589536897d534c8424c797959991c51b9d6df963080ba4c33311be69f46"
+    },
+    {
+      "path": "vllm_rlt/pd/config.py",
+      "sha256": "5097b5aa8630259ae32035720f65eb201b7f9c00e1c79649312a1ace4c479b15"
+    },
+    {
+      "path": "vllm_rlt/pd/connector.py",
+      "sha256": "b1b70260c19ccc9b663b47af2dad5e72bb38323a4ba4450adda8b1d88edbbbd1"
+    },
+    {
+      "path": "vllm_rlt/pd/engine.py",
+      "sha256": "5d4f9f3c60469a19ed3b6b86e3672916a00434548b140cf2e66e0c1003b050e9"
+    },
+    {
+      "path": "vllm_rlt/pd/transport.py",
+      "sha256": "c2c954081c4d2a3091bae0626b30fcd3e2c30656f12775ecaa8599009b3bcc58"
+    },
+    {
+      "path": "vllm_rlt/profiling.py",
+      "sha256": "0744f3c46723dec3420bc4882a77f5c6f81a4aeff6e9f6587cfb3ae981d9f158"
+    },
+    {
+      "path": "vllm_rlt/profiling_artifacts.py",
+      "sha256": "a03553c7d04e4f0c3b84664074aa4f9bb3ea708d6c1b68fa5dd4b91f16729851"
+    },
+    {
+      "path": "vllm_rlt/request.py",
+      "sha256": "59bbf1c00497806883ea649b27ebf37509b29389379dae084948d285545f465f"
+    },
+    {
+      "path": "vllm_rlt/sampling_params.py",
+      "sha256": "30669f09f15750f7965cb772b627e182418bf419b69c1bc19417bf5020a5a3f8"
+    },
+    {
+      "path": "vllm_rlt/serving/__init__.py",
+      "sha256": "dc942abc8b751f574d25e917f8df0efab161ae910401b35522ee067b1ca20f49"
+    },
+    {
+      "path": "vllm_rlt/serving/protocol.py",
+      "sha256": "54ecd4769d5487d806274c24b2b97b6ba6b65e35b1b24f0adbff5460d676449b"
+    },
+    {
+      "path": "vllm_rlt/serving/server.py",
+      "sha256": "b082fefa19f6cd74f51293ebff4efab9942ef6b03055d331f3059df54d1b6d97"
+    },
+    {
+      "path": "vllm_rlt/serving/worker.py",
+      "sha256": "f5769cf2d44e458a0aa905b7eeb77cccfd5a6e62e12d68c6f50494e5a63de13a"
+    },
+    {
+      "path": "vllm_rlt/worker/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "vllm_rlt/worker/async_speculative.py",
+      "sha256": "9ef6844dd8b3dea953c06e3db0f5ce9df3a0d92d25116ff27c6caec407850bf4"
+    },
+    {
+      "path": "vllm_rlt/worker/async_state.py",
+      "sha256": "a8b84252cb3b1fb6cbf8c42aa13bdf98bdbe50711b5d0181e925893147e49bd9"
+    },
+    {
+      "path": "vllm_rlt/worker/buffers.py",
+      "sha256": "819d6b18f103bc3d906dc2ce309e95bfadb33756f5af4ed783e343a37b9ecaca"
+    },
+    {
+      "path": "vllm_rlt/worker/cuda_graph.py",
+      "sha256": "58f38f6554e9cffd5ba37a48c24505a09444dd05aadbe13880da7e416a29b8da"
+    },
+    {
+      "path": "vllm_rlt/worker/executor.py",
+      "sha256": "c6856cf6facafce0e4d9b9a0185aebf9f95323d851c895b20251af9eeeadbd7d"
+    },
+    {
+      "path": "vllm_rlt/worker/metadata.py",
+      "sha256": "4f66c49cb2981d3b2b895937c41720dde35c7a48d3205e57bfb31821ecbc82a4"
+    },
+    {
+      "path": "vllm_rlt/worker/model_runner.py",
+      "sha256": "9bbd2a00a6d79d5a5e39d833e7aef4affc2b767bbf46e38925374d7175be138e"
+    },
+    {
+      "path": "vllm_rlt/worker/output.py",
+      "sha256": "f69e6ae79084057f41b478b4a51ac8bf10a77523f56126e8af9c4cd4f4264560"
+    },
+    {
+      "path": "vllm_rlt/worker/sampler.py",
+      "sha256": "a57b62e947fb08864ac31eb2b68d7f051a9ab30e0ee975f9813269860243963a"
+    },
+    {
+      "path": "vllm_rlt/worker/speculative.py",
+      "sha256": "b09998312e5fd3ced7f78753fc81e56e61e910b583aeca3a57fbb6c3b266730a"
+    },
+    {
+      "path": "vllm_rlt/worker/submission_queue.py",
+      "sha256": "b4a5439df6cc48f50ec85df65f151e7ffba5acd1f8ae0f3b7f9a019b49b64c86"
+    },
+    {
+      "path": "vllm_rlt/worker/tensors.py",
+      "sha256": "493d1b088592e304049b67065e5cac118e28cfdb9df4dc404fbf3169721a037b"
+    }
+  ],
+  "runtime_license": "Apache License\n                           Version 2.0, January 2004\n                        http://www.apache.org/licenses/\n\n   TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION\n\n   1. Definitions.\n\n      \"License\" shall mean the terms and conditions for use, reproduction,\n      and distribution as defined by Sections 1 through 9 of this document.\n\n      \"Licensor\" shall mean the copyright owner or entity authorized by\n      the copyright owner that is granting the License.\n\n      \"Legal Entity\" shall mean the union of the acting entity and all\n      other entities that control, are controlled by, or are under common\n      control with that entity. For the purposes of this definition,\n      \"control\" means (i) the power, direct or indirect, to cause the\n      direction or management of such entity, whether by contract or\n      otherwise, or (ii) ownership of fifty percent (50%) or more of the\n      outstanding shares, or (iii) beneficial ownership of such entity.\n\n      \"You\" (or \"Your\") shall mean an individual or Legal Entity\n      exercising permissions granted by this License.\n\n      \"Source\" form shall mean the preferred form for making modifications,\n      including but not limited to software source code, documentation\n      source, and configuration files.\n\n      \"Object\" form shall mean any form resulting from mechanical\n      transformation or translation of a Source form, including but\n      not limited to compiled object code, generated documentation,\n      and conversions to other media types.\n\n      \"Work\" shall mean the work of authorship, whether in Source or\n      Object form, made available under the License, as indicated by a\n      copyright notice that is included in or attached to the work\n      (an example is provided in the Appendix below).\n\n      \"Derivative Works\" shall mean any work, whether in Source or Object\n      form, that is based on (or derived from) the Work and for which the\n      editorial revisions, annotations, elaborations, or other modifications\n      represent, as a whole, an original work of authorship. For the purposes\n      of this License, Derivative Works shall not include works that remain\n      separable from, or merely link (or bind by name) to the interfaces of,\n      the Work and Derivative Works thereof.\n\n      \"Contribution\" shall mean any work of authorship, including\n      the original version of the Work and any modifications or additions\n      to that Work or Derivative Works thereof, that is intentionally\n      submitted to Licensor for inclusion in the Work by the copyright owner\n      or by an individual or Legal Entity authorized to submit on behalf of\n      the copyright owner. For the purposes of this definition, \"submitted\"\n      means any form of electronic, verbal, or written communication sent\n      to the Licensor or its representatives, including but not limited to\n      communication on electronic mailing lists, source code control systems,\n      and issue tracking systems that are managed by, or on behalf of, the\n      Licensor for the purpose of discussing and improving the Work, but\n      excluding communication that is conspicuously marked or otherwise\n      designated in writing by the copyright owner as \"Not a Contribution.\"\n\n      \"Contributor\" shall mean Licensor and any individual or Legal Entity\n      on behalf of whom a Contribution has been received by Licensor and\n      subsequently incorporated within the Work.\n\n   2. Grant of Copyright License. Subject to the terms and conditions of\n      this License, each Contributor hereby grants to You a perpetual,\n      worldwide, non-exclusive, no-charge, royalty-free, irrevocable\n      copyright license to reproduce, prepare Derivative Works of,\n      publicly display, publicly perform, sublicense, and distribute the\n      Work and such Derivative Works in Source or Object form.\n\n   3. Grant of Patent License. Subject to the terms and conditions of\n      this License, each Contributor hereby grants to You a perpetual,\n      worldwide, non-exclusive, no-charge, royalty-free, irrevocable\n      (except as stated in this section) patent license to make, have made,\n      use, offer to sell, sell, import, and otherwise transfer the Work,\n      where such license applies only to those patent claims licensable\n      by such Contributor that are necessarily infringed by their\n      Contribution(s) alone or by combination of their Contribution(s)\n      with the Work to which such Contribution(s) was submitted. If You\n      institute patent litigation against any entity (including a\n      cross-claim or counterclaim in a lawsuit) alleging that the Work\n      or a Contribution incorporated within the Work constitutes direct\n      or contributory patent infringement, then any patent licenses\n      granted to You under this License for that Work shall terminate\n      as of the date such litigation is filed.\n\n   4. Redistribution. You may reproduce and distribute copies of the\n      Work or Derivative Works thereof in any medium, with or without\n      modifications, and in Source or Object form, provided that You\n      meet the following conditions:\n\n      (a) You must give any other recipients of the Work or\n          Derivative Works a copy of this License; and\n\n      (b) You must cause any modified files to carry prominent notices\n          stating that You changed the files; and\n\n      (c) You must retain, in the Source form of any Derivative Works\n          that You distribute, all copyright, patent, trademark, and\n          attribution notices from the Source form of the Work,\n          excluding those notices that do not pertain to any part of\n          the Derivative Works; and\n\n      (d) If the Work includes a \"NOTICE\" text file as part of its\n          distribution, then any Derivative Works that You distribute must\n          include a readable copy of the attribution notices contained\n          within such NOTICE file, excluding those notices that do not\n          pertain to any part of the Derivative Works, in at least one\n          of the following places: within a NOTICE text file distributed\n          as part of the Derivative Works; within the Source form or\n          documentation, if provided along with the Derivative Works; or,\n          within a display generated by the Derivative Works, if and\n          wherever such third-party notices normally appear. The contents\n          of the NOTICE file are for informational purposes only and\n          do not modify the License. You may add Your own attribution\n          notices within Derivative Works that You distribute, alongside\n          or as an addendum to the NOTICE text from the Work, provided\n          that such additional attribution notices cannot be construed\n          as modifying the License.\n\n      You may add Your own copyright statement to Your modifications and\n      may provide additional or different license terms and conditions\n      for use, reproduction, or distribution of Your modifications, or\n      for any such Derivative Works as a whole, provided Your use,\n      reproduction, and distribution of the Work otherwise complies with\n      the conditions stated in this License.\n\n   5. Submission of Contributions. Unless You explicitly state otherwise,\n      any Contribution intentionally submitted for inclusion in the Work\n      by You to the Licensor shall be under the terms and conditions of\n      this License, without any additional terms or conditions.\n      Notwithstanding the above, nothing herein shall supersede or modify\n      the terms of any separate license agreement you may have executed\n      with Licensor regarding such Contributions.\n\n   6. Trademarks. This License does not grant permission to use the trade\n      names, trademarks, service marks, or product names of the Licensor,\n      except as required for reasonable and customary use in describing the\n      origin of the Work and reproducing the content of the NOTICE file.\n\n   7. Disclaimer of Warranty. Unless required by applicable law or\n      agreed to in writing, Licensor provides the Work (and each\n      Contributor provides its Contributions) on an \"AS IS\" BASIS,\n      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or\n      implied, including, without limitation, any warranties or conditions\n      of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A\n      PARTICULAR PURPOSE. You are solely responsible for determining the\n      appropriateness of using or redistributing the Work and assume any\n      risks associated with Your exercise of permissions under this License.\n\n   8. Limitation of Liability. In no event and under no legal theory,\n      whether in tort (including negligence), contract, or otherwise,\n      unless required by applicable law (such as deliberate and grossly\n      negligent acts) or agreed to in writing, shall any Contributor be\n      liable to You for damages, including any direct, indirect, special,\n      incidental, or consequential damages of any character arising as a\n      result of this License or out of the use or inability to use the\n      Work (including but not limited to damages for loss of goodwill,\n      work stoppage, computer failure or malfunction, or any and all\n      other commercial damages or losses), even if such Contributor\n      has been advised of the possibility of such damages.\n\n   9. Accepting Warranty or Additional Liability. While redistributing\n      the Work or Derivative Works thereof, You may choose to offer,\n      and charge a fee for, acceptance of support, warranty, indemnity,\n      or other liability obligations and/or rights consistent with this\n      License. However, in accepting such obligations, You may act only\n      on Your own behalf and on Your sole responsibility, not on behalf\n      of any other Contributor, and only if You agree to indemnify,\n      defend, and hold each Contributor harmless for any liability\n      incurred by, or claims asserted against, such Contributor by reason\n      of your accepting any such warranty or additional liability.\n\n   END OF TERMS AND CONDITIONS\n\n   APPENDIX: How to apply the Apache License to your work.\n\n      To apply the Apache License to your work, attach the following\n      boilerplate notice, with the fields enclosed by brackets \"[]\"\n      replaced with your own identifying information. (Don't include\n      the brackets!)  The text should be enclosed in the appropriate\n      comment syntax for the file format. We also recommend that a\n      file or class name and description of purpose be included on the\n      same \"printed page\" as the copyright notice for easier\n      identification within third-party archives.\n\n   Copyright [yyyy] [name of copyright owner]\n\n   Licensed under the Apache License, Version 2.0 (the \"License\");\n   you may not use this file except in compliance with the License.\n   You may obtain a copy of the License at\n\n       http://www.apache.org/licenses/LICENSE-2.0\n\n   Unless required by applicable law or agreed to in writing, software\n   distributed under the License is distributed on an \"AS IS\" BASIS,\n   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n   See the License for the specific language governing permissions and\n   limitations under the License.",
+  "code_sources": [
+    {
+      "path": "poc_flashvep/ouro_adaptive_chunk_loop/__init__.py",
+      "sha256": "3dd6abfaf245ba8e9383eea8325bc98fc88859fc4713c8c9d66cde900ff4aa05"
+    },
+    {
+      "path": "poc_flashvep/ouro_adaptive_chunk_loop/common.py",
+      "sha256": "c9738befc22f0fbf1f52acca0fe140a672badc670b51b5cca301cd08e94c709f"
+    },
+    {
+      "path": "poc_flashvep/ouro_adaptive_chunk_loop/contention.py",
+      "sha256": "9e74cd6b42ec184e5282cc7cc4d4186d0722342a675752facbcab91b17343f88"
+    },
+    {
+      "path": "poc_flashvep/ouro_adaptive_chunk_loop/cpu_checks.py",
+      "sha256": "fb2301e0a240de503c96a3dfee8b3fade3e77c0e5b0e7639f28c2a084656a25d"
+    },
+    {
+      "path": "poc_flashvep/ouro_adaptive_chunk_loop/diagnostic.py",
+      "sha256": "e8efdddfd28dabd682aa7a92106de949e3c05d8aa5d03a23686e29000720d38b"
+    },
+    {
+      "path": "poc_flashvep/ouro_adaptive_chunk_loop/dispatch.py",
+      "sha256": "79781027198527f1e713bc769f2028bdd1e211d6faf96148f79148d144f91e1a"
+    },
+    {
+      "path": "poc_flashvep/ouro_adaptive_chunk_loop/inventory.py",
+      "sha256": "a1a3b4ad78f375446449119a3daa6ba4a89db8eb345101812ce31ff42188e18e"
+    },
+    {
+      "path": "poc_flashvep/ouro_adaptive_chunk_loop/legacy_feedback.py",
+      "sha256": "5854695505bfd8985ce2f1b297beeade67a5db4e095147ec8ea023e4cdb2597b"
+    },
+    {
+      "path": "poc_flashvep/ouro_adaptive_chunk_loop/next_plans.py",
+      "sha256": "b5651f02de7dc1936e18a020edc20b51f33fe294ebfb7aaeb4ce1bc76ec4efa2"
+    },
+    {
+      "path": "poc_flashvep/ouro_adaptive_chunk_loop/predictor.py",
+      "sha256": "883ae247214aee07a3e1ffaa0326d1aee791102cfd31e12638d913840c8a2789"
+    },
+    {
+      "path": "poc_flashvep/ouro_adaptive_chunk_loop/qualify.py",
+      "sha256": "693e704345b7b2cacea4840198ba535ca34d0230e2281d141088c562f9d0b4f8"
+    },
+    {
+      "path": "poc_flashvep/ouro_adaptive_chunk_loop/quality.py",
+      "sha256": "42ad29c6da05e955a4793f518a089787a91529b8951e406f87282fbcd069e737"
+    },
+    {
+      "path": "poc_flashvep/ouro_adaptive_chunk_loop/register.py",
+      "sha256": "a9f2f2027d84984ae7aaa5b217539672c39ab7f9f08394d34a6306e70d2056d2"
+    },
+    {
+      "path": "poc_flashvep/ouro_adaptive_chunk_loop/resources.py",
+      "sha256": "5be83ef4dfb00c72b882bdbdb8ac9664704aaf386c85716cf5300c4f5c55b4e7"
+    },
+    {
+      "path": "poc_flashvep/ouro_adaptive_chunk_loop/surface.py",
+      "sha256": "d08dd310f43e4bfb5e641822a8b67022c19f15bf24444b5186e576032fb52b0e"
+    },
+    {
+      "path": "poc_flashvep/ouro_adaptive_chunk_loop/test_contract.py",
+      "sha256": "2edaabf586aedd3de6d65ce74822e68073f60c7346625a833a2244492154fd09"
+    },
+    {
+      "path": "poc_flashvep/ouro_adaptive_chunk_loop/test_frontier.py",
+      "sha256": "45d1c14b2d5811b703e4050cc698b7c62505f27b3aee207e770525938ea58d54"
+    },
+    {
+      "path": "poc_flashvep/ouro_adaptive_chunk_loop/test_no_future_leakage.py",
+      "sha256": "7bd76d9e7b40bfb8a96117e98083c213ef29f84d2217c083070a13781aa81637"
+    },
+    {
+      "path": "poc_flashvep/ouro_adaptive_chunk_loop/worker.py",
+      "sha256": "826056e6a16c234c58fcee0afd0f4865edd59c2f63e2c1ac60cc165f32b63856"
+    },
+    {
+      "path": "poc_flashvep/ouro_adaptive_chunk_loop/workload.py",
+      "sha256": "c24e4adbca421a1418f19e3d2302a0cdeb8b8bf765de952ac80c8d63b0ef29e1"
+    }
+  ],
+  "specification": {
+    "path": "/home/esjung/MLLM-EP-github/poc_flashvep/reports/ouro_8gpu_deadline_aware_joint_chunk_loop_poc_spec.md",
+    "sha256": "8f1eaed67ef96c5fea382d2a6c85436b00664f5842de8f9c93dedee79c604f83"
+  },
+  "host": {
+    "lscpu": "Architecture:                            x86_64\nCPU op-mode(s):                          32-bit, 64-bit\nAddress sizes:                           46 bits physical, 57 bits virtual\nByte Order:                              Little Endian\nCPU(s):                                  192\nOn-line CPU(s) list:                     0-191\nVendor ID:                               GenuineIntel\nModel name:                              Intel(R) Xeon(R) Platinum 8480+\nCPU family:                              6\nModel:                                   143\nThread(s) per core:                      1\nCore(s) per socket:                      192\nSocket(s):                               1\nStepping:                                8\nBogoMIPS:                                4000.00\nFlags:                                   fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush dts mmx fxsr sse sse2 ss ht syscall nx pdpe1gb rdtscp lm constant_tsc arch_perfmon pebs bts rep_good nopl xtopology cpuid tsc_known_freq pni pclmulqdq dtes64 vmx ssse3 fma cx16 pdcm pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand hypervisor lahf_lm abm 3dnowprefetch cpuid_fault invpcid_single ssbd ibrs ibpb stibp ibrs_enhanced tpr_shadow vnmi flexpriority ept vpid ept_ad fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid avx512f avx512dq rdseed adx smap avx512ifma clflushopt clwb avx512cd sha_ni avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves avx_vnni avx512_bf16 wbnoinvd arat avx512vbmi umip pku ospke waitpkg avx512_vbmi2 gfni vaes vpclmulqdq avx512_vnni avx512_bitalg avx512_vpopcntdq la57 rdpid bus_lock_detect cldemote movdiri movdir64b fsrm md_clear serialize tsxldtrk amx_bf16 avx512_fp16 amx_tile amx_int8 flush_l1d arch_capabilities\nVirtualization:                          VT-x\nHypervisor vendor:                       KVM\nVirtualization type:                     full\nL1d cache:                               6 MiB (192 instances)\nL1i cache:                               6 MiB (192 instances)\nL2 cache:                                768 MiB (192 instances)\nL3 cache:                                16 MiB (1 instance)\nNUMA node(s):                            1\nNUMA node0 CPU(s):                       0-191\nVulnerability Gather data sampling:      Not affected\nVulnerability Indirect target selection: Not affected\nVulnerability Itlb multihit:             Not affected\nVulnerability L1tf:                      Not affected\nVulnerability Mds:                       Not affected\nVulnerability Meltdown:                  Not affected\nVulnerability Mmio stale data:           Not affected\nVulnerability Reg file data sampling:    Not affected\nVulnerability Retbleed:                  Not affected\nVulnerability Spec rstack overflow:      Not affected\nVulnerability Spec store bypass:         Mitigation; Speculative Store Bypass disabled via prctl and seccomp\nVulnerability Spectre v1:                Mitigation; usercopy/swapgs barriers and __user pointer sanitization\nVulnerability Spectre v2:                Mitigation; Enhanced / Automatic IBRS; IBPB conditional; PBRSB-eIBRS SW sequence; BHI BHI_DIS_S\nVulnerability Srbds:                     Not affected\nVulnerability Tsa:                       Not affected\nVulnerability Tsx async abort:           Mitigation; TSX disabled\nVulnerability Vmscape:                   Not affected",
+    "cpu_quota": {},
+    "topology": "\u001b[4mGPU0\tGPU1\tGPU2\tGPU3\tGPU4\tGPU5\tGPU6\tGPU7\tNIC0\tNIC1\tNIC2\tNIC3\tNIC4\tNIC5\tNIC6\tNIC7\tCPU Affinity\tNUMA Affinity\tGPU NUMA ID\u001b[0m\nGPU0\t X \tNV18\tNV18\tNV18\tNV18\tNV18\tNV18\tNV18\tPIX\tPHB\tPHB\tPHB\tPHB\tPHB\tPHB\tPHB\t0-191\t0\t\tN/A\nGPU1\tNV18\t X \tNV18\tNV18\tNV18\tNV18\tNV18\tNV18\tPHB\tPIX\tPHB\tPHB\tPHB\tPHB\tPHB\tPHB\t0-191\t0\t\tN/A\nGPU2\tNV18\tNV18\t X \tNV18\tNV18\tNV18\tNV18\tNV18\tPHB\tPHB\tPIX\tPHB\tPHB\tPHB\tPHB\tPHB\t0-191\t0\t\tN/A\nGPU3\tNV18\tNV18\tNV18\t X \tNV18\tNV18\tNV18\tNV18\tPHB\tPHB\tPHB\tPIX\tPHB\tPHB\tPHB\tPHB\t0-191\t0\t\tN/A\nGPU4\tNV18\tNV18\tNV18\tNV18\t X \tNV18\tNV18\tNV18\tPHB\tPHB\tPHB\tPHB\tPIX\tPHB\tPHB\tPHB\t0-191\t0\t\tN/A\nGPU5\tNV18\tNV18\tNV18\tNV18\tNV18\t X \tNV18\tNV18\tPHB\tPHB\tPHB\tPHB\tPHB\tPIX\tPHB\tPHB\t0-191\t0\t\tN/A\nGPU6\tNV18\tNV18\tNV18\tNV18\tNV18\tNV18\t X \tNV18\tPHB\tPHB\tPHB\tPHB\tPHB\tPHB\tPIX\tPHB\t0-191\t0\t\tN/A\nGPU7\tNV18\tNV18\tNV18\tNV18\tNV18\tNV18\tNV18\t X \tPHB\tPHB\tPHB\tPHB\tPHB\tPHB\tPHB\tPIX\t0-191\t0\t\tN/A\nNIC0\tPIX\tPHB\tPHB\tPHB\tPHB\tPHB\tPHB\tPHB\t X \tPHB\tPHB\tPHB\tPHB\tPHB\tPHB\tPHB\t\t\t\t\nNIC1\tPHB\tPIX\tPHB\tPHB\tPHB\tPHB\tPHB\tPHB\tPHB\t X \tPHB\tPHB\tPHB\tPHB\tPHB\tPHB\t\t\t\t\nNIC2\tPHB\tPHB\tPIX\tPHB\tPHB\tPHB\tPHB\tPHB\tPHB\tPHB\t X \tPHB\tPHB\tPHB\tPHB\tPHB\t\t\t\t\nNIC3\tPHB\tPHB\tPHB\tPIX\tPHB\tPHB\tPHB\tPHB\tPHB\tPHB\tPHB\t X \tPHB\tPHB\tPHB\tPHB\t\t\t\t\nNIC4\tPHB\tPHB\tPHB\tPHB\tPIX\tPHB\tPHB\tPHB\tPHB\tPHB\tPHB\tPHB\t X \tPHB\tPHB\tPHB\t\t\t\t\nNIC5\tPHB\tPHB\tPHB\tPHB\tPHB\tPIX\tPHB\tPHB\tPHB\tPHB\tPHB\tPHB\tPHB\t X \tPHB\tPHB\t\t\t\t\nNIC6\tPHB\tPHB\tPHB\tPHB\tPHB\tPHB\tPIX\tPHB\tPHB\tPHB\tPHB\tPHB\tPHB\tPHB\t X \tPHB\t\t\t\t\nNIC7\tPHB\tPHB\tPHB\tPHB\tPHB\tPHB\tPHB\tPIX\tPHB\tPHB\tPHB\tPHB\tPHB\tPHB\tPHB\t X \t\t\t\t\n\nLegend:\n\n  X    = Self\n  SYS  = Connection traversing PCIe as well as the SMP interconnect between NUMA nodes (e.g., QPI/UPI)\n  NODE = Connection traversing PCIe as well as the interconnect between PCIe Host Bridges within a NUMA node\n  PHB  = Connection traversing PCIe as well as a PCIe Host Bridge (typically the CPU)\n  PXB  = Connection traversing multiple PCIe bridges (without traversing the PCIe Host Bridge)\n  PIX  = Connection traversing at most a single PCIe bridge\n  NV#  = Connection traversing a bonded set of # NVLinks\n\nNIC Legend:\n\n  NIC0: mlx5_0\n  NIC1: mlx5_1\n  NIC2: mlx5_2\n  NIC3: mlx5_3\n  NIC4: mlx5_4\n  NIC5: mlx5_5\n  NIC6: mlx5_6\n  NIC7: mlx5_7",
+    "driver": "index, uuid, name, memory.total [MiB], driver_version\n0, GPU-f217c8a0-1142-20f4-d84b-af29f3a47a0d, NVIDIA H100 80GB HBM3, 81559 MiB, 570.211.01\n1, GPU-a77f3471-67d4-20b0-9fab-e502d4de5adb, NVIDIA H100 80GB HBM3, 81559 MiB, 570.211.01\n2, GPU-24200107-8a7f-de46-1bc8-b81f8d3af13e, NVIDIA H100 80GB HBM3, 81559 MiB, 570.211.01\n3, GPU-17488c15-2d4c-5d9e-d503-29b0d959a8a8, NVIDIA H100 80GB HBM3, 81559 MiB, 570.211.01\n4, GPU-6076e2f2-5b63-3761-5586-56ceb7df8139, NVIDIA H100 80GB HBM3, 81559 MiB, 570.211.01\n5, GPU-a1a1cfcf-93a1-3544-9a5e-e58144b68730, NVIDIA H100 80GB HBM3, 81559 MiB, 570.211.01\n6, GPU-e3f3998e-0f1a-e94a-b97c-4abb0e8c2c28, NVIDIA H100 80GB HBM3, 81559 MiB, 570.211.01\n7, GPU-4cc26b88-19fc-1988-f9e0-17858aa7a99b, NVIDIA H100 80GB HBM3, 81559 MiB, 570.211.01"
+  },
+  "old_staged_diff_sha256": "7018be31bd8a517574711055a72afbd6ae90737e4a585578c98ec255dbf7e1d9",
+  "paused_PP_program": "NOT_RESUMED",
+  "scope": "SOURCE_LOCK_NOT_PERFORMANCE"
+}

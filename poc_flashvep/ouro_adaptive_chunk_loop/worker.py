@@ -134,6 +134,9 @@ def main():
         elif job['kind']=='qualify':
             from .qualify import run_job
             summary=run_job(model,job,target)
+        elif job['kind']=='quality':
+            from .quality import run_job
+            summary=run_job(model,job,target)
         else:
             raise ValueError(job['kind'])
         artifacts=[dict(path=str(p.relative_to(target)),bytes=p.stat().st_size,sha256=digest(p))

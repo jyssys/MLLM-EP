@@ -42,9 +42,30 @@ def stop(gpus):
         proc = Path('/proc')/str(row['pid'])
         assert proc.stat().st_uid == os.getuid() and os.getsid(row['pid']) == owned.get(row['gpu']), ('UNRELATED_JOB_LEFT_UNTOUCHED', row)
     append(ROOT/'resource_ledger.jsonl', dict(action='STOP_OWNED_BURNERS', time=time.time(), GPUs=gpus, owned=owned, active=before))
+    # An owned supervisor can spawn workers after an initially empty GPU query.
+    # Terminate it first only when this lease contains its entire device set.
+    for file in (ROOT/'state').glob('burner_*.json'):
+        record=__import__('json').loads(file.read_text())
+        if not set(record['GPUs'])<=set(gpus):
+            continue
+        pid=record['supervisor']
+        proc=Path('/proc')/str(pid)
+        try:
+            words=(proc/'cmdline').read_bytes().decode().split('\0')
+            if proc.stat().st_uid==os.getuid() and os.getsid(pid)==pid and SCRIPT in words and '--worker' not in words:
+                os.kill(pid,signal.SIGTERM)
+                time.sleep(.2)
+                if proc.exists() and (proc/'cmdline').read_bytes():
+                    os.kill(pid,signal.SIGKILL)
+        except (FileNotFoundError,ProcessLookupError):
+            pass
+    owned=burners()
     for gpu, pid in owned.items():
         if gpu in gpus:
-            os.killpg(pid, signal.SIGTERM)
+            try:
+                os.killpg(pid, signal.SIGTERM)
+            except ProcessLookupError:
+                pass
     until = time.monotonic()+45
     while any(r['gpu'] in gpus for r in processes()) and time.monotonic() < until:
         time.sleep(.5)
@@ -63,6 +84,10 @@ def restore(gpus):
         child = subprocess.Popen(['bash','/home/esjung/vllm-ep/run_utilize.sh'], cwd='/home/esjung/vllm-ep', env=env,
             stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
     write(ROOT/'state'/f'burner_{child.pid}.json', dict(GPUs=missing, supervisor=child.pid, time=time.time()))
+    until=time.monotonic()+30
+    while not set(missing)<=set(burners()) and child.poll() is None and time.monotonic()<until:
+        time.sleep(.1)
+    assert set(missing)<=set(burners()),'Burner supervisor did not expose its owned worker sessions'
     print('BURNER_STARTED', missing, child.pid, flush=True)
 
 if __name__ == '__main__':

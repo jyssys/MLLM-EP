@@ -24,11 +24,16 @@ class Capture:
             e.model_runner.graphs.execute=self.graph
         for i in layers:
             layer=model.model.layers[i]
-            for name,module in [('input_norm',layer.input_layernorm),('attention',layer.self_attn),('MLP',layer.mlp),('layer_output',layer)]:
+            for name,module in [('input_norm',layer.input_layernorm),('Q_projection',layer.self_attn.q_proj),
+                    ('K_projection',layer.self_attn.k_proj),('V_projection',layer.self_attn.v_proj),
+                    ('attention',layer.self_attn),('post_attention_norm',layer.post_attention_layernorm),
+                    ('MLP',layer.mlp),('layer_output',layer)]:
                 def hook(mod,args,out,layer_idx=i,kind=name):
                     if self.context is not None:
                         meta,index=self.context
                         self.save(f"t{self.token_index}_d{meta['depth']}_l{layer_idx}_{kind}",out[index])
+                        if self.token_index==0 and layer_idx==0:
+                            self.save(f"t0_d{meta['depth']}_l0_{kind}_all_target_rows",out[meta['target_indices']])
                 self.handles.append(module.register_forward_hook(hook))
 
     def save(self,key,tensor):
@@ -46,6 +51,7 @@ class Capture:
         allocation,depth,pos=metadata.rows[index]
         # Prompt rows are captured at their last actual row only. Decode rows have max_seqlen_q=1.
         return dict(depth=depth,position=pos,owners=[owners.get(id(a)) for a,d,p in metadata.rows],
+            target_indices=indices,target_positions=[metadata.rows[i][2] for i in indices],
             actual_rows=len(metadata.rows),packed=metadata.cu_seqlens_q is not None,
             max_q=metadata.max_seqlen_q,allocation_identity=id(allocation),
             physical_pages=list(allocation.block_tables[depth]),
