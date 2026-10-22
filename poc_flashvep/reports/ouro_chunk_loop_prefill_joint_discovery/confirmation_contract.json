@@ -1,0 +1,17 @@
+{
+  "registration": "Frozen before held-out confirmation. Calibration uses trial1 only.",
+  "model": "ByteDance/Ouro-1.4B base BF16 Static R4",
+  "backend": "Existing RLT FlashAttention4 4.0.0b30",
+  "shapes": [[2048, 4], [8192, 8]],
+  "cells": [["atomic", 1024], ["split", 1024], ["mixed", 128], ["mixed", 1024], ["grouped", 1024]],
+  "heldout_trials": [2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+  "independent_process_starts": 3,
+  "graphs": true,
+  "reuse_engine_across_cohorts": true,
+  "SLO_TTFT_s": 5.0,
+  "SLO_max_ITL_s": 0.1,
+  "bootstrap_unit": "Cohort, with paired request IDs and process-start blocks. Never token resampling.",
+  "bootstrap_draws": 5000,
+  "seed": 20261022,
+  "gate": "No adaptive policy unless repeatable gain exceeds the frozen practical threshold against the tuned baseline frontier."
+}

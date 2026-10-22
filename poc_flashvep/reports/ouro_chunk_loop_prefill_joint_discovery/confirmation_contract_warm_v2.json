@@ -1,0 +1,19 @@
+{
+  "registration": "Measurement correction before warm confirmation. Original cold protocol and partial data remain preserved.",
+  "reason": "The first arm alone incurred FA4 first-use JIT. Such an ordering artifact cannot support an architectural comparison.",
+  "unchanged_from_initial": ["model", "policy", "C/G choices", "held-out request IDs", "sampling", "SLO thresholds", "performance gates"],
+  "backend": "RLT FlashAttention4 4.0.0b30",
+  "shapes": [[2048, 4], [8192, 8]],
+  "cells": [["atomic",1024],["split",1024],["mixed",128],["mixed",1024],["grouped",1024]],
+  "warmup_trial": 0,
+  "warmup_rule": "One identical frozen calibration cohort for every arm and shape before measured cohorts. Retain engine and graph cache afterward.",
+  "warmup_outputs": "Stored separately with warmup=true, never silently removed from raw data.",
+  "heldout_trials": [2,3,4,5,6,7,8,9,10,11],
+  "process_starts": 3,
+  "normal_request_captures": "Remain inside measured E2E if a new request causes a graph miss.",
+  "SLO_TTFT_s": 5.0,
+  "SLO_max_ITL_s": 0.1,
+  "bootstrap_draws": 5000,
+  "bootstrap_unit": "Paired cohorts with process-start blocks",
+  "seed": 20261022
+}
