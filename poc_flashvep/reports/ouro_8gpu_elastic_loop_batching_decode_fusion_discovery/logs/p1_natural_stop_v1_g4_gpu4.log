@@ -1,0 +1,26 @@
+/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/transformers/modeling_rope_utils.py:1080: FutureWarning: `rope_config_validation` is deprecated and has been removed. Its functionality has been moved to RotaryEmbeddingConfigMixin.validate_rope method. PreTrainedConfig inherits this class, so please call self.validate_rope() instead. Also, make sure to use the new rope_parameters syntax. You can call self.standardize_rope_params() in the meantime.
+  warnings.warn(
+[transformers] `layer_type_validation` is deprecated and will be removed in v5.20. Use `PreTrainedConfig.validate_layer_type` instead
+[transformers] `layer_type_validation` is deprecated and will be removed in v5.20. Use `PreTrainedConfig.validate_layer_type` instead
+Attention implementation: {'backend': 'flash_attn', 'generation': 4, 'package': 'flash-attn-4', 'version': '4.0.0b30'}
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/ouro_elb/worker.py", line 46, in <module>
+    if __name__=='__main__':main()
+                            ~~~~^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/utils/_contextlib.py", line 124, in decorate_context
+    return func(*args, **kwargs)
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/ouro_elb/worker.py", line 38, in main
+    result=run_job(model,job,target)
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/ouro_elb/experiments.py", line 175, in run_job
+    return stops(model,job,target)
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/ouro_elb/natural_stops.py", line 18, in run_job
+    e.add_request(rid,ids,SamplingParams(max_tokens=64,max_loops=4,min_loops=4,exit_threshold=1.,temperature=0.,ignore_eos=False))
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/external/ouro-elb-rlt/vllm_rlt/engine/stage_engine.py", line 264, in add_request
+    self._add_request(request_id, prompt_token_ids, sampling_params, trace_id=trace_id)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/external/ouro-elb-rlt/vllm_rlt/engine/stage_engine.py", line 279, in _add_request
+    raise ValueError("prompt token IDs must be integers within the model vocabulary")
+ValueError: prompt token IDs must be integers within the model vocabulary

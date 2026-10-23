@@ -1,0 +1,40 @@
+{
+  "job": {
+    "id": "p2_nsight_v1_D1_g0",
+    "gpu": 0,
+    "kind": "nsight",
+    "D": 1,
+    "graphs": true,
+    "async": true,
+    "timeout_s": 1800
+  },
+  "gpu": 0,
+  "UUID": "GPU-f217c8a0-1142-20f4-d84b-af29f3a47a0d",
+  "pid": 493846,
+  "uid": 1002,
+  "affinity": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15
+  ],
+  "CVD": "0",
+  "start_wall_s": 1792766267.167489,
+  "runtime_pin": "4a350344027960a48384626aa646f1765fda6d4f",
+  "runtime_diff": "diff --git a/vllm_rlt/config.py b/vllm_rlt/config.py\nindex f2ae951..d4d3bc8 100644\n--- a/vllm_rlt/config.py\n+++ b/vllm_rlt/config.py\n@@ -57,11 +57,14 @@ class SchedulerConfig:\n     admission_scan_limit: int = 64\n     max_admission_bypasses: int = 8\n     prefill_chunk_size: int = 128\n+    decode_loop_group_size: int = 1\n     max_prefill_batches_before_decode: int = 1\n     policy: str = \"fcfs\"\n     enable_preemption: bool = False\n \n     def __post_init__(self):\n+        if self.decode_loop_group_size not in (1, 2, 3, 4):\n+            raise ValueError(\"decode_loop_group_size must be 1, 2, 3 or 4\")\n         for name in (\n             \"max_num_seqs\",\n             \"max_num_batched_tokens\",\ndiff --git a/vllm_rlt/core/scheduler.py b/vllm_rlt/core/scheduler.py\nindex b2442d7..92f7746 100644\n--- a/vllm_rlt/core/scheduler.py\n+++ b/vllm_rlt/core/scheduler.py\n@@ -33,6 +33,7 @@ class ScheduledRequest:\n     chunk_start: int | None = None\n     completes_prompt: bool = False\n     phase: RequestPhase | None = None\n+    loop_count: int = 1\n \n \n @dataclass(frozen=True)\n@@ -675,7 +676,21 @@ class Scheduler:\n         \"\"\"\n         if not self.requests:\n             return None\n-        return self.policy.schedule(self, prefer_recurrent=prefer_recurrent)\n+        batch = self.policy.schedule(self, prefer_recurrent=prefer_recurrent)\n+        if batch is not None and batch.phase == RequestPhase.RECURRENT:\n+            desired = self.config.decode_loop_group_size\n+            if desired > 1:\n+                if self.exit_mode not in (\"ouro\", \"ouro_delayed\") or any(\n+                    row.request.sampling_params.exit_threshold != 1.0\n+                    or (row.request.sampling_params.max_loops or self.total_ut_steps)\n+                    != self.total_ut_steps for row in batch.requests\n+                ):\n+                    raise ValueError(\"grouped decode requires Static R4\")\n+                k = min(desired, *(self.total_ut_steps-row.depth for row in batch.requests))\n+                if k < 1:\n+                    raise ValueError(\"no recurrent work remains\")\n+                batch = replace(batch, requests=[replace(row, loop_count=k) for row in batch.requests])\n+        return batch\n \n     def _prompt_destination(self, request: Request) -> RequestPhase:\n         exporting = self.exports_request is not None and self.exports_request(request)\n@@ -837,7 +852,9 @@ class Scheduler:\n                 request.pending_exit_depth = None\n                 self.enqueue(request, RequestPhase.RECURRENT)\n             elif phase == RequestPhase.RECURRENT:\n-                request.loops_done += 1\n+                request.loops_done += scheduled_request.loop_count\n+                if request.loops_done > self.total_ut_steps:\n+                    raise RuntimeError(\"recurrent lease exceeds depth\")\n                 if self.exit_mode == \"trace\":\n                     should_exit = self._trace_exit(request)\n                 else:\n@@ -961,7 +978,9 @@ class Scheduler:\n                     and request.sampling_params.exit_threshold < 1\n                     and self.needs_exit_signal(request)\n                 )\n-                request.loops_done += 1\n+                request.loops_done += scheduled_request.loop_count\n+                if request.loops_done > self.total_ut_steps:\n+                    raise RuntimeError(\"recurrent lease exceeds depth\")\n                 should_exit = (\n                     self._trace_exit(request)\n                     if self.exit_mode == \"trace\"\ndiff --git a/vllm_rlt/worker/executor.py b/vllm_rlt/worker/executor.py\nindex 87ba27d..b26a52a 100644\n--- a/vllm_rlt/worker/executor.py\n+++ b/vllm_rlt/worker/executor.py\n@@ -25,6 +25,11 @@ def build_execution_batch(scheduled_batch: SchedulerOutput, total_depths: int) -\n     for scheduled_request in scheduled_batch.requests:\n         phase = scheduled_batch.phase_for(scheduled_request)\n         request = scheduled_request.request\n+        if phase == RequestPhase.RECURRENT and scheduled_request.loop_count > 1:\n+            if (request.sampling_params.exit_threshold != 1.0\n+                or (request.sampling_params.max_loops or total_depths) != total_depths\n+                or scheduled_request.depth + scheduled_request.loop_count > total_depths):\n+                raise ValueError(\"invalid Static R4 decode lease\")\n         chunk = phase in (RequestPhase.PREFILLING_PRELUDE, RequestPhase.PREFILLING_RECURRENT)\n         prompt_input = phase in (RequestPhase.PREFILL, RequestPhase.PREFILLING_PRELUDE)\n         operation = {\n@@ -68,7 +73,8 @@ def build_execution_batch(scheduled_batch: SchedulerOutput, total_depths: int) -\n         )\n         operations.add(operation)\n         loop_counts.add(\n-            total_depths if phase == RequestPhase.PREFILL else int(operation == Operation.RECURRENT)\n+            total_depths if phase == RequestPhase.PREFILL else\n+            scheduled_request.loop_count if operation == Operation.RECURRENT else 0\n         )\n     if len(operations) != 1 or len(loop_counts) != 1:\n         raise ValueError(\"batch requests must share an operation and execution boundary\")\n",
+  "runtime_diff_sha256": "a4820129c4cc19ce4bf7b1e40b6facc332d293b888b61c3fdf07fb4aa9f44cc4",
+  "source_sha256": "7293c483a7377816e3b3b9bfda47265999a627bc8975850cca7d1bd4bd6ae826",
+  "repo_SHA": "b3c064d7fe65753b4e5a0f20c517083d27eac00c"
+}

@@ -1,0 +1,102 @@
+diff --git a/vllm_rlt/config.py b/vllm_rlt/config.py
+index f2ae951..d4d3bc8 100644
+--- a/vllm_rlt/config.py
++++ b/vllm_rlt/config.py
+@@ -57,11 +57,14 @@ class SchedulerConfig:
+     admission_scan_limit: int = 64
+     max_admission_bypasses: int = 8
+     prefill_chunk_size: int = 128
++    decode_loop_group_size: int = 1
+     max_prefill_batches_before_decode: int = 1
+     policy: str = "fcfs"
+     enable_preemption: bool = False
+ 
+     def __post_init__(self):
++        if self.decode_loop_group_size not in (1, 2, 3, 4):
++            raise ValueError("decode_loop_group_size must be 1, 2, 3 or 4")
+         for name in (
+             "max_num_seqs",
+             "max_num_batched_tokens",
+diff --git a/vllm_rlt/core/scheduler.py b/vllm_rlt/core/scheduler.py
+index b2442d7..92f7746 100644
+--- a/vllm_rlt/core/scheduler.py
++++ b/vllm_rlt/core/scheduler.py
+@@ -33,6 +33,7 @@ class ScheduledRequest:
+     chunk_start: int | None = None
+     completes_prompt: bool = False
+     phase: RequestPhase | None = None
++    loop_count: int = 1
+ 
+ 
+ @dataclass(frozen=True)
+@@ -675,7 +676,21 @@ class Scheduler:
+         """
+         if not self.requests:
+             return None
+-        return self.policy.schedule(self, prefer_recurrent=prefer_recurrent)
++        batch = self.policy.schedule(self, prefer_recurrent=prefer_recurrent)
++        if batch is not None and batch.phase == RequestPhase.RECURRENT:
++            desired = self.config.decode_loop_group_size
++            if desired > 1:
++                if self.exit_mode not in ("ouro", "ouro_delayed") or any(
++                    row.request.sampling_params.exit_threshold != 1.0
++                    or (row.request.sampling_params.max_loops or self.total_ut_steps)
++                    != self.total_ut_steps for row in batch.requests
++                ):
++                    raise ValueError("grouped decode requires Static R4")
++                k = min(desired, *(self.total_ut_steps-row.depth for row in batch.requests))
++                if k < 1:
++                    raise ValueError("no recurrent work remains")
++                batch = replace(batch, requests=[replace(row, loop_count=k) for row in batch.requests])
++        return batch
+ 
+     def _prompt_destination(self, request: Request) -> RequestPhase:
+         exporting = self.exports_request is not None and self.exports_request(request)
+@@ -837,7 +852,9 @@ class Scheduler:
+                 request.pending_exit_depth = None
+                 self.enqueue(request, RequestPhase.RECURRENT)
+             elif phase == RequestPhase.RECURRENT:
+-                request.loops_done += 1
++                request.loops_done += scheduled_request.loop_count
++                if request.loops_done > self.total_ut_steps:
++                    raise RuntimeError("recurrent lease exceeds depth")
+                 if self.exit_mode == "trace":
+                     should_exit = self._trace_exit(request)
+                 else:
+@@ -961,7 +978,9 @@ class Scheduler:
+                     and request.sampling_params.exit_threshold < 1
+                     and self.needs_exit_signal(request)
+                 )
+-                request.loops_done += 1
++                request.loops_done += scheduled_request.loop_count
++                if request.loops_done > self.total_ut_steps:
++                    raise RuntimeError("recurrent lease exceeds depth")
+                 should_exit = (
+                     self._trace_exit(request)
+                     if self.exit_mode == "trace"
+diff --git a/vllm_rlt/worker/executor.py b/vllm_rlt/worker/executor.py
+index 87ba27d..b26a52a 100644
+--- a/vllm_rlt/worker/executor.py
++++ b/vllm_rlt/worker/executor.py
+@@ -25,6 +25,11 @@ def build_execution_batch(scheduled_batch: SchedulerOutput, total_depths: int) -
+     for scheduled_request in scheduled_batch.requests:
+         phase = scheduled_batch.phase_for(scheduled_request)
+         request = scheduled_request.request
++        if phase == RequestPhase.RECURRENT and scheduled_request.loop_count > 1:
++            if (request.sampling_params.exit_threshold != 1.0
++                or (request.sampling_params.max_loops or total_depths) != total_depths
++                or scheduled_request.depth + scheduled_request.loop_count > total_depths):
++                raise ValueError("invalid Static R4 decode lease")
+         chunk = phase in (RequestPhase.PREFILLING_PRELUDE, RequestPhase.PREFILLING_RECURRENT)
+         prompt_input = phase in (RequestPhase.PREFILL, RequestPhase.PREFILLING_PRELUDE)
+         operation = {
+@@ -68,7 +73,8 @@ def build_execution_batch(scheduled_batch: SchedulerOutput, total_depths: int) -
+         )
+         operations.add(operation)
+         loop_counts.add(
+-            total_depths if phase == RequestPhase.PREFILL else int(operation == Operation.RECURRENT)
++            total_depths if phase == RequestPhase.PREFILL else
++            scheduled_request.loop_count if operation == Operation.RECURRENT else 0
+         )
+     if len(operations) != 1 or len(loop_counts) != 1:
+         raise ValueError("batch requests must share an operation and execution boundary")
