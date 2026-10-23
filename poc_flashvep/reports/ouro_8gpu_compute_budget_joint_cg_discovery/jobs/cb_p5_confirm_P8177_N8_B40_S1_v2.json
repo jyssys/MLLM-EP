@@ -1,0 +1,81 @@
+{
+  "id": "cb_p5_confirm_P8177_N8_B40_S1_v2",
+  "kind": "live_budget",
+  "gpu": 5,
+  "shape": [
+    8177,
+    8
+  ],
+  "split": "FINAL_ONLINE",
+  "trials": [
+    2,
+    3
+  ],
+  "cap": 512,
+  "cells": [
+    {
+      "C": 2048,
+      "budget_ms": 40,
+      "fairness": "completion",
+      "yield_penalty_ms": 0.0,
+      "label": "G1",
+      "runtime": "split",
+      "optimizer": "G_ONLY",
+      "fixed_C": 2048
+    },
+    {
+      "label": "F1A",
+      "runtime": "atomic",
+      "C": 256,
+      "fairness": "completion"
+    },
+    {
+      "C": 2048,
+      "budget_ms": 40,
+      "fairness": "completion",
+      "yield_penalty_ms": 0.0,
+      "label": "C1S",
+      "runtime": "split",
+      "optimizer": "C_ONLY"
+    },
+    {
+      "label": "M1",
+      "runtime": "mixed",
+      "C": 1536,
+      "fairness": "completion"
+    },
+    {
+      "C": 2048,
+      "budget_ms": 40,
+      "fairness": "completion",
+      "yield_penalty_ms": 0.0,
+      "label": "C1A",
+      "runtime": "atomic",
+      "optimizer": "C_ONLY"
+    },
+    {
+      "label": "M0",
+      "runtime": "mixed",
+      "C": 1536,
+      "fairness": "stock"
+    },
+    {
+      "C": 2048,
+      "budget_ms": 40,
+      "fairness": "completion",
+      "yield_penalty_ms": 0.0,
+      "label": "J1",
+      "runtime": "split",
+      "optimizer": "JOINT"
+    }
+  ],
+  "cost_model": "cost_model_artifacts/service_lookup_v1.json",
+  "cost_model_sha256": "581f551ea111a459912d610b12f6e578d02952ca34226f9e7f8ece29aaf44fc9",
+  "observe": false,
+  "budget": 2048,
+  "timeout_s": 3600,
+  "allow_any_gpu": false,
+  "warm_split": "CALIBRATION",
+  "warm_trial": 0,
+  "quiet": true
+}

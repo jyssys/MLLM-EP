@@ -14,7 +14,7 @@ This control does not justify a universal output-parity claim.
 Stock/completion-fairness output sequences matched in 426 of 480 pairs.
 All 480 pairs matched output length and actually executed decode-loop work.
 Thus the recorded fairness timing contrast has no observed length/work mismatch in this cohort.
-Task accuracy is a different question and remains untested for these new policies at this checkpoint.
+Task accuracy is a different question. The subsequent measured pilot is in `quality.md`.
 
 ## Cost bound is not established
 
@@ -55,3 +55,27 @@ The earlier paired-service plan remains NOT_RUN.
 The exact-endpoint component queue superseded it before execution.
 That queue controls the final KV context across C values.
 No data from the unused plan are reported as measured.
+
+## C-only quality variation
+
+The seven-arm quality pilot completed all 798 generations.
+C1A scored 45/64 GSM8K, versus F0A's 47/64.
+C1S scored 43/64, with a paired difference of -6.25 points and 95% interval [-12.5, -1.5625].
+These arms cannot serve as uniformly quality-equivalent references.
+Six baseline-correct arm/question cases became wrong in the C-only variants.
+The exact cases and raw files remain in `quality_baseline_correct_to_wrong.csv`.
+No weight or precision changed, and recorded output depths remained R4.
+The precise numerical/batching cause is unresolved.
+The study does not dismiss the loss as harmless BF16 error or claim a proven KV bug.
+No further controller or capacity extension follows this result.
+
+The J1/G1 quality correctness labels matched on all 114 questions.
+Their extracted MATH score exceeded the native reference in this pilot.
+That difference is not claimed as a new reasoning benefit from scheduling.
+The full-benchmark quality-equivalence question remains open.
+
+## CPU diagnostic console correction
+
+One diagnostic console serialization rejected a NumPy integer after the CSV outputs completed.
+The diagnostic now casts the scalar to a Python integer.
+The repeated analysis did not rerun or modify a GPU generation.

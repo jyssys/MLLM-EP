@@ -32,13 +32,19 @@ def main():
                     q=issued[key].popleft();matched+=1
                     predicted=chosen['opening_ms'] if s['phase']=='prefilling_prelude' else chosen['current_ms']
                     over=q['service_ms']>decision['budget_ms'];errors.append(q['service_ms']-predicted)
+                    eligible={r['id'] for r in s['issued_decode']}
+                    following=[t for r in data['requests'] if r['id'] in eligible for t in r['token_times'] if t>=q['host_dispatch_begin_s']]
+                    next_output=min(following) if following else None
                     actions.append(dict(run_id=folder.name,policy=data['label'],P=data['P'],N=data['configured_N'],GPU=data['physical_GPU'],
                         trial=data['trial'],phase=s['phase'],state_sha256=decision['state_sha256'],id=s['id'],start=s['start'],depth=s['depth'],
                         C=chosen['C'],G=0 if s['phase']=='prefilling_prelude' else chosen['G'],planned_G=chosen['G'],
                         budget_ms=decision['budget_ms'],predicted_service_ms=predicted,
                         actual_service_ms=q['service_ms'],over_budget=over,known_shape=chosen['known'],
                         fallback='FALLBACK' in decision['reason'],selector_us=decision['selector_ns']/1000,
-                        complete_tokens_now=chosen['complete_tokens_now'],predicted_full_residual_ms=chosen['residual_chunk_ms'],
+                        complete_tokens_now=q['completed_prompt_tokens'],planned_completion_credit_RAW=chosen['complete_tokens_now'],
+                        predicted_full_residual_ms=chosen['residual_chunk_ms'],
+                        next_frontend_output_s_POSTHOC=next_output,
+                        next_output_delay_ms_POSTHOC=None if next_output is None else 1000*(next_output-q['host_dispatch_begin_s']),
                         request_event_ready=s['request_event_ready'],evidence=data['lane']))
                     if data['label']=='J1' and s['request_event_ready']:
                         joint=enumerate_candidates(s,decision['budget_ms'],lookup,'JOINT',1024,'U2',0.)
@@ -53,6 +59,7 @@ def main():
                 cohorts.append(dict(run_id=folder.name,policy=data['label'],trial=data['trial'],P=data['P'],N=data['configured_N'],
                     matched_actions=matched,issued_prefill_quanta=len(data['service_observations']),
                     selector_decisions=len(data['optimizer_decisions']),MAE_ms=float(np.mean(np.abs(errors))) if errors else None,
+                    error_target='Actual service minus selected upper occupancy estimate. Not the point-median error.',
                     admission_checks=data.get('admission_cpu',{}).get('checks') if data.get('admission_cpu') else None,
                     admission_total_ms=data.get('admission_cpu',{}).get('total_ns',0)/1e6 if data.get('admission_cpu') else None))
     csv_file(ROOT/'budget_action_trace.csv.gz',actions);csv_file(ROOT/'opportunity_frequency.csv',opportunities)

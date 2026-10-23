@@ -29,11 +29,12 @@ This bound describes the probe's anchor alignment, not inter-GPU clock synchroni
 These inputs are isolated numerical probes with eight bounded output tokens.
 They do not prove full-answer accuracy or universal batched output parity.
 Matched clean/event controls and batched fairness comparisons are separate queues.
-Adaptive quality remains NOT_RUN at this point.
+The subsequent full-answer quality pilot is reported in `quality.md`.
+It does not establish uniform equivalence across all arms.
 
 ## Software fixtures
 
-Sixteen local CPU tests passed.
+Seventeen local CPU tests passed.
 They cover completion debt, request identity, fixed/variable frontiers, enumeration, cost-path labels, feedback, and budget admission.
 Native integration tests verify prompt work, final outputs, released KV blocks, and released state slots.
 The integration models are tiny software fixtures.
@@ -47,3 +48,13 @@ No unfinished CUDA tensor is read for a scheduling decision.
 The new method does not change weights, BF16 precision, masks, RoPE, or recurrent depth.
 The previous batched BF16 geometry mismatches remain preserved historical evidence.
 The isolated passes do not remove those earlier limitations.
+
+## Subsequent natural generation
+
+All 798 quality generations recorded Full R4 output depths.
+J1 and G1 matched correctness labels on all 114 benchmark questions.
+They matched token sequences on 113/114 questions.
+C1A/C1S had observed GSM8K regressions versus stock Atomic.
+The short numerical probes do not explain or erase those regressions.
+The exact batching/numerical cause remains unresolved.
+No blanket batched-output or all-arm accuracy PASS is claimed.

@@ -30,7 +30,7 @@ def main():
             tokens[(data['policy'],data['id'])]=data['output_ids']
     summary=[];paired=[];rng=np.random.default_rng(20261023)
     for domain in ('gsm8k','math500'):
-        reference={r['id']:r for r in rows if r['dataset']==domain and r['policy']=='C1A'}
+        reference={r['id']:r for r in rows if r['dataset']==domain and r['policy']=='F0A'}
         for policy in sorted({r['policy'] for r in rows}):
             values=[r for r in rows if r['dataset']==domain and r['policy']==policy]
             if not values:
@@ -39,13 +39,13 @@ def main():
                 accuracy_pct=100*np.mean([r['correct'] for r in values]),correct_complete=sum(r['correct_complete'] for r in values),
                 parse_failures=sum(not r['parsed'] for r in values),truncated=sum(r['truncated'] for r in values),
                 output_tokens=sum(r['output_tokens'] for r in values)))
-            if reference and policy!='C1A':
+            if reference and policy!='F0A':
                 matches=[r for r in values if r['id'] in reference]
                 delta=np.array([100*(int(r['correct'])-int(reference[r['id']]['correct'])) for r in matches])
                 draws=delta[rng.integers(0,len(delta),size=(5000,len(delta)))].mean(axis=1)
-                paired.append(dict(dataset=domain,candidate=policy,reference='C1A',N=len(matches),
+                paired.append(dict(dataset=domain,candidate=policy,reference='F0A',N=len(matches),
                     delta_accuracy_pp=float(delta.mean()),CI95_low=float(np.percentile(draws,2.5)),CI95_high=float(np.percentile(draws,97.5)),
-                    token_exact=sum(tokens[(policy,r['id'])]==tokens[('C1A',r['id'])] for r in matches),
+                    token_exact=sum(tokens[(policy,r['id'])]==tokens[('F0A',r['id'])] for r in matches),
                     scope='Question-paired public quality pilot. Wide intervals do not prove equivalence.'))
     csv_file(ROOT/'quality_cases.csv',rows);csv_file(ROOT/'quality_summary.csv',summary);csv_file(ROOT/'quality_paired_differences.csv',paired)
     write(ROOT/'quality_evaluator_lock.json',identity)

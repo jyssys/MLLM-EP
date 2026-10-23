@@ -1,0 +1,73 @@
+{
+  "id": "cb_p6_quality_B40_gpu1_v1",
+  "kind": "quality",
+  "gpu": 1,
+  "cells": [
+    {
+      "label": "C1S",
+      "runtime": "split",
+      "optimizer": "C_ONLY",
+      "C": 2048
+    },
+    {
+      "label": "G1",
+      "runtime": "split",
+      "optimizer": "G_ONLY",
+      "C": 2048,
+      "fixed_C": 2048
+    },
+    {
+      "label": "J1",
+      "runtime": "split",
+      "optimizer": "JOINT",
+      "C": 2048
+    },
+    {
+      "label": "M1",
+      "runtime": "mixed",
+      "C": 1024
+    },
+    {
+      "label": "M0",
+      "runtime": "mixed",
+      "C": 1024,
+      "fairness": "stock"
+    },
+    {
+      "label": "F0A",
+      "runtime": "atomic",
+      "C": 1024,
+      "fairness": "stock"
+    },
+    {
+      "label": "C1A",
+      "runtime": "atomic",
+      "optimizer": "C_ONLY",
+      "C": 2048
+    }
+  ],
+  "ids": [
+    "gsm8k/test/1",
+    "gsm8k/test/9",
+    "gsm8k/test/17",
+    "gsm8k/test/25",
+    "gsm8k/test/33",
+    "gsm8k/test/41",
+    "gsm8k/test/49",
+    "gsm8k/test/57",
+    "math500/test/1",
+    "math500/test/9",
+    "math500/test/17",
+    "math500/test/25",
+    "math500/test/33",
+    "math500/test/41",
+    "math500/test/49"
+  ],
+  "width": 4,
+  "cap": 4096,
+  "compute_budget_ms": 40,
+  "budget": 2048,
+  "cost_model": "cost_model_artifacts/service_lookup_v1.json",
+  "cost_model_sha256": "581f551ea111a459912d610b12f6e578d02952ca34226f9e7f8ece29aaf44fc9",
+  "timeout_s": 14400
+}

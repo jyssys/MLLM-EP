@@ -1,5 +1,29 @@
 # Resume state and required next work
 
+## Final completion note
+
+The GPU experiment campaign is complete. Do not restart its queues automatically.
+The final incremental decision is NO_GO_INCREMENTAL.
+All 12 quiet confirmation starts completed, with 168 cohorts and 1,008 request executions.
+G1/J1 per-request plans, output token IDs, and lengths matched on all 144 paired requests.
+Joint/G-only quiet output-throughput ratios ranged from 0.996× to 1.003×.
+The extra C search added no executed action advantage in these cells.
+
+All 798 quality generations and frozen scoring completed.
+J1 scored GSM8K 47/64 and MATH 32/50 extracted, with 30/50 completed-correct and six caps.
+G1 had the same correctness labels on all 114 questions. Token sequences matched 113/114.
+Native F0A/M0/M1 scored 47/64 and 28/50 extracted, with 26/50 completed-correct and eight caps.
+C1A/C1S had GSM8K 45/64 and 43/64. The latter's paired loss was -6.25 pp, with CI [-12.5,-1.5625].
+Do not claim uniform quality equivalence. See quality.md and preserved wrong-case files.
+
+Online feedback, H2/H3, full 1,819-question accuracy, and sustainable-rate capacity remain NOT_RUN after the negative gate.
+All eight GPUs have owned burners restored.
+Final packaging uses the archive/hash manifest and a scoped final commit/push.
+Read the current Git HEAD, remote branch, and archive manifest to check that step.
+Do not infer its status from an earlier tool-session ID.
+
+## Superseded running checkpoints below
+
 This is a running campaign, not a completed result.
 The root branch is `flashvep/ouro-8gpu-budget-joint-cg-optimization-poc`.
 The authoritative specification has 466 lines and was read completely before task actions.
@@ -17,6 +41,70 @@ Commit only this new package and report root.
 The user explicitly authorizes the final push.
 
 ## Current checkpoint after Phase 0 and initial Phase 1
+
+### Latest checkpoint: TRAIN finished and quiet confirmation running
+
+The new branch checkpoint `08f2fe77c9669ab3c503baca774ea10ed9f5dfef` was committed and pushed successfully.
+All original staged changes still have the preserved binary-diff hash.
+There are additional uncommitted report/analysis/quality-coordinator changes after that checkpoint.
+
+All 64 fresh cost jobs and all eight controlled endpoint jobs completed.
+The fresh service dataset has 298,842 quantum records across 1,056 observer cohorts.
+The frozen model has 334 lookup cells and remains immutable.
+Blind Atomic MAE=9.613 ms, upper exceedance=5.786%, block CI [2.343,8.646]%.
+Blind Staged Core MAE=2.769 ms, exceedance=3.862%, CI [2.237,6.578]%.
+Blind Prelude MAE=0.797 ms, exceedance=4.481%, CI [3.097,8.960]%.
+Only three source families supply single-prompt blind prediction targets.
+All model-risk labels remain EXPERIMENTAL_BUDGET_RISK. No deadline safety claim.
+
+The additional cycled-frontier queue completed on all eight GPUs.
+All 16 non-reference comparisons matched tokens, hidden, logits, and KV exactly.
+It covers G1→G3 and G1→G2→G1 continuation patterns.
+The local software test suite now has 17 passing tests.
+
+The complete TRAIN budget pilot finished: 32 jobs, 448 natural observer cohorts, all eight budgets and both shapes.
+Joint beats severely constrained C-only at some budgets.
+G-only is often very close to Joint. Native Mixed usually has much lower P99 at P8177/N8.
+No Joint GO is established.
+Do not interpret large gains against an infeasible/smallest-progress C-only fallback as sufficient practical evidence.
+
+The selected-credit diagnostic was corrected during TRAIN before reading pilot performance outcomes.
+Earlier workers remain immutable and carry their own source snapshots.
+Measured R4 completion always comes from actual observer spans.
+The quiet confirmation uses the corrected implementation only.
+Core runtime files must remain frozen during this confirmation.
+Analysis-only edits do not change the running GPU executor.
+
+The quiet plan is `p5_quiet_confirmation_plan.json`: 12 one-at-a-time jobs over B40/B120, P2033/N4 and P8177/N8.
+There are three independent model-process starts and two FINAL_ONLINE cohorts per cell.
+Warm inputs use CALIBRATION, not FINAL_ONLINE. Cap512, natural EOS allowed.
+All eight devices are isolation-reserved. Burners are intentionally OFF during this quiet queue.
+This is a focused finite-cohort confirmation, not Poisson capacity.
+The original dispatcher tool session was 98603. Check live state if that session is lost.
+
+A detached `confirmation_controller` waits for the quiet queue, analyzes it, then registers/runs the B40 quality pilot.
+Its process record is `state/confirmation_controller_process.json` and its log is recorded there.
+At creation PID was 45671. Do not trust an old PID without checking its current cmdline.
+The planned quality pilot reuses 64 GSM8K + 50 MATH full answers, cap4096, greedy, preserved stops/evaluator.
+It now includes seven arms: C1A/C1S/G1/J1/M1/M0/F0A.
+F0A is stock native Atomic C1024. M0 is stock native Mixed.
+The quality reference is F0A, not C1A.
+The evaluator asserts that its actual imported extractor matches the frozen hash.
+The controller stops for manual review after quality. It does not make a final verdict or push automatically.
+
+Still required after queues finish:
+- Review quiet comparisons without mixing TRAIN and FINAL lanes. `live_pairs.py` now keys these separately.
+- Run `export_results.py` for main_table, raw request events, queues, and experiment matrix.
+- Run final budget analysis/figures after clean windows. Do not add heavy CPU/I/O work during quiet timing.
+- Create final analysis.md, phase_gates.md/decision_gates.json, budget_stall_relationship.md, quality.md, and final summaries.
+- Fill matched_pairs.csv from QUIET_FINAL effects. Do not invent capacity/rate measurements.
+- Record H2/H3, online feedback, and production rate sweeps as NOT_RUN if incremental evidence remains absent.
+- Hash/archive retained raw data locally, preserve failed evidence, and provide exact paths/hashes.
+- Review scoped changes, commit only the new package/report root, and push the final branch.
+- Restore all eight owned burners before final handoff. Preserve unrelated processes and original staged hash.
+
+The user asked for a progress-only answer during this running turn.
+That answer was delivered. The research remains active and must continue.
 
 All 64 Phase 0 jobs completed. Final 8-worker drained-throughput drift ranged from about -4.20% to +0.896%, depending on shape/device.
 Use `gpu_contention.md` and the paired CSV, not the earlier partial estimates.

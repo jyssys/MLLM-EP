@@ -24,11 +24,11 @@ Queueing, CPU dispatch, event alignment, and client clocks remain separate field
 The interval can include CPU launch gaps and is not pure kernel-busy time.
 The observer never reads unfinished GPU tensors.
 
-Sixteen CPU tests passed before pretrained GPU qualification.
+Seventeen CPU tests passed across the implementation checkpoints.
 They cover fairness, legal frontiers, enumeration, budget feedback, and budget admission.
 Integration tests exercise the actual native scheduler, executor, and cache state machine with tiny software fixtures.
 Those fixtures are not pretrained-model quality evidence.
-Pretrained numerical probes and new cost collection are registered but not yet complete.
+The pretrained numerical, fresh cost, TRAIN budget, quiet confirmation, and public quality queues completed.
 
 The new optimizer enumerates one legal action at a time.
 Its completion-aware utility includes every remaining R4 group and staged prelude.
@@ -38,6 +38,8 @@ The trace labels those exceptions explicitly.
 All adaptive controls admit at most one prefill span per batch.
 This prevents an unmodeled packed batch from exceeding the single-span budget silently.
 Native fixed and Mixed controls retain native packing and remain separate baselines.
-The controller and path lookup code exist, but no new adaptive serving result exists yet.
+The one-step fixed-budget controllers have measured observer and quiet serving results.
+The optional feedback controller has no live result.
+H2/H3 and sustainable-rate capacity are NOT_RUN after the negative incremental screen.
 The previous completed-token D1 predictor is not used.
 Native-vLLM Loop PP remains paused.

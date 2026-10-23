@@ -13,6 +13,7 @@ def main():
             if not (folder/'completed.json').exists():
                 continue
             identity=json.loads((folder/'identity.json').read_text());job=identity['job']
+            lane='QUIET_FINAL' if folder.name.startswith('cb_p5_confirm') else 'TRAIN_OBSERVER'
             B=next(c['budget_ms'] for c in job['cells'] if c['label']=='J1')
             by_trial=defaultdict(dict)
             for file in folder.glob('*_T*.json'):
@@ -30,7 +31,7 @@ def main():
                     av,bv=summarize(a),summarize(b)
                     for metric in ('TTFT_P95_ms','ITL_pooled_P95_ms','ITL_pooled_P99_ms',
                             'drained_output_tokens_s','joint_declared_drain_goodput_rps'):
-                        blocks[(job['shape'][0],B,reference,metric,folder.name)].append((av[metric],bv[metric]))
+                        blocks[(lane,job['shape'][0],B,reference,metric,folder.name)].append((av[metric],bv[metric]))
                     left={r['id']:r for r in a['requests']};right={r['id']:r for r in b['requests']}
                     parity.append(dict(run_id=folder.name,trial=trial,P=job['shape'][0],budget_ms=B,reference=reference,
                         requests=len(left),token_exact=sum(left[k]['output_ids']==right[k]['output_ids'] for k in left),
@@ -44,13 +45,13 @@ def main():
                                 raw.append(dict(run_id=folder.name,trial=trial,P=job['shape'][0],budget_ms=B,
                                     reference_pair=reference,policy=label,**row,evidence=data['lane']))
     grouped=defaultdict(list)
-    for (P,B,reference,metric,run),values in blocks.items():
-        grouped[(P,B,reference,metric)].append((np.mean([a for a,b in values]),np.mean([b for a,b in values])))
+    for (lane,P,B,reference,metric,run),values in blocks.items():
+        grouped[(lane,P,B,reference,metric)].append((np.mean([a for a,b in values]),np.mean([b for a,b in values])))
     effects=[]
-    for (P,B,reference,metric),values in sorted(grouped.items()):
+    for (lane,P,B,reference,metric),values in sorted(grouped.items()):
         ci=paired_block_interval(values)
         a=np.mean([x for x,y in values]);b=np.mean([y for x,y in values])
-        effects.append(dict(P=P,budget_ms=B,reference=reference,candidate='J1',metric=metric,
+        effects.append(dict(lane=lane,P=P,budget_ms=B,reference=reference,candidate='J1',metric=metric,
             reference_mean=a,joint_mean=b,ratio_joint_over_reference=b/a if a else None,**ci,
             scope='Block-paired natural pilot. Mixed implementation versions in initial TRAIN only. Quiet corrected confirmation separate.'))
     csv_file(ROOT/'pilot_paired_effects.csv',effects);csv_file(ROOT/'pilot_output_parity.csv',parity)

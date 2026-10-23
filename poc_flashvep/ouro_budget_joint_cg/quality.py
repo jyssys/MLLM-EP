@@ -28,7 +28,9 @@ def register(budget):
             dict(label='C1S',runtime='split',optimizer='C_ONLY',C=2048),
             dict(label='G1',runtime='split',optimizer='G_ONLY',C=2048,fixed_C=fixedG),
             dict(label='J1',runtime='split',optimizer='JOINT',C=2048),
-            dict(label='M1',runtime='mixed',C=mixed)]
+            dict(label='M1',runtime='mixed',C=mixed),
+            dict(label='M0',runtime='mixed',C=mixed,fairness='stock'),
+            dict(label='F0A',runtime='atomic',C=1024,fairness='stock')]
         cells=cells[gpu%len(cells):]+cells[:gpu%len(cells)]
         jobs.append(dict(id=f'cb_p6_quality_B{budget}_gpu{gpu}_v1',kind='quality',gpu=gpu,cells=cells,
             ids=[r['id'] for i,r in enumerate(previous['rows']) if i%8==gpu],width=4,cap=4096,
@@ -48,7 +50,8 @@ def run_job(model,job,target):
     artifact=ROOT/job['cost_model'];assert digest(artifact)==job['cost_model_sha256']
     lookup=ServiceLookup(json.loads(artifact.read_text()));results=[]
     for cell in job['cells']:
-        label=cell['label'];e=engine(model,cell['runtime'],cell['C'],job['width'],job);attach(e,True)
+        label=cell['label'];e=engine(model,cell['runtime'],cell['C'],job['width'],job)
+        attach(e,cell.get('fairness','completion')=='completion')
         control=None
         if cell.get('optimizer'):
             control=OnlineControl(e,lookup,cell['optimizer'],job['compute_budget_ms'],cell.get('fixed_C',1024))

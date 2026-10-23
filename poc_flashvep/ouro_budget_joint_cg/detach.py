@@ -7,7 +7,7 @@ import time
 from .common import ROOT,REPO,write
 
 def main():
-    parser=argparse.ArgumentParser();parser.add_argument('module',choices=['pilot_controller']);args=parser.parse_args()
+    parser=argparse.ArgumentParser();parser.add_argument('module',choices=['pilot_controller','confirmation_controller']);args=parser.parse_args()
     target=ROOT/'state'/f'{args.module}_process.json'
     if target.exists():
         previous=__import__('json').loads(target.read_text());proc=Path('/proc')/str(previous['pid'])
