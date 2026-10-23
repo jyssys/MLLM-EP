@@ -82,19 +82,28 @@ def observed():
             ds=data.get('optimizer_decisions',[]);fresh=[d for d in ds if d['state']['kind']=='NEW_CHUNK']
             for d in fresh:
                 s=d['state'];c=d['selected'];fixed=data['cell'].get('fixed_C',2048)
+                actual_fixed=min(fixed,s['prompt_remaining'],s['token_budget'])
+                alt=next((v for v in d['candidates'] if v['C']==actual_fixed and v['G']==c['G']),None)
+                chosen_features=next(v['features'] for v in d['candidates'] if v['C']==c['C'] and v['G']==c['G'])
                 conditionals.append(dict(run_id=data['run_id'],scenario=data['scenario']['id'],
                     split=data['split'],lane=data['lane'],workload=data['workload'],policy=data['label'],
-                    host_s=d['host_s'],actual_C=c['C'],planned_G=c['G'],prompt_remaining=s['prompt_remaining'],
+                    host_s=d['host_s'],request_id=s['id'],actual_C=c['C'],planned_G=c['G'],prompt_remaining=s['prompt_remaining'],
+                    token_budget=s['token_budget'],issued_depth=s['depth'],
+                    actual_C_candidates=json.dumps(sorted({v['C'] for v in d['candidates']})),
                     span_start=s['start'],phase=s['phase'],decode_rows=len(s.get('issued_decode',[])),
                     decode_age_ms=s.get('decode_age_max_ms',0),prompt_age_ms=s.get('prompt_age_ms',0),
                     multiple_actual_C=len({v['C'] for v in d['candidates']})>1,
-                    differs_fixed_C=c['C']!=min(fixed,s['prompt_remaining'],s['token_budget']),
+                    differs_fixed_C=c['C']!=actual_fixed,
+                    same_G_fixed_alternative_present=alt is not None,
+                    same_G_fixed_alternative_known=None if alt is None else alt['known'],
+                    delta_E_vs_fixed_same_G=None if alt is None else chosen_features['E']-alt['features']['E'],
+                    delta_R_vs_fixed_same_G=None if alt is None else chosen_features['R']-alt['features']['R'],
                     selected_shape_known=c['known'],fallback='FALLBACK' in d['reason'],
                     evidence='LIVE_MEASURED_HOST_SELECTOR_CHOICE_NOT_GPU_FINISH_TIME'))
             ns=[d['selector_ns']/1e6 for d in ds];admission=data.get('admission_cpu') or {}
             wall_ms=1000*(data['end']-data['start'])
             overhead.append(dict(run_id=data['run_id'],scenario=data['scenario']['id'],policy=data['label'],
-                split=data['split'],lane=data['lane'],workload=data['workload'],calls=len(ns),
+                split=data['split'],lane=data['lane'],workload=data['workload'],rate=data['scenario'].get('rate'),calls=len(ns),
                 selector_P50_ms=None if not ns else float(np.percentile(ns,50)),
                 selector_P95_ms=None if not ns else float(np.percentile(ns,95)),
                 selector_P99_ms=None if not ns else float(np.percentile(ns,99)),
@@ -144,6 +153,22 @@ def observed():
                         if mismatch is not None:divergences.append(dict(id=k,first_divergent_index=mismatch))
                     observer.append(dict(row,first_divergences=json.dumps(divergences)))
     csv_file(ROOT/'live_action_conditions.csv.gz',conditionals)
+    selected=[r for r in conditionals if r['split']=='FINAL' and r['policy']=='O6_J']
+    changed=[r for r in selected if r['differs_fixed_C']]
+    csv_file(ROOT/'Joint_C_change_decomposition.csv',changed)
+    write(ROOT/'Joint_C_change_summary.json',dict(fresh_choices=len(selected),real_C_changes=len(changed),
+        selected_C_histogram=dict(Counter(r['actual_C'] for r in changed)),
+        changed_remaining_le_512=sum(r['prompt_remaining']<=512 for r in changed),
+        changed_remaining_513_to_2048=sum(512<r['prompt_remaining']<=2048 for r in changed),
+        changed_remaining_gt_2048=sum(r['prompt_remaining']>2048 for r in changed),
+        changed_with_no_decode=sum(r['decode_rows']==0 for r in changed),
+        all_changed_selected_shapes_known=all(r['selected_shape_known'] for r in changed),
+        all_changed_fixed_same_G_alternatives_unknown=all(r['same_G_fixed_alternative_known'] is False for r in changed),
+        changed_E_above_fixed_same_G=sum(r['delta_E_vs_fixed_same_G'] is not None and r['delta_E_vs_fixed_same_G']>0 for r in changed),
+        changed_R_below_fixed_same_G=sum(r['delta_R_vs_fixed_same_G'] is not None and r['delta_R_vs_fixed_same_G']<0 for r in changed),
+        changed_fallbacks=sum(r['fallback'] for r in changed),
+        all_fresh_G_histogram=dict(Counter(r['planned_G'] for r in selected)),
+        scope='Actual causal selector choices. Known selected shapes do not prove the unchosen clipped alternative is physically slower.'))
     csv_file(ROOT/'optimizer_overhead.csv',overhead)
     csv_file(ROOT/'whole_cohort_output_parity.csv',cohort_matches)
     csv_file(ROOT/'observer_execution_diagnostics.csv',observer)

@@ -50,6 +50,51 @@ It waits for all reviewed adaptive smoke attempts to complete.
 It then runs the frozen 22-arm, eight-job VALIDATION plan.
 The final objective and capacity decision must not use FINAL outcomes for tuning.
 
+## Registered handoff and final analysis
+
+Do not rerun `register`, `online_plan`, `select_final`, or `final_plan` over an existing freeze.
+The follow-up coordinator now detects existing selection and FINAL locks before a resumed dispatch.
+It never selects another objective after FINAL exposure.
+Acquire its lock before any coordinator restart. A live owner means the queue is still active.
+Resume granularity is a completed immutable job, not a mid-generation KV checkpoint.
+An interrupted job needs a reviewed new attempt ID. Preserve its original identity, outputs, and failure evidence.
+
+```bash
+/home/esjung/anaconda3/bin/python -u -m poc_flashvep.ouro_dual_objective_cg.followup
+```
+
+The registered subplan sequence contains paired alternative diagnostics, observer audits, FINAL characterization, and serial confirmation.
+The quality dependency adds a short callback/teardown preflight before the full-answer question pilot.
+The preflight's256-token cap is not an accuracy result.
+The main quality cap remains4,096 in all nine configurations.
+
+After all measurement jobs finish:
+
+```bash
+taskset -c 128-143 /home/esjung/anaconda3/bin/python -m poc_flashvep.ouro_dual_objective_cg.analyze_serving --require-validation-complete
+taskset -c 128-143 /home/esjung/anaconda3/bin/python -m poc_flashvep.ouro_dual_objective_cg.report_tables
+taskset -c 128-143 /home/esjung/anaconda3/bin/python -m poc_flashvep.ouro_dual_objective_cg.mechanism_analysis
+taskset -c 128-143 /home/esjung/anaconda3/bin/python -m poc_flashvep.ouro_dual_objective_cg.same_output_diagnostic
+taskset -c 128-143 /home/esjung/anaconda3/bin/python -m poc_flashvep.ouro_dual_objective_cg.audit_analysis
+taskset -c 128-143 /home/esjung/anaconda3/bin/python -m poc_flashvep.ouro_dual_objective_cg.analyze_resources
+taskset -c 128-143 /home/esjung/anaconda3/bin/python -m poc_flashvep.ouro_dual_objective_cg.grade_quality
+taskset -c 128-143 /home/esjung/anaconda3/bin/python -m poc_flashvep.ouro_dual_objective_cg.plot_results
+taskset -c 128-143 /home/esjung/anaconda3/bin/python -m poc_flashvep.ouro_dual_objective_cg.validate_evidence
+taskset -c 128-143 /home/esjung/anaconda3/bin/python -m poc_flashvep.ouro_dual_objective_cg.export_portable
+taskset -c 128-143 /home/esjung/anaconda3/bin/python -m poc_flashvep.ouro_dual_objective_cg.archive_evidence
+```
+
+Do not run heavy analysis during the isolated measurement lane.
+The preserved quality extractor imports from `/home/esjung/MLLM-EP-ouro-request-pp/poc_looped_exact_depth_chunk_pipeline/scoring.py`.
+Import the campaign package before adding that older repository to Python's search path.
+`quality_evaluator_lock.json` records the actual imported file and verifies its SHA256.
+This does not implement a new evaluator or relax the preserved answer rules.
+
+The portable gzip JSONL files contain completed natural outputs, executed prompt plans, and decision records.
+`portable_evidence_manifest.json` records their byte counts and hashes.
+The larger local raw archive also contains failed attempts, logs, full source snapshots, and telemetry.
+Archive creation retains every original source file.
+
 ## Resource handoff
 
 ```bash

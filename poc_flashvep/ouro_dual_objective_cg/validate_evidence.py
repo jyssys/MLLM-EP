@@ -15,6 +15,7 @@ def main():
         'p2_objective_validation_plan.json','p2_fixed_tuning_plan.json','p2_alternative_diagnostic_plan.json',
         'p2_event_audit_plan.json','p3_characterization_plan.json','p3_quiet_confirmation_plan.json',
         'p4_quality_smoke_plan.json','p4_quality_plan.json']
+    if (ROOT/'p2_budget_supplement_plan.json').exists():plans.append('p2_budget_supplement_plan.json')
     for name in plans:
         plan=json.loads((ROOT/name).read_text());jobs=plan.get('jobs',[j for g in plan.get('groups',[]) for j in g['jobs']])
         for job in jobs:

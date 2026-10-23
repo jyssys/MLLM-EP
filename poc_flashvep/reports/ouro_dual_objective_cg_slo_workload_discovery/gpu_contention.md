@@ -13,7 +13,11 @@ Each device/count cell has two independent starts and three repeated cohorts per
 The same-GPU/start throughput drift ranges from -2.114% to +2.293%.
 No observed cell crosses the registered 3% review threshold.
 Two starts do not prove universal interference neutrality.
-The validation lane can use four workers. Decisive performance confirmation will use one measurement worker.
+The validation and characterization lanes use up to four measurement workers.
+Each device processes its assigned same-GPU policy blocks sequentially.
+An owned burner restarts when that device's entire queue finishes.
+Thus the FOUR_WORKERS lane label denotes maximum parallelism, not a constant count at every timestamp.
+The serial confirmation lane reserves all four authorized devices and runs one measurement worker.
 
 GPUs0–3 had pre-existing owned burners at the start.
 The authorization prohibits their use in this study, so this campaign does not stop or restart them.
@@ -27,3 +31,6 @@ The dispatcher restores owned burners when a worker queue finishes or exits.
 Isolation-reserved devices remain free of burners only during declared controls or clean confirmation.
 
 Data: `contention_raw.csv`, `contention_paired_drift.csv`, `controls_summary.json`, and raw telemetry.
+`GPU_policy_rotation.csv` records actual process, device, and policy order.
+`cohort_coexecution.csv` records overlapping measured serving windows on the common host clock.
+That table excludes startup, warm-up, and burner activity. It does not measure total shared-host load.

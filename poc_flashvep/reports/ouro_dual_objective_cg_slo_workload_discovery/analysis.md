@@ -35,9 +35,9 @@ These controls do not establish full-answer accuracy or capacity.
 The first adaptive smoke found a retained-engine measurement-wrapper bug at policy teardown.
 Its failed attempts remain preserved.
 The cleanup correction passed the failing weak-reference test and all four reviewed v2 GPU smoke jobs.
-The22-arm VALIDATION screen and fresh TRAIN fixed-policy tuning are complete.
-O6, weight2, is the frozen follow-up objective. It uses budget120ms.
-Its validation fresh-C difference rate is3.125%, below the registered5% screen.
+The 22-arm VALIDATION screen and fresh TRAIN fixed-policy tuning are complete.
+O6, weight 2, is the frozen follow-up objective. It uses budget 120ms.
+Its validation fresh-C difference rate is 3.125%, below the registered 5% screen.
 The provisional incremental gate remains false.
 The five-workload FINAL queue is running on independent physical GPUs4–7.
 Separate serial confirmation and the nine-arm full-answer question pilot follow automatically.

@@ -4,7 +4,7 @@ import json
 import os
 import subprocess
 import time
-from .common import ROOT,REPO,write
+from .common import ROOT,REPO,write,digest
 
 PYTHON='/home/esjung/anaconda3/bin/python'
 
@@ -21,11 +21,18 @@ def main():
     fcntl.flock(lease,fcntl.LOCK_EX)  # The prior coordinator must finish restoration first.
     validation=json.loads((ROOT/'p2_objective_validation_plan.json').read_text())
     assert all((ROOT/'raw'/j['id']/'completed.json').exists() for j in validation['jobs'])
-    write(ROOT/'state'/'followup.json',dict(pid=os.getpid(),stage='FRESH_TRAIN_FIXED_TUNING',wall_s=time.time()))
-    command('dispatch','--manifest',str(ROOT/'p2_fixed_tuning_plan.json'),'--manage-burners')
-    command('analyze_serving','--require-validation-complete')
-    command('select_final')
-    command('final_plan')
+    if not (ROOT/'objective_shortlist.json').exists():
+        write(ROOT/'state'/'followup.json',dict(pid=os.getpid(),stage='FRESH_TRAIN_FIXED_TUNING',wall_s=time.time()))
+        command('dispatch','--manifest',str(ROOT/'p2_fixed_tuning_plan.json'),'--manage-burners')
+        command('analyze_serving','--require-validation-complete')
+        command('select_final')
+    if not (ROOT/'p3_final_workload_plan.json').exists():
+        command('final_plan')
+    else:
+        frozen=json.loads((ROOT/'final_freeze.json').read_text())
+        assert digest(ROOT/'objective_shortlist.json')==frozen['objective_sha256']
+        assert digest(ROOT/'final_serving_scenarios.json')==frozen['scenario_sha256']
+        assert digest(ROOT/'slo_lock.json')==frozen['slo_sha256']
     write(ROOT/'state'/'followup.json',dict(pid=os.getpid(),stage='LOCKED_FINAL_WORKLOAD_CHARACTERIZATION',wall_s=time.time()))
     command('dispatch','--manifest',str(ROOT/'p3_final_workload_plan.json'),'--manage-burners')
     command('analyze_serving','--require-validation-complete')

@@ -41,7 +41,9 @@ def main():
                 if numbers:b.append(float(np.mean(numbers)))
             if b:
                 b=np.array(b);boot=b[rng.integers(0,len(b),size=(3000,len(b)))].mean(axis=1)
-                item[metric]=float(b.mean());item[metric+'_CI95_low']=float(np.percentile(boot,2.5));item[metric+'_CI95_high']=float(np.percentile(boot,97.5))
+                item[metric]=float(b.mean())
+                item[metric+'_CI95_low']=None if len(b)<2 else float(np.percentile(boot,2.5))
+                item[metric+'_CI95_high']=None if len(b)<2 else float(np.percentile(boot,97.5))
             else:
                 for suffix in ('','_CI95_low','_CI95_high'):item[metric+suffix]=None
         out.append(item)

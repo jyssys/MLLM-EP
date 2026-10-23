@@ -110,7 +110,8 @@ def main():
         run,scenario,label=key
         if not label.endswith('_J'):continue
         family=label[:-2]
-        for control in (family+'_G',family+'_G1024',family+'_C','MIXED_STOCK','MIXED_FAIR'):
+        for control in (family+'_G',family+'_G1024',family+'_C',family+'_CA',
+            'BEST_FIXED','ATOMIC','STAGED4','MIXED_STOCK','MIXED_FAIR'):
             right=raw.get((run,scenario,control))
             if right is None:continue
             assert left['scenario']==right['scenario'] and left['families']==right['families']
@@ -139,9 +140,10 @@ def main():
         paired.append(dict(split=split,lane=lane,workload=workload,offered_rate_rps=rate,width=width,candidate=label,reference=control,metric=metric,
             independent_starts=len(block),paired_cohorts=len(values),candidate_mean=float(block[:,0].mean()),
             reference_mean=float(block[:,1].mean()),delta=float(np.mean(block[:,0]-block[:,1])),
-            CI95_low=float(np.percentile(delta,2.5)),CI95_high=float(np.percentile(delta,97.5)),
+            CI95_low=None if len(block)<2 else float(np.percentile(delta,2.5)),
+            CI95_high=None if len(block)<2 else float(np.percentile(delta,97.5)),
             ratio=float(block[:,0].mean()/block[:,1].mean()) if block[:,1].mean()!=0 else None,
-            scope='Paired process-block means. Repeated source cohorts limit generalization. Tokens are not resampled independently.'))
+            scope='Paired process-block means. No CI for a single start. Repeated source cohorts limit generalization. Tokens are not resampled independently.'))
     csv_file(ROOT/'serving_results.csv',rows);csv_file(ROOT/'request_metrics.csv.gz',requests)
     csv_file(ROOT/'request_events.csv.gz',events)
     csv_file(ROOT/'paired_comparisons.csv',paired);csv_file(ROOT/'serving_output_plan_parity.csv',parity)

@@ -60,7 +60,7 @@ def main():
     save(fig,'B_feature_cross_effects','OFFLINE ESTIMATE: normalized frozen TRAIN feature differences. Missing cells have no matched corners. Not measured alternative latency.')
 
     grid=records('objective_grid.csv');families=[f'O{i}' for i in range(14)]
-    fig,axes=plt.subplots(1,2,figsize=(13,4))
+    fig,axes=plt.subplots(1,3,figsize=(18,4))
     for family in families:
         values=sorted((r for r in grid if r['objective']==family),key=lambda r:float(r['weight']))
         axes[0].plot([number(r,'weight') for r in values],
@@ -71,7 +71,26 @@ def main():
     axes[1].axhline(5,c='#cc3311',ls='--',label='Registered 5% screen')
     axes[1].set(ylabel='Fresh choices different from fixed-C G-only (%)',title='Fresh VALIDATION: 4 starts per width')
     axes[0].legend(ncol=4,fontsize=8);axes[1].legend(fontsize=8)
-    save(fig,'C_objective_action_diversity','Left: consumed TRAIN score geometry, 132 multi-C states. Right: new LIVE choices. Different choices alone are not a serving gain.')
+    summary_file=ROOT/'Joint_C_change_summary.json'
+    if summary_file.exists():
+        summary=json.loads(summary_file.read_text())
+        axes[2].bar(['≤512','513–2048','>2048'],[summary['changed_remaining_le_512'],summary['changed_remaining_513_to_2048'],summary['changed_remaining_gt_2048']],color='#cc3311')
+        axes[2].set(xlabel='Remaining prompt at changed C choice (tokens)',ylabel='Actual changed-C decision count',
+            title=f'FINAL: {summary["real_C_changes"]}/{summary["fresh_choices"]} fresh C changes')
+    save(fig,'C_objective_action_diversity','Left: OFFLINE TRAIN geometry,132 multi-C states. Center/right: new LIVE choices. Different choices alone are not a serving gain.')
+
+    audit_files=sorted((ROOT/'raw').glob('dual_p2_EVENT_N8_B120_*/O6_J_OBS_*.json'))
+    if audit_files:
+        audit=json.loads(audit_files[0].read_text());q=audit['service_observations'];origin=audit['start']
+        fig,ax=plt.subplots(figsize=(12,4))
+        for unit in q:
+            left=unit['aligned_service_begin_s']-origin;duration=unit['service_ms']/1000
+            for span in unit['spans']:
+                if not span['phase'].startswith('prefill'):continue
+                ax.broken_barh([(left,duration)],(int(span['id'])-.3,.6),facecolors=f'C{span["G"]}')
+        ax.set(xlabel='Aligned time since cohort start (s)',ylabel='Request ID',title='F2. CALIBRATION ready-stream prefill service intervals')
+        bound=max((unit['alignment_bound_ms'] for unit in q),default=0)
+        save(fig,'F2_event_service_timeline',f'LIVE CUDA EVENT AUDIT: {len(q)} units. Alignment bound≤{bound:.3f}ms. Excludes unobserved decode intervals. Includes native preparation/launch gaps, not pure kernel busy.')
 
     all_rows=records('serving_results.csv');final=[r for r in all_rows if r['split']=='FINAL']
     quiet=[r for r in final if 'SINGLE_MEASUREMENT' in r['lane']]
@@ -85,6 +104,7 @@ def main():
                 x=np.mean([number(r,'TTFT_P95_ms') for r in rs]);y=np.mean([number(r,'ITL_P99_ms') for r in rs])
                 ax.scatter(x,y,color=COLORS[policy],label=policy);ax.annotate(policy,(x,y),fontsize=8,xytext=(3,3),textcoords='offset points')
             ax.set(xlabel='Mean of cohort TTFT P95 (ms)',ylabel='Mean of cohort ITL P99 (ms)',title=workload)
+            ax.margins(x=.15,y=.15)
         save(fig,'D_quiet_latency_tradeoff','LIVE MEASURED: serial measurement lane, 3 starts ×12 offered requests per arm/workload. Fixed GPU0–3 background. Not pooled quantiles.')
     if char:
         workloads=['CHAT','MIXED','LONG','BURSTY','LONG8K_STRESS'];fig,axes=plt.subplots(1,5,figsize=(19,4))
@@ -131,6 +151,9 @@ def main():
             for r in data['requests']:
                 axes[0].scatter(np.array(r['token_times'])-t0,[int(r['id'])+.2]*len(r['token_times']),s=1,color='black')
             axes[0].set(ylabel='Request ID (outputs offset+0.2)',title='F. Actual host submissions and delivered output tokens')
+            from matplotlib.lines import Line2D
+            axes[0].legend(handles=[Line2D([],[],marker='s',linestyle='',color=f'C{g}',label=f'G={g}'+(' prelude' if g==0 else '')) for g in range(5)],
+                loc='lower right',ncol=5,fontsize=8)
             axes[1].set(xlabel='Time since serving-window start (s)',ylabel='Chosen actual C')
             save(fig,'F_policy_host_timeline','LIVE HOST CLOCKS: squares=prompt descriptors, size/color=actual G. Dots=delivered tokens. This is NOT a GPU-kernel overlap timeline.')
 
@@ -151,7 +174,7 @@ def main():
     if final and overhead:
         fig,ax=plt.subplots(figsize=(9,5))
         for workload in sorted({r['workload'] for r in char}):
-            rs=[r for r in overhead if r['split']=='FINAL' and 'CHARACTERIZATION' in r['lane'] and r['workload']==workload and r['policy']=='O6_J']
+            rs=[r for r in overhead if r['split']=='FINAL' and 'CHARACTERIZATION' in r['lane'] and r['workload']==workload and r['policy']=='O6_J' and number(r,'rate')==.9]
             p=next((r for r in pairs if r['split']=='FINAL' and 'CHARACTERIZATION' in r['lane'] and r['workload']==workload and
                 number(r,'offered_rate_rps')==.9 and r['candidate']=='O6_J' and r['reference']=='O6_G' and r['metric']=='drain_goodput_TTFT5s_TBT200ms_rps'),None)
             if not rs or not p or not np.isfinite(number(p,'ratio')):continue
@@ -159,7 +182,7 @@ def main():
             ax.scatter(x,y);ax.annotate(workload,(x,y),xytext=(4,3),textcoords='offset points')
         ax.axhline(1,c='grey',ls='--');ax.set(xlabel='Measured selector CPU total / drained wall (%)',
             ylabel='O6 Joint / G2048 finite SLO-goodput ratio',title='I. Selector cost versus observed outcome')
-        save(fig,'I_overhead_vs_outcome','LIVE MEASURED: CPU time is not removable E2E share. Outcome at arrival parameter0.9. Overhead includes both characterization rates; no causal attribution.')
+        save(fig,'I_overhead_vs_outcome','LIVE MEASURED: CPU time is not removable E2E share. Both axes use arrival parameter0.9. No causal overhead attribution.')
     write(DEST/'figure_manifest.json',dict(files=[p.name for p in sorted(DEST.iterdir()) if p.suffix in ('.png','.svg','.pdf')],
         scopes='A replay. B/C-left offline estimates. C-right/D/E/F/G/H/I live, with scope in each caption.'))
     print('Figure files',len(list(DEST.glob('*.svg'))))

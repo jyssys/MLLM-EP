@@ -44,7 +44,7 @@ No new quality or serving-capacity PASS exists at this checkpoint.
 ## CPU analysis command and schema corrections
 
 An unqualified unittest discovery command could not resolve package-relative imports.
-Discovery with the repository as the top-level package passed all13 tests.
+Discovery with the repository as the top-level package passed all 13 tests.
 This was a test-launch error, not a failed model test.
 
 The first constructed-state CSV writer rejected heterogeneous feasible/infeasible row keys.

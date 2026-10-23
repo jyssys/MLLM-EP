@@ -1,0 +1,130 @@
+{
+  "id": "dual_p4_QUALITY_gpu4_v1",
+  "kind": "dual_quality",
+  "gpu": 4,
+  "cells": [
+    {
+      "label": "F0A",
+      "runtime": "atomic",
+      "C": 1024,
+      "fairness": "stock"
+    },
+    {
+      "label": "O6_J",
+      "runtime": "split",
+      "C": 2048,
+      "surface": "JOINT",
+      "fixed_C": 2048,
+      "objective": "O6",
+      "weight": 2.0,
+      "budget_ms": 120.0,
+      "fairness": "completion",
+      "optimizer": "O6_J"
+    },
+    {
+      "label": "O6_G",
+      "runtime": "split",
+      "C": 2048,
+      "surface": "G_ONLY",
+      "fixed_C": 2048,
+      "objective": "O6",
+      "weight": 2.0,
+      "budget_ms": 120.0,
+      "fairness": "completion",
+      "optimizer": "O6_G"
+    },
+    {
+      "label": "O6_C",
+      "runtime": "split",
+      "C": 2048,
+      "surface": "C_ONLY",
+      "fixed_C": 2048,
+      "objective": "O6",
+      "weight": 2.0,
+      "budget_ms": 120.0,
+      "fairness": "completion",
+      "optimizer": "O6_C"
+    },
+    {
+      "label": "O6_G1024",
+      "runtime": "split",
+      "C": 2048,
+      "surface": "G_ONLY",
+      "fixed_C": 1024,
+      "objective": "O6",
+      "weight": 2.0,
+      "budget_ms": 120.0,
+      "fairness": "completion",
+      "optimizer": "O6_G1024"
+    },
+    {
+      "label": "O6_CA",
+      "runtime": "atomic",
+      "C": 2048,
+      "surface": "C_ONLY",
+      "fixed_C": 2048,
+      "objective": "O6",
+      "weight": 2.0,
+      "budget_ms": 120.0,
+      "fairness": "completion",
+      "optimizer": "O6_CA"
+    },
+    {
+      "label": "BEST_FIXED",
+      "runtime": "staged4",
+      "C": 512,
+      "fairness": "completion"
+    },
+    {
+      "label": "MIXED_STOCK",
+      "runtime": "mixed",
+      "C": 512,
+      "fairness": "stock"
+    },
+    {
+      "label": "MIXED_FAIR",
+      "runtime": "mixed",
+      "C": 512,
+      "fairness": "completion"
+    }
+  ],
+  "ids": [
+    "gsm8k/test/0",
+    "gsm8k/test/4",
+    "gsm8k/test/8",
+    "gsm8k/test/12",
+    "gsm8k/test/16",
+    "gsm8k/test/20",
+    "gsm8k/test/24",
+    "gsm8k/test/28",
+    "gsm8k/test/32",
+    "gsm8k/test/36",
+    "gsm8k/test/40",
+    "gsm8k/test/44",
+    "gsm8k/test/48",
+    "gsm8k/test/52",
+    "gsm8k/test/56",
+    "gsm8k/test/60",
+    "math500/test/0",
+    "math500/test/4",
+    "math500/test/8",
+    "math500/test/12",
+    "math500/test/16",
+    "math500/test/20",
+    "math500/test/24",
+    "math500/test/28",
+    "math500/test/32",
+    "math500/test/36",
+    "math500/test/40",
+    "math500/test/44",
+    "math500/test/48"
+  ],
+  "width": 4,
+  "cap": 4096,
+  "compute_budget_ms": 120.0,
+  "budget": 2048,
+  "blocks": 18432,
+  "cost_model": "/home/esjung/MLLM-EP-github/poc_flashvep/reports/ouro_8gpu_compute_budget_joint_cg_discovery/cost_model_artifacts/service_lookup_v1.json",
+  "cost_model_sha256": "581f551ea111a459912d610b12f6e578d02952ca34226f9e7f8ece29aaf44fc9",
+  "timeout_s": 21600
+}

@@ -3,6 +3,8 @@
 The numerical control completed 32 non-reference pretrained comparisons.
 All 32 matched isolated hidden states, final logits, KV values, and eight generated token IDs exactly.
 The probes cover fixed G2/G3, legal C512→C1024 changes, and G1→G3/G1→G2→G1/G3→G1 cycles.
+The tested prompt lengths are128,512,1536, and2048 tokens.
+They do not establish isolated numerical parity for every8K serving state.
 Every tested prompt completed exactly Full R4.
 The pre-existing relative-L2 tolerance remains 0.03. It was not relaxed.
 
@@ -24,14 +26,14 @@ The failed attempts remain quarantined and are not serving-performance evidence.
 The weak-reference regression test fails before the cleanup correction and passes afterward.
 All four reviewed v2 smoke jobs subsequently passed both policy cells.
 
-The software suite currently contains13 passing CPU tests.
+The software suite currently contains 13 passing CPU tests.
 Those fixtures are not pretrained-model quality measurements.
 Data: `numerical_probe_results.csv`, raw pretrained probe records, and `failure_log.md`.
 
 ## Observer and batched natural outputs
 
 The separate event audit compares observer ON/OFF under the same nominal configurations.
-Token IDs match on87/96 request pairs. Per-request prompt submission plans match on95/96 pairs.
+Token IDs match on 87/96 request pairs. Per-request prompt submission plans match on 95/96 pairs.
 Prompt-plan equality does not prove equal decode batch membership, graph geometry, or native execution order.
 Mixed also has mismatches without the adaptive selector.
 The earliest mismatch in the saved audit occurs at output index12, with zero-based indexing.
