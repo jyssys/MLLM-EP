@@ -47,7 +47,9 @@ def enumerate_candidates(state,budget,model,mode='JOINT',fixed_C=1024,objective=
                 cost,supported=model.estimate('staged_core',c,next_g,context,at)
                 full+=cost;known=known and supported
                 remaining-=next_g;at+=next_g;count+=1
-            complete=c if depth+g==4 else 0
+            # A new staged decision first issues PRELUDE, not the planned
+            # recurrent group. Only atomic or an R4 continuation completes now.
+            complete=c if depth+g==4 and (path=='atomic' or continuation) else 0
             occupancy=max(current[0],prelude[0])
             # A staged opening has two native dispatch units. Both must fit B.
             # The full-chunk objective still pays their total and every missing loop.

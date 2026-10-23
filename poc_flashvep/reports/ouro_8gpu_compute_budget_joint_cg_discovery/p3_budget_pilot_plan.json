@@ -1,0 +1,2538 @@
+{
+  "gpus": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
+  "jobs": [
+    {
+      "id": "cb_p3_budget_P2033_N4_B10_S0_v1",
+      "kind": "live_budget",
+      "gpu": 0,
+      "shape": [
+        2033,
+        4
+      ],
+      "split": "TRAIN",
+      "trials": [
+        9,
+        10
+      ],
+      "cap": 128,
+      "cells": [
+        {
+          "C": 2048,
+          "budget_ms": 10,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "J1",
+          "runtime": "split",
+          "optimizer": "JOINT"
+        },
+        {
+          "label": "M0",
+          "runtime": "mixed",
+          "C": 1024,
+          "fairness": "stock"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 10,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1A",
+          "runtime": "atomic",
+          "optimizer": "C_ONLY"
+        },
+        {
+          "label": "M1",
+          "runtime": "mixed",
+          "C": 1024,
+          "fairness": "completion"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 10,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1S",
+          "runtime": "split",
+          "optimizer": "C_ONLY"
+        },
+        {
+          "label": "F1A",
+          "runtime": "atomic",
+          "C": 2048,
+          "fairness": "completion"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 10,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "G1",
+          "runtime": "split",
+          "optimizer": "G_ONLY",
+          "fixed_C": 64
+        }
+      ],
+      "cost_model": "cost_model_artifacts/service_lookup_v1.json",
+      "cost_model_sha256": "581f551ea111a459912d610b12f6e578d02952ca34226f9e7f8ece29aaf44fc9",
+      "observe": true,
+      "budget": 2048,
+      "timeout_s": 3600,
+      "allow_any_gpu": false
+    },
+    {
+      "id": "cb_p3_budget_P2033_N4_B20_S0_v1",
+      "kind": "live_budget",
+      "gpu": 1,
+      "shape": [
+        2033,
+        4
+      ],
+      "split": "TRAIN",
+      "trials": [
+        9,
+        10
+      ],
+      "cap": 128,
+      "cells": [
+        {
+          "label": "M1",
+          "runtime": "mixed",
+          "C": 1024,
+          "fairness": "completion"
+        },
+        {
+          "label": "F1A",
+          "runtime": "atomic",
+          "C": 2048,
+          "fairness": "completion"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 20,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "J1",
+          "runtime": "split",
+          "optimizer": "JOINT"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 20,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "G1",
+          "runtime": "split",
+          "optimizer": "G_ONLY",
+          "fixed_C": 64
+        },
+        {
+          "C": 2048,
+          "budget_ms": 20,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1A",
+          "runtime": "atomic",
+          "optimizer": "C_ONLY"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 20,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1S",
+          "runtime": "split",
+          "optimizer": "C_ONLY"
+        },
+        {
+          "label": "M0",
+          "runtime": "mixed",
+          "C": 1024,
+          "fairness": "stock"
+        }
+      ],
+      "cost_model": "cost_model_artifacts/service_lookup_v1.json",
+      "cost_model_sha256": "581f551ea111a459912d610b12f6e578d02952ca34226f9e7f8ece29aaf44fc9",
+      "observe": true,
+      "budget": 2048,
+      "timeout_s": 3600,
+      "allow_any_gpu": false
+    },
+    {
+      "id": "cb_p3_budget_P2033_N4_B40_S0_v1",
+      "kind": "live_budget",
+      "gpu": 2,
+      "shape": [
+        2033,
+        4
+      ],
+      "split": "TRAIN",
+      "trials": [
+        9,
+        10
+      ],
+      "cap": 128,
+      "cells": [
+        {
+          "C": 2048,
+          "budget_ms": 40,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1A",
+          "runtime": "atomic",
+          "optimizer": "C_ONLY"
+        },
+        {
+          "label": "M1",
+          "runtime": "mixed",
+          "C": 1024,
+          "fairness": "completion"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 40,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "G1",
+          "runtime": "split",
+          "optimizer": "G_ONLY",
+          "fixed_C": 2048
+        },
+        {
+          "label": "M0",
+          "runtime": "mixed",
+          "C": 1024,
+          "fairness": "stock"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 40,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1S",
+          "runtime": "split",
+          "optimizer": "C_ONLY"
+        },
+        {
+          "label": "F1A",
+          "runtime": "atomic",
+          "C": 2048,
+          "fairness": "completion"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 40,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "J1",
+          "runtime": "split",
+          "optimizer": "JOINT"
+        }
+      ],
+      "cost_model": "cost_model_artifacts/service_lookup_v1.json",
+      "cost_model_sha256": "581f551ea111a459912d610b12f6e578d02952ca34226f9e7f8ece29aaf44fc9",
+      "observe": true,
+      "budget": 2048,
+      "timeout_s": 3600,
+      "allow_any_gpu": false
+    },
+    {
+      "id": "cb_p3_budget_P2033_N4_B60_S0_v1",
+      "kind": "live_budget",
+      "gpu": 3,
+      "shape": [
+        2033,
+        4
+      ],
+      "split": "TRAIN",
+      "trials": [
+        9,
+        10
+      ],
+      "cap": 128,
+      "cells": [
+        {
+          "C": 2048,
+          "budget_ms": 60,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "G1",
+          "runtime": "split",
+          "optimizer": "G_ONLY",
+          "fixed_C": 2048
+        },
+        {
+          "label": "F1A",
+          "runtime": "atomic",
+          "C": 2048,
+          "fairness": "completion"
+        },
+        {
+          "label": "M0",
+          "runtime": "mixed",
+          "C": 1024,
+          "fairness": "stock"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 60,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "J1",
+          "runtime": "split",
+          "optimizer": "JOINT"
+        },
+        {
+          "label": "M1",
+          "runtime": "mixed",
+          "C": 1024,
+          "fairness": "completion"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 60,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1S",
+          "runtime": "split",
+          "optimizer": "C_ONLY"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 60,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1A",
+          "runtime": "atomic",
+          "optimizer": "C_ONLY"
+        }
+      ],
+      "cost_model": "cost_model_artifacts/service_lookup_v1.json",
+      "cost_model_sha256": "581f551ea111a459912d610b12f6e578d02952ca34226f9e7f8ece29aaf44fc9",
+      "observe": true,
+      "budget": 2048,
+      "timeout_s": 3600,
+      "allow_any_gpu": false
+    },
+    {
+      "id": "cb_p3_budget_P2033_N4_B80_S0_v1",
+      "kind": "live_budget",
+      "gpu": 4,
+      "shape": [
+        2033,
+        4
+      ],
+      "split": "TRAIN",
+      "trials": [
+        9,
+        10
+      ],
+      "cap": 128,
+      "cells": [
+        {
+          "C": 2048,
+          "budget_ms": 80,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "J1",
+          "runtime": "split",
+          "optimizer": "JOINT"
+        },
+        {
+          "label": "M1",
+          "runtime": "mixed",
+          "C": 1024,
+          "fairness": "completion"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 80,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "G1",
+          "runtime": "split",
+          "optimizer": "G_ONLY",
+          "fixed_C": 2048
+        },
+        {
+          "label": "M0",
+          "runtime": "mixed",
+          "C": 1024,
+          "fairness": "stock"
+        },
+        {
+          "label": "F1A",
+          "runtime": "atomic",
+          "C": 2048,
+          "fairness": "completion"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 80,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1A",
+          "runtime": "atomic",
+          "optimizer": "C_ONLY"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 80,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1S",
+          "runtime": "split",
+          "optimizer": "C_ONLY"
+        }
+      ],
+      "cost_model": "cost_model_artifacts/service_lookup_v1.json",
+      "cost_model_sha256": "581f551ea111a459912d610b12f6e578d02952ca34226f9e7f8ece29aaf44fc9",
+      "observe": true,
+      "budget": 2048,
+      "timeout_s": 3600,
+      "allow_any_gpu": false
+    },
+    {
+      "id": "cb_p3_budget_P2033_N4_B120_S0_v1",
+      "kind": "live_budget",
+      "gpu": 5,
+      "shape": [
+        2033,
+        4
+      ],
+      "split": "TRAIN",
+      "trials": [
+        9,
+        10
+      ],
+      "cap": 128,
+      "cells": [
+        {
+          "C": 2048,
+          "budget_ms": 120,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1S",
+          "runtime": "split",
+          "optimizer": "C_ONLY"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 120,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "J1",
+          "runtime": "split",
+          "optimizer": "JOINT"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 120,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "G1",
+          "runtime": "split",
+          "optimizer": "G_ONLY",
+          "fixed_C": 2048
+        },
+        {
+          "C": 2048,
+          "budget_ms": 120,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1A",
+          "runtime": "atomic",
+          "optimizer": "C_ONLY"
+        },
+        {
+          "label": "M1",
+          "runtime": "mixed",
+          "C": 1024,
+          "fairness": "completion"
+        },
+        {
+          "label": "F1A",
+          "runtime": "atomic",
+          "C": 2048,
+          "fairness": "completion"
+        },
+        {
+          "label": "M0",
+          "runtime": "mixed",
+          "C": 1024,
+          "fairness": "stock"
+        }
+      ],
+      "cost_model": "cost_model_artifacts/service_lookup_v1.json",
+      "cost_model_sha256": "581f551ea111a459912d610b12f6e578d02952ca34226f9e7f8ece29aaf44fc9",
+      "observe": true,
+      "budget": 2048,
+      "timeout_s": 3600,
+      "allow_any_gpu": false
+    },
+    {
+      "id": "cb_p3_budget_P2033_N4_B160_S0_v1",
+      "kind": "live_budget",
+      "gpu": 6,
+      "shape": [
+        2033,
+        4
+      ],
+      "split": "TRAIN",
+      "trials": [
+        9,
+        10
+      ],
+      "cap": 128,
+      "cells": [
+        {
+          "C": 2048,
+          "budget_ms": 160,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1A",
+          "runtime": "atomic",
+          "optimizer": "C_ONLY"
+        },
+        {
+          "label": "M1",
+          "runtime": "mixed",
+          "C": 1024,
+          "fairness": "completion"
+        },
+        {
+          "label": "F1A",
+          "runtime": "atomic",
+          "C": 2048,
+          "fairness": "completion"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 160,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "G1",
+          "runtime": "split",
+          "optimizer": "G_ONLY",
+          "fixed_C": 2048
+        },
+        {
+          "C": 2048,
+          "budget_ms": 160,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1S",
+          "runtime": "split",
+          "optimizer": "C_ONLY"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 160,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "J1",
+          "runtime": "split",
+          "optimizer": "JOINT"
+        },
+        {
+          "label": "M0",
+          "runtime": "mixed",
+          "C": 1024,
+          "fairness": "stock"
+        }
+      ],
+      "cost_model": "cost_model_artifacts/service_lookup_v1.json",
+      "cost_model_sha256": "581f551ea111a459912d610b12f6e578d02952ca34226f9e7f8ece29aaf44fc9",
+      "observe": true,
+      "budget": 2048,
+      "timeout_s": 3600,
+      "allow_any_gpu": false
+    },
+    {
+      "id": "cb_p3_budget_P2033_N4_B240_S0_v1",
+      "kind": "live_budget",
+      "gpu": 7,
+      "shape": [
+        2033,
+        4
+      ],
+      "split": "TRAIN",
+      "trials": [
+        9,
+        10
+      ],
+      "cap": 128,
+      "cells": [
+        {
+          "C": 2048,
+          "budget_ms": 240,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "J1",
+          "runtime": "split",
+          "optimizer": "JOINT"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 240,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1A",
+          "runtime": "atomic",
+          "optimizer": "C_ONLY"
+        },
+        {
+          "label": "M1",
+          "runtime": "mixed",
+          "C": 1024,
+          "fairness": "completion"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 240,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "G1",
+          "runtime": "split",
+          "optimizer": "G_ONLY",
+          "fixed_C": 2048
+        },
+        {
+          "label": "F1A",
+          "runtime": "atomic",
+          "C": 2048,
+          "fairness": "completion"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 240,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1S",
+          "runtime": "split",
+          "optimizer": "C_ONLY"
+        },
+        {
+          "label": "M0",
+          "runtime": "mixed",
+          "C": 1024,
+          "fairness": "stock"
+        }
+      ],
+      "cost_model": "cost_model_artifacts/service_lookup_v1.json",
+      "cost_model_sha256": "581f551ea111a459912d610b12f6e578d02952ca34226f9e7f8ece29aaf44fc9",
+      "observe": true,
+      "budget": 2048,
+      "timeout_s": 3600,
+      "allow_any_gpu": false
+    },
+    {
+      "id": "cb_p3_budget_P8177_N8_B10_S0_v1",
+      "kind": "live_budget",
+      "gpu": 2,
+      "shape": [
+        8177,
+        8
+      ],
+      "split": "TRAIN",
+      "trials": [
+        9,
+        10
+      ],
+      "cap": 128,
+      "cells": [
+        {
+          "label": "M1",
+          "runtime": "mixed",
+          "C": 1536,
+          "fairness": "completion"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 10,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "G1",
+          "runtime": "split",
+          "optimizer": "G_ONLY",
+          "fixed_C": 64
+        },
+        {
+          "C": 2048,
+          "budget_ms": 10,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1A",
+          "runtime": "atomic",
+          "optimizer": "C_ONLY"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 10,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1S",
+          "runtime": "split",
+          "optimizer": "C_ONLY"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 10,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "J1",
+          "runtime": "split",
+          "optimizer": "JOINT"
+        },
+        {
+          "label": "M0",
+          "runtime": "mixed",
+          "C": 1536,
+          "fairness": "stock"
+        },
+        {
+          "label": "F1A",
+          "runtime": "atomic",
+          "C": 256,
+          "fairness": "completion"
+        }
+      ],
+      "cost_model": "cost_model_artifacts/service_lookup_v1.json",
+      "cost_model_sha256": "581f551ea111a459912d610b12f6e578d02952ca34226f9e7f8ece29aaf44fc9",
+      "observe": true,
+      "budget": 2048,
+      "timeout_s": 3600,
+      "allow_any_gpu": false
+    },
+    {
+      "id": "cb_p3_budget_P8177_N8_B20_S0_v1",
+      "kind": "live_budget",
+      "gpu": 3,
+      "shape": [
+        8177,
+        8
+      ],
+      "split": "TRAIN",
+      "trials": [
+        9,
+        10
+      ],
+      "cap": 128,
+      "cells": [
+        {
+          "label": "M1",
+          "runtime": "mixed",
+          "C": 1536,
+          "fairness": "completion"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 20,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "J1",
+          "runtime": "split",
+          "optimizer": "JOINT"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 20,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "G1",
+          "runtime": "split",
+          "optimizer": "G_ONLY",
+          "fixed_C": 64
+        },
+        {
+          "label": "M0",
+          "runtime": "mixed",
+          "C": 1536,
+          "fairness": "stock"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 20,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1A",
+          "runtime": "atomic",
+          "optimizer": "C_ONLY"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 20,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1S",
+          "runtime": "split",
+          "optimizer": "C_ONLY"
+        },
+        {
+          "label": "F1A",
+          "runtime": "atomic",
+          "C": 256,
+          "fairness": "completion"
+        }
+      ],
+      "cost_model": "cost_model_artifacts/service_lookup_v1.json",
+      "cost_model_sha256": "581f551ea111a459912d610b12f6e578d02952ca34226f9e7f8ece29aaf44fc9",
+      "observe": true,
+      "budget": 2048,
+      "timeout_s": 3600,
+      "allow_any_gpu": false
+    },
+    {
+      "id": "cb_p3_budget_P8177_N8_B40_S0_v1",
+      "kind": "live_budget",
+      "gpu": 4,
+      "shape": [
+        8177,
+        8
+      ],
+      "split": "TRAIN",
+      "trials": [
+        9,
+        10
+      ],
+      "cap": 128,
+      "cells": [
+        {
+          "C": 2048,
+          "budget_ms": 40,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1S",
+          "runtime": "split",
+          "optimizer": "C_ONLY"
+        },
+        {
+          "label": "M1",
+          "runtime": "mixed",
+          "C": 1536,
+          "fairness": "completion"
+        },
+        {
+          "label": "M0",
+          "runtime": "mixed",
+          "C": 1536,
+          "fairness": "stock"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 40,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "J1",
+          "runtime": "split",
+          "optimizer": "JOINT"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 40,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "G1",
+          "runtime": "split",
+          "optimizer": "G_ONLY",
+          "fixed_C": 2048
+        },
+        {
+          "C": 2048,
+          "budget_ms": 40,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1A",
+          "runtime": "atomic",
+          "optimizer": "C_ONLY"
+        },
+        {
+          "label": "F1A",
+          "runtime": "atomic",
+          "C": 256,
+          "fairness": "completion"
+        }
+      ],
+      "cost_model": "cost_model_artifacts/service_lookup_v1.json",
+      "cost_model_sha256": "581f551ea111a459912d610b12f6e578d02952ca34226f9e7f8ece29aaf44fc9",
+      "observe": true,
+      "budget": 2048,
+      "timeout_s": 3600,
+      "allow_any_gpu": false
+    },
+    {
+      "id": "cb_p3_budget_P8177_N8_B60_S0_v1",
+      "kind": "live_budget",
+      "gpu": 5,
+      "shape": [
+        8177,
+        8
+      ],
+      "split": "TRAIN",
+      "trials": [
+        9,
+        10
+      ],
+      "cap": 128,
+      "cells": [
+        {
+          "label": "M1",
+          "runtime": "mixed",
+          "C": 1536,
+          "fairness": "completion"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 60,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "G1",
+          "runtime": "split",
+          "optimizer": "G_ONLY",
+          "fixed_C": 2048
+        },
+        {
+          "C": 2048,
+          "budget_ms": 60,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1S",
+          "runtime": "split",
+          "optimizer": "C_ONLY"
+        },
+        {
+          "label": "M0",
+          "runtime": "mixed",
+          "C": 1536,
+          "fairness": "stock"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 60,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1A",
+          "runtime": "atomic",
+          "optimizer": "C_ONLY"
+        },
+        {
+          "label": "F1A",
+          "runtime": "atomic",
+          "C": 256,
+          "fairness": "completion"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 60,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "J1",
+          "runtime": "split",
+          "optimizer": "JOINT"
+        }
+      ],
+      "cost_model": "cost_model_artifacts/service_lookup_v1.json",
+      "cost_model_sha256": "581f551ea111a459912d610b12f6e578d02952ca34226f9e7f8ece29aaf44fc9",
+      "observe": true,
+      "budget": 2048,
+      "timeout_s": 3600,
+      "allow_any_gpu": false
+    },
+    {
+      "id": "cb_p3_budget_P8177_N8_B80_S0_v1",
+      "kind": "live_budget",
+      "gpu": 6,
+      "shape": [
+        8177,
+        8
+      ],
+      "split": "TRAIN",
+      "trials": [
+        9,
+        10
+      ],
+      "cap": 128,
+      "cells": [
+        {
+          "C": 2048,
+          "budget_ms": 80,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1S",
+          "runtime": "split",
+          "optimizer": "C_ONLY"
+        },
+        {
+          "label": "F1A",
+          "runtime": "atomic",
+          "C": 256,
+          "fairness": "completion"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 80,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "J1",
+          "runtime": "split",
+          "optimizer": "JOINT"
+        },
+        {
+          "label": "M1",
+          "runtime": "mixed",
+          "C": 1536,
+          "fairness": "completion"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 80,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "G1",
+          "runtime": "split",
+          "optimizer": "G_ONLY",
+          "fixed_C": 2048
+        },
+        {
+          "label": "M0",
+          "runtime": "mixed",
+          "C": 1536,
+          "fairness": "stock"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 80,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1A",
+          "runtime": "atomic",
+          "optimizer": "C_ONLY"
+        }
+      ],
+      "cost_model": "cost_model_artifacts/service_lookup_v1.json",
+      "cost_model_sha256": "581f551ea111a459912d610b12f6e578d02952ca34226f9e7f8ece29aaf44fc9",
+      "observe": true,
+      "budget": 2048,
+      "timeout_s": 3600,
+      "allow_any_gpu": false
+    },
+    {
+      "id": "cb_p3_budget_P8177_N8_B120_S0_v1",
+      "kind": "live_budget",
+      "gpu": 7,
+      "shape": [
+        8177,
+        8
+      ],
+      "split": "TRAIN",
+      "trials": [
+        9,
+        10
+      ],
+      "cap": 128,
+      "cells": [
+        {
+          "label": "F1A",
+          "runtime": "atomic",
+          "C": 256,
+          "fairness": "completion"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 120,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1S",
+          "runtime": "split",
+          "optimizer": "C_ONLY"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 120,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "G1",
+          "runtime": "split",
+          "optimizer": "G_ONLY",
+          "fixed_C": 2048
+        },
+        {
+          "label": "M0",
+          "runtime": "mixed",
+          "C": 1536,
+          "fairness": "stock"
+        },
+        {
+          "label": "M1",
+          "runtime": "mixed",
+          "C": 1536,
+          "fairness": "completion"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 120,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1A",
+          "runtime": "atomic",
+          "optimizer": "C_ONLY"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 120,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "J1",
+          "runtime": "split",
+          "optimizer": "JOINT"
+        }
+      ],
+      "cost_model": "cost_model_artifacts/service_lookup_v1.json",
+      "cost_model_sha256": "581f551ea111a459912d610b12f6e578d02952ca34226f9e7f8ece29aaf44fc9",
+      "observe": true,
+      "budget": 2048,
+      "timeout_s": 3600,
+      "allow_any_gpu": false
+    },
+    {
+      "id": "cb_p3_budget_P8177_N8_B160_S0_v1",
+      "kind": "live_budget",
+      "gpu": 0,
+      "shape": [
+        8177,
+        8
+      ],
+      "split": "TRAIN",
+      "trials": [
+        9,
+        10
+      ],
+      "cap": 128,
+      "cells": [
+        {
+          "label": "M0",
+          "runtime": "mixed",
+          "C": 1536,
+          "fairness": "stock"
+        },
+        {
+          "label": "M1",
+          "runtime": "mixed",
+          "C": 1536,
+          "fairness": "completion"
+        },
+        {
+          "label": "F1A",
+          "runtime": "atomic",
+          "C": 256,
+          "fairness": "completion"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 160,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1S",
+          "runtime": "split",
+          "optimizer": "C_ONLY"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 160,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "G1",
+          "runtime": "split",
+          "optimizer": "G_ONLY",
+          "fixed_C": 2048
+        },
+        {
+          "C": 2048,
+          "budget_ms": 160,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "J1",
+          "runtime": "split",
+          "optimizer": "JOINT"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 160,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1A",
+          "runtime": "atomic",
+          "optimizer": "C_ONLY"
+        }
+      ],
+      "cost_model": "cost_model_artifacts/service_lookup_v1.json",
+      "cost_model_sha256": "581f551ea111a459912d610b12f6e578d02952ca34226f9e7f8ece29aaf44fc9",
+      "observe": true,
+      "budget": 2048,
+      "timeout_s": 3600,
+      "allow_any_gpu": false
+    },
+    {
+      "id": "cb_p3_budget_P8177_N8_B240_S0_v1",
+      "kind": "live_budget",
+      "gpu": 1,
+      "shape": [
+        8177,
+        8
+      ],
+      "split": "TRAIN",
+      "trials": [
+        9,
+        10
+      ],
+      "cap": 128,
+      "cells": [
+        {
+          "C": 2048,
+          "budget_ms": 240,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "J1",
+          "runtime": "split",
+          "optimizer": "JOINT"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 240,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "G1",
+          "runtime": "split",
+          "optimizer": "G_ONLY",
+          "fixed_C": 2048
+        },
+        {
+          "label": "M1",
+          "runtime": "mixed",
+          "C": 1536,
+          "fairness": "completion"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 240,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1A",
+          "runtime": "atomic",
+          "optimizer": "C_ONLY"
+        },
+        {
+          "label": "M0",
+          "runtime": "mixed",
+          "C": 1536,
+          "fairness": "stock"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 240,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1S",
+          "runtime": "split",
+          "optimizer": "C_ONLY"
+        },
+        {
+          "label": "F1A",
+          "runtime": "atomic",
+          "C": 256,
+          "fairness": "completion"
+        }
+      ],
+      "cost_model": "cost_model_artifacts/service_lookup_v1.json",
+      "cost_model_sha256": "581f551ea111a459912d610b12f6e578d02952ca34226f9e7f8ece29aaf44fc9",
+      "observe": true,
+      "budget": 2048,
+      "timeout_s": 3600,
+      "allow_any_gpu": false
+    },
+    {
+      "id": "cb_p3_budget_P2033_N4_B10_S1_v1",
+      "kind": "live_budget",
+      "gpu": 3,
+      "shape": [
+        2033,
+        4
+      ],
+      "split": "TRAIN",
+      "trials": [
+        11,
+        12
+      ],
+      "cap": 128,
+      "cells": [
+        {
+          "C": 2048,
+          "budget_ms": 10,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1A",
+          "runtime": "atomic",
+          "optimizer": "C_ONLY"
+        },
+        {
+          "label": "M0",
+          "runtime": "mixed",
+          "C": 1024,
+          "fairness": "stock"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 10,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "G1",
+          "runtime": "split",
+          "optimizer": "G_ONLY",
+          "fixed_C": 64
+        },
+        {
+          "label": "F1A",
+          "runtime": "atomic",
+          "C": 2048,
+          "fairness": "completion"
+        },
+        {
+          "label": "M1",
+          "runtime": "mixed",
+          "C": 1024,
+          "fairness": "completion"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 10,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1S",
+          "runtime": "split",
+          "optimizer": "C_ONLY"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 10,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "J1",
+          "runtime": "split",
+          "optimizer": "JOINT"
+        }
+      ],
+      "cost_model": "cost_model_artifacts/service_lookup_v1.json",
+      "cost_model_sha256": "581f551ea111a459912d610b12f6e578d02952ca34226f9e7f8ece29aaf44fc9",
+      "observe": true,
+      "budget": 2048,
+      "timeout_s": 3600,
+      "allow_any_gpu": false
+    },
+    {
+      "id": "cb_p3_budget_P2033_N4_B20_S1_v1",
+      "kind": "live_budget",
+      "gpu": 4,
+      "shape": [
+        2033,
+        4
+      ],
+      "split": "TRAIN",
+      "trials": [
+        11,
+        12
+      ],
+      "cap": 128,
+      "cells": [
+        {
+          "C": 2048,
+          "budget_ms": 20,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1S",
+          "runtime": "split",
+          "optimizer": "C_ONLY"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 20,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "J1",
+          "runtime": "split",
+          "optimizer": "JOINT"
+        },
+        {
+          "label": "M1",
+          "runtime": "mixed",
+          "C": 1024,
+          "fairness": "completion"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 20,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "G1",
+          "runtime": "split",
+          "optimizer": "G_ONLY",
+          "fixed_C": 64
+        },
+        {
+          "C": 2048,
+          "budget_ms": 20,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1A",
+          "runtime": "atomic",
+          "optimizer": "C_ONLY"
+        },
+        {
+          "label": "M0",
+          "runtime": "mixed",
+          "C": 1024,
+          "fairness": "stock"
+        },
+        {
+          "label": "F1A",
+          "runtime": "atomic",
+          "C": 2048,
+          "fairness": "completion"
+        }
+      ],
+      "cost_model": "cost_model_artifacts/service_lookup_v1.json",
+      "cost_model_sha256": "581f551ea111a459912d610b12f6e578d02952ca34226f9e7f8ece29aaf44fc9",
+      "observe": true,
+      "budget": 2048,
+      "timeout_s": 3600,
+      "allow_any_gpu": false
+    },
+    {
+      "id": "cb_p3_budget_P2033_N4_B40_S1_v1",
+      "kind": "live_budget",
+      "gpu": 5,
+      "shape": [
+        2033,
+        4
+      ],
+      "split": "TRAIN",
+      "trials": [
+        11,
+        12
+      ],
+      "cap": 128,
+      "cells": [
+        {
+          "C": 2048,
+          "budget_ms": 40,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "G1",
+          "runtime": "split",
+          "optimizer": "G_ONLY",
+          "fixed_C": 2048
+        },
+        {
+          "C": 2048,
+          "budget_ms": 40,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1S",
+          "runtime": "split",
+          "optimizer": "C_ONLY"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 40,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1A",
+          "runtime": "atomic",
+          "optimizer": "C_ONLY"
+        },
+        {
+          "label": "M1",
+          "runtime": "mixed",
+          "C": 1024,
+          "fairness": "completion"
+        },
+        {
+          "label": "M0",
+          "runtime": "mixed",
+          "C": 1024,
+          "fairness": "stock"
+        },
+        {
+          "label": "F1A",
+          "runtime": "atomic",
+          "C": 2048,
+          "fairness": "completion"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 40,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "J1",
+          "runtime": "split",
+          "optimizer": "JOINT"
+        }
+      ],
+      "cost_model": "cost_model_artifacts/service_lookup_v1.json",
+      "cost_model_sha256": "581f551ea111a459912d610b12f6e578d02952ca34226f9e7f8ece29aaf44fc9",
+      "observe": true,
+      "budget": 2048,
+      "timeout_s": 3600,
+      "allow_any_gpu": false
+    },
+    {
+      "id": "cb_p3_budget_P2033_N4_B60_S1_v1",
+      "kind": "live_budget",
+      "gpu": 6,
+      "shape": [
+        2033,
+        4
+      ],
+      "split": "TRAIN",
+      "trials": [
+        11,
+        12
+      ],
+      "cap": 128,
+      "cells": [
+        {
+          "C": 2048,
+          "budget_ms": 60,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1A",
+          "runtime": "atomic",
+          "optimizer": "C_ONLY"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 60,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "G1",
+          "runtime": "split",
+          "optimizer": "G_ONLY",
+          "fixed_C": 2048
+        },
+        {
+          "C": 2048,
+          "budget_ms": 60,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "J1",
+          "runtime": "split",
+          "optimizer": "JOINT"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 60,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1S",
+          "runtime": "split",
+          "optimizer": "C_ONLY"
+        },
+        {
+          "label": "M0",
+          "runtime": "mixed",
+          "C": 1024,
+          "fairness": "stock"
+        },
+        {
+          "label": "M1",
+          "runtime": "mixed",
+          "C": 1024,
+          "fairness": "completion"
+        },
+        {
+          "label": "F1A",
+          "runtime": "atomic",
+          "C": 2048,
+          "fairness": "completion"
+        }
+      ],
+      "cost_model": "cost_model_artifacts/service_lookup_v1.json",
+      "cost_model_sha256": "581f551ea111a459912d610b12f6e578d02952ca34226f9e7f8ece29aaf44fc9",
+      "observe": true,
+      "budget": 2048,
+      "timeout_s": 3600,
+      "allow_any_gpu": false
+    },
+    {
+      "id": "cb_p3_budget_P2033_N4_B80_S1_v1",
+      "kind": "live_budget",
+      "gpu": 7,
+      "shape": [
+        2033,
+        4
+      ],
+      "split": "TRAIN",
+      "trials": [
+        11,
+        12
+      ],
+      "cap": 128,
+      "cells": [
+        {
+          "C": 2048,
+          "budget_ms": 80,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1S",
+          "runtime": "split",
+          "optimizer": "C_ONLY"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 80,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1A",
+          "runtime": "atomic",
+          "optimizer": "C_ONLY"
+        },
+        {
+          "label": "M0",
+          "runtime": "mixed",
+          "C": 1024,
+          "fairness": "stock"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 80,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "G1",
+          "runtime": "split",
+          "optimizer": "G_ONLY",
+          "fixed_C": 2048
+        },
+        {
+          "label": "M1",
+          "runtime": "mixed",
+          "C": 1024,
+          "fairness": "completion"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 80,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "J1",
+          "runtime": "split",
+          "optimizer": "JOINT"
+        },
+        {
+          "label": "F1A",
+          "runtime": "atomic",
+          "C": 2048,
+          "fairness": "completion"
+        }
+      ],
+      "cost_model": "cost_model_artifacts/service_lookup_v1.json",
+      "cost_model_sha256": "581f551ea111a459912d610b12f6e578d02952ca34226f9e7f8ece29aaf44fc9",
+      "observe": true,
+      "budget": 2048,
+      "timeout_s": 3600,
+      "allow_any_gpu": false
+    },
+    {
+      "id": "cb_p3_budget_P2033_N4_B120_S1_v1",
+      "kind": "live_budget",
+      "gpu": 0,
+      "shape": [
+        2033,
+        4
+      ],
+      "split": "TRAIN",
+      "trials": [
+        11,
+        12
+      ],
+      "cap": 128,
+      "cells": [
+        {
+          "C": 2048,
+          "budget_ms": 120,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "G1",
+          "runtime": "split",
+          "optimizer": "G_ONLY",
+          "fixed_C": 2048
+        },
+        {
+          "label": "M0",
+          "runtime": "mixed",
+          "C": 1024,
+          "fairness": "stock"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 120,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "J1",
+          "runtime": "split",
+          "optimizer": "JOINT"
+        },
+        {
+          "label": "F1A",
+          "runtime": "atomic",
+          "C": 2048,
+          "fairness": "completion"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 120,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1S",
+          "runtime": "split",
+          "optimizer": "C_ONLY"
+        },
+        {
+          "label": "M1",
+          "runtime": "mixed",
+          "C": 1024,
+          "fairness": "completion"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 120,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1A",
+          "runtime": "atomic",
+          "optimizer": "C_ONLY"
+        }
+      ],
+      "cost_model": "cost_model_artifacts/service_lookup_v1.json",
+      "cost_model_sha256": "581f551ea111a459912d610b12f6e578d02952ca34226f9e7f8ece29aaf44fc9",
+      "observe": true,
+      "budget": 2048,
+      "timeout_s": 3600,
+      "allow_any_gpu": false
+    },
+    {
+      "id": "cb_p3_budget_P2033_N4_B160_S1_v1",
+      "kind": "live_budget",
+      "gpu": 1,
+      "shape": [
+        2033,
+        4
+      ],
+      "split": "TRAIN",
+      "trials": [
+        11,
+        12
+      ],
+      "cap": 128,
+      "cells": [
+        {
+          "C": 2048,
+          "budget_ms": 160,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1A",
+          "runtime": "atomic",
+          "optimizer": "C_ONLY"
+        },
+        {
+          "label": "M0",
+          "runtime": "mixed",
+          "C": 1024,
+          "fairness": "stock"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 160,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1S",
+          "runtime": "split",
+          "optimizer": "C_ONLY"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 160,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "G1",
+          "runtime": "split",
+          "optimizer": "G_ONLY",
+          "fixed_C": 2048
+        },
+        {
+          "label": "F1A",
+          "runtime": "atomic",
+          "C": 2048,
+          "fairness": "completion"
+        },
+        {
+          "label": "M1",
+          "runtime": "mixed",
+          "C": 1024,
+          "fairness": "completion"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 160,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "J1",
+          "runtime": "split",
+          "optimizer": "JOINT"
+        }
+      ],
+      "cost_model": "cost_model_artifacts/service_lookup_v1.json",
+      "cost_model_sha256": "581f551ea111a459912d610b12f6e578d02952ca34226f9e7f8ece29aaf44fc9",
+      "observe": true,
+      "budget": 2048,
+      "timeout_s": 3600,
+      "allow_any_gpu": false
+    },
+    {
+      "id": "cb_p3_budget_P2033_N4_B240_S1_v1",
+      "kind": "live_budget",
+      "gpu": 2,
+      "shape": [
+        2033,
+        4
+      ],
+      "split": "TRAIN",
+      "trials": [
+        11,
+        12
+      ],
+      "cap": 128,
+      "cells": [
+        {
+          "C": 2048,
+          "budget_ms": 240,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1A",
+          "runtime": "atomic",
+          "optimizer": "C_ONLY"
+        },
+        {
+          "label": "M0",
+          "runtime": "mixed",
+          "C": 1024,
+          "fairness": "stock"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 240,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "G1",
+          "runtime": "split",
+          "optimizer": "G_ONLY",
+          "fixed_C": 2048
+        },
+        {
+          "label": "F1A",
+          "runtime": "atomic",
+          "C": 2048,
+          "fairness": "completion"
+        },
+        {
+          "label": "M1",
+          "runtime": "mixed",
+          "C": 1024,
+          "fairness": "completion"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 240,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1S",
+          "runtime": "split",
+          "optimizer": "C_ONLY"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 240,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "J1",
+          "runtime": "split",
+          "optimizer": "JOINT"
+        }
+      ],
+      "cost_model": "cost_model_artifacts/service_lookup_v1.json",
+      "cost_model_sha256": "581f551ea111a459912d610b12f6e578d02952ca34226f9e7f8ece29aaf44fc9",
+      "observe": true,
+      "budget": 2048,
+      "timeout_s": 3600,
+      "allow_any_gpu": false
+    },
+    {
+      "id": "cb_p3_budget_P8177_N8_B10_S1_v1",
+      "kind": "live_budget",
+      "gpu": 5,
+      "shape": [
+        8177,
+        8
+      ],
+      "split": "TRAIN",
+      "trials": [
+        11,
+        12
+      ],
+      "cap": 128,
+      "cells": [
+        {
+          "label": "M1",
+          "runtime": "mixed",
+          "C": 1536,
+          "fairness": "completion"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 10,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "J1",
+          "runtime": "split",
+          "optimizer": "JOINT"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 10,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1A",
+          "runtime": "atomic",
+          "optimizer": "C_ONLY"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 10,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "G1",
+          "runtime": "split",
+          "optimizer": "G_ONLY",
+          "fixed_C": 64
+        },
+        {
+          "C": 2048,
+          "budget_ms": 10,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1S",
+          "runtime": "split",
+          "optimizer": "C_ONLY"
+        },
+        {
+          "label": "F1A",
+          "runtime": "atomic",
+          "C": 256,
+          "fairness": "completion"
+        },
+        {
+          "label": "M0",
+          "runtime": "mixed",
+          "C": 1536,
+          "fairness": "stock"
+        }
+      ],
+      "cost_model": "cost_model_artifacts/service_lookup_v1.json",
+      "cost_model_sha256": "581f551ea111a459912d610b12f6e578d02952ca34226f9e7f8ece29aaf44fc9",
+      "observe": true,
+      "budget": 2048,
+      "timeout_s": 3600,
+      "allow_any_gpu": false
+    },
+    {
+      "id": "cb_p3_budget_P8177_N8_B20_S1_v1",
+      "kind": "live_budget",
+      "gpu": 6,
+      "shape": [
+        8177,
+        8
+      ],
+      "split": "TRAIN",
+      "trials": [
+        11,
+        12
+      ],
+      "cap": 128,
+      "cells": [
+        {
+          "C": 2048,
+          "budget_ms": 20,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "J1",
+          "runtime": "split",
+          "optimizer": "JOINT"
+        },
+        {
+          "label": "F1A",
+          "runtime": "atomic",
+          "C": 256,
+          "fairness": "completion"
+        },
+        {
+          "label": "M1",
+          "runtime": "mixed",
+          "C": 1536,
+          "fairness": "completion"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 20,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1S",
+          "runtime": "split",
+          "optimizer": "C_ONLY"
+        },
+        {
+          "label": "M0",
+          "runtime": "mixed",
+          "C": 1536,
+          "fairness": "stock"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 20,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1A",
+          "runtime": "atomic",
+          "optimizer": "C_ONLY"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 20,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "G1",
+          "runtime": "split",
+          "optimizer": "G_ONLY",
+          "fixed_C": 64
+        }
+      ],
+      "cost_model": "cost_model_artifacts/service_lookup_v1.json",
+      "cost_model_sha256": "581f551ea111a459912d610b12f6e578d02952ca34226f9e7f8ece29aaf44fc9",
+      "observe": true,
+      "budget": 2048,
+      "timeout_s": 3600,
+      "allow_any_gpu": false
+    },
+    {
+      "id": "cb_p3_budget_P8177_N8_B40_S1_v1",
+      "kind": "live_budget",
+      "gpu": 7,
+      "shape": [
+        8177,
+        8
+      ],
+      "split": "TRAIN",
+      "trials": [
+        11,
+        12
+      ],
+      "cap": 128,
+      "cells": [
+        {
+          "C": 2048,
+          "budget_ms": 40,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "J1",
+          "runtime": "split",
+          "optimizer": "JOINT"
+        },
+        {
+          "label": "M0",
+          "runtime": "mixed",
+          "C": 1536,
+          "fairness": "stock"
+        },
+        {
+          "label": "F1A",
+          "runtime": "atomic",
+          "C": 256,
+          "fairness": "completion"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 40,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1S",
+          "runtime": "split",
+          "optimizer": "C_ONLY"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 40,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1A",
+          "runtime": "atomic",
+          "optimizer": "C_ONLY"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 40,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "G1",
+          "runtime": "split",
+          "optimizer": "G_ONLY",
+          "fixed_C": 2048
+        },
+        {
+          "label": "M1",
+          "runtime": "mixed",
+          "C": 1536,
+          "fairness": "completion"
+        }
+      ],
+      "cost_model": "cost_model_artifacts/service_lookup_v1.json",
+      "cost_model_sha256": "581f551ea111a459912d610b12f6e578d02952ca34226f9e7f8ece29aaf44fc9",
+      "observe": true,
+      "budget": 2048,
+      "timeout_s": 3600,
+      "allow_any_gpu": false
+    },
+    {
+      "id": "cb_p3_budget_P8177_N8_B60_S1_v1",
+      "kind": "live_budget",
+      "gpu": 0,
+      "shape": [
+        8177,
+        8
+      ],
+      "split": "TRAIN",
+      "trials": [
+        11,
+        12
+      ],
+      "cap": 128,
+      "cells": [
+        {
+          "C": 2048,
+          "budget_ms": 60,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "G1",
+          "runtime": "split",
+          "optimizer": "G_ONLY",
+          "fixed_C": 2048
+        },
+        {
+          "label": "M1",
+          "runtime": "mixed",
+          "C": 1536,
+          "fairness": "completion"
+        },
+        {
+          "label": "F1A",
+          "runtime": "atomic",
+          "C": 256,
+          "fairness": "completion"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 60,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1A",
+          "runtime": "atomic",
+          "optimizer": "C_ONLY"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 60,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "J1",
+          "runtime": "split",
+          "optimizer": "JOINT"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 60,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1S",
+          "runtime": "split",
+          "optimizer": "C_ONLY"
+        },
+        {
+          "label": "M0",
+          "runtime": "mixed",
+          "C": 1536,
+          "fairness": "stock"
+        }
+      ],
+      "cost_model": "cost_model_artifacts/service_lookup_v1.json",
+      "cost_model_sha256": "581f551ea111a459912d610b12f6e578d02952ca34226f9e7f8ece29aaf44fc9",
+      "observe": true,
+      "budget": 2048,
+      "timeout_s": 3600,
+      "allow_any_gpu": false
+    },
+    {
+      "id": "cb_p3_budget_P8177_N8_B80_S1_v1",
+      "kind": "live_budget",
+      "gpu": 1,
+      "shape": [
+        8177,
+        8
+      ],
+      "split": "TRAIN",
+      "trials": [
+        11,
+        12
+      ],
+      "cap": 128,
+      "cells": [
+        {
+          "label": "M0",
+          "runtime": "mixed",
+          "C": 1536,
+          "fairness": "stock"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 80,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1S",
+          "runtime": "split",
+          "optimizer": "C_ONLY"
+        },
+        {
+          "label": "M1",
+          "runtime": "mixed",
+          "C": 1536,
+          "fairness": "completion"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 80,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1A",
+          "runtime": "atomic",
+          "optimizer": "C_ONLY"
+        },
+        {
+          "label": "F1A",
+          "runtime": "atomic",
+          "C": 256,
+          "fairness": "completion"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 80,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "J1",
+          "runtime": "split",
+          "optimizer": "JOINT"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 80,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "G1",
+          "runtime": "split",
+          "optimizer": "G_ONLY",
+          "fixed_C": 2048
+        }
+      ],
+      "cost_model": "cost_model_artifacts/service_lookup_v1.json",
+      "cost_model_sha256": "581f551ea111a459912d610b12f6e578d02952ca34226f9e7f8ece29aaf44fc9",
+      "observe": true,
+      "budget": 2048,
+      "timeout_s": 3600,
+      "allow_any_gpu": false
+    },
+    {
+      "id": "cb_p3_budget_P8177_N8_B120_S1_v1",
+      "kind": "live_budget",
+      "gpu": 2,
+      "shape": [
+        8177,
+        8
+      ],
+      "split": "TRAIN",
+      "trials": [
+        11,
+        12
+      ],
+      "cap": 128,
+      "cells": [
+        {
+          "C": 2048,
+          "budget_ms": 120,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1A",
+          "runtime": "atomic",
+          "optimizer": "C_ONLY"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 120,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "G1",
+          "runtime": "split",
+          "optimizer": "G_ONLY",
+          "fixed_C": 2048
+        },
+        {
+          "C": 2048,
+          "budget_ms": 120,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "J1",
+          "runtime": "split",
+          "optimizer": "JOINT"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 120,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1S",
+          "runtime": "split",
+          "optimizer": "C_ONLY"
+        },
+        {
+          "label": "F1A",
+          "runtime": "atomic",
+          "C": 256,
+          "fairness": "completion"
+        },
+        {
+          "label": "M0",
+          "runtime": "mixed",
+          "C": 1536,
+          "fairness": "stock"
+        },
+        {
+          "label": "M1",
+          "runtime": "mixed",
+          "C": 1536,
+          "fairness": "completion"
+        }
+      ],
+      "cost_model": "cost_model_artifacts/service_lookup_v1.json",
+      "cost_model_sha256": "581f551ea111a459912d610b12f6e578d02952ca34226f9e7f8ece29aaf44fc9",
+      "observe": true,
+      "budget": 2048,
+      "timeout_s": 3600,
+      "allow_any_gpu": false
+    },
+    {
+      "id": "cb_p3_budget_P8177_N8_B160_S1_v1",
+      "kind": "live_budget",
+      "gpu": 3,
+      "shape": [
+        8177,
+        8
+      ],
+      "split": "TRAIN",
+      "trials": [
+        11,
+        12
+      ],
+      "cap": 128,
+      "cells": [
+        {
+          "label": "M1",
+          "runtime": "mixed",
+          "C": 1536,
+          "fairness": "completion"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 160,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1A",
+          "runtime": "atomic",
+          "optimizer": "C_ONLY"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 160,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1S",
+          "runtime": "split",
+          "optimizer": "C_ONLY"
+        },
+        {
+          "label": "M0",
+          "runtime": "mixed",
+          "C": 1536,
+          "fairness": "stock"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 160,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "J1",
+          "runtime": "split",
+          "optimizer": "JOINT"
+        },
+        {
+          "label": "F1A",
+          "runtime": "atomic",
+          "C": 256,
+          "fairness": "completion"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 160,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "G1",
+          "runtime": "split",
+          "optimizer": "G_ONLY",
+          "fixed_C": 2048
+        }
+      ],
+      "cost_model": "cost_model_artifacts/service_lookup_v1.json",
+      "cost_model_sha256": "581f551ea111a459912d610b12f6e578d02952ca34226f9e7f8ece29aaf44fc9",
+      "observe": true,
+      "budget": 2048,
+      "timeout_s": 3600,
+      "allow_any_gpu": false
+    },
+    {
+      "id": "cb_p3_budget_P8177_N8_B240_S1_v1",
+      "kind": "live_budget",
+      "gpu": 4,
+      "shape": [
+        8177,
+        8
+      ],
+      "split": "TRAIN",
+      "trials": [
+        11,
+        12
+      ],
+      "cap": 128,
+      "cells": [
+        {
+          "C": 2048,
+          "budget_ms": 240,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1S",
+          "runtime": "split",
+          "optimizer": "C_ONLY"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 240,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "J1",
+          "runtime": "split",
+          "optimizer": "JOINT"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 240,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "C1A",
+          "runtime": "atomic",
+          "optimizer": "C_ONLY"
+        },
+        {
+          "C": 2048,
+          "budget_ms": 240,
+          "fairness": "completion",
+          "yield_penalty_ms": 0.0,
+          "label": "G1",
+          "runtime": "split",
+          "optimizer": "G_ONLY",
+          "fixed_C": 2048
+        },
+        {
+          "label": "M0",
+          "runtime": "mixed",
+          "C": 1536,
+          "fairness": "stock"
+        },
+        {
+          "label": "M1",
+          "runtime": "mixed",
+          "C": 1536,
+          "fairness": "completion"
+        },
+        {
+          "label": "F1A",
+          "runtime": "atomic",
+          "C": 256,
+          "fairness": "completion"
+        }
+      ],
+      "cost_model": "cost_model_artifacts/service_lookup_v1.json",
+      "cost_model_sha256": "581f551ea111a459912d610b12f6e578d02952ca34226f9e7f8ece29aaf44fc9",
+      "observe": true,
+      "budget": 2048,
+      "timeout_s": 3600,
+      "allow_any_gpu": false
+    }
+  ],
+  "scope": "TRAIN-only fixed-budget natural pilot. Two device/process starts per shape/budget. Observer/shared-host lane. Not capacity or final held-out.",
+  "utility": "U2 includes prelude and all residual R4 service. No additional yield penalty in this first physical-cost screen.",
+  "budget_grid": [
+    10,
+    20,
+    40,
+    60,
+    80,
+    120,
+    160,
+    240
+  ],
+  "SLO_grid": {
+    "TTFT_s": [
+      1,
+      2,
+      5,
+      10
+    ],
+    "every_gap_TBT_ms": [
+      100,
+      150,
+      200,
+      250,
+      500
+    ]
+  },
+  "important": "Native fixed/Mixed retain native packing. All adaptive controls limit one prefill span per batch."
+}

@@ -16,6 +16,10 @@ class OptimizerTests(unittest.TestCase):
         self.assertEqual(half.complete_tokens_now,0)
         self.assertEqual(half.residual_chunk_ms,2+2*(5+2*(10+512/256)))
 
+    def test_staged_prelude_cannot_claim_planned_R4_completion_now(self):
+        rows=enumerate_candidates(self.state(),200,MeasuredModelFixture())
+        self.assertTrue(all(r.complete_tokens_now==0 for r in rows))
+
     def test_continuation_keeps_span_and_clips_group(self):
         s=dict(kind='CONTINUE_CHUNK',C=512,depth=2,start=0,prompt_remaining=8192,token_budget=2048,issued_decode=[])
         rows=enumerate_candidates(s,100,MeasuredModelFixture())

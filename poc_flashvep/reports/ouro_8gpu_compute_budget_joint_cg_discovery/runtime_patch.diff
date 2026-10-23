@@ -1,0 +1,117 @@
+diff --git a/vllm_rlt/config.py b/vllm_rlt/config.py
+index f2ae951..04d395b 100644
+--- a/vllm_rlt/config.py
++++ b/vllm_rlt/config.py
+@@ -57,11 +57,17 @@ class SchedulerConfig:
+     admission_scan_limit: int = 64
+     max_admission_bypasses: int = 8
+     prefill_chunk_size: int = 128
++    # PoC: consecutive prefill-only loops per scheduling boundary.
++    prefill_loop_group_size: int = 1
+     max_prefill_batches_before_decode: int = 1
+     policy: str = "fcfs"
+     enable_preemption: bool = False
+ 
+     def __post_init__(self):
++        if self.prefill_loop_group_size not in (1, 2, 3, 4):
++            raise ValueError("prefill_loop_group_size must be 1, 2, 3 or 4")
++        if self.mode == "mixed" and self.prefill_loop_group_size != 1:
++            raise ValueError("grouped prefill must not advance mixed decode rows")
+         for name in (
+             "max_num_seqs",
+             "max_num_batched_tokens",
+diff --git a/vllm_rlt/core/scheduler.py b/vllm_rlt/core/scheduler.py
+index b2442d7..8e6295b 100644
+--- a/vllm_rlt/core/scheduler.py
++++ b/vllm_rlt/core/scheduler.py
+@@ -33,6 +33,7 @@ class ScheduledRequest:
+     chunk_start: int | None = None
+     completes_prompt: bool = False
+     phase: RequestPhase | None = None
++    loop_count: int = 1
+ 
+ 
+ @dataclass(frozen=True)
+@@ -531,6 +532,8 @@ class Scheduler:
+             # plane's causal prefix covers the run. Tokens past num_preluded_tokens
+             # have no resident prelude and cannot run yet.
+             boundary = request.prefill_depth_ranges[first_token_depth]
++            group = min(self.config.prefill_loop_group_size,
++                        self.total_ut_steps - first_token_depth)
+             count = min(
+                 token_budget,
+                 self.config.prefill_chunk_size,
+@@ -544,8 +547,9 @@ class Scheduler:
+                 count,
+                 depth=first_token_depth,
+                 chunk_start=request.prefill_chunk_start,
++                loop_count=group,
+                 completes_prompt=(
+-                    first_token_depth == len(request.prefill_depth_ranges) - 1
++                    first_token_depth + group == len(request.prefill_depth_ranges)
+                     and start + count == len(request.prompt_token_ids)
+                 ),
+             )
+@@ -629,6 +633,15 @@ class Scheduler:
+                     queue.append(request.request_id)
+                     continue
+                 scheduled_request = self._make_scheduled_request(request, phase, token_budget)
++                # G3 finishes with a G1 remainder. One forward cannot advance
++                # some rows by one loop and other rows by three loops.
++                if (
++                    phase == RequestPhase.PREFILLING_RECURRENT
++                    and scheduled_requests
++                    and scheduled_request.loop_count != scheduled_requests[0].loop_count
++                ):
++                    queue.append(request.request_id)
++                    continue
+                 if (
+                     phase in (RequestPhase.PREFILLING_PRELUDE, RequestPhase.PREFILLING_RECURRENT)
+                     and scheduled_request.token_count <= 0
+@@ -707,14 +720,17 @@ class Scheduler:
+         # Assertion: phase == RequestPhase.PREFILLING_RECURRENT
+         depth = scheduled_request.depth
+         boundaries = request.prefill_depth_ranges
+-        boundaries[depth][0] = end
+-        if depth + 1 < total_depths:
+-            boundaries[depth + 1][1] = end
+-        else:
+-            request.num_prefilled_tokens = end
++        group_end = depth + scheduled_request.loop_count
++        for advanced_depth in range(depth, group_end):
++            assert boundaries[advanced_depth][0] == start, "causal prompt frontier hole"
++            boundaries[advanced_depth][0] = end
++            if advanced_depth + 1 < total_depths:
++                boundaries[advanced_depth + 1][1] = end
++            else:
++                request.num_prefilled_tokens = end
+ 
+         chunk_complete = end == request.num_preluded_tokens
+-        if depth + 1 < total_depths or not chunk_complete:
++        if group_end < total_depths or not chunk_complete:
+             self.enqueue(request, RequestPhase.PREFILLING_RECURRENT)
+             return PrefillProgress(False, False)
+ 
+diff --git a/vllm_rlt/worker/executor.py b/vllm_rlt/worker/executor.py
+index 87ba27d..700d6a8 100644
+--- a/vllm_rlt/worker/executor.py
++++ b/vllm_rlt/worker/executor.py
+@@ -56,7 +56,7 @@ def build_execution_batch(scheduled_batch: SchedulerOutput, total_depths: int) -
+                 token_count=scheduled_request.token_count,
+                 depth=depth,
+                 chunk_start=scheduled_request.chunk_start if chunk else None,
+-                retain_chunk=chunk and (operation == Operation.PRELUDE or depth + 1 < total_depths),
++                retain_chunk=chunk and (operation == Operation.PRELUDE or depth + scheduled_request.loop_count < total_depths),
+                 retain_last=scheduled_request.completes_prompt if chunk else True,
+                 emit_gate=phase == RequestPhase.RECURRENT,
+                 input_tokens=tuple(
+@@ -68,7 +68,8 @@ def build_execution_batch(scheduled_batch: SchedulerOutput, total_depths: int) -
+         )
+         operations.add(operation)
+         loop_counts.add(
+-            total_depths if phase == RequestPhase.PREFILL else int(operation == Operation.RECURRENT)
++            total_depths if phase == RequestPhase.PREFILL else
++            scheduled_request.loop_count if operation == Operation.RECURRENT else 0
+         )
+     if len(operations) != 1 or len(loop_counts) != 1:
+         raise ValueError("batch requests must share an operation and execution boundary")

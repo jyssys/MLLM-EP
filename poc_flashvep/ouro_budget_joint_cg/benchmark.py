@@ -94,7 +94,7 @@ def fixed_service(model,job,target):
         mode,C=cell['mode'],cell['C'];N=job['shape'][1];P=job['shape'][0]
         e=engine(model,mode,C,N,job);e.frontend_stop_token_ids=manifest['stop_ids']
         fairness=attach(e,cell.get('fairness','stock')=='completion')
-        cases,arrivals=select_cases(manifest,job['split'],P,N,job['trials'][0])
+        cases,arrivals=select_cases(manifest,job.get('warm_split',job['split']),P,N,job.get('warm_trial',job['trials'][0]))
         frontend.serve(e,cases,16,arrivals,.251,observe=False)
         for trial in job['trials']:
             fairness_begin=len(fairness.events)
@@ -143,7 +143,7 @@ def live_service(model,job,target):
             control=OnlineControl(e,lookup,cell['optimizer'],cell['budget_ms'],
                 cell.get('fixed_C',1024),cell.get('objective','U2'),cell.get('yield_penalty_ms',0.),
                 cell.get('feedback','FIXED'),cell.get('target_ITL_ms',270.))
-        cases,arrivals=select_cases(manifest,job['split'],P,N,job['trials'][0])
+        cases,arrivals=select_cases(manifest,job.get('warm_split',job['split']),P,N,job.get('warm_trial',job['trials'][0]))
         frontend.serve(e,cases,16,arrivals,.251,observe=False)
         for trial in job['trials']:
             if control:
@@ -170,6 +170,8 @@ def live_service(model,job,target):
                     optimizer_decisions=[] if control is None else list(control.selector.trace),
                     chunk_decisions=[] if control is None else list(control.actions.decisions),
                     budget_admission=[] if control is None else list(control.admission.trace),
+                    admission_cpu=None if control is None else dict(checks=control.admission.checks,
+                        total_ns=control.admission.total_ns,max_ns=control.admission.max_ns),
                     output_control_events=[] if control is None else list(control.output_events),
                     peak_allocated_bytes=torch.cuda.max_memory_allocated(),peak_reserved_bytes=torch.cuda.max_memory_reserved(),
                     lane=('MEASURED_OBSERVER' if observer else 'MEASURED_CLEAN') if job.get('quiet') else 'EXPLORATORY_SHARED_HOST',
@@ -201,4 +203,7 @@ def run_job(model,job,target):
     if job['kind']=='isolated_service':
         from .isolated_service import run_job as isolated
         return isolated(model,job,target)
+    if job['kind']=='quality':
+        from .quality import run_job as quality
+        return quality(model,job,target)
     raise ValueError(job['kind'])

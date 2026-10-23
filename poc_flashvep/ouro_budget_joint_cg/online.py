@@ -45,6 +45,7 @@ class OnlineControl:
         self.controller.value=self.initial_budget_ms;self.selector.budget=self.initial_budget_ms
         self.controller.updates.clear()
         self.selector.trace.clear();self.actions.decisions.clear();self.admission.trace.clear()
+        self.admission.checks=0;self.admission.total_ns=0;self.admission.max_ns=0
         self.output_events.clear()
 
     def close(self):

@@ -10,10 +10,19 @@ class BudgetAdmission:
         self.previous_ready=engine.scheduler.execution_ready
         self.previous_take=engine.scheduler.take_phases
         self.waiting={};self.trace=[]
+        self.checks=0;self.total_ns=0;self.max_ns=0
         engine.scheduler.execution_ready=self.ready
         engine.scheduler.take_phases=self.take
 
     def ready(self,request):
+        before=time.perf_counter_ns()
+        try:
+            return self._ready(request)
+        finally:
+            elapsed=time.perf_counter_ns()-before
+            self.checks+=1;self.total_ns+=elapsed;self.max_ns=max(self.max_ns,elapsed)
+
+    def _ready(self,request):
         if self.previous_ready is not None and not self.previous_ready(request):
             return False
         if request.phase.value not in PREFILL:

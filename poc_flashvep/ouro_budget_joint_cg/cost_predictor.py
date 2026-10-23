@@ -167,10 +167,10 @@ def main():
     artifact=fit(rows);target=ROOT/'cost_model_artifacts/service_lookup_v1.json'
     assert not target.exists(),'Frozen model cannot be overwritten'
     write(target,artifact)
+    write(ROOT/'cost_model_artifacts/freeze_v1.json',dict(sha256=digest(target),created_wall_s=time.time(),
+        blind_policy='Model tables and calibration margins froze before the following held-out evaluation. FINAL_ONLINE remains unused.'))
     residuals,summary=evaluate(rows,artifact)
     csv_file(ROOT/'prediction_residuals.csv.gz',residuals);csv_file(ROOT/'predictor_heldout.csv',summary)
-    write(ROOT/'cost_model_artifacts/freeze_v1.json',dict(sha256=digest(target),created_wall_s=time.time(),
-        blind_policy='No model revision after this held-out evaluation. FINAL_ONLINE remains unused.'))
     classifications=[]
     for split in ('VALIDATION','NEW_HELDOUT'):
         for path in ('atomic','staged_prelude','staged_core'):

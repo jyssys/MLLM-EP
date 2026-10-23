@@ -63,7 +63,8 @@ class ChunkActions:
             group=min(choice.G,4-template.depth)
             result=replace(template,token_count=state['C'],loop_count=group,
                 completes_prompt=template.depth+group==4 and template.token_start+state['C']==len(request.prompt_token_ids))
-        self.decisions.append(dict(state=state,chosen_C=result.token_count,chosen_G=result.loop_count if name=='prefilling_recurrent' else choice.G,
+        self.decisions.append(dict(state=state,chosen_C=result.token_count,
+            chosen_G=result.loop_count if name=='prefilling_recurrent' else 4 if name=='prefill' else 0,planned_G=choice.G,
             reason=choice.reason,selector_ns=elapsed,host_s=time.perf_counter(),phase=name))
         return result
 
