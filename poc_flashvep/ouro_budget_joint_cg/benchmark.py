@@ -2,6 +2,7 @@
 import gc
 import json
 import random
+import time
 import torch
 from .common import ROOT,MODEL,write,config,guard
 from .fairness import attach
@@ -96,6 +97,7 @@ def fixed_service(model,job,target):
         cases,arrivals=select_cases(manifest,job['split'],P,N,job['trials'][0])
         frontend.serve(e,cases,16,arrivals,.251,observe=False)
         for trial in job['trials']:
+            fairness_begin=len(fairness.events)
             cases,arrivals=select_cases(manifest,job['split'],P,N,trial)
             meta=dict(run_id=job['id'],policy=mode,C=C,configured_N=N,P=P,split=job['split'],trial=trial,
                 physical_GPU=guard(),fairness=cell.get('fairness','stock'),families=[c['family'] for c in cases])
@@ -108,7 +110,7 @@ def fixed_service(model,job,target):
                     work=sum(s['tokens']*s['G'] for q in quanta for s in q['spans'] if s['id']==r['id'] and s['phase'] in ('prefill','prefilling_recurrent'))
                     assert work==4*r['input_tokens'],(r['id'],work,r['input_tokens'])
                     assert all(d==4 for d in r['depths'])
-                data.update(meta,service_observations=quanta,fairness_events=list(fairness.events),
+                data.update(meta,service_observations=quanta,fairness_events=list(fairness.events[fairness_begin:]),
                     peak_allocated_bytes=torch.cuda.max_memory_allocated(),peak_reserved_bytes=torch.cuda.max_memory_reserved(),
                     lane='MEASURED_OBSERVER' if job.get('quiet') else 'EXPLORATORY_SHARED_HOST',
                     full_R4_prompt_accounting=True)
@@ -121,9 +123,76 @@ def fixed_service(model,job,target):
         gc.collect();torch.cuda.empty_cache()
     return dict(completed=True,cohorts=reports)
 
+@torch.inference_mode()
+def live_service(model,job,target):
+    from ..ouro_chunk_loop_slo import worker as frontend
+    from .cost_predictor import ServiceLookup
+    from .online import OnlineControl
+    frontend.ROOT=ROOT
+    manifest=json.loads((ROOT/'source_family_manifest.json').read_text())
+    artifact=ROOT/job['cost_model']
+    assert __import__('hashlib').sha256(artifact.read_bytes()).hexdigest()==job['cost_model_sha256']
+    lookup=ServiceLookup(json.loads(artifact.read_text()))
+    reports=[]
+    for cell in job['cells']:
+        P,N=job['shape'];mode=cell['runtime'];C=cell.get('C',2048)
+        e=engine(model,mode,C,N,job);e.frontend_stop_token_ids=manifest['stop_ids']
+        fairness=attach(e,cell.get('fairness','completion')=='completion')
+        control=None
+        if cell.get('optimizer'):
+            control=OnlineControl(e,lookup,cell['optimizer'],cell['budget_ms'],
+                cell.get('fixed_C',1024),cell.get('objective','U2'),cell.get('yield_penalty_ms',0.),
+                cell.get('feedback','FIXED'),cell.get('target_ITL_ms',270.))
+        cases,arrivals=select_cases(manifest,job['split'],P,N,job['trials'][0])
+        frontend.serve(e,cases,16,arrivals,.251,observe=False)
+        for trial in job['trials']:
+            if control:
+                control.reset_cohort()
+            fairness_begin=len(fairness.events)
+            cases,arrivals=select_cases(manifest,job['split'],P,N,trial)
+            meta=dict(run_id=job['id'],label=cell['label'],policy=mode,C=C,configured_N=N,P=P,
+                split=job['split'],trial=trial,physical_GPU=guard(),fairness=cell.get('fairness','completion'),
+                families=[c['family'] for c in cases],configured_budget_ms=cell.get('budget_ms'))
+            observer=ServiceObserver(e,meta,prefill_only=True) if job.get('observe',False) else None
+            torch.cuda.reset_peak_memory_stats()
+            try:
+                before=time.perf_counter()
+                data=frontend.serve(e,cases,job.get('cap',128),arrivals,.251,observe=False)
+                rows=[] if observer is None else observer.finish()
+                if observer:
+                    for r in data['requests']:
+                        work=sum(s['tokens']*s['G'] for q in rows for s in q['spans']
+                            if s['id']==r['id'] and s['phase'] in ('prefill','prefilling_recurrent'))
+                        assert work==4*r['input_tokens'],(r['id'],work,r['input_tokens'])
+                assert all(d==4 for r in data['requests'] for d in r['depths'])
+                data.update(meta,service_observations=rows,cell=cell,cohort_wall_s=time.perf_counter()-before,
+                    fairness_events=list(fairness.events[fairness_begin:]),
+                    optimizer_decisions=[] if control is None else list(control.selector.trace),
+                    chunk_decisions=[] if control is None else list(control.actions.decisions),
+                    budget_admission=[] if control is None else list(control.admission.trace),
+                    output_control_events=[] if control is None else list(control.output_events),
+                    peak_allocated_bytes=torch.cuda.max_memory_allocated(),peak_reserved_bytes=torch.cuda.max_memory_reserved(),
+                    lane=('MEASURED_OBSERVER' if observer else 'MEASURED_CLEAN') if job.get('quiet') else 'EXPLORATORY_SHARED_HOST',
+                    cost_model_status='EXPERIMENTAL_BUDGET_RISK',
+                    prompt_work_accounting='MEASURED_ALL_PREFILLS' if observer else 'Previously qualified full-R4 native path. No heavy per-dispatch observer.',
+                    request_packing='One prefill span per adaptive batch. Native fixed/Mixed retain native packing.',
+                    stopping='Natural greedy EOS allowed. Bounded pilot is not complete-answer quality or capacity.')
+                write(target/f'{cell["label"]}_T{trial}.json',data)
+                reports.append(dict(label=cell['label'],trial=trial,requests=len(data['requests']),lane=data['lane']))
+            finally:
+                if observer:
+                    observer.close()
+        if control:
+            control.close()
+        e.close();del e,fairness,control,data
+        gc.collect();torch.cuda.empty_cache()
+    return dict(completed=True,cohorts=reports)
+
 def run_job(model,job,target):
     if job['kind']=='numerical':
         return numerical(model,job,target)
     if job['kind'] in ('service','fairness'):
         return fixed_service(model,job,target)
+    if job['kind']=='live_budget':
+        return live_service(model,job,target)
     raise ValueError(job['kind'])

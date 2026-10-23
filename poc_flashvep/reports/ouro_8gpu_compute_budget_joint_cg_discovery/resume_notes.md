@@ -54,6 +54,21 @@ It stores per-request staged spans and never globally mutates C/G config.
 New C is selected only at a fresh chunk boundary.
 The CPU integration test runs exact R4 with variable C/G and confirms cleanup.
 All five local tests passed.
+Four additional optimizer definition tests subsequently passed, for nine tests at that checkpoint.
+`optimizer.py` implements single-action enumeration with full remaining R4 costs.
+U0 remains a diagnostic partial-work objective.
+U2 includes all residual groups and an optional measured decode-yield penalty.
+No measured cost model or online optimizer is fitted yet.
+`BudgetSelector` exposes an explicit overbudget progress fallback.
+Before live use, add phase-policy admission that defers unaffordable prefills for decode when possible.
+Limit that fallback by an idle/starvation rule and record every overrun.
+Do not silently treat it as budget compliant.
+
+`budget_controller.py` is a causal past-emission definition tool.
+Fixed, feedback, and pressure-style modes are not live serving results.
+Feedback requires at least 32 past gaps and a 16-output dwell.
+It uses a 15% hysteresis band.
+These provisional defaults require TRAIN-only review before held-out use.
 
 `ServiceObserver` wraps `prepare_on_gpu` and `_execute` after native waits.
 It separately records host dispatch, queue delay, native event readiness, service intervals, and completed prompt credit.

@@ -14,11 +14,11 @@ class ChunkActions:
         self.original=engine.scheduler._make_scheduled_request
         engine.scheduler._make_scheduled_request=self.make
 
-    def make(self,request,phase,token_budget):
+    def snapshot(self,request,phase,token_budget):
         template=self.original(request,phase,token_budget)
         name=phase.value
         if name not in ('prefill','prefilling_prelude','prefilling_recurrent'):
-            return template
+            return template,None
         scheduler=self.engine.scheduler
         if name=='prefilling_recurrent':
             key=(id(request),request.prefill_chunk_start)
@@ -26,7 +26,7 @@ class ChunkActions:
             begin,end=self.spans[key]
             assert request.num_preluded_tokens==end and template.token_start==begin
             if token_budget<end-begin:
-                return replace(template,token_count=0)
+                return replace(template,token_count=0),None
             state=dict(kind='CONTINUE_CHUNK',id=request.request_id,C=end-begin,depth=template.depth,
                 start=begin,prompt_remaining=len(request.prompt_token_ids)-begin,token_budget=token_budget)
         else:
@@ -35,11 +35,20 @@ class ChunkActions:
             state=dict(kind='NEW_CHUNK',id=request.request_id,C=0,depth=0,start=template.token_start,
                 prompt_remaining=len(request.prompt_token_ids)-template.token_start,token_budget=token_budget)
         state['context']=state['start']+max(1,state['C'])
+        state['atomic']=name=='prefill'
+        state['phase']=name
         state['issued_decode']=[dict(id=r.request_id,phase=r.phase.value,R=r.loops_done,outputs=len(r.generated_token_ids))
             for r in scheduler.requests.values() if r.phase.value in ('prelude','recurrent','coda')]
         runner=self.engine.model_runner
         state['request_event_ready']=runner.events.get(request.request_id) is None or runner.events[request.request_id].query()
         state['graph_entries']=len(runner.graphs.entries) if runner.graphs else 0
+        return template,state
+
+    def make(self,request,phase,token_budget):
+        template,state=self.snapshot(request,phase,token_budget)
+        if state is None:
+            return template
+        name=phase.value
         started=time.perf_counter_ns();choice=self.selector(state);elapsed=time.perf_counter_ns()-started
         assert choice.C>0 and choice.G in (1,2,3,4)
         if state['kind']=='NEW_CHUNK':
@@ -60,7 +69,7 @@ class ChunkActions:
 
     def close(self):
         self.engine.scheduler._make_scheduled_request=self.original
-        self.engine=None;self.original=None
+        self.engine=None;self.original=None;self.spans.clear()
 
 def fixed(C,G):
     return lambda state:Choice(state['C'] if state['kind']=='CONTINUE_CHUNK' else C,G)

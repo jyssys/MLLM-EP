@@ -3,8 +3,9 @@ import time
 import torch
 
 class ServiceObserver:
-    def __init__(self,engine,metadata=None):
+    def __init__(self,engine,metadata=None,prefill_only=False):
         self.engine=engine;self.metadata=metadata or {};self.rows=[];self.events=[];self.active=None
+        self.prefill_only=prefill_only
         runner=engine.model_runner
         runner.synchronize()
         self.anchor=torch.cuda.Event(enable_timing=True)
@@ -18,6 +19,8 @@ class ServiceObserver:
         runner._execute=self.execute
 
     def submit(self,batch):
+        if self.prefill_only and not any(batch.phase_for(r).value.startswith('prefill') for r in batch.requests):
+            return self.original_submit(batch)
         runner=self.engine.model_runner
         now=time.perf_counter()
         ready={r.request.request_id:(runner.events[r.request.request_id].query() if r.request.request_id in runner.events else True) for r in batch.requests}
@@ -41,6 +44,8 @@ class ServiceObserver:
         return ticket
 
     def prepare(self,prepared):
+        if self.active is None:
+            return self.original_prepare(prepared)
         # Native submit already issued its request wait_event dependencies.
         start=torch.cuda.Event(enable_timing=True);start.record(torch.cuda.current_stream())
         self.active['host_gpu_prepare_s']=time.perf_counter()
@@ -49,6 +54,8 @@ class ServiceObserver:
 
     def execute(self,*args,**kwargs):
         result=self.original_execute(*args,**kwargs)
+        if self.active is None:
+            return result
         end=torch.cuda.Event(enable_timing=True);end.record(torch.cuda.current_stream())
         self.events[-1][1]=end
         return result
