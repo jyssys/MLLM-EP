@@ -21,7 +21,9 @@ def serving(model,job,target):
     lock=json.loads((ROOT/'workload_lock.json').read_text())
     assert digest(ROOT/'workload_lock.json')==job['workload_lock_sha256']
     assert digest(ROOT/'workload_payloads.json.gz')==lock['payload_sha256']
-    scenarios={r['id']:r for r in json.loads((ROOT/'serving_scenarios.json').read_text())['scenarios']}
+    scenario_file=ROOT/job.get('scenario_manifest','serving_scenarios.json')
+    if job.get('scenario_sha256'):assert digest(scenario_file)==job['scenario_sha256']
+    scenarios={r['id']:r for r in json.loads(scenario_file.read_text())['scenarios']}
     norm=json.loads((ROOT/'objective_normalization_v1.json').read_text())
     assert digest(ROOT/'objective_normalization_v1.json')==job['normalization_sha256']
     lookup=ServiceLookup(json.loads((PRIOR/'cost_model_artifacts/service_lookup_v1.json').read_text()))
@@ -40,11 +42,17 @@ def serving(model,job,target):
             if control:control.reset()
             fairness_start=len(fairness.events)
             ledger=WorkLedger(e)
+            observer=None
+            if cell.get('observe',job.get('observe',False)):
+                from ..ouro_budget_joint_cg.service_observer import ServiceObserver
+                observer=ServiceObserver(e,dict(run_id=job['id'],label=cell['label'],physical_GPU=guard(),
+                    evidence_lane='OBSERVER_AUDIT_NOT_CLEAN_SERVING'),prefill_only=True)
             torch.cuda.reset_peak_memory_stats()
             try:
                 data=frontend.serve(e,cases,job.get('cap',1024),scenario['arrivals_s'],scenario['duration_s'],
                     drain=job.get('drain_s',300),observe=False)
                 e.model_runner.synchronize()
+                service_rows=[] if observer is None else observer.finish()
                 work=defaultdict(int)
                 for row in ledger.rows:
                     for span in row['spans']:work[span['id']]+=span['tokens']*span['G']
@@ -56,6 +64,7 @@ def serving(model,job,target):
                     configured_N=job['width'],budget_ms=cell.get('budget_ms'),
                     P=[len(c['input_ids']) for c in cases],families=[c['family'] for c in cases],
                     full_R4=integrity,prompt_token_loop_work=dict(work),dispatch_descriptors=ledger.rows,
+                    service_observations=service_rows,heavy_observer=observer is not None,
                     optimizer_decisions=[] if control is None else list(control.selector.trace),
                     chunk_decisions=[] if control is None else list(control.actions.decisions),
                     admission_snapshots=[] if control is None else list(control.actions.snapshot_states.values()),
@@ -72,13 +81,18 @@ def serving(model,job,target):
                 write(target/f"{cell['label']}_{scenario_id}.json",data)
                 assert integrity,'Quarantined serving result. Preserve the saved raw requests and work ledger.'
                 summaries.append(dict(label=cell['label'],scenario=scenario_id,requests=len(cases),full_R4=True))
-            finally:ledger.close()
+            finally:
+                if observer:observer.close()
+                ledger.close()
         if control:control.close()
         e.close();del e,control,fairness,data
         gc.collect();torch.cuda.empty_cache()
     return dict(serving=summaries)
 
 def run_job(model,job,target):
+    if job.get('diagnostic_barrier'):
+        from .alternative_diagnostic import run_job as alternative
+        return alternative(model,job,target)
     if job['kind']=='dual_serving':return serving(model,job,target)
     if job['kind']=='dual_quality':
         from .quality import run_job as quality

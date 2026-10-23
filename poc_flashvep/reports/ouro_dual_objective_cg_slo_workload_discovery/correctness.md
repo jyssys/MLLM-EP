@@ -22,8 +22,26 @@ The first adaptive smoke found a measurement-wrapper lifecycle bug during policy
 Its first cohorts passed Full-R4 checks, but the next engine could not allocate its cache.
 The failed attempts remain quarantined and are not serving-performance evidence.
 The weak-reference regression test fails before the cleanup correction and passes afterward.
-Reviewed v2 smoke results must pass before broad validation.
+All four reviewed v2 smoke jobs subsequently passed both policy cells.
 
-The software suite currently contains eleven passing CPU tests.
+The software suite currently contains13 passing CPU tests.
 Those fixtures are not pretrained-model quality measurements.
 Data: `numerical_probe_results.csv`, raw pretrained probe records, and `failure_log.md`.
+
+## Observer and batched natural outputs
+
+The separate event audit compares observer ON/OFF under the same nominal configurations.
+Token IDs match on87/96 request pairs. Per-request prompt submission plans match on95/96 pairs.
+Prompt-plan equality does not prove equal decode batch membership, graph geometry, or native execution order.
+Mixed also has mismatches without the adaptive selector.
+The earliest mismatch in the saved audit occurs at output index12, with zero-based indexing.
+These results do not establish that differences are harmless BF16 rounding.
+They also do not prove a KV or event bug.
+The exact root cause remains unresolved without a matched whole-batch numerical replay.
+
+Observer feedback can change causal scheduling and generated work.
+The ON/OFF wall ratio is therefore not a pure measurement-overhead estimate.
+No failed parity pair receives an accuracy PASS from this diagnostic.
+The independent full-answer question pilot remains necessary.
+
+Data: `observer_execution_diagnostics.csv`, `observer_output_parity.csv`, and `event_budget_residuals.csv`.

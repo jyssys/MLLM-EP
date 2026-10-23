@@ -1,0 +1,44 @@
+{
+  "id": "dual_p2_ALTERNATIVE_stress8k_S3_gpu7_v1",
+  "kind": "dual_serving",
+  "diagnostic_barrier": true,
+  "gpu": 7,
+  "width": 4,
+  "background_ids": [
+    "dolly_6078_chat",
+    "dolly_6906_chat",
+    "dolly_7726_chat"
+  ],
+  "target_id": "arxiv_4089_stress8k",
+  "cells": [
+    {
+      "label": "FORCED_C2048_G2",
+      "C": 2048,
+      "runtime": "grouped",
+      "G": 2
+    },
+    {
+      "label": "FORCED_C512_G1",
+      "C": 512,
+      "runtime": "split",
+      "G": 1
+    },
+    {
+      "label": "FORCED_C2048_G1",
+      "C": 2048,
+      "runtime": "split",
+      "G": 1
+    },
+    {
+      "label": "FORCED_C512_G2",
+      "C": 512,
+      "runtime": "grouped",
+      "G": 2
+    }
+  ],
+  "blocks": 18432,
+  "budget": 2048,
+  "graphs": true,
+  "streams": true,
+  "timeout_s": 3600
+}

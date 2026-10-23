@@ -9,13 +9,17 @@ Long/stress variants of one article stay together.
 CHAT uses public Dolly instruction/context requests near the 256-token input target.
 LONG uses natural arXiv excerpts near the 1,800-token target.
 LONG8K_STRESS uses genuine long article excerpts near 8K, without repeated filler.
-MIXED will use 70% chat-like and 30% long-source requests.
-BURSTY will use the same length mix with a registered two-state arrival process.
+The finite12-request MIXED cohort uses nine chat and three long requests, or75%/25%.
+This is a rounding departure from the70%/30% target, not an exact SLOWeave reproduction.
+BURSTY uses the same finite mix with a registered two-state arrival process.
 Targets describe input construction and output intent, not forced generated lengths.
 Actual prompt/output distributions, EOS, and caps remain mandatory results.
 
 Serving uses native EOS and the official tokenizer's chat-stop token.
-The primary natural-output cap is 1,024. Capped responses cannot pass complete-response SLO attainment.
+The initial validation cap is1,024. The frozen FINAL cap is4,096 for every arm.
+The prospective amendment triggered because the largest validation cohort cap fraction was25%, above the5% trigger.
+The amendment occurred before FINAL outcomes. Old capped outputs remain unchanged.
+Capped responses cannot pass complete-response SLO attainment.
 Quality uses the preserved few-shot GSM8K/MATH prompts and a separate 4,096-token cap.
 Serving prompts do not substitute for those accuracy questions.
 
@@ -34,3 +38,28 @@ The workload families are inspired by [SLOWeave](https://arxiv.org/html/2609.078
 The paper uses synthetic length distributions and a within-request P99 TPOT goodput rule.
 This study additionally reports the stricter every-gap complete-response criterion.
 [P-PAS](https://arxiv.org/html/2608.15171v2) motivates pressure-dependent budget controls, not a claimed official RLT implementation.
+
+## Frozen FINAL execution
+
+The primary objective is O6, weight2, fixed single-quantum budget120ms.
+The controller's exposure normalization uses200ms throughout.
+Postprocessed SLO thresholds do not retune that controller.
+The program registers30 four-worker characterization jobs and six serial confirmation jobs.
+Each policy block uses12 offered natural requests. Each workload/rate cell has three independent starts.
+The two ordinary arrival parameters are0.25 and0.9 requests/s.
+Bursty uses rates0.5× and2× that parameter with8-second deterministic dwell periods.
+Its high/low ratio is4. The realized offered rate is recorded separately.
+The8K stress lane uses seven initial short requests, a delayed long request, and four later short requests.
+It is a hybrid arrival diagnostic, not a pure Poisson workload.
+
+Quiet source families are disjoint from characterization source families.
+Inputs can repeat across registered rate/workload contrasts within one partition.
+Those repeats are not independent source samples.
+The quiet lane reserves GPUs4–7 for one measurement worker at a time.
+Pre-existing GPU0–3 background processes remain untouched.
+The source/arrival lock must not change after these runs start.
+
+Serving clocks start at registered in-process arrivals of pretokenized inputs.
+This scope excludes HTTP transport and prompt tokenization.
+Warm-up and model construction occur before the serving window.
+Lazy graph work that occurs inside that window remains in measured latency.

@@ -66,6 +66,22 @@ def main():
     path=sys.argv[sys.argv.index('--manifest')+1]
     plan=json.loads(open(path).read())
     assert 'gpus' in plan and set(plan['gpus'])<=set(GPUS)
+    dependencies=ROOT/'execution_dependencies.json'
+    if dependencies.exists():
+        for name in json.loads(dependencies.read_text()).get(__import__('pathlib').Path(path).name,[]):
+            child=ROOT/name
+            assert child.parent==ROOT and child.name!=__import__('pathlib').Path(path).name
+            command=['/home/esjung/anaconda3/bin/python','-u','-m','poc_flashvep.ouro_dual_objective_cg.dispatch','--manifest',str(child)]
+            if '--manage-burners' in sys.argv:command.append('--manage-burners')
+            assert subprocess.call(command,cwd=REPO)==0,('Preflight failed; preserve and review',name)
+    if 'subplans' in plan:
+        for name in plan['subplans']:
+            child=ROOT/name
+            assert child.parent==ROOT and child.exists()
+            command=['/home/esjung/anaconda3/bin/python','-u','-m','poc_flashvep.ouro_dual_objective_cg.dispatch','--manifest',str(child)]
+            if '--manage-burners' in sys.argv:command.append('--manage-burners')
+            assert subprocess.call(command,cwd=REPO)==0,('Subplan failed; preserve and review',name)
+        return
     jobs=plan.get('jobs',[j for group in plan.get('groups',[]) for j in group['jobs']])
     assert all(j['gpu'] in GPUS for j in jobs)
     inherited.launch=launch;inherited.stop=stop;inherited.restore=restore

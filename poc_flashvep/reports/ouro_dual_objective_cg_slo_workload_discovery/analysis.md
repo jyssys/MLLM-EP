@@ -35,14 +35,21 @@ These controls do not establish full-answer accuracy or capacity.
 The first adaptive smoke found a retained-engine measurement-wrapper bug at policy teardown.
 Its failed attempts remain preserved.
 The cleanup correction passed the failing weak-reference test and all four reviewed v2 GPU smoke jobs.
-The 22-arm VALIDATION screen is now running on independent physical GPUs4–7.
+The22-arm VALIDATION screen and fresh TRAIN fixed-policy tuning are complete.
+O6, weight2, is the frozen follow-up objective. It uses budget120ms.
+Its validation fresh-C difference rate is3.125%, below the registered5% screen.
+The provisional incremental gate remains false.
+The five-workload FINAL queue is running on independent physical GPUs4–7.
+Separate serial confirmation and the nine-arm full-answer question pilot follow automatically.
 The suspended native-vLLM Loop PP project remains paused.
 
 ## Unfinished evidence
 
-Fresh FINAL policy selection, Chat/Mixed/Long/Bursty generalization, and quality comparison remain pending.
+FINAL policy selection is complete and must not change.
+Chat/Mixed/Long/Bursty generalization and quality comparison remain pending.
 No sustainable-rate result exists.
 A larger capacity sweep requires actual new C choices and a matched useful serving gain.
 Action diversity or a higher modeled utility is not sufficient for that promotion.
 
 See `phase_a_action_equivalence.md`, `objective_catalog.md`, `gpu_contention.md`, `correctness.md`, and `failure_log.md`.
+See `phase_b_objective_ablation.md` for completed objective and validation evidence.

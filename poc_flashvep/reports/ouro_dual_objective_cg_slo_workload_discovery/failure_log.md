@@ -40,3 +40,19 @@ The previous C-only accuracy regressions remain unresolved.
 The frozen service lookup lacks exact support for many clipped spans.
 Risk scores are empirical exposure proxies, not future complete-token predictions or SLO guarantees.
 No new quality or serving-capacity PASS exists at this checkpoint.
+
+## CPU analysis command and schema corrections
+
+An unqualified unittest discovery command could not resolve package-relative imports.
+Discovery with the repository as the top-level package passed all13 tests.
+This was a test-launch error, not a failed model test.
+
+The first constructed-state CSV writer rejected heterogeneous feasible/infeasible row keys.
+The corrected analysis uses the union of those keys and preserves infeasible rows with empty action fields.
+This correction changes no GPU job, frozen objective, or source split.
+
+The first standalone artifact-audit command imported a helper with the parent's report root.
+It reported a missing completed attempt at that incorrect root.
+The corrected audit resolves each artifact directly under this campaign's completed marker.
+The launcher already used the correct process-local root.
+This analysis error was not evidence of raw-data corruption.

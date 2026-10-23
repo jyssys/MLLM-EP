@@ -1,0 +1,69 @@
+{
+  "primary_objective": {
+    "label": "O6_J",
+    "runtime": "split",
+    "C": 2048,
+    "surface": "JOINT",
+    "fixed_C": 2048,
+    "objective": "O6",
+    "weight": 2.0,
+    "budget_ms": 120.0,
+    "fairness": "completion"
+  },
+  "validation_candidates": [
+    {
+      "family": "O2",
+      "worst_stratum_goodput_ratio": 0.956636229905319,
+      "stratum_ratios": [
+        0.9699075207864409,
+        0.956636229905319
+      ],
+      "fresh_C_change_fraction": 0.2345679012345679
+    },
+    {
+      "family": "O4",
+      "worst_stratum_goodput_ratio": 0.9987195075490551,
+      "stratum_ratios": [
+        0.9987195075490551,
+        1.0563605040455382
+      ],
+      "fresh_C_change_fraction": 0.03125
+    },
+    {
+      "family": "O6",
+      "worst_stratum_goodput_ratio": 1.0517481957841766,
+      "stratum_ratios": [
+        1.2139755877923688,
+        1.0517481957841766
+      ],
+      "fresh_C_change_fraction": 0.03125
+    },
+    {
+      "family": "O10",
+      "worst_stratum_goodput_ratio": 0.9318607225262856,
+      "stratum_ratios": [
+        0.9318607225262856,
+        0.9618005786880283
+      ],
+      "fresh_C_change_fraction": 0.2345679012345679
+    }
+  ],
+  "selection_rule": "Maximum worst-stratum VALIDATION goodput ratio against stronger G2048/G1024. No FINAL tuning.",
+  "best_tested_fixed": {
+    "label": "FIX_C512_G4",
+    "runtime": "staged4",
+    "C": 512,
+    "fairness": "completion"
+  },
+  "best_tested_mixed": {
+    "label": "FIX_MIXED_C512",
+    "runtime": "mixed",
+    "C": 512,
+    "fairness": "completion"
+  },
+  "fixed_tuning": "Fresh TRAIN, C128/512/1024/2048 x all four groups, plus Atomic and Mixed. Not a global oracle.",
+  "primary_contrast": "Selected Joint vs both same-objective fixed-C G-only controls. C-only and native Mixed remain mandatory.",
+  "provisional_incremental_gate": false,
+  "qualification": "VALIDATION selection only. No new quality or qualified-capacity claim.",
+  "serving_results_sha256": "a05f07bcb31ac28b10d878393036d5488791b58c240458aa7feb4cc785782263"
+}
