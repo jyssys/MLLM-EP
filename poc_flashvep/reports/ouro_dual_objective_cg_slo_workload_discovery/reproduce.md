@@ -16,7 +16,7 @@ OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 /home/esjung/anaconda3/bin/python -m po
 /home/esjung/anaconda3/bin/python -m unittest discover -s poc_flashvep/ouro_dual_objective_cg/tests -t . -p 'test_*.py'
 ```
 
-The first analysis validates parent hashes before reading immutable quiet traces.
+The first analysis checks parent hashes before reading immutable quiet traces.
 It writes only this new report directory.
 The objective survey uses consumed historical TRAIN states for development, not a new blind test.
 Do not refit the old cost model on previous HELDOUT residuals.
@@ -94,6 +94,23 @@ The portable gzip JSONL files contain completed natural outputs, executed prompt
 `portable_evidence_manifest.json` records their byte counts and hashes.
 The larger local raw archive also contains failed attempts, logs, full source snapshots, and telemetry.
 Archive creation retains every original source file.
+The archive command refuses to overwrite an existing archive. Check its recorded hash instead of recreating it in place.
+
+## Supplementary observed budget coverage
+
+The late CALIBRATION supplement preserves the unlaunched-v1 manifest before registering observed-v2 attempts.
+It does not change primary FINAL settings or claims.
+The completed six-job matrix covers20/80/240ms after the main40/120ms event audit.
+Its CUDA-event timings are diagnostics, not clean serving headline results.
+
+```bash
+taskset -c 128-143 /home/esjung/anaconda3/bin/python -m poc_flashvep.ouro_dual_objective_cg.budget_supplement_analyze
+taskset -c 128-143 /home/esjung/anaconda3/bin/python -m poc_flashvep.ouro_dual_objective_cg.profiling_analysis
+taskset -c 128-143 /home/esjung/anaconda3/bin/python -m poc_flashvep.ouro_dual_objective_cg.slo_sensitivity
+```
+
+No GPU rerun is necessary to read the completed negative result.
+Only an explicit reproduction or new study should start a completed plan again.
 
 ## Resource handoff
 

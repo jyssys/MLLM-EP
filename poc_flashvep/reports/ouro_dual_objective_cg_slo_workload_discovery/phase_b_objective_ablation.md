@@ -108,4 +108,4 @@ Neither missing baseline justifies a novel-method claim against those papers.
 - `objective_shortlist.json`, `main_table.csv`, and `paired_comparisons.csv`.
 - `no_C_change_identity.csv` and `confirmed_alternative_states.md`.
 
-The final workload and quality results belong in `analysis.md` after the frozen queues complete.
+The completed workload and quality results appear in `analysis.md`, `phase_c_performance.md`, and `quality.md`.

@@ -33,7 +33,7 @@ Differences in cold action shapes and graph preparation remain possible contribu
 These observations establish that alternative C choices have physical effects from matched initial state.
 They do not establish that an online selector can identify the beneficial alternative.
 The forced choices do not enter the headline adaptive-policy result.
-The C512/C2048 intervention does not reproduce each of the61 actual online C changes.
-The beneficial fraction among those61 selected changes is NOT_IDENTIFIED by this diagnostic.
+The C512/C2048 intervention does not reproduce each of the 61 actual online C changes.
+The beneficial fraction among those 61 selected changes is NOT_IDENTIFIED by this diagnostic.
 
 Data: `controlled_alternative_pairs.csv` and immutable `raw/dual_p2_ALTERNATIVE_*` records.

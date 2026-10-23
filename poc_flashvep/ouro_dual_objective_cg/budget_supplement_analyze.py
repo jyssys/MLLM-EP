@@ -3,6 +3,7 @@ import json
 from collections import defaultdict,deque
 import numpy as np
 from .common import ROOT
+from .analyze_serving import completed_response
 from ..ouro_budget_joint_cg.cost_predictor import csv_file
 
 def main():
@@ -15,7 +16,7 @@ def main():
             assert data['heavy_observer']
             cells.append(dict(run_id=folder.name,policy=data['label'],B_ms=data['cell'].get('budget_ms'),
                 width=data['configured_N'],offered=len(data['requests']),full_R4=data['full_R4'],
-                natural_caps=sum(str(r['finish_reason']).split('.')[-1].lower() not in ('stop','eos','frontend_stop') for r in data['requests']),
+                natural_caps=sum(not completed_response(r) for r in data['requests']),
                 observer_units=len(data['service_observations']),progress_escapes=len(data['overbudget_admission']),
                 scope='LIVE_MEASURED_EVENT_DIAGNOSTIC. Includes observer/feedback effects. Not a clean serving comparison or accuracy result.'))
             quanta=defaultdict(deque)

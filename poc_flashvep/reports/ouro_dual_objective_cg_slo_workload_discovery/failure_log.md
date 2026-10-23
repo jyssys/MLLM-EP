@@ -39,7 +39,9 @@ The OOM message's CUDA0 is each worker's logical device. It maps to its authoriz
 The previous C-only accuracy regressions remain unresolved.
 The frozen service lookup lacks exact support for many clipped spans.
 Risk scores are empirical exposure proxies, not future complete-token predictions or SLO guarantees.
-No new quality or serving-capacity PASS exists at this checkpoint.
+The initial checkpoint had no new quality or serving-capacity result.
+The completed pilot's measured quality and remaining limits now appear in `quality.md`.
+Qualified sustainable capacity remains NOT_RUN.
 
 ## CPU analysis command and schema corrections
 
@@ -56,3 +58,19 @@ It reported a missing completed attempt at that incorrect root.
 The corrected audit resolves each artifact directly under this campaign's completed marker.
 The launcher already used the correct process-local root.
 This analysis error was not evidence of raw-data corruption.
+
+A standalone evaluator check initially put the older worktree first in Python's search path.
+That order shadowed the current `poc_flashvep` package and failed before scoring.
+The corrected import order matches the actual grader and passes the extractor SHA256 check.
+Parser-only fixtures also pass the preserved API check for both domains.
+These fixtures are not model generations or benchmark accuracy measurements.
+
+The first portable export encountered an older completed smoke schema without `service_observations`.
+It stopped with KeyError before publishing a portable-evidence manifest.
+The corrected exporter records source-schema availability and retains missing optional audit fields as null.
+It does not invent an event measurement for an unobserved old smoke.
+Derived gzip exports are regenerated. Original raw attempts and their successful hashes remain unchanged.
+
+The default Git whitespace check flags the standard CRLF endings emitted by the inherited CSV writer.
+The scoped check with `cr-at-eol` accepts those line endings and checks other whitespace errors.
+No raw CSV values or evidence bytes change to suppress that diagnostic.

@@ -22,7 +22,8 @@ def main():
                 common=dict(source=str(file.relative_to(ROOT)),source_sha256=digest(file),run_id=folder.name)
                 if 'scenario' in data and 'label' in data:
                     base=dict(common,policy=data['label'],cell=data['cell'],scenario=data['scenario'],lane=data['lane'],
-                        physical_GPU=data['physical_GPU'],full_R4=data['full_R4'])
+                        physical_GPU=data['physical_GPU'],full_R4=data['full_R4'],
+                        source_schema_fields=list(data))
                     emit(names[0],dict(base,requests=data['requests'],input_families=data['families'],
                         start=data['start'],end=data['end'],queue_series=data['queue_series'],
                         configured_N=data['configured_N'],arrival_window_s=data['arrival_window_s']))
@@ -30,9 +31,9 @@ def main():
                         prompt_token_loop_work=data['prompt_token_loop_work'],chunk_decisions=data['chunk_decisions']))
                     if data['optimizer_decisions']:
                         emit(names[3],dict(base,optimizer_decisions=data['optimizer_decisions'],
-                            admission_snapshots=data['admission_snapshots'],snapshot_calls=data['snapshot_calls'],
-                            overbudget_admission=data['overbudget_admission']))
-                    if data['service_observations']:emit(names[4],dict(base,service_observations=data['service_observations']))
+                            admission_snapshots=data.get('admission_snapshots'),snapshot_calls=data.get('snapshot_calls'),
+                            overbudget_admission=data.get('overbudget_admission')))
+                    if data.get('service_observations'):emit(names[4],dict(base,service_observations=data['service_observations']))
                 elif folder.name.startswith('dual_p4_QUALITY_') and 'output_ids' in data and 'id' in data:
                     emit(names[1],dict(common,record=data))
     artifacts=[]

@@ -1,11 +1,15 @@
 # Resume instructions
 
-The task is RUNNING. Do not issue a final result from this checkpoint.
+The research program is COMPLETE with verdict NO_GO_INCREMENTAL.
+No GPU experiment remains pending.
+The historical stage notes below are not a request to restart completed jobs.
+Read `analysis.md`, `quality.md`, `budget_supplement_scope.md`, and `evidence_validation.json` first.
 Read the authoritative spec, current research state, run manifest, live PIDs, and coordinator locks first.
 The previous parent NO_GO_INCREMENTAL verdict remains unchanged.
 
 The new branch is `flashvep/ouro-dual-objective-cg-slo-workload-poc`.
-The latest pushed checkpoint is `10e3cf223b3aaf3a6b8474522df0575f36e61371`.
+The latest intermediate pushed checkpoint is `642897187d6f8b1729e55a0b697550672beb0fc1`.
+The final handoff provides the later committed SHA after the completed report/evidence commit.
 The first checkpoint is `7a8b8d61`. It contains Phase A, offline objectives, controls, and registered validation.
 The full current SHA comes from Git. Do not assume this checkpoint is the final commit.
 The old staged binary-diff hash must remain `7018be31bd8a517574711055a72afbd6ae90737e4a585578c98ec255dbf7e1d9`.
@@ -38,18 +42,18 @@ All six serial blocks complete. The quality preflight passes.
 The nine-arm,114-question-per-arm public quality pilot is running under the same coordinator.
 Its live PID remains in `state/followup.json`. Do not duplicate those four worker jobs.
 The secondary coordinator PID313797 waits on the same coordinator lock.
-After quality it runs six observed-v2 CALIBRATION budget jobs at20/80/240ms.
-Its tool session is70855. Main follow-up tool session is20174.
+After quality it runs six observed-v2 CALIBRATION budget jobs at 20/80/240ms.
+Its tool session is 70855. Main follow-up tool session is 20174.
 The v1 secondary plan was preserved before any supplementary GPU execution.
 Do not interpret the observed secondary runs as clean FINAL serving.
 
 The serial performance result does not pass incremental promotion.
-Joint/G2048 SLO-goodput ratios are0.992099× in MIXED and0.993909× in8K stress.
-Actual C changes do occur:61/532 fresh choices, including8/44 MIXED and5/50 serial stress choices.
-Of the61 changes,51 occur at remaining prompt≤512 and none occur above2048.
+Joint/G2048 SLO-goodput ratios are 0.992099× in MIXED and 0.993909× in 8K stress.
+Actual C changes do occur:61/532 fresh choices, including8/44 MIXED and 5/50 serial stress choices.
+Of the 61 changes,51 occur at remaining prompt≤512 and none occur above 2048.
 See `phase_c_performance.md` for confidence intervals and output-work confounds.
 Do not rescue the failed performance gate with new FINAL tuning or an unjustified capacity sweep.
-Check the process state before launching a second coordinator.
+Check the process state before starting a second coordinator.
 It must not race the current dispatcher or overwrite failed/complete attempts.
 
 The follow-up pipeline now has `final_plan.py` and `grade_quality.py`.
@@ -60,15 +64,15 @@ Both the four-worker and serial quiet lanes must remain separate in all tables a
 Do not weaken the fixed-C G-only controls. They share objectives, telemetry, model, fairness, and budget.
 Keep both cost-tuned C2048 and C1024 G-only where required by the frozen finalist.
 
-## Remaining work
+## Historical completion checklist
 
-1. Check `state/followup.json`, live PIDs, and completed markers. Do not launch a duplicate queue.
+1. Check `state/followup.json`, live PIDs, and completed markers. Do not start a duplicate queue.
 2. Complete direct candidate-versus-control quality comparisons after the preserved evaluator finishes.
    The evaluator's actual import path and hash already pass a standalone CPU check.
    Wait for the secondary coordinator too. Run `budget_supplement_analyze` manually afterward if the resident coordinator lacks that newer analysis call.
 3. Preserve the completed audits:8/8 exact initial states,87/96 observer token parity,770 measured budget units.
 4. Mechanism analysis and all ten editable figures now exist. Rerun plotting once for final label margins.
-   Rerun `analyze_resources` after quality. The42 serial serving windows have zero recorded measurement co-execution.
+   Rerun `analyze_resources` after quality. The 42 serial serving windows have zero recorded measurement co-execution.
 5. Analyze actual FINAL quality-matched serving. Do not infer wins from score diversity.
 6. Review capacity gates. No 1,000-request capacity result exists yet.
 7. Write final reports and exact scope limitations. Keep measured and modeled lanes separate.

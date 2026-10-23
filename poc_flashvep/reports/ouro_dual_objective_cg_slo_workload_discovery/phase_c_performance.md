@@ -1,21 +1,21 @@
 # Frozen workload transfer and serial confirmation
 
 Performance promotion result: NO_GO_INCREMENTAL for the tested O6 formulation.
-The full-answer accuracy pilot is still RUNNING when this performance review is written.
-This document does not declare a quality PASS or replace the final integrated verdict.
+The completed public accuracy pilot has identical Joint/G-only correctness labels on 114 questions.
+See `quality.md` for caps, partial token parity, paired intervals, and the limits of that pilot.
 The parent NO_GO_INCREMENTAL result remains unchanged.
 
 ## Scope and clocks
 
-The main completed program contains888 cohorts and7,200 offered requests across development, audits, and FINAL.
+The main completed program contains 888 cohorts and 7,200 offered requests across development, audits, and FINAL.
 Later supplementary budget diagnostics remain separate and do not increase the main FINAL sample count.
-FINAL itself contains312 cohorts and3,744 offered requests.
+FINAL itself contains 312 cohorts and 3,744 offered requests.
 Thirty jobs run up to four independent measurement workers.
 Six additional jobs run one measurement worker at a time.
-No recorded serving window overlaps another measurement GPU in all42 serial policy cohorts.
+No recorded serving window overlaps another measurement GPU in all 42 serial policy cohorts.
 Existing GPU0–3 background remains unchanged. This is not a fully idle eight-GPU host.
 
-The selected objective is O6 with weight2 and a120ms single-quantum budget.
+The selected objective is O6 with weight 2 and a120ms single-quantum budget.
 All matched adaptive controls share fairness, telemetry, cost information, and one-prefill-span packing.
 G-only means adaptive G with a fixed configured C. It does not mean G=1.
 The primary comparison uses configured C2048 and an additional C1024 control.
@@ -29,11 +29,11 @@ Inputs are pretokenized and arrivals occur inside the worker process, without an
 
 ## Actual C movement
 
-O6 Joint changes actual C relative to fixed-C2048 on61/532 fresh decisions, or11.466%.
-The serial MIXED fraction is8/44, or18.182%.
-The serial8K fraction is5/50, or10.000%.
+O6 Joint changes actual C relative to fixed-C2048 on 61/532 fresh decisions, or11.466%.
+The serial MIXED fraction is 8/44, or18.182%.
+The serial8K fraction is 5/50, or10.000%.
 These are actual legal span choices, not nominal configuration changes hidden by clipping.
-There are no fallback-selected C changes in these61 decisions.
+There are no fallback-selected C changes in these 61 decisions.
 
 The new choices are concentrated in small spans:
 
@@ -43,26 +43,26 @@ The new choices are concentrated in small spans:
 |256 |49 |
 |1024 |10 |
 
-Remaining prompt is≤512 tokens in51/61 changed decisions and513–2048 in10/61.
+Remaining prompt is≤512 tokens in 51/61 changed decisions and 513–2048 in 10/61.
 No C change occurs when remaining prompt exceeds2048 tokens.
 Nine changes occur with no active decode. Their decode-risk term is zero.
 Those cases therefore cannot be evidence that active decode risk caused the C change.
-All61 selected shapes have empirical lookup support.
+All 61 selected shapes have empirical lookup support.
 Every corresponding fixed-C alternative at the same G lacks exact lookup support:61/61.
-The selected modeled E exceeds that alternative in15/61 cases.
-The selected modeled R is lower in52/61 cases, the52 decisions with active decode.
+The selected modeled E exceeds that alternative in 15/61 cases.
+The selected modeled R is lower in 52/61 cases, the 52 decisions with active decode.
 This audit identifies a cost-support asymmetry, not a measured physical benefit.
 The inherited enclosing/inflation rule was frozen before this study. No new penalty forces C movement.
 Lookup discontinuities remain a plausible contributor to the new choices.
 They do not prove that an unchosen clipped shape is physically slower.
 
-Across all532 fresh decisions, planned G counts are G1:350, G2:7, G3:22, and G4:153.
+Across all 532 fresh decisions, planned G counts are G1:350, G2:7, G3:22, and G4:153.
 These counts describe planned recurrent groups. Prelude still executes G=0.
 All observed prompt/decode work remains Full R4.
 
 ## Serial lane: measured latency and goodput
 
-Each row uses three independent process starts and36 offered requests.
+Each row uses three independent process starts and 36 offered requests.
 Latency entries are means of cohort quantiles, not a pooled quantile over36 requests.
 All requests in these serial cohorts reach a registered complete stop. No response is capped.
 
@@ -115,21 +115,21 @@ Native Mixed has different co-packing capability, so its differences cannot isol
 
 ## Output-work confounding
 
-Joint/G2048 token sequences match on35/36 MIXED requests and34/36 stress requests.
-Their ordered per-request prompt plans match on28/36 and29/36, respectively.
+Joint/G2048 token sequences match on 35/36 MIXED requests and 34/36 stress requests.
+Their ordered per-request prompt plans match on 28/36 and 29/36, respectively.
 The comparison therefore contains real schedule differences and some different natural outputs.
 The observed goodput ratios are not perfectly equal-work causal estimates.
 
 Two of three MIXED cohorts have identical output sequences for every request.
 Their postselected equal-output throughput ratio averages0.9919×.
-One of three stress cohorts has complete output equality. Its ratio is1.0070×.
+One of three stress cohorts has complete output equality. Its ratio is 1.0070×.
 These subsets are selected after execution and cannot establish a population gain.
 They do not reveal the registered≥5% incremental advantage.
 
 ## Transfer across five workloads
 
 The four-worker characterization preserves both arrival parameters and all five workloads.
-Against G2048, Joint point goodput ratios range from0.6379× to1.0325×.
+Against G2048, Joint point goodput ratios range from 0.6379× to1.0325×.
 The low LONG ratio has a wide interval and capped natural responses.
 It is not proof of a universal performance loss.
 CHAT and BURSTY show no confidence-aware≥5% incremental gain over the stronger G controls.
@@ -145,7 +145,7 @@ For Joint, actual prompt/output P10/P50/P90 are:
 | BURSTY |72 |218.2/290.5/1926.3 |32.1/150/215.2 |0 |
 |8K stress, both lanes |108 |213.4/267/365.2 |26.8/126/220.1 |0 |
 
-The stress mixture contains one long request and11 short requests per cohort.
+The stress mixture contains one long request and 11 short requests per cohort.
 Its overall P90 is therefore not an8K context statistic.
 The delayed long-request subgroup must be inspected separately in the raw manifest.
 These descriptive length summaries reuse source variants across registered conditions.
@@ -154,7 +154,7 @@ They are not independent request samples for a confidence interval.
 ## Capacity decision
 
 Qualified sustainable capacity is NOT_RUN.
-Each cell has only36 offered requests per arm, not the required1,000.
+Each cell has only 36 offered requests per arm, not the required1,000.
 The registered incremental performance gate fails even when real C movement exists.
 A larger capacity sweep would not resolve that missing matched benefit.
 The study therefore stops before a large arrival-rate matrix or a more complex optimizer.

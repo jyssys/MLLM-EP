@@ -1,0 +1,74 @@
+{
+  "id": "dual_p2_BUDGET_B240_N4_gpu4_v2",
+  "kind": "dual_serving",
+  "gpu": 4,
+  "width": 4,
+  "cells": [
+    {
+      "label": "O6_C",
+      "runtime": "split",
+      "C": 2048,
+      "surface": "C_ONLY",
+      "fixed_C": 2048,
+      "objective": "O6",
+      "weight": 2.0,
+      "budget_ms": 240.0,
+      "fairness": "completion"
+    },
+    {
+      "label": "O6_G1024",
+      "runtime": "split",
+      "C": 2048,
+      "surface": "G_ONLY",
+      "fixed_C": 1024,
+      "objective": "O6",
+      "weight": 2.0,
+      "budget_ms": 240.0,
+      "fairness": "completion"
+    },
+    {
+      "label": "MIXED_FAIR",
+      "runtime": "mixed",
+      "C": 512,
+      "fairness": "completion"
+    },
+    {
+      "label": "O6_J",
+      "runtime": "split",
+      "C": 2048,
+      "surface": "JOINT",
+      "fixed_C": 2048,
+      "objective": "O6",
+      "weight": 2.0,
+      "budget_ms": 240.0,
+      "fairness": "completion"
+    },
+    {
+      "label": "O6_G",
+      "runtime": "split",
+      "C": 2048,
+      "surface": "G_ONLY",
+      "fixed_C": 2048,
+      "objective": "O6",
+      "weight": 2.0,
+      "budget_ms": 240.0,
+      "fairness": "completion"
+    }
+  ],
+  "scenarios": [
+    "CAL_BUDGET_240_N4"
+  ],
+  "scenario_manifest": "budget_supplement_scenarios.json",
+  "cap": 1024,
+  "budget": 2048,
+  "blocks": 18432,
+  "graphs": true,
+  "streams": true,
+  "drain_s": 600,
+  "timeout_s": 7200,
+  "lane": "LIVE_MEASURED_SECONDARY_BUDGET_EVENT_DIAGNOSTIC_NOT_CLEAN_FINAL",
+  "normalization_sha256": "a906a5b27bb9db3302d3d7dc638c6d3356099bafa21649969caa569da1a58a8d",
+  "workload_lock_sha256": "92deccc33c0b82bf07092298bf56ba4d560a1fbe4fdedf9b3c59dc43378c554a",
+  "scenario_sha256": "55c0fb7a947c6e59f54fd94bbb8d6ab9a2c85f6a8da106133547386c63e2aa2a",
+  "observe": true
+}

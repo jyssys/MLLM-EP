@@ -38,7 +38,9 @@ This avoids changing objective features merely because G-only fixes C.
 The selected four development families are O2, O4, O6, and O10.
 Their frozen initial weights are 8, 1, 2, and 8, respectively.
 Selection uses historical TRAIN geometry and different mechanisms, not fresh FINAL serving outcomes.
-Fresh VALIDATION serving will determine whether any finalist warrants further testing.
+Fresh VALIDATION selected O6, weight 2, before FINAL.
+The completed FINAL comparison does not show incremental serving benefit beyond matched G-only.
+See `analysis.md` for the NO_GO_INCREMENTAL verdict and its scope.
 The catalog does not claim novelty from scalarization, enumeration, or a larger candidate menu.
 
 Source: `objective_families.py`, `objective_features.py`, `objective_normalization_v1.json`, and `objective_grid.csv`.

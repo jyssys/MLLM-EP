@@ -41,6 +41,10 @@ No research process creates a TP or PP group.
 CPU affinity uses 16 disjoint logical CPUs per worker, indexed from physical GPU ID.
 OMP, MKL, and OpenBLAS use one thread per worker.
 GPU contexts, JIT caches, job IDs, logs, warm-up, and raw paths remain separate.
+JIT disk-cache paths are separate between GPUs but persist across jobs on the same GPU.
+Independent process starts are not cold-JIT-cache starts.
+The campaign does not delete caches to manufacture a compilation contrast.
+Policy order and device assignment rotate, and input-only warm-up precedes each serving window.
 
 The primary contract prohibits research or resource changes on GPUs0–3.
 The request's final all-device burner boilerplate conflicts with that contract.
@@ -66,8 +70,8 @@ This study does not infer GPU bandwidth or memory traffic from model/storage siz
 
 Four-worker throughput drift remains within the registered 3% review threshold on the measured calibration sample.
 Two independent starts per device/worker-count cell do not prove all workload interference is negligible.
-The serial confirmation lane removes other authorized measurement workers and their burners.
-It does not remove the unchanged GPU0–3 background.
+The serial confirmation lane runs without other authorized measurement workers or their burners.
+It retains the unchanged GPU0–3 background.
 The final report must keep the two measurement lanes separate.
 
 Data: `model_source_locks.json`, `gpu_uuid_map.json`, raw `identity.json`, `GPU_policy_rotation.csv`, and `GPU_process_telemetry.csv`.

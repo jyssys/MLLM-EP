@@ -3,14 +3,16 @@
 The numerical control completed 32 non-reference pretrained comparisons.
 All 32 matched isolated hidden states, final logits, KV values, and eight generated token IDs exactly.
 The probes cover fixed G2/G3, legal C512→C1024 changes, and G1→G3/G1→G2→G1/G3→G1 cycles.
-The tested prompt lengths are128,512,1536, and2048 tokens.
-They do not establish isolated numerical parity for every8K serving state.
+The tested prompt lengths are 128,512,1536, and 2048 tokens.
+They do not establish isolated numerical parity for every 8K serving state.
 Every tested prompt completed exactly Full R4.
 The pre-existing relative-L2 tolerance remains 0.03. It was not relaxed.
 
 These isolated probes do not establish universal batched-output parity or task-accuracy equivalence.
 The previous C-only GSM8K regression remains unresolved.
-New objective policies still require natural-generation and frozen benchmark comparisons.
+Natural-generation and frozen benchmark comparisons now complete.
+Joint/G-only correctness labels match on114/114 pilot questions, while token IDs match on112/114.
+See `quality.md` for caps and the limits of this small public pilot.
 
 The online selector changes metadata at existing legal boundaries only.
 It preserves attention, RoPE, normalization, sampling, model weights, BF16, and depth-indexed KV layout.
