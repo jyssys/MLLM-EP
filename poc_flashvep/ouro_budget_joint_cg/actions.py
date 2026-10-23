@@ -79,3 +79,18 @@ def scripted(state):
     if state['kind']=='CONTINUE_CHUNK':
         return Choice(state['C'],2 if state['start']==0 else 4,'scripted legal continuation')
     return Choice(512 if state['start']==0 else 1024,2 if state['start']==0 else 4,'scripted C512/G2 then NEW C1024/G4')
+
+def cycling(state):
+    # Covers G3 from depth one and G2 from depth one as legal remainders.
+    start=state['start'];depth=state['depth']
+    if start==0:
+        C,G=128,(1 if depth==0 else 3)
+    elif start<384:
+        C,G=256,2
+    elif start<896:
+        C,G=512,(3 if depth==0 else 1)
+    elif start<1664:
+        C,G=768,(1 if depth in (0,3) else 2)
+    else:
+        C,G=128,4
+    return Choice(state['C'] if state['kind']=='CONTINUE_CHUNK' else C,G,'registered legal frontier cycle')

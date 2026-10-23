@@ -6,7 +6,7 @@ import time
 import torch
 from .common import ROOT,MODEL,write,config,guard
 from .fairness import attach
-from .actions import ChunkActions,scripted
+from .actions import ChunkActions,scripted,cycling
 from .service_observer import ServiceObserver
 
 def engine(model,mode,C,width,job):
@@ -31,11 +31,11 @@ def numerical(model,job,target):
     results=[]
     for P in job['lengths']:
         reference=None
-        for mode in ('atomic','grouped','grouped3','scripted'):
-            e=engine(model,'split' if mode=='scripted' else mode,2048 if mode in ('atomic','scripted') else 512,2,
+        for mode in job.get('modes',('atomic','grouped','grouped3','scripted')):
+            e=engine(model,'split' if mode in ('scripted','cycled') else mode,2048 if mode in ('atomic','scripted','cycled') else 512,2,
                 dict(job,blocks=max(512,4*((P+32+15)//16))))
             fairness=attach(e,True)
-            hook=ChunkActions(e,scripted) if mode=='scripted' else None
+            hook=ChunkActions(e,scripted if mode=='scripted' else cycling) if mode in ('scripted','cycled') else None
             observer=ServiceObserver(e,dict(run_id=job['id'],policy=mode,P=P,physical_GPU=guard(),lane='PRETRAINED_NUMERICAL'))
             e.add_request('probe',fixture[:P],SamplingParams(max_tokens=8,max_loops=4,exit_threshold=1.,temperature=0))
             hidden=logits=None;kv=[];final=None
@@ -195,4 +195,10 @@ def run_job(model,job,target):
         return fixed_service(model,job,target)
     if job['kind']=='live_budget':
         return live_service(model,job,target)
+    if job['kind']=='observer_control':
+        from .measurement_controls import run_job as controls
+        return controls(model,job,target)
+    if job['kind']=='isolated_service':
+        from .isolated_service import run_job as isolated
+        return isolated(model,job,target)
     raise ValueError(job['kind'])

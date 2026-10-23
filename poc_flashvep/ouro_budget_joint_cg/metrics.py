@@ -32,17 +32,18 @@ def summarize(data,ttft_s=5.,tbt_s=.2):
 
 def prefill_exposures(data):
     rows=data.get('service_observations',[]);result=[]
+    all_prefills=[q for q in rows if any(s['phase'].startswith('prefill') for s in q['spans'])]
     for r in data['requests']:
         for left,right in zip(r['token_times'],r['token_times'][1:]):
-            prefills=[q for q in rows if any(s['phase'].startswith('prefill') for s in q['spans'])
-                and left<=q['host_dispatch_begin_s']<right]
+            prefills=[q for q in all_prefills if left<=q['host_dispatch_begin_s']<right]
+            overlapping=[q for q in all_prefills if q['aligned_service_begin_s']<right and q['aligned_service_end_s']>left]
             intervals=sorted((max(left,q['aligned_service_begin_s']),min(right,q['aligned_service_end_s']))
-                for q in prefills if q['aligned_service_begin_s']<right and q['aligned_service_end_s']>left)
+                for q in overlapping)
             union=0.;end=-float('inf')
             for begin,finish in intervals:
                 union+=max(0.,finish-max(begin,end));end=max(end,finish)
             result.append(dict(id=r['id'],left_s=left,right_s=right,ITL_ms=1000*(right-left),
-                submitted_prefills=len(prefills),prefill_interval_union_ms=1000*union,
+                submitted_prefills=len(prefills),overlapping_prefill_intervals=len(overlapping),prefill_interval_union_ms=1000*union,
                 evidence='MEASURED_OBSERVER_SAME_GPU_ALIGNMENT_NOT_ADDITIVE_E2E_ATTRIBUTION'))
     return result
 

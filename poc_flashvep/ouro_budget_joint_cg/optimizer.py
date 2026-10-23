@@ -1,5 +1,7 @@
 """Single-action 0–1 optimization by enumeration. Credit complete R4 work."""
 from dataclasses import dataclass
+import hashlib
+import json
 import time
 from .actions import Choice
 from .common import CHUNKS,GROUPS
@@ -83,7 +85,8 @@ class BudgetSelector:
         else:
             chosen=max(candidates,key=lambda c:(c.utility,c.complete_tokens_now,-c.residual_chunk_ms,c.G))
             reason=f'{self.mode}_{self.objective}_FINITE_ENUMERATION'
-        self.trace.append(dict(host_s=time.perf_counter(),state=state,budget_ms=self.budget,mode=self.mode,
+        state_hash=hashlib.sha256(json.dumps(state,sort_keys=True,separators=(',',':')).encode()).hexdigest()
+        self.trace.append(dict(host_s=time.perf_counter(),state=state,state_sha256=state_hash,budget_ms=self.budget,mode=self.mode,
             candidates=[c.__dict__ for c in candidates],selected=chosen.__dict__,reason=reason,
             selector_ns=time.perf_counter_ns()-started))
         return Choice(chosen.C,chosen.G,reason)

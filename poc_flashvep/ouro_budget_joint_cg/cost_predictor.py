@@ -6,6 +6,7 @@ import json
 import math
 import time
 from collections import defaultdict
+from functools import lru_cache
 import numpy as np
 from .common import ROOT,write,digest
 
@@ -42,7 +43,11 @@ def collect():
             data=json.loads(file.read_text())
             for row in data.get('service_observations',[]):
                 f=path_features(row)
+                prompt=[s for s in row['spans'] if s['phase'].startswith('prefill')]
+                families=data.get('families',[])
+                family=families[int(prompt[0]['id'])] if len(prompt)==1 and families else 'MULTIPLE_OR_DECODE'
                 records.append(dict(**f,service_ms=row['service_ms'],split=data['split'],
+                    source_family=family,
                     run_id=data['run_id'],GPU=identity['physical_GPU'],trial=data['trial'],
                     policy=data['policy'],configured_C=data['C'],P=data['P'],N=data['configured_N'],
                     host_dispatch_ms=row['host_dispatch_ms'],queue_delay_ms=row['enqueue_to_service_start_ms'],
@@ -63,6 +68,10 @@ class ServiceLookup:
             self.by_path[(item['path'],item['G'])].append(item)
 
     def raw(self,path,c,g,context,depth):
+        return self.cached(path,c,g,context_bin(context),depth)
+
+    @lru_cache(maxsize=16384)
+    def cached(self,path,c,g,target,depth):
         choices=self.by_path.get((path,g),[])
         if not choices:
             # Unsupported shapes are explicit. This deliberately expensive
@@ -73,7 +82,6 @@ class ServiceLookup:
             return 1.5*max(r['q95_ms'] for r in candidates),False
         exact_depth=[r for r in choices if r['depth']==depth]
         choices=exact_depth or choices
-        target=context_bin(context)
         def distance(r):
             # Prefer empirical enclosing rows/context over extrapolation.
             return (r['rows']<c,r['context_bin']<target,
@@ -128,10 +136,19 @@ def evaluate(records,artifact):
     summary=[]
     for (split,path),values in sorted(groups.items()):
         errors=np.array([r['signed_error_ms'] for r in values])
+        blocks=defaultdict(list)
+        for row in values:
+            blocks[row['run_id']].append(row['over_upper'])
+        counts=np.array([len(v) for v in blocks.values()]);misses=np.array([sum(v) for v in blocks.values()])
+        rng=np.random.default_rng(20261023)
+        draws=rng.integers(0,len(counts),size=(2000,len(counts)))
+        over=100*misses[draws].sum(axis=1)/counts[draws].sum(axis=1)
         summary.append(dict(split=split,path=path,n=len(values),starts=len({r['run_id'] for r in values}),
+            source_families=len({r['source_family'] for r in values}),
             MAE_ms=float(np.abs(errors).mean()),median_signed_ms=float(np.median(errors)),
             signed_P95_ms=float(np.percentile(errors,95)),signed_P99_ms=float(np.percentile(errors,99)),
             underprediction_pct=100*float((errors>0).mean()),upper_overrun_pct=100*np.mean([r['over_upper'] for r in values]),
+            overrun_block_CI95_low=float(np.percentile(over,2.5)),overrun_block_CI95_high=float(np.percentile(over,97.5)),
             unknown_shape_pct=100*np.mean([not r['known_shape'] for r in values])))
     return residuals,summary
 
@@ -154,6 +171,22 @@ def main():
     csv_file(ROOT/'prediction_residuals.csv.gz',residuals);csv_file(ROOT/'predictor_heldout.csv',summary)
     write(ROOT/'cost_model_artifacts/freeze_v1.json',dict(sha256=digest(target),created_wall_s=time.time(),
         blind_policy='No model revision after this held-out evaluation. FINAL_ONLINE remains unused.'))
+    classifications=[]
+    for split in ('VALIDATION','NEW_HELDOUT'):
+        for path in ('atomic','staged_prelude','staged_core'):
+            for budget in (10,20,40,60,80,120,160,240):
+                feasible=[r for r in residuals if r['split']==split and r['path']==path and r['upper_ms']<=budget]
+                classifications.append(dict(split=split,path=path,budget_ms=budget,predicted_feasible=len(feasible),
+                    false_feasible=sum(r['service_ms']>budget for r in feasible),
+                    evidence='OFFLINE_MEASURED_SAMPLE_CLASSIFICATION_NOT_LIVE_COUNTERFACTUAL_SPEED'))
+    csv_file(ROOT/'predictor_false_feasible.csv',classifications)
+    lookup=ServiceLookup(artifact);queries=[]
+    states=[(r['path'],r['rows'],r['G'],r['context'],r['depth']) for r in residuals if r['split']=='VALIDATION'][:1000]
+    for repeat in range(3):
+        for state in states:
+            before=time.perf_counter_ns();lookup.estimate(*state);queries.append(time.perf_counter_ns()-before)
+    write(ROOT/'cost_model_artifacts/query_overhead.json',dict(queries=len(queries),P50_us=float(np.percentile(queries,50))/1000,
+        P99_us=float(np.percentile(queries,99))/1000,scope='CPU model query only, repeated validation states. Not full selector or GPU service.'))
     print(json.dumps(summary,indent=2))
 
 if __name__=='__main__':

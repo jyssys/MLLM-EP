@@ -32,7 +32,7 @@ def numerical():
     print('Numerical cases',len(rows),'tolerance failures',sum(not r['tolerance_pass'] for r in rows))
 
 def serving():
-    rows=[];exposures=[]
+    rows=[];exposures=[];fairness_raw=defaultdict(dict)
     for pattern in ('cb_p1_fairness_*','cb_p3_*','cb_p5_*'):
         for folder in sorted((ROOT/'raw').glob(pattern)):
             if not (folder/'completed.json').exists():
@@ -45,6 +45,8 @@ def serving():
                     fairness=data['fairness'],P=data['P'],N=data['configured_N'],trial=data['trial'],
                     GPU=data['physical_GPU'],lane=data['lane'],budget_ms=data.get('configured_budget_ms'))
                 rows.append(dict(meta,**summarize(data)))
+                if folder.name.startswith('cb_p1_fairness'):
+                    fairness_raw[(folder.name,data['policy'],data['C'],data['trial'])][data['fairness']]=data
                 for exposure in prefill_exposures(data):
                     exposures.append(dict(meta,**exposure))
     csv_file(ROOT/'serving_cohort_metrics.csv',rows);csv_file(ROOT/'output_prefill_exposures.csv.gz',exposures)
@@ -66,6 +68,23 @@ def serving():
                     comparisons.append(dict(policy=policy,P=P,metric=metric,**ci,
                         contrast='completion minus stock fairness; no optimizer',evidence='EXPLORATORY_SHARED_HOST_PAIRED_BLOCKS'))
     csv_file(ROOT/'fairness_paired_effects.csv',comparisons)
+    parity=[]
+    for (run,policy,C,trial),pair in fairness_raw.items():
+        if set(pair)!={'stock','completion'}:
+            continue
+        a={r['id']:r for r in pair['stock']['requests']};b={r['id']:r for r in pair['completion']['requests']}
+        def executed(data,rid):
+            return sum(s['tokens']*s['G'] for q in data['service_observations'] for s in q['spans'] if s['id']==rid and s['phase']=='recurrent')
+        for rid,request in a.items():
+            other=b[rid]
+            parity.append(dict(run_id=run,policy=policy,C=C,trial=trial,P=pair['stock']['P'],id=rid,
+                tokens_exact=request['output_ids']==other['output_ids'],length_exact=len(request['output_ids'])==len(other['output_ids']),
+                stock_output_tokens=len(request['output_ids']),fair_output_tokens=len(other['output_ids']),
+                stock_executed_decode_loop_work=executed(pair['stock'],rid),
+                fair_executed_decode_loop_work=executed(pair['completion'],rid),
+                stock_finish=request['finish_reason'],fair_finish=other['finish_reason'],
+                scope='Same prompts and fixed C/G. Natural outputs can change with scheduling geometry.'))
+    csv_file(ROOT/'fairness_output_parity.csv',parity)
     print('Serving cohorts',len(rows),'client gaps',len(exposures))
 
 def main():

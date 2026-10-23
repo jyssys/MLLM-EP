@@ -9,6 +9,7 @@ class OnlineControl:
     def __init__(self,engine,model,mode,budget_ms,fixed_C=1024,objective='U2',
             yield_penalty_ms=0.,feedback='FIXED',target_ITL_ms=270.):
         self.engine=engine
+        self.initial_budget_ms=float(budget_ms)
         self.controller=BudgetController(feedback,budget_ms,target_ITL_ms)
         self.selector=BudgetSelector(model,budget_ms,mode,fixed_C,objective,yield_penalty_ms)
         self.actions=ChunkActions(engine,self.selector)
@@ -40,6 +41,9 @@ class OnlineControl:
     def reset_cohort(self):
         assert not self.engine.has_unfinished_requests()
         self.counts.clear();self.controller.last.clear()
+        self.controller.gaps.clear();self.controller.since_update=0
+        self.controller.value=self.initial_budget_ms;self.selector.budget=self.initial_budget_ms
+        self.controller.updates.clear()
         self.selector.trace.clear();self.actions.decisions.clear();self.admission.trace.clear()
         self.output_events.clear()
 

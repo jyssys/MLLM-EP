@@ -16,7 +16,37 @@ Preserve all unrelated staged additions and dirty deletions.
 Commit only this new package and report root.
 The user explicitly authorizes the final push.
 
-## Running calibration
+## Current checkpoint after Phase 0 and initial Phase 1
+
+All 64 Phase 0 jobs completed. Final 8-worker drained-throughput drift ranged from about -4.20% to +0.896%, depending on shape/device.
+Use `gpu_contention.md` and the paired CSV, not the earlier partial estimates.
+All eight numerical jobs completed: 64 execution records, 48 reference comparisons.
+All 48 comparisons had exact hidden/logit/KV/token agreement on the isolated probes.
+There were 3,056 ready-stream event records. Maximum alignment bound was 0.066094 ms.
+All eight fairness jobs completed: 160 observer cohorts and 480 request pairs.
+All 480 pairs matched output length and actual executed decode-loop work.
+Token IDs matched in 426/480 pairs. Accuracy remains untested for the new policy.
+The quiet observer controls completed: 143/144 token-sequence matches. One native Mixed case remains unresolved.
+
+Phase 2 data collection is running under `data_controller.py`.
+Check `/proc` and immutable completion markers before starting another dispatcher.
+The original tool session after server recovery was 82146. It may be lost on another server restart.
+The standalone dispatch child can survive its parent, so do not assume no GPU work remains.
+
+A detached `pilot_controller.py` is registered in `state/pilot_controller_process.json`.
+It waits for all new cost data and the frozen v1 model.
+Then it runs the extra dynamic-frontier probes, builds the TRAIN-only budget pilot, and executes it.
+It stops for manual review before final held-out, feedback, quality, or capacity expansion.
+Its log path is recorded in that process-state file.
+`detach.py pilot_controller` detects a live matching coordinator before creating another.
+
+The old `p2_paired_service_plan.json` is registered but NOT_RUN.
+The controlled endpoint queue supersedes it for causal C/G component interaction.
+That queue uses P2048/P8192 and C128/512/2048, which share the exact final KV endpoint.
+It is a component benchmark, not a full-answer serving workload.
+Only four TRAIN sources provide P16384. The component P8192 excerpts cycle three distinct families from that pool.
+
+## Earlier calibration registration
 
 `p0_contention_plan.json` contains 64 jobs over all GPUs and 1/2/4/8 worker groups.
 Every device uses fixed disjoint CPU affinity `16*GPU .. 16*GPU+15`.

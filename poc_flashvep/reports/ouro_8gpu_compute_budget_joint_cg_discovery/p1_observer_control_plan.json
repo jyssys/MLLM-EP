@@ -1,0 +1,125 @@
+{
+  "gpus": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
+  "groups": [
+    {
+      "jobs": [
+        {
+          "id": "cb_p1_observer_control_gpu0_v1",
+          "kind": "observer_control",
+          "gpu": 0,
+          "shape": [
+            2033,
+            4
+          ],
+          "split": "TRAIN",
+          "cells": [
+            {
+              "mode": "split",
+              "C": 512,
+              "fairness": "completion"
+            },
+            {
+              "mode": "atomic",
+              "C": 512,
+              "fairness": "completion"
+            },
+            {
+              "mode": "staged4",
+              "C": 512,
+              "fairness": "completion"
+            },
+            {
+              "mode": "grouped3",
+              "C": 512,
+              "fairness": "completion"
+            },
+            {
+              "mode": "grouped",
+              "C": 512,
+              "fairness": "completion"
+            },
+            {
+              "mode": "mixed",
+              "C": 512,
+              "fairness": "completion"
+            }
+          ],
+          "trials": [
+            4,
+            5
+          ],
+          "cap": 64,
+          "budget": 2048,
+          "quiet": true,
+          "timeout_s": 2400
+        }
+      ],
+      "barrier": null
+    },
+    {
+      "jobs": [
+        {
+          "id": "cb_p1_observer_control_gpu1_v1",
+          "kind": "observer_control",
+          "gpu": 1,
+          "shape": [
+            8177,
+            8
+          ],
+          "split": "TRAIN",
+          "cells": [
+            {
+              "mode": "atomic",
+              "C": 512,
+              "fairness": "completion"
+            },
+            {
+              "mode": "mixed",
+              "C": 512,
+              "fairness": "completion"
+            },
+            {
+              "mode": "grouped3",
+              "C": 512,
+              "fairness": "completion"
+            },
+            {
+              "mode": "staged4",
+              "C": 512,
+              "fairness": "completion"
+            },
+            {
+              "mode": "grouped",
+              "C": 512,
+              "fairness": "completion"
+            },
+            {
+              "mode": "split",
+              "C": 512,
+              "fairness": "completion"
+            }
+          ],
+          "trials": [
+            4,
+            5
+          ],
+          "cap": 64,
+          "budget": 2048,
+          "quiet": true,
+          "timeout_s": 2400
+        }
+      ],
+      "barrier": null
+    }
+  ],
+  "scope": "Quiet same-GPU clean/event crossover. Other GPUs are isolation-reserved. Not idle allocation."
+}
