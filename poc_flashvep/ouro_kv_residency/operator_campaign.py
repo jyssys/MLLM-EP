@@ -16,6 +16,7 @@ def main():
     p.add_argument('--contexts',default='2048,8192,32768,65408')
     p.add_argument('--representative',action='store_true');p.add_argument('--cache-pressure',action='store_true')
     p.add_argument('--after-job')
+    p.add_argument('--components',action='store_true');p.add_argument('--profile',action='store_true')
     a=p.parse_args();(ROOT/'state').mkdir(exist_ok=True)
     if a.after_job:
         path=ROOT/'raw'/a.after_job
@@ -54,6 +55,12 @@ def main():
                     '-m','poc_flashvep.ouro_kv_residency.distributed','--run',name,'--fixtures',str(path),
                     '--batches',a.batches,'--repeats',str(a.repeats),'--skew']
                 if a.cache_pressure:command.append('--cache-pressure')
+                if a.components:command.append('--components')
+                if a.profile:
+                    command.append('--profile');output=ROOT/'profiles'/name;output.parent.mkdir(exist_ok=True)
+                    command=['nsys','profile','--trace=cuda,nvtx,osrt','--cuda-graph-trace=node',
+                        '--capture-range=cudaProfilerApi','--capture-range-end=stop','--sample=none',
+                        '--cpuctxsw=none','-o',str(output)]+command
                 (ROOT/'logs').mkdir(exist_ok=True)
                 append(ROOT/'run_manifest.jsonl',dict(id=name,kind='DISTRIBUTED_OPERATOR',world=world,command=command,start=time.time()))
                 with (ROOT/'logs'/f'{name}.log').open('a') as log:

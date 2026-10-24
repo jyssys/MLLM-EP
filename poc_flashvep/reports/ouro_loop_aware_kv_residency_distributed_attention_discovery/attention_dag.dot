@@ -1,0 +1,17 @@
+digraph ExactAttention {
+  rankdir=LR;
+  label="Exact attention operator. Model integration is not implemented.";
+  node [shape=box];
+  hidden [label="Ready hidden state\nPrevious layer / recurrent pass"];
+  qkv [label="Original Q/K/V projection + RoPE\nOriginal BF16 values"];
+  query [label="Real NCCL query broadcast"];
+  shard0 [label="Rank 0\nLocal valid context pages\nFA4 output + logsumexp"];
+  shard1 [label="Rank 1 ... P-1\nDisjoint valid context pages\nFA4 output + logsumexp"];
+  gather [label="Real NCCL partial-result all-gather"];
+  merge [label="Stable logsumexp-weighted merge\nCurrent key included exactly once"];
+  next [label="Original output projection / residual / FFN\nFull-model integration: NOT_RUN"];
+  hidden -> qkv -> query;
+  query -> shard0 -> gather;
+  query -> shard1 -> gather;
+  gather -> merge -> next;
+}

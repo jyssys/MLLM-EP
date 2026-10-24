@@ -1,5 +1,12 @@
 """Prospective calibration, exact layout controls, and heavy profile plans."""
-from .common import ROOT,write
+from .common import ROOT,write as atomic_write
+import json
+
+def write(path,value):
+    if path.exists():
+        assert json.loads(path.read_text())==value,('IMMUTABLE_PLAN_CHANGED',path)
+        return
+    atomic_write(path,value)
 
 def main():
     groups=[]
@@ -52,5 +59,7 @@ def main():
     controls += [dict(id=f'natural_EOS_P{p}_N{n}',gpu=0,kind='timing',P=p,N=n,cap=128,
         repeats=1,split='FINAL',natural=True,sample_memory=False) for p,n in ((2048,1),(8192,4))]
     write(ROOT/'plans'/'controls_extended.json',dict(gpus=list(range(8)),groups=[dict(jobs=[j]) for j in controls]))
+    write(ROOT/'plans'/'local_segmentation.json',dict(gpus=list(range(8)),groups=[dict(jobs=[
+        dict(id=f'local_segmentation_s{s}',gpu=s,kind='local_split',repeats=20)]) for s in range(3)]))
 
 if __name__=='__main__':main()

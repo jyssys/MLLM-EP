@@ -65,7 +65,8 @@ def main():
     global PRESSURE
     p=argparse.ArgumentParser();p.add_argument('--run',required=True);p.add_argument('--fixtures',required=True)
     p.add_argument('--batches',default='1,2,4,8');p.add_argument('--repeats',type=int,default=25)
-    p.add_argument('--skew',action='store_true');p.add_argument('--cache-pressure',action='store_true');args=p.parse_args()
+    p.add_argument('--skew',action='store_true');p.add_argument('--cache-pressure',action='store_true')
+    p.add_argument('--components',action='store_true');p.add_argument('--profile',action='store_true');args=p.parse_args()
     rank=int(os.environ['RANK']);world=int(os.environ['WORLD_SIZE']);local=int(os.environ['LOCAL_RANK'])
     assert world in (2,4,8) and torch.cuda.device_count()==world
     torch.cuda.set_device(local);torch.set_num_threads(1)
@@ -157,14 +158,30 @@ def main():
                 assert numeric['finite'] and numeric['relative_L2']<=contract['relative_L2'] and numeric['absolute_max']<=contract['absolute_max'],numeric
                 eager=bench(distributed_attention,args.repeats)
                 graph_stats=None;graph_error=None
+                components=None
                 try:
                     dist.barrier();cg,out=graph(distributed_attention)
+                    if args.profile:torch.cuda.cudart().cudaProfilerStart()
                     graph_stats=bench(cg.replay,args.repeats)
+                    if args.profile:torch.cuda.cudart().cudaProfilerStop()
                     cg.replay();torch.cuda.synchronize()
                     graph_stats['numerical']=metrics(reference,out)
                     del cg,out
                 except Exception as error:
                     graph_error=repr(error)
+                if args.components:
+                    partial=lambda:attention(q,local_cache)
+                    pg,po=graph(partial);partial_stats=bench(pg.replay,args.repeats)
+                    del pg,po,partial
+                    def comm_merge():
+                        dist.broadcast(q,src=0);dist.all_gather_into_tensor(recv,send)
+                        summaries=recv.view(world,batch,16,129)
+                        weights=torch.softmax(summaries[...,128],dim=0)
+                        return (summaries[...,:128]*weights.unsqueeze(-1)).sum(0).to(torch.bfloat16)
+                    mg,mo=graph(comm_merge);comm_stats=bench(mg.replay,args.repeats)
+                    del mg,mo,comm_merge
+                    components=dict(local_partial_graph=partial_stats,communication_merge_graph=comm_stats,
+                        qualifier='Independent component measurements. Their sum is not a measured critical path.')
                 row=dict(fixture=source['name'],fixture_sha256=source['sha256'],depth=packet['depth'],layer=packet['layer'],
                     split=packet['split'],L=length,B=batch,P=world,rank=rank,placement=mode,lo=lo,hi=hi,
                     owned_valid_KV_bytes=(hi-lo)*16*128*2*2*batch,
@@ -180,6 +197,7 @@ def main():
                     causal_semantics='One query over the explicitly valid causal prefix. Local causal=False retains every supplied valid key once.',
                     edge_prefix_override=source.get('length_override'))
                 row['cache_pressure_bytes']=PRESSURE.numel()*PRESSURE.element_size() if PRESSURE is not None else 0
+                row['components']=components;row['heavy_profile']=args.profile
                 rows.append(row)
                 if len(rows)%8==0:write(target/f'rank{rank}_results.json',rows)
                 dist.barrier()

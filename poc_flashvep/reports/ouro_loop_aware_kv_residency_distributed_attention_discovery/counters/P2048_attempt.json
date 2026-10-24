@@ -1,0 +1,29 @@
+{
+  "command": [
+    "/opt/nvidia/nsight-compute/2025.1.1/ncu",
+    "--target-processes",
+    "all",
+    "--profile-from-start",
+    "off",
+    "--kernel-name",
+    "regex:.*flash_attn.*",
+    "--launch-count",
+    "1",
+    "--metrics",
+    "dram__bytes_read.sum,dram__bytes_write.sum,lts__t_sector_hit_rate.pct,sm__throughput.avg.pct_of_peak_sustained_elapsed",
+    "--csv",
+    "--log-file",
+    "/home/esjung/MLLM-EP-github/poc_flashvep/reports/ouro_loop_aware_kv_residency_distributed_attention_discovery/counters/P2048.csv",
+    "--export",
+    "/home/esjung/MLLM-EP-github/poc_flashvep/reports/ouro_loop_aware_kv_residency_distributed_attention_discovery/counters/P2048",
+    "/home/esjung/.venvs/ouro-chunk-loop-prefill/bin/python",
+    "-m",
+    "poc_flashvep.ouro_kv_residency.counter_probe",
+    "--P",
+    "2048"
+  ],
+  "returncode": 1,
+  "stdout": "",
+  "stderr": "Error in sitecustomize; set PYTHONVERBOSE for traceback:\nModuleNotFoundError: No module named '__future__'\n/home/esjung/.venvs/ouro-chunk-loop-prefill/lib/python3.14/site-packages/nvidia_cutlass_dsl/dsl_packages/cutlass/base_dsl/dsl.py:2300: UserWarning: Argument aux_data (position 17) cannot be converted to a JitArgument for function 'cutlass___call___flash_attncuteflash_fwd_sm90FlashAttentionForwardSm90_object_at__Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_None_00883'. Its type `<class 'flash_attn.cute.utils.AuxData'>` is not supported. If the value is known at compile time, annotate it: `aux_data: Constexpr`. Otherwise, implement the `JitArgument` or `DynamicExpression` protocol for type `<class 'flash_attn.cute.utils.AuxData'>`, or register a custom argument adapter.\n  exe_args, func_types, adapted_args = self.generate_mlir_function_types(\n",
+  "wall_s": 1792826724.6851306
+}

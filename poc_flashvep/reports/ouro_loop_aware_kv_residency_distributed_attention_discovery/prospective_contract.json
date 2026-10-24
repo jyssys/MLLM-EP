@@ -1,0 +1,33 @@
+{
+  "model_revision": "574fa66cb8bf5abdc979642d01cf2b79b16bfab1",
+  "source": "4a350344027960a48384626aa646f1765fda6d4f",
+  "native_baseline": "UNMODIFIED RLT Async + Mixed + FA4 + CUDA Graph",
+  "precision": "BF16",
+  "loops": 4,
+  "context_limit": 65536,
+  "kv_namespaces": 96,
+  "evidence": [
+    "LIVE_MEASURED_OPERATOR",
+    "LIVE_MEASURED_SERVING",
+    "MODEL_UPPER_BOUND",
+    "SIMULATED",
+    "NOT_RUN"
+  ],
+  "operator_tolerance": {
+    "relative_L2": 0.03,
+    "absolute_max": 0.125,
+    "finite": true,
+    "meaning": "Freeze before TRAIN GPU tests. Absolute error uses original output scale. No post-hoc relaxation."
+  },
+  "layout_tolerance": {
+    "KV_byte_exact": true,
+    "logit_relative_L2": 0.03,
+    "output_token_exact": true
+  },
+  "contention_threshold_fraction": 0.03,
+  "profiling": "Never sum kernel service into clean E2E shares.",
+  "no_gates_on_single_negative": true,
+  "mandatory": "Physical CP2 operator, followed by feasible CP4/8 operator.",
+  "phase5": "Require incremental effect versus the identical generic depth-agnostic CP implementation.",
+  "final": "No full-model serving or accuracy claim for standalone operators."
+}

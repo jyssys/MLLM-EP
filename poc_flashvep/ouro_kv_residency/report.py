@@ -16,7 +16,7 @@ def main():
     counts=json.loads((ROOT/'analysis_counts.json').read_text())
     windows=json.loads((ROOT/'profile_complete_token_windows.json').read_text())
     b1=[r for r in baseline if int(r['N'])==1]
-    baseline_table=table(['Prompt tokens','Starts','Mean TTFT, ms','Mean delivered ITL, ms','Logical KV, GiB','Peak allocated, GiB'],
+    baseline_table=table(['Prompt tokens','Independent processes','Mean TTFT, ms','Mean delivered ITL, ms','Logical KV, GiB','Peak allocated, GiB'],
         [[r['P'],r['starts'],f"{float(r['TTFT_mean_ms']):.2f}",f"{float(r['ITL_mean_ms']):.3f}",f"{float(r['logical_KV_GiB']):.3f}",f"{float(r['peak_GiB']):.3f}"] for r in b1])
     trace=[]
     for name in sorted({r['run'] for r in windows}):
@@ -25,6 +25,9 @@ def main():
         a=np.mean([r['attention_exclusive_GPU_service_ms'] for r in rows]);t=np.mean([r['output_completion_interval_ms'] for r in rows])
         trace.append([name,len(rows),f'{a:.3f}',f'{t:.3f}',f'{a/t*100:.2f}%'])
     trace_table=table(['Heavy trace','Complete R4 windows','Attention exclusive GPU service, ms','Sampling interval, ms','Trace-local ratio'],trace)
+    bounds=read('headroom_bounds.csv')
+    bounds_table=table(['Prompt','B','1.5× attention','2× attention','4× attention','Infinite attention'],
+        [[r['P'],r['N']]+[f"{100*float(r[k]):.1f}%" for k in ('trace_reduction_fraction_at_1p5','trace_reduction_fraction_at_2','trace_reduction_fraction_at_4','trace_reduction_fraction_at_infinite')] for r in bounds])
     op_rows=[]
     for r in ops:
         if r['B']!=1 or r['placement']!='balanced':continue
@@ -36,12 +39,17 @@ def main():
     for p,n,lane in sorted({(int(r['P']),int(r['N']),r['lane']) for r in pairs}):
         rs=[r for r in pairs if (int(r['P']),int(r['N']),r['lane'])==(p,n,lane)]
         values=[float(r['speedup']) for r in rs];ci=confidence(values)
+        ec=confidence([float(r['cohort_E2E_speedup']) for r in rs])
         layout_rows.append([p,n,lane,len(values),f"{np.mean([float(r['native_ITL_ms']) for r in rs]):.3f}",
-            f"{np.mean([float(r['layer_major_ITL_ms']) for r in rs]):.3f}",f'{np.mean(values):.3f}× [{ci[0]:.3f},{ci[1]:.3f}]'])
-    layout_table=table(['Prompt','B','Lane','Start pairs','Native ITL, ms','Layer-major ITL, ms','Speedup, 95% CI'],layout_rows)
+            f"{np.mean([float(r['layer_major_ITL_ms']) for r in rs]):.3f}",f'{np.mean(values):.3f}× [{ci[0]:.3f},{ci[1]:.3f}]',
+            f"{np.mean([float(r['cohort_E2E_speedup']) for r in rs]):.3f}× [{ec[0]:.3f},{ec[1]:.3f}]"])
+    layout_table=table(['Prompt','B','Lane','Start pairs','Native ITL, ms','Layer-major ITL, ms','ITL speedup, 95% CI','Cohort E2E speedup, 95% CI'],layout_rows)
     local_rows=[]
     for length,batch,pressure in sorted({(int(r['L']),int(r['B']),r['cache_pressure']) for r in local}):
         choices=[]
+        reference_rows=[dict(r,segmented_wall_ms=r['native_wall_ms'],speedup_wall=1.) for r in local
+            if (int(r['L']),int(r['B']),r['cache_pressure'],int(r['S']))==(length,batch,pressure,2)]
+        if reference_rows:choices.append((np.mean([float(r['segmented_wall_ms']) for r in reference_rows]),1,reference_rows))
         for split in (2,4,8,16):
             rs=[r for r in local if (int(r['L']),int(r['B']),r['cache_pressure'],int(r['S']))==(length,batch,pressure,split)]
             if rs:choices.append((np.mean([float(r['segmented_wall_ms']) for r in rs]),split,rs))
@@ -49,6 +57,19 @@ def main():
         latency,split,rs=min(choices,key=lambda x:x[0])
         local_rows.append([length,batch,pressure,split,len(rs),f'{latency:.4f}',f"{np.mean([float(r['speedup_wall']) for r in rs]):.3f}×"])
     local_table=table(['Visible keys','B','128 MiB pressure','Best measured local S','Process starts','Local segmented wall, ms','Native S1 / segmented'],local_rows)
+    strong=read('best_local_vs_CP.csv')
+    strong_table=table(['Visible keys','GPUs','Best local S','Local wall, ms','CP wall, ms','CP speedup over strong local, 95% CI'],
+        [[r['L'],r['P'],r['best_measured_local_S'],f"{float(r['local_wall_ms']):.4f}",f"{float(r['distributed_wall_ms']):.4f}",
+            f"{float(r['speedup_over_best_local']):.3f}× [{float(r['CI_low']):.3f},{float(r['CI_high']):.3f}]"] for r in strong if r['B']=='1' and r['cache_pressure']=='True'])
+    ls32=np.mean([float(r['speedup_wall']) for r in local if r['L']=='32769' and r['B']=='1' and r['S']=='8' and r['cache_pressure']=='True'])
+    ls64=np.mean([float(r['speedup_wall']) for r in local if r['L']=='65409' and r['B']=='1' and r['S']=='8' and r['cache_pressure']=='True'])
+    cp32=next(r for r in strong if r['L']=='32769' and r['B']=='1' and r['P']=='8' and r['cache_pressure']=='True')
+    cp64=next(r for r in strong if r['L']=='65409' and r['B']=='1' and r['P']=='8' and r['cache_pressure']=='True')
+    final_quiet=[r for r in pairs if r['P']=='65408' and r['lane']=='QUIET']
+    quiet_note=''
+    if final_quiet:
+        vals=[float(r['cohort_E2E_speedup']) for r in final_quiet];ci=confidence(vals)
+        quiet_note=f'The near-64K Quiet Lane E2E speedup is {np.mean(vals):.3f}×, with 95% CI [{ci[0]:.3f}, {ci[1]:.3f}].\n'
     numeric_max=max(float(r['max_relative_L2']) for r in raw) if raw else None
     abs_max=max(float(r['max_absolute']) for r in raw) if raw else None
     put('baseline_audit.md',f'''# Native baseline audit
@@ -131,6 +152,12 @@ The clean ITL also increases with context.
 These observations support long-context attention diagnosis.
 They do not establish an integrated distributed speedup.
 
+The actual B1/32K FA4 launch grid is 16×1×1 across 1,440 recorded kernels.
+The device reports 132 SMs and 50 MiB L2.
+These are launch and hardware facts, not measured occupancy.
+The local sequence-parallel control addresses this generic launch-geometry limitation.
+Counter permission remains unavailable, so no measured SM utilization is inferred.
+
 `profile_kernel_families.json` retains GEMM, KV-write, metadata, copy, and pointwise service.
 QKV and FFN GEMMs remain unresolved within their combined family.
 Pointwise kernels also include normalization, RoPE, and residual work.
@@ -146,6 +173,12 @@ For an interval fraction f, the conditional Amdahl speedup is `1 / (1-f+f/s)`.
 Using trace-local f gives a trace-based model only.
 It does not measure clean request improvement.
 Cold request E2E also contains prefill, which is outside the decode-only operator.
+
+The following percentages are conditional reductions of the heavy-trace GPU sampling interval.
+Evidence: `MODEL_UPPER_BOUND`.
+They are not measured clean TPOT or cold request E2E improvements.
+
+{bounds_table}
 ''')
     put('single_gpu_layout.md',f'''# Exact single-GPU controls
 
@@ -161,6 +194,8 @@ The confidence interval resamples independent matched process-start pairs.
 Technical repeats and model layers are not independent statistical samples.
 Quiet pairs use the same physical GPU within each comparison.
 The parallel discovery lane remains separate.
+{quiet_note}
+The large parallel E2E outlier did not reproduce as a meaningful Quiet Lane improvement.
 
 The dedicated initialized-page test compares three physical layers at all four depths.
 Its twelve sampled Q/K/V/attention snapshots are byte-exact across layouts.
@@ -180,6 +215,7 @@ This is a Flash-Decoding-style control, not a loop-aware method.
 {local_table}
 
 The best S is a measured tuning envelope over S2/S4/S8/S16.
+The envelope also retains native S1 when it is faster.
 It is not a validated online controller.
 The control uses the same source fixtures and registered numerical tolerances.
 It tests whether CP gains reflect missing generic local sequence parallelism.
@@ -257,6 +293,17 @@ Repeating them over 24 layers and four loops would require 192 collectives per t
 That multiplication is structural accounting, not a measured full-model collective count.
 Application payload is not measured NVLink wire traffic.
 The full serving integration remains `NOT_RUN_FULL_SERVING`.
+
+## Strong local baseline
+
+{strong_table}
+
+This table uses the cache-pressure diagnostic and one representative real model state per context.
+It compares three independent local processes with three independent distributed group restarts.
+The confidence interval uses independent-process resampling.
+It does not pair arbitrary restart ordinals as if they were request pairs.
+Best S is an offline measured tuning envelope, not a new online policy.
+The comparison does not establish full-model E2E speedup.
 ''')
     put('correctness.md',f'''# Correctness summary
 
@@ -333,6 +380,15 @@ However, the implementation is generic exact context parallelism.
 No added loop-aware placement or prefetch policy demonstrates an incremental benefit.
 The study does not convert that generic operator signal into a new method claim.
 
+The generic local S8 operator reaches {ls32:.3f}× at 32K and {ls64:.3f}× near 64K in the cache-pressure diagnostic.
+Against the best local control, B1 CP2 and CP4 are slower in every tested controlled context.
+CP8 reaches {float(cp64['speedup_over_best_local']):.3f}× near 64K, with 95% CI [{float(cp64['CI_low']):.3f}, {float(cp64['CI_high']):.3f}].
+At 32K, CP8 is {float(cp32['speedup_over_best_local']):.3f}×, with 95% CI [{float(cp32['CI_low']):.3f}, {float(cp32['CI_high']):.3f}].
+These are operator measurements, not model serving speedups.
+
+{quiet_note}
+Thus, neither a large exact-layout gain nor a loop-specific distributed gain is established.
+
 ## Scope and completed work
 
 Model: ByteDance/Ouro-1.4B Base, BF16, original Static R4.
@@ -383,6 +439,15 @@ The control separates missing local kernel parallelism from a need for additiona
 
 ## Physical distributed result
 
+The strong local sequence-parallel control is essential to interpretation.
+It uses established Flash-Decoding principles, not recurrence-specific state.
+The following B1 comparison includes a 128 MiB cache-pressure diagnostic.
+
+{strong_table}
+
+The initial speedup over unsplit FA4 is not automatically a Multi-GPU requirement.
+Any remaining operator advantage still needs a full-model and quality comparison.
+
 {op_table}
 
 These are operator speedups, not full-model E2E speedups.
@@ -400,7 +465,7 @@ An integrated model cycles through 96 namespaces rather than one repeated fixtur
 5. Per-rank operator KV shrinks through real ownership. Full-model capacity, natural throughput, and E2E improvement remain unmeasured.
 6. Static R4 reads the same valid context extent at each depth. No causal state pair proves an additional placement advantage.
 7. We preserve original BF16 KV and test numerical error. Full distributed natural generation and benchmark accuracy remain `NOT_RUN`.
-8. FlashLoop, HLA, LLA, ResidualQuant, and MELT alter representation or computation. Preserving BF16 distinguishes scope, not automatic novelty.
+8. FlashLoop, HLA, LLA, ResidualQuant, and MELT change representation or computation. Preserving BF16 distinguishes scope, not automatic novelty.
 
 ## Limitations and decision
 

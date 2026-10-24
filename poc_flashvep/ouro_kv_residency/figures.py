@@ -87,5 +87,17 @@ def main():
         data=json.loads(peerfiles[0].read_text());ax.plot([r['bytes']/2**20 for r in data],[r['median_ms'] for r in data],'o-',label='Measured NCCL P2P + barriers')
     ax.set(xlabel='Original BF16 K+V transfer, MiB',ylabel='Wall latency, ms',title='C. LIVE movement cost. No full-model HBM roofline claim.')
     ax.legend();save(fig,'C_attn_roofline_and_shard_cost')
+    strong=list(csv.DictReader((ROOT/'best_local_vs_CP.csv').open()))
+    fig,ax=plt.subplots(figsize=(8,4))
+    for world in (2,4,8):
+        rs=[r for r in strong if int(r['P'])==world and r['B']=='1' and r['cache_pressure']=='True']
+        rs.sort(key=lambda r:int(r['L']))
+        values=np.array([float(r['speedup_over_best_local']) for r in rs])
+        lower=np.array([float(r['CI_low']) for r in rs]);upper=np.array([float(r['CI_high']) for r in rs])
+        ax.errorbar([int(r['L'])/1024 for r in rs],values,yerr=[values-lower,upper-values],fmt='o-',capsize=3,label=f'CP{world}')
+    ax.axhline(1,color='black',linestyle='--',label='Best measured local S1/2/4/8/16')
+    ax.set(xlabel='Visible context, Ki tokens',ylabel='Best local / distributed wall latency',
+        title='J. Strong B1 baseline. LIVE operator, 128 MiB pressure, 3 local + 3 group starts.')
+    ax.legend(fontsize=8);save(fig,'J_strong_local_vs_distributed')
 
 if __name__=='__main__':main()

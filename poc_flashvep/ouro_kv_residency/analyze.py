@@ -22,7 +22,7 @@ def confidence(values):
     return [float(np.percentile(medians,2.5)),float(np.percentile(medians,97.5))]
 
 def main():
-    results=[];memory=[];matrix=[];jobs={}
+    results=[];memory=[];matrix=[];jobs={};cohorts={};memory_summary=[]
     for path in (ROOT/'jobs').glob('*.json'):
         job=json.loads(path.read_text());jobs[job['id']]=job
     for name,job in sorted(jobs.items()):
@@ -32,11 +32,28 @@ def main():
             status='COMPLETED' if done.exists() else 'FAILED' if failed.exists() else 'NOT_RUN',
             source_split=job.get('split'),graphs=job.get('graphs',True),sample_memory=job.get('sample_memory',True)))
         if not done.exists():continue
+        if (directory/'memory_facts.json').exists():
+            mf=json.loads((directory/'memory_facts.json').read_text());weights=json.loads((directory/'model_facts.json').read_text())['weight_bytes']
+            timing=json.loads(done.read_text())['summary'].get('rows',[])
+            samples=[]
+            if (directory/'telemetry.jsonl').exists():
+                for line in (directory/'telemetry.jsonl').read_text().splitlines():
+                    sample=json.loads(line)
+                    if 'stats' in sample:samples.append(float(sample['stats'].split(',')[2].strip()))
+            peak=max([r['peak_bytes'] if 'peak_bytes' in r else r.get('peak_allocated',0) for r in timing]+[mf['allocated_after_engine']])
+            memory_summary.append(dict(run=name,P=job.get('P'),N=job.get('N'),pool_bytes=mf['pool_bytes'],weight_bytes=weights,
+                prompt_payload_bytes=mf['logical_prompt_payload_bytes'],allocated_after_engine=mf['allocated_after_engine'],
+                reserved_after_engine=mf['reserved_after_engine'],peak_allocated=peak,
+                peak_reserved=max([r.get('peak_reserved',0) for r in timing]+[mf['reserved_after_engine']]),
+                non_KV_nonweight_peak_allocated=peak-weights-mf['pool_bytes'],
+                NVML_sampled_peak_MiB=max(samples) if samples else None,
+                evidence='LIVE_MEASURED_SERVING',qualifier='Payload is structural. NVML samples are not instantaneous peaks. Residual allocation is not exact graph workspace.'))
         for row in json.loads(done.read_text())['summary'].get('rows',[]):
             if 'ITL_mean_ms' not in row:continue
             results.append(dict(id=name,**row))
         for path in directory.glob('measured_*.json'):
             data=json.loads(path.read_text())['data']
+            cohorts[(name,int(path.stem.split('_')[1]))]=data['requests']
             for index,event in enumerate(data['memory']):
                 prefixes=[v['initialized_prefixes'] for v in event['allocations'].values()]
                 memory.append(dict(run=name,index=index,host_s=event['host_s'],used_blocks=event['used_blocks'],
@@ -53,6 +70,9 @@ def main():
     matrix.append(dict(id='exact_65536_prompt_plus_generation',kind='context_limit',P=65536,N=1,
         status='NOT_RUN',reason='Prompt plus output exceeds model position limit. Near-64K uses 65408 prompt tokens.'))
     csvfile('results_raw.csv',results);csvfile('memory_events.csv.gz',memory);csvfile('experiment_matrix.csv',matrix)
+    model_completed=sum(r['status']=='COMPLETED' for r in matrix)
+    model_failed=sum(r['status']=='FAILED' for r in matrix)
+    csvfile('memory_summary.csv',memory_summary)
     grid=defaultdict(list)
     for r in results:
         if r['id'].startswith('grid_'):grid[(r['P'],r['N'],r['id'])].append(r)
@@ -69,6 +89,26 @@ def main():
             evidence='LIVE_MEASURED_SERVING',lane='BOUNDED_HARDWARE_EOS_IGNORED',
             uncertainty='Two source-disjoint process starts. Technical repeats are not independent requests.'))
     csvfile('baseline_summary.csv',baseline)
+    headroom=[]
+    if (ROOT/'profile_complete_token_windows.json').exists():
+        windows=json.loads((ROOT/'profile_complete_token_windows.json').read_text())
+        for run in sorted({r['run'] for r in windows}):
+            ws=[r for r in windows if r['run']==run and r['complete_R4_geometry']]
+            if not ws:continue
+            match=re.search(r'_P(\d+)_N(\d+)',run);p,n=map(int,match.groups())
+            a=float(np.mean([r['attention_exclusive_GPU_service_ms'] for r in ws]));t=float(np.mean([r['output_completion_interval_ms'] for r in ws]));f=a/t
+            b=next((r for r in baseline if (r['P'],r['N'])==(p,n)),None)
+            item=dict(P=p,N=n,trace_attention_ms=a,trace_sampling_interval_ms=t,f_attention_trace=f,
+                f_attention_clean='UNRESOLVED',logical_prompt_KV_GiB=p*n*786432/2**30,
+                configured_pool_GiB=54,clean_grid_ITL_ms=b['ITL_mean_ms'] if b else None,
+                peak_allocated_GiB=b['peak_GiB'] if b else None,
+                max_completed_N_in_grid=max((r['N'] for r in baseline if r['P']==p),default=0),
+                evidence='MODEL_UPPER_BOUND',scope='Conditional Amdahl model over measured heavy-trace GPU sampling intervals. Not measured clean E2E saving.')
+            for speed in (1.5,2,4,float('inf')):
+                key='infinite' if not np.isfinite(speed) else str(speed).replace('.','p')
+                item[f'trace_reduction_fraction_at_{key}']=f*(1-1/speed)
+            headroom.append(item)
+    csvfile('headroom_bounds.csv',headroom)
     calibration=[]
     isolated=[r['ITL_mean_ms'] for r in results if r['id'].startswith('cal_w1_')]
     mean0=float(np.mean(isolated))
@@ -142,15 +182,30 @@ def main():
         if r['id'].startswith('layout_'):
             match=re.match(r'layout_(native|layer_major)_P(\d+)_N(\d+)_s(\d+)(.*)',r['id'])
             if match:pairgroups[(int(match[2]),int(match[3]),int(match[4]),match[5],match[1])].append(r)
-    pairs=[]
+    pairs=[];parity=[]
     for (p,n,start,suffix,storage),values in pairgroups.items():
         if storage!='native':continue
         other=pairgroups.get((p,n,start,suffix,'layer_major'))
         if not other:continue
         a=float(np.mean([v['ITL_mean_ms'] for v in values]));b=float(np.mean([v['ITL_mean_ms'] for v in other]))
         pairs.append(dict(P=p,N=n,start=start,lane='QUIET' if suffix else 'PARALLEL',native_ITL_ms=a,layer_major_ITL_ms=b,
-            speedup=a/b,evidence='LIVE_MEASURED_SERVING',scope='Exact generic layout, bounded generation, same physical GPU within pair.'))
+            speedup=a/b,
+            native_cohort_E2E_ms=float(np.mean([v['E2E_cohort_ms'] for v in values])),
+            layer_major_cohort_E2E_ms=float(np.mean([v['E2E_cohort_ms'] for v in other])),
+            cohort_E2E_speedup=float(np.mean([v['E2E_cohort_ms'] for v in values]))/float(np.mean([v['E2E_cohort_ms'] for v in other])),
+            TTFT_speedup=float(np.mean([v['TTFT_mean_ms'] for v in values]))/float(np.mean([v['TTFT_mean_ms'] for v in other])),
+            evidence='LIVE_MEASURED_SERVING',scope='Exact generic layout, bounded generation, same physical GPU within pair.'))
+        for native_row,candidate_row in zip(values,other):
+            ar=cohorts[(native_row['id'],native_row['repeat'])];br=cohorts[(candidate_row['id'],candidate_row['repeat'])]
+            assert len(ar)==len(br)
+            for ra,rb in zip(sorted(ar,key=lambda x:x['id']),sorted(br,key=lambda x:x['id'])):
+                first=next((i for i,(a,b) in enumerate(zip(ra['tokens'],rb['tokens'])) if a!=b),None)
+                parity.append(dict(P=p,N=n,start=start,lane='QUIET' if suffix else 'PARALLEL',repeat=native_row['repeat'],
+                    request=ra['id'],tokens_exact=ra['tokens']==rb['tokens'],lengths_exact=len(ra['tokens'])==len(rb['tokens']),
+                    depths_exact=ra['depths']==rb['depths'],finish_exact=ra['finish']==rb['finish'],first_divergent_token=first,
+                    native_tokens=len(ra['tokens']),candidate_tokens=len(rb['tokens']),evidence='LIVE_MEASURED_SERVING',scope='EOS-ignored hardware output parity. Not benchmark accuracy.'))
     csvfile('paired_comparisons.csv',pairs)
+    csvfile('cohort_output_parity.csv',parity)
     aggregates=[]
     for key in sorted({(r['P'],r['L'],r['B'],r['placement'],r['cache_pressure']) for r in operator}):
         world,length,batch,placement,pressure=key
@@ -176,8 +231,42 @@ def main():
                 speedup_wall=row['baseline']['wall_median_ms']/row['segmented']['wall_median_ms'],
                 relative_L2=row['numerical']['relative_L2'],absolute_max=row['numerical']['absolute_max'],evidence='LIVE_MEASURED_OPERATOR'))
     csvfile('local_segmentation.csv',local)
-    write(ROOT/'analysis_counts.json',dict(completed_model_jobs=sum(r['status']=='COMPLETED' for r in matrix),
-        failed_model_jobs=sum(r['status']=='FAILED' for r in matrix),timing_cohorts=len(results),
+    strong=[]
+    for length,batch,pressure in sorted({(r['L'],r['B'],r['cache_pressure']) for r in local}):
+        choices=[]
+        reference_rows=[dict(r,segmented_wall_ms=r['native_wall_ms']) for r in local
+            if (r['L'],r['B'],r['cache_pressure'],r['S'])==(length,batch,pressure,2)]
+        if reference_rows:choices.append((float(np.mean([r['segmented_wall_ms'] for r in reference_rows])),1,reference_rows))
+        for split in (2,4,8,16):
+            rs=[r for r in local if (r['L'],r['B'],r['cache_pressure'],r['S'])==(length,batch,pressure,split)]
+            if rs:choices.append((float(np.mean([r['segmented_wall_ms'] for r in rs])),split,rs))
+        if not choices:continue
+        mean_local,split,ls=min(choices,key=lambda v:v[0])
+        for world in (2,4,8):
+            ds=[r for r in operator if (r['L'],r['B'],r['cache_pressure'],r['P'],r['placement'],r['depth'],r['layer'])==(length,batch,pressure,world,'balanced',1,12)]
+            if not ds:continue
+            local_values=np.array([r['segmented_wall_ms'] for r in ls]);dist_values=np.array([r['distributed_graph_wall_P50_ms'] for r in ds])
+            rng=np.random.default_rng(20261024)
+            ratios=np.mean(rng.choice(local_values,(10000,len(local_values)),replace=True),1)/np.mean(rng.choice(dist_values,(10000,len(dist_values)),replace=True),1)
+            strong.append(dict(L=length,B=batch,cache_pressure=pressure,P=world,best_measured_local_S=split,
+                local_starts=len(ls),distributed_starts=len(ds),local_wall_ms=mean_local,distributed_wall_ms=float(np.mean(dist_values)),
+                speedup_over_best_local=mean_local/float(np.mean(dist_values)),CI_low=float(np.percentile(ratios,2.5)),CI_high=float(np.percentile(ratios,97.5)),
+                evidence='LIVE_MEASURED_OPERATOR',qualifier='Independent-process bootstrap. Best S is a measured tuning envelope, not an online policy. Same representative model state.'))
+    csvfile('best_local_vs_CP.csv',strong)
+    for directory in sorted((ROOT/'distributed').iterdir()):
+        if not directory.is_dir():continue
+        identity=directory/'rank0_identity.json'
+        if not identity.exists():continue
+        world=json.loads(identity.read_text())['world']
+        records=json.loads((directory/'rank0_results.json').read_text()) if (directory/'rank0_results.json').exists() else []
+        matrix.append(dict(id=directory.name,kind='DISTRIBUTED_OPERATOR',gpu=','.join(map(str,range(world))),
+            gpu_count=world,status='COMPLETED' if all((directory/f'rank{r}_completed.json').exists() for r in range(world)) else 'FAILED_PRESERVED',
+            visible_key_lengths=','.join(map(str,sorted({r['L'] for r in records}))),
+            batch_rows=','.join(map(str,sorted({r['B'] for r in records}))),
+            evidence='LIVE_MEASURED_OPERATOR' if records else 'NOT_RUN'))
+    csvfile('experiment_matrix.csv',matrix)
+    write(ROOT/'analysis_counts.json',dict(completed_model_jobs=model_completed,
+        failed_model_jobs=model_failed,timing_cohorts=len(results),
         operator_pairs=len(operator),baseline_shapes=len(baseline),layout_pairs=len(pairs)))
 
 if __name__=='__main__':main()

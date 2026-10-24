@@ -18,7 +18,7 @@ def family(name):
 
 def main():
     summaries=[];kernels_summary=[];manifest=[];windows=[]
-    for report in sorted((ROOT/'profiles').glob('*.nsys-rep')):
+    for report in sorted((ROOT/'profiles').glob('profile_P*.nsys-rep')):
         database=report.with_suffix('.sqlite')
         if not database.exists():
             result=subprocess.run(['nsys','export','--type=sqlite','--output='+str(database),str(report)],capture_output=True,text=True)
@@ -71,5 +71,11 @@ def main():
     write(ROOT/'profile_kernel_families.json',kernels_summary)
     write(ROOT/'profile_complete_token_windows.json',windows)
     write(ROOT/'profile_artifact_manifest.json',manifest)
+    with gzip.open(ROOT/'kernel_timing.csv.gz','wt',newline='') as output:
+        writer=csv.writer(output);writer.writerow(['run','start_ns','end_ns','stream','family','name','evidence'])
+        for path in sorted((ROOT/'profiles').glob('*_portable.csv.gz')):
+            with gzip.open(path,'rt') as stream:
+                rows=csv.reader(stream);next(rows)
+                for row in rows:writer.writerow([path.name.removesuffix('_portable.csv.gz'),*row,'LIVE_MEASURED_OPERATOR_HEAVY_TRACE'])
 
 if __name__=='__main__':main()

@@ -1,0 +1,126 @@
+{
+  "gpus": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
+  "groups": [
+    {
+      "jobs": [
+        {
+          "id": "tiering_exact",
+          "gpu": 1,
+          "kind": "tiering",
+          "fixture": "P32768_d1_l12.pt"
+        }
+      ]
+    },
+    {
+      "jobs": [
+        {
+          "id": "observer_mem_False",
+          "gpu": 0,
+          "kind": "timing",
+          "P": 8192,
+          "N": 4,
+          "cap": 64,
+          "repeats": 3,
+          "split": "FINAL",
+          "sample_memory": false
+        }
+      ]
+    },
+    {
+      "jobs": [
+        {
+          "id": "observer_mem_True",
+          "gpu": 0,
+          "kind": "timing",
+          "P": 8192,
+          "N": 4,
+          "cap": 64,
+          "repeats": 3,
+          "split": "FINAL",
+          "sample_memory": true
+        }
+      ]
+    },
+    {
+      "jobs": [
+        {
+          "id": "capacity_admission_v1",
+          "gpu": 0,
+          "kind": "capacity",
+          "P": 1024,
+          "N": 1
+        }
+      ]
+    },
+    {
+      "jobs": [
+        {
+          "id": "fixture_P16384",
+          "gpu": 0,
+          "kind": "capture",
+          "P": 16384,
+          "N": 1,
+          "cap": 2,
+          "graphs": false,
+          "split": "FINAL"
+        }
+      ]
+    },
+    {
+      "jobs": [
+        {
+          "id": "profile_P16384_N1",
+          "gpu": 0,
+          "kind": "timing",
+          "P": 16384,
+          "N": 1,
+          "cap": 16,
+          "repeats": 1,
+          "split": "VALIDATION",
+          "nsys": true
+        }
+      ]
+    },
+    {
+      "jobs": [
+        {
+          "id": "natural_EOS_P2048_N1",
+          "gpu": 0,
+          "kind": "timing",
+          "P": 2048,
+          "N": 1,
+          "cap": 128,
+          "repeats": 1,
+          "split": "FINAL",
+          "natural": true,
+          "sample_memory": false
+        }
+      ]
+    },
+    {
+      "jobs": [
+        {
+          "id": "natural_EOS_P8192_N4",
+          "gpu": 0,
+          "kind": "timing",
+          "P": 8192,
+          "N": 4,
+          "cap": 128,
+          "repeats": 1,
+          "split": "FINAL",
+          "natural": true,
+          "sample_memory": false
+        }
+      ]
+    }
+  ]
+}
