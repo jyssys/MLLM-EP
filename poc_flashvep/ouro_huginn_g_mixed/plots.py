@@ -29,6 +29,27 @@ def main():
     ax.set_title('Legal execution modes — engineering contract, not measured performance\nAll prompt/decode tokens retain Ouro R4 or Huginn R16. No multi-loop heterogeneous Mixed descriptor.')
     save(fig,'legal_hybrid_dag')
     rows=list(csv.DictReader((ROOT/'fixed_matrix.csv').open()))
+    paired=json.loads((ROOT/'paired_block_summary.json').read_text())
+    for model in ['ouro','huginn']:
+        widths=[0,1,2,4,8];limits=[2,3,4] if model=='ouro' else [2,4,8,16]
+        values=np.full((len(limits),len(widths)),np.nan)
+        for row in paired:
+            if (row['model']==model and row['P']==2048 and row['C']==512
+                    and row['arm']=='hybrid' and row['lane']=='LIGHT_PLAN_OBSERVER'
+                    and row['G'] in limits and row['N'] in widths):
+                values[limits.index(row['G']),widths.index(row['N'])]=row['TTFT_ratio_ref_over_candidate']
+        fig,ax=plt.subplots(figsize=(8,4))
+        cmap=plt.colormaps['RdBu'].copy();cmap.set_bad('#dedede')
+        im=ax.imshow(values,cmap=cmap,vmin=.8,vmax=1.2,aspect='auto')
+        for i in range(len(limits)):
+            for j in range(len(widths)):
+                ax.text(j,i,f'{values[i,j]:.3f}×' if np.isfinite(values[i,j]) else 'NOT\nMEASURED',
+                    ha='center',va='center',fontsize=9)
+        ax.set_xticks(range(len(widths)),widths);ax.set_yticks(range(len(limits)),limits)
+        ax.set(xlabel='Background decode requests N',ylabel='Configured pure-prefill maximum G',
+            title=f'{model}: fixed hybrid TTFT opportunity map, P2048/C512\nLIVE_MEASURED exploratory plan lane, one process per cell. Mixed always uses G1.')
+        fig.colorbar(im,ax=ax,label='Mixed TTFT / Hybrid TTFT. Colors clip at 0.8–1.2, labels show actual ratios.')
+        save(fig,f'{model}_fixed_hybrid_opportunity_map')
     for model in ['ouro','huginn']:
         fig,axes=plt.subplots(1,2,figsize=(11,4))
         for ax,n in zip(axes,[1,4]):

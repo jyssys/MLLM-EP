@@ -19,6 +19,12 @@ That simple state switch already belongs to the strong fixed-hybrid control.
 Configured G and actual G remain different columns.
 Remainder clipping is not an adaptive policy contribution.
 
+![Ouro fixed-hybrid map](figures/ouro_fixed_hybrid_opportunity_map.png)
+![Huginn fixed-hybrid map](figures/huginn_fixed_hybrid_opportunity_map.png)
+These exploratory maps use a single process per cell and retain the initial runtime outliers.
+Gray cells are unmeasured. They are not interpolated estimates.
+The clean three-start confirmation remains the primary performance screen.
+
 Grouped-only execution can improve prefill priority while it delays complete decode tokens.
 The TTFT–TBT figures show that trade-off without adding kernel service times to E2E.
 The exact-state interventions report whether source fingerprints match.
