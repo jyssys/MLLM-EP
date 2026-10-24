@@ -1,0 +1,24 @@
+digraph legal_hybrid {
+  rankdir=LR;
+  node [shape=box,fontname="Helvetica",fontsize=10];
+  ready [label="Current ready queues\nNo future arrivals or tokens"];
+  prelude [label="Native prelude\nHuginn: keep fixed injection"];
+  select [shape=diamond,label="Legal recurrent frontier"];
+  mixed [label="Native Mixed G1\nCompatible prompt + decode rows"];
+  pure [label="Pure prompt Gk\nCommon legal remaining depth\nNo grouped decode row"];
+  event [label="Native producer event\nImmutable spans + per-depth KV"];
+  progress [shape=diamond,label="Required prompt/token\nwork complete?"];
+  coda [label="Native coda + sampling\nHuginn: boundary KV retained"];
+  output [label="Delivered output timestamp\nNot a recurrent-step timestamp"];
+  ready -> prelude -> select;
+  select -> mixed [label="Compatible decode ready"];
+  select -> pure [label="Registered pure-group branch"];
+  mixed -> event;
+  pure -> event;
+  event -> progress;
+  progress -> select [label="More recurrence"];
+  progress -> prelude [label="More prompt chunks"];
+  progress -> coda [label="Full prompt / token ready"];
+  coda -> output;
+  output -> prelude [label="Next token, if not stopped"];
+}

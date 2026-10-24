@@ -1,0 +1,210 @@
+diff --git a/vllm_rlt/config.py b/vllm_rlt/config.py
+index f2ae951..fd6be7d 100644
+--- a/vllm_rlt/config.py
++++ b/vllm_rlt/config.py
+@@ -57,11 +57,13 @@ class SchedulerConfig:
+     admission_scan_limit: int = 64
+     max_admission_bypasses: int = 8
+     prefill_chunk_size: int = 128
++    prefill_loop_group_size: int = 1
+     max_prefill_batches_before_decode: int = 1
+     policy: str = "fcfs"
+     enable_preemption: bool = False
+ 
+     def __post_init__(self):
++        _positive("prefill_loop_group_size", self.prefill_loop_group_size)
+         for name in (
+             "max_num_seqs",
+             "max_num_batched_tokens",
+diff --git a/vllm_rlt/core/scheduler.py b/vllm_rlt/core/scheduler.py
+index b2442d7..9997211 100644
+--- a/vllm_rlt/core/scheduler.py
++++ b/vllm_rlt/core/scheduler.py
+@@ -33,6 +33,7 @@ class ScheduledRequest:
+     chunk_start: int | None = None
+     completes_prompt: bool = False
+     phase: RequestPhase | None = None
++    loop_count: int = 1
+ 
+ 
+ @dataclass(frozen=True)
+@@ -531,6 +532,8 @@ class Scheduler:
+             # plane's causal prefix covers the run. Tokens past num_preluded_tokens
+             # have no resident prelude and cannot run yet.
+             boundary = request.prefill_depth_ranges[first_token_depth]
++            group = min(self.config.prefill_loop_group_size,
++                        self.total_ut_steps - first_token_depth)
+             count = min(
+                 token_budget,
+                 self.config.prefill_chunk_size,
+@@ -544,8 +547,9 @@ class Scheduler:
+                 count,
+                 depth=first_token_depth,
+                 chunk_start=request.prefill_chunk_start,
++                loop_count=group,
+                 completes_prompt=(
+-                    first_token_depth == len(request.prefill_depth_ranges) - 1
++                    first_token_depth + group == len(request.prefill_depth_ranges)
+                     and start + count == len(request.prompt_token_ids)
+                 ),
+             )
+@@ -655,6 +659,21 @@ class Scheduler:
+         # Fairness follows the requests actually selected, including a mixed attempt
+         # whose other queue could not reserve capacity.
+         selected_phases = {scheduled_request.phase for scheduled_request in scheduled_requests}
++        recurrent_phases = {RequestPhase.PREFILLING_RECURRENT, RequestPhase.RECURRENT}
++        if selected_phases <= recurrent_phases:
++            # One execution descriptor has one common loop count. Different
++            # prompt frontiers can have different remainders after Mixed G1.
++            group = min(r.loop_count for r in scheduled_requests)
++            if RequestPhase.RECURRENT in selected_phases:
++                group = 1
++            if any(r.loop_count != group for r in scheduled_requests):
++                scheduled_requests = [
++                    replace(r, loop_count=group, completes_prompt=(
++                        r.depth + group == self.total_ut_steps
++                        and r.token_start + r.token_count == len(r.request.prompt_token_ids)
++                    )) if r.phase == RequestPhase.PREFILLING_RECURRENT else r
++                    for r in scheduled_requests
++                ]
+         recorded = (
+             RequestPhase.RECURRENT
+             if RequestPhase.RECURRENT in selected_phases
+@@ -707,14 +726,17 @@ class Scheduler:
+         # Assertion: phase == RequestPhase.PREFILLING_RECURRENT
+         depth = scheduled_request.depth
+         boundaries = request.prefill_depth_ranges
+-        boundaries[depth][0] = end
+-        if depth + 1 < total_depths:
+-            boundaries[depth + 1][1] = end
+-        else:
+-            request.num_prefilled_tokens = end
++        group_end = depth + scheduled_request.loop_count
++        for advanced_depth in range(depth, group_end):
++            assert boundaries[advanced_depth][0] == start, "causal prompt frontier hole"
++            boundaries[advanced_depth][0] = end
++            if advanced_depth + 1 < total_depths:
++                boundaries[advanced_depth + 1][1] = end
++            else:
++                request.num_prefilled_tokens = end
+ 
+         chunk_complete = end == request.num_preluded_tokens
+-        if depth + 1 < total_depths or not chunk_complete:
++        if group_end < total_depths or not chunk_complete:
+             self.enqueue(request, RequestPhase.PREFILLING_RECURRENT)
+             return PrefillProgress(False, False)
+ 
+diff --git a/vllm_rlt/engine/stage_engine.py b/vllm_rlt/engine/stage_engine.py
+index 7cf9f42..9dcb483 100644
+--- a/vllm_rlt/engine/stage_engine.py
++++ b/vllm_rlt/engine/stage_engine.py
+@@ -59,8 +59,6 @@ class StageEngine:
+         self.exit_config = exit_config or ExitConfig()
+         self.execution_config = execution_config or ExecutionConfig()
+         if getattr(model, "requires_boundary_kv", False):
+-            if not self.execution_config.atomic_prefill:
+-                raise ValueError("Huginn requires atomic prefill")
+             if self.execution_config.async_scheduling or self.execution_config.prefill_uva:
+                 raise ValueError("Huginn requires synchronous scheduling without prefill UVA")
+             if speculative_config is not None:
+diff --git a/vllm_rlt/worker/executor.py b/vllm_rlt/worker/executor.py
+index 87ba27d..5066d0c 100644
+--- a/vllm_rlt/worker/executor.py
++++ b/vllm_rlt/worker/executor.py
+@@ -25,6 +25,8 @@ def build_execution_batch(scheduled_batch: SchedulerOutput, total_depths: int) -
+     for scheduled_request in scheduled_batch.requests:
+         phase = scheduled_batch.phase_for(scheduled_request)
+         request = scheduled_request.request
++        if phase == RequestPhase.RECURRENT and scheduled_request.loop_count != 1:
++            raise ValueError("This PoC permits grouped prefill only, not grouped decode")
+         chunk = phase in (RequestPhase.PREFILLING_PRELUDE, RequestPhase.PREFILLING_RECURRENT)
+         prompt_input = phase in (RequestPhase.PREFILL, RequestPhase.PREFILLING_PRELUDE)
+         operation = {
+@@ -56,7 +58,7 @@ def build_execution_batch(scheduled_batch: SchedulerOutput, total_depths: int) -
+                 token_count=scheduled_request.token_count,
+                 depth=depth,
+                 chunk_start=scheduled_request.chunk_start if chunk else None,
+-                retain_chunk=chunk and (operation == Operation.PRELUDE or depth + 1 < total_depths),
++                retain_chunk=chunk and (operation == Operation.PRELUDE or depth + scheduled_request.loop_count < total_depths),
+                 retain_last=scheduled_request.completes_prompt if chunk else True,
+                 emit_gate=phase == RequestPhase.RECURRENT,
+                 input_tokens=tuple(
+@@ -68,7 +70,8 @@ def build_execution_batch(scheduled_batch: SchedulerOutput, total_depths: int) -
+         )
+         operations.add(operation)
+         loop_counts.add(
+-            total_depths if phase == RequestPhase.PREFILL else int(operation == Operation.RECURRENT)
++            total_depths if phase == RequestPhase.PREFILL else
++            scheduled_request.loop_count if operation == Operation.RECURRENT else 0
+         )
+     if len(operations) != 1 or len(loop_counts) != 1:
+         raise ValueError("batch requests must share an operation and execution boundary")
+diff --git a/vllm_rlt/worker/model_runner.py b/vllm_rlt/worker/model_runner.py
+index 58e3414..b0c5caa 100644
+--- a/vllm_rlt/worker/model_runner.py
++++ b/vllm_rlt/worker/model_runner.py
+@@ -837,7 +837,32 @@ class ModelRunner:
+         forward = ForwardBatch(
+             batch.operation, metadata=metadata, prelude_coda_kv_metadata=boundary_metadata
+         )
+-        return replace(prepared, forwards=(PreparedForward(forward),))
++        forwards = [PreparedForward(forward)]
++        if (getattr(self.model, "requires_boundary_kv", False)
++                and batch.operation == Operation.RECURRENT and batch.has_chunks):
++            # Coda KV for every completed prompt row is part of this submission.
++            # The last prompt row remains available for the ordinary sampled coda.
++            ids, positions, requests, rows = [], [], [], []
++            row = 0
++            for span in batch.spans:
++                if (span.chunk_start is not None and
++                        span.depth + batch.loop_count == self.model.config.total_ut_steps):
++                    for offset in range(span.token_count):
++                        position = span.token_start + offset
++                        if position < len(span.request.prompt_token_ids) - 1:
++                            ids.append(span.request.request_id)
++                            positions.append(position)
++                            requests.append(span.request)
++                            rows.append(row + offset)
++                row += span.token_count
++            if rows:
++                kv = self._stage_metadata(ids, ([0] * len(ids),), positions,
++                    packed=self.cache_manager.attention_capabilities.packed_prefill)[0]
++                indices = self.input_buffers[torch.int64].append(rows)
++                forwards.append(PreparedForward(ForwardBatch(Operation.CODA,
++                    prelude_coda_kv_metadata=kv, compute_logits=False),
++                    hidden_rows=indices, outputs=()))
++        return replace(prepared, forwards=tuple(forwards))
+ 
+     def _prepare_cpu_inputs(self, batch: ExecutionBatch):
+         """Snapshot request inputs and acquire the storage used by this submission."""
+@@ -996,7 +1021,9 @@ class ModelRunner:
+                 Operation.PRELUDE,
+                 tokens=prepared.token_ids,
+                 prelude_coda_kv_metadata=kv_metadata,
+-                generators=self._prepare_generators(requests) if kv_metadata else None,
++                generators=self._prepare_generators(
++                    [span.request for span in batch.spans for _ in range(span.token_count)]
++                ) if kv_metadata else None,
+             )
+             return replace(prepared, forwards=(PreparedForward(self.runtime.prepare(forward)),))
+         hidden = self._load_hidden(batch, prepared, workspace, size)
+@@ -1021,9 +1048,16 @@ class ModelRunner:
+             graphs=graphs,
+             compute_gate=batch.emit_gate and self.exit_config.mode in ("ouro", "ouro_delayed"),
+         )
+-        return replace(
+-            prepared, kv=metadata[0], forwards=(PreparedForward(self.runtime.prepare(forward)),)
+-        )
++        forwards = [PreparedForward(self.runtime.prepare(forward))]
++        for entry in prepared.forwards[1:]:
++            extra = entry.forward
++            kv = self.metadata.bind(extra.prelude_coda_kv_metadata, uploaded)
++            indices = entry.hidden_rows
++            indices = uploaded[indices.dtype].as_strided(
++                indices.shape, indices.stride(), indices.storage_offset())
++            forwards.append(replace(entry, forward=replace(extra,
++                prelude_coda_kv_metadata=kv), hidden_rows=indices))
++        return replace(prepared, kv=metadata[0], forwards=tuple(forwards))
+ 
+     def _load_hidden(self, batch, prepared, workspace, size):
+         if prepared is not None and prepared.batch_inputs is not None:
