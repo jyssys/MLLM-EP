@@ -1,0 +1,29 @@
+digraph dependency {
+  rankdir=LR;
+  node [shape=box];
+  subgraph cluster_A {
+    label="Request A, current physical site p, pass r";
+    a0 [label="Native attention / hidden"];
+    a1 [label="Authoritative router"];
+    a2 [label="Exact EP dispatch"];
+    a3 [label="Owner-local expert GEMM"];
+    a4 [label="EP combine / original scores"];
+    a5 [label="Residual / next layer / next pass"];
+    a0 -> a1 -> a2 -> a3 -> a4 -> a5;
+  }
+  subgraph cluster_B {
+    label="Independent request B, same physical site p, pass s";
+    b0 [label="Native attention / hidden"];
+    b1 [label="Authoritative router"];
+    b2 [label="Exact EP dispatch"];
+    b3 [label="Same physical expert weights"];
+    b4 [label="EP combine / original scores"];
+    b5 [label="Residual / next layer / next pass"];
+    b0 -> b1 -> b2 -> b3 -> b4 -> b5;
+  }
+  candidate [label="Coalescing candidate only after BOTH inputs are device-ready",shape=note];
+  a1 -> candidate [style=dashed];
+  b1 -> candidate [style=dashed];
+  a5 -> future [label="Required recurrent dependency"];
+  future [label="A future-pass hidden / route: unavailable before completion"];
+}
