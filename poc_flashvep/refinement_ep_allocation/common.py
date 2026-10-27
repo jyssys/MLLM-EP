@@ -48,14 +48,26 @@ def digest(path):
             h.update(chunk)
     return h.hexdigest()
 
+def snapshot_driver(path):
+    path=Path(path)
+    content=path.read_text()
+    checksum=hashlib.sha256(content.encode()).hexdigest()
+    target=ROOT/'sources'/f'{path.stem}.{checksum}.json'
+    if not target.exists():
+        write(target,dict(path=str(path),sha256=checksum,source_text=content))
+    return dict(path=str(path),sha256=checksum,snapshot=str(target))
+
 def reference_helpers():
     spec = importlib.util.spec_from_file_location('frozen_mini_reference', REFERENCE/'run_reference.py')
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
 
-def rows(manifest):
-    return [json.loads(line) for line in Path(manifest).read_text().splitlines() if line.strip()]
+def rows(manifest, allow_incomplete=False):
+    lines=Path(manifest).read_text().splitlines(keepends=True)
+    if allow_incomplete and lines and not lines[-1].endswith('\n'):
+        lines=lines[:-1]
+    return [json.loads(line) for line in lines if line.strip()]
 
 def setup():
     for name in ('state', 'logs', 'manifests', 'hf', 'ep4', 'sources', 'figures'):

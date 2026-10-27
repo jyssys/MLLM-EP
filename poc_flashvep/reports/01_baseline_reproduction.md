@@ -42,6 +42,16 @@ The HF evaluation preserves its official source behavior.
 It does not patch this discrepancy.
 HF and native results therefore require separate protocol labels.
 
+The HF path recomputes the visible prefix for each denoising forward.
+The native path uses the existing prefix KV cache and cross-block refresh.
+Its legacy NFE counter counts a complete prefill operation only once.
+That operation can contain multiple model forward calls.
+Postprocessing corrects this undercount from the source-confirmed prefill geometry.
+The corrected field carries the label `SOURCE_DERIVED_PREFILL_COUNTER_CORRECTION`.
+New worker starts count each model forward directly.
+An equal NFE does not imply equal executed token work across these backends.
+Within-policy comparisons must keep the native cache behavior unchanged.
+
 The HF source also returns different tensor scopes on its early-EOS and ordinary paths.
 The evaluator strips a prompt prefix only after an exact token-prefix match.
 It records this normalization for each request.

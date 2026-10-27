@@ -23,28 +23,39 @@ def paired_bootstrap(first, second, seed=20261027, repetitions=10000):
         means.append(float(rng.choice(delta,size=len(delta),replace=True).mean()))
     return [100*percentile(means,2.5),100*percentile(means,97.5)]
 
+def normalize_native_record(record):
+    """Keep raw records intact. Apply source-derived logging corrections once."""
+    r=dict(record)
+    if r.get('nfe_evidence') not in ('MEASURED_MODEL_FORWARD_COUNTER','SOURCE_DERIVED_PREFILL_COUNTER_CORRECTION'):
+        prefill=max(r['prompt_tokens']//32*32,32)
+        prefill_forwards=1+max(0,(prefill-128)//32)
+        r['original_logged_nfe']=r['nfe']
+        r['nfe']=r['nfe']+prefill_forwards-1
+        r['nfe_evidence']='SOURCE_DERIVED_PREFILL_COUNTER_CORRECTION'
+        r['num_explicit_prefill_forwards']=prefill_forwards
+    if r.get('termination_evidence') not in ('MEASURED_TERMINAL_BUFFER','SOURCE_DERIVED_FROM_MEASURED_RETURN_LENGTH'):
+        r['original_logged_termination_reason']=r['termination_reason']
+        capacity=((r['prompt_tokens']+r['gen_length_cap']+31)//32)*32-r['prompt_tokens']
+        removed=capacity-r['generation_tokens']
+        assert removed>=0
+        r['termination_reason']='EOS_FILTERED_SOURCE_DERIVED' if removed else r['termination_reason']
+        r['termination_evidence']='SOURCE_DERIVED_FROM_MEASURED_RETURN_LENGTH'
+        r['native_effective_generation_capacity']=capacity
+        r['native_filtered_eos_count']=removed
+    return r
+
 def collect():
     cohorts={}
     for path in (ROOT/'hf').glob('*/shard*.jsonl'):
-        records=rows(path)
+        records=rows(path,allow_incomplete=True)
         for r in records:
-            if r['task'] in ('gsm8k','humaneval'):
+            if r['task'] in ('gsm8k','humaneval') and r.get('split','').endswith('_test'):
                 key=('REFERENCE_HF',r['task'],r['run_id'])
                 cohorts.setdefault(key,[]).append(r)
     for path in (ROOT/'ep4').glob('*/quality_samples.jsonl'):
-        for r in rows(path):
-            if r['task'] in ('gsm8k','humaneval') and r['mode']=='bypass':
-                # The native B1 return deletes every EOS token. Preserve raw logs.
-                # Derive termination from its measured returned length and audited source.
-                if r.get('termination_evidence') != 'MEASURED_TERMINAL_BUFFER':
-                    r['original_logged_termination_reason']=r['termination_reason']
-                    capacity=((r['prompt_tokens']+r['gen_length_cap']+31)//32)*32-r['prompt_tokens']
-                    removed=capacity-r['generation_tokens']
-                    assert removed>=0
-                    r['termination_reason']='EOS_FILTERED_SOURCE_DERIVED' if removed else r['termination_reason']
-                    r['termination_evidence']='SOURCE_DERIVED_FROM_MEASURED_RETURN_LENGTH'
-                    r['native_effective_generation_capacity']=capacity
-                    r['native_filtered_eos_count']=removed
+        for r in rows(path,allow_incomplete=True):
+            if r['task'] in ('gsm8k','humaneval') and r.get('split','').endswith('_test') and r['mode']=='bypass':
+                r=normalize_native_record(r)
                 key=('P0_FULL_EP4',r['task'],r['run_id'])
                 cohorts.setdefault(key,[]).append(r)
     return cohorts

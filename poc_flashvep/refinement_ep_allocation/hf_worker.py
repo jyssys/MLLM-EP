@@ -5,7 +5,7 @@ import os
 import time
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
-from .common import MODEL, REVISION, ROOT, append, rows, digest, reference_helpers
+from .common import MODEL, REVISION, ROOT, append, rows, digest, reference_helpers,write,snapshot_driver
 
 def main():
     p = argparse.ArgumentParser()
@@ -32,6 +32,13 @@ def main():
     tokenizer = AutoTokenizer.from_pretrained(MODEL, trust_remote_code=True)
     model = AutoModelForCausalLM.from_pretrained(MODEL, trust_remote_code=True,
         dtype=torch.bfloat16, device_map='cuda:0', attn_implementation='sdpa').eval()
+    import inspect
+    active_source=inspect.getfile(type(model))
+    write(output.parent/f'worker{a.shard}.metadata.json',dict(
+        driver=snapshot_driver(__file__),model_source=active_source,model_source_sha256=digest(active_source),
+        model_revision=REVISION,gpu=a.gpu,manifest=a.manifest,manifest_sha256=digest(a.manifest),
+        torch=str(torch.__version__),cuda=torch.version.cuda,attention=model.config._attn_implementation,
+        precision=str(next(model.parameters()).dtype),time=time.time()))
     original = model.forward
     nfe = [0]
     def counted(*args, **kwargs):
@@ -72,6 +79,8 @@ def main():
             postprocessed_generation=text, original_prompt=row['question'], parsed_answer=parsed,
             parser_rule=rule, ground_truth=gold, correct=(parsed==gold) if gold is not None else None,
             nfe=nfe[0], termination_reason='REMAINING_MASK' if masks else 'EOS' if eos else 'GEN_LENGTH_CAP',
+            nfe_definition='All official HF model.forward calls. Full visible prefix recomputation.',
+            num_generated_blocks=(ids.shape[1]+max(1,len(output_ids))-1)//32-ids.shape[1]//32+1,
             remaining_mask_tokens=masks, official_return_included_prompt=had_prompt,
             wall_ms=wall, timing_kind='MEASURED_WALL_QUALITY_OBSERVER_NOT_PRIMARY_LATENCY',
             protocol='mini_reference_legacy_matched_v1', torch=str(torch.__version__),

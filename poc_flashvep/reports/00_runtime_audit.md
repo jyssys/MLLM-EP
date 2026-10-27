@@ -63,6 +63,10 @@ The EP4 observer comes from commit `dc539d3222193ab0902e0a342679edc3610f54bb`.
 The HF helper comes from commit `c02563979fe818a93c3f6f64b162cdf3df69a8e2`.
 The active dInfer source includes an existing DeepEP bridge patch.
 The exact working-file hashes identify that patch.
+The initial driver source snapshot was not captured at process launch.
+The later checkpoint does not establish its exact initial in-memory bytes.
+New worker starts save driver snapshots and source hashes.
+The current driver changes concern logging, observation, and baseline repetition controls.
 
 The initial preparation command found no `datasets` package in the HF environment.
 The corrected preparation command reads cached Arrow files with the CPU environment.

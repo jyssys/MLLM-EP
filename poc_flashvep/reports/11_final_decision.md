@@ -42,4 +42,10 @@ Do not expand sparse runtime engineering before the conservative headroom gate p
 The durable state resides in `../results/refinement_aware_ep_expert_allocation/state/campaign.json`.
 The reproduction entry point is `../refinement_ep_allocation/README.md`.
 The supervisor restores owned burners when its evaluation queue finishes.
+The separate follow-up controller then checks isolated P0/no-op baselines.
+It requires complete quality cohorts before those additional baseline runs.
+It uses two independent server starts per EP4 group.
+Each start measures ten frozen validation requests with three repetitions.
+The group order is A0, B0, B1, A1.
+Sparse policy development still requires a later scientific gate review.
 The previous Looped MoE research remains stopped.

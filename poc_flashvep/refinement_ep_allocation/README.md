@@ -11,6 +11,9 @@ The durable supervisor evaluates the HF baseline and physical EP4 baseline.
 It saves each completed request before the next request.
 It restores owned burners when a GPU group becomes free.
 It does not approve later research phases automatically.
+The separate baseline follow-up controller waits for that queue to finish.
+It scores HumanEval and executes isolated P0/no-op A/B comparisons.
+It does not implement approximate expert policies.
 
 ```bash
 cd /home/esjung/MLLM-EP-github
@@ -101,6 +104,12 @@ python -m poc_flashvep.refinement_ep_allocation.resources status
 The trace analysis does not report an implemented sparse-execution speedup.
 The two-request sanity test does not establish benchmark quality.
 
+The native B1 return removes EOS tokens.
+Postprocessing corrects the initial logger's stop labels without rewriting raw evidence.
+The native legacy NFE counter also undercounts chunked prefill calls.
+Postprocessing derives that correction from the audited prefill geometry.
+New worker starts capture the terminal buffer and count model forwards directly.
+
 ## Measurement contract
 
 Primary latency requires one isolated EP4 group.
@@ -122,9 +131,19 @@ Do not sum overlapping stage times into a global critical path.
 
 Check the supervisor PID and current GPU owners before another start.
 The supervisor lock rejects concurrent controllers.
+Also check `state/followup.json` before another follow-up start.
+The existing follow-up controller uses its own exclusive lock.
 Completed request artifacts survive a worker failure.
 The current queue does not retry a failed worker silently.
 Review the failure log before a resume.
 
 The user stopped the previous Looped MoE research.
 Do not restart that research from this campaign.
+
+## Provenance limitation
+
+The initial driver source snapshot was not captured at process launch.
+Do not identify the later Git checkpoint as the exact initial in-memory driver.
+The model, reference helper, observer, and native runtime source hashes are available.
+The driver corrections affect logging and observation, not model arithmetic or generation settings.
+New worker starts save exact driver source snapshots and metadata.

@@ -36,6 +36,10 @@ def main():
                         remote_rows+=int(np.any(owners==dest,axis=1).sum())
                 key=(route['call_id'],route['layer'])
                 matrices.setdefault(key,[]).append((rank,ids, data[tag+'_weights'],data[tag+'_before']))
+                local_ids=data[tag+'_recv_ids'].astype(np.int64)
+                real=local_ids[local_ids>=0]
+                assert np.all(real<64)
+                route['actual_received_expert_edges']=int(real.size)
             stage={s:sum(x['ms'] for x in meta['stages'] if x['stage']==s)
                    for s in ('router','dispatch','expert','combine')}
             result=json.loads((folder/f'trace.result.rank{rank}.json').read_text())
@@ -66,6 +70,8 @@ def main():
             edge_removed=0
             remote_before=0
             remote_after=0
+            unique_before=unique_after=0
+            padded_before=padded_after=0
             for key,parts in matrices.items():
                 ids=np.concatenate([v[1] for v in sorted(parts,key=lambda v:v[0])])
                 weights=np.concatenate([v[2] for v in sorted(parts,key=lambda v:v[0])])
@@ -88,9 +94,25 @@ def main():
                     eligible=source!=dest
                     remote_before+=int((np.any(owners==dest,axis=1)&eligible).sum())
                     remote_after+=int((np.any((owners==dest)&~removed,axis=1)&eligible).sum())
+                    hist_before=np.bincount(ids[owners==dest]-dest*64,minlength=64)
+                    hist_after=np.bincount(ids[(owners==dest)&~removed]-dest*64,minlength=64)
+                    unique_before+=int((hist_before>0).sum())
+                    unique_after+=int((hist_after>0).sum())
+                    rows_before=int(np.any(owners==dest,axis=1).sum())
+                    rows_after=int(np.any((owners==dest)&~removed,axis=1).sum())
+                    # Source-confirmed fallback configuration. This is structural accounting,
+                    # not a measured number of executed instructions or memory transactions.
+                    tile_before=16 if rows_before<=64 else 64
+                    tile_after=16 if rows_after<=64 else 64
+                    padded_before+=int(((hist_before+tile_before-1)//tile_before*tile_before).sum())
+                    padded_after+=int(((hist_after+tile_after-1)//tile_after*tile_after).sum())
             deletion.append(dict(policy='ROUTER_WEIGHT_ONLY_STRUCTURAL_COUNTERFACTUAL',
                 target_edge_reduction=fraction, removed_edges=edge_removed,
+                actual_edge_reduction=edge_removed/int(load.sum()),
                 remote_pair_reduction=1-remote_after/remote_before if remote_before else 0,
+                unique_active_expert_invocation_reduction=1-unique_after/unique_before if unique_before else 0,
+                padded_expert_rows_reduction=1-padded_after/padded_before if padded_before else 0,
+                padded_work_kind='SOURCE_DERIVED_TILE_ACCOUNTING_NOT_MEASURED_KERNEL_WORK',
                 interpretation='TRACE_ESTIMATE_ONLY. No altered quality or physical sparse execution measured.'))
         request['deduplicated_traffic_counterfactuals']=deletion
         requests.append(request)
