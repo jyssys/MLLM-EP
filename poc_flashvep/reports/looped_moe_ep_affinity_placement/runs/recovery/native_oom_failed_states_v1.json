@@ -1,0 +1,24 @@
+{
+  "time": 1793061857.1073859,
+  "states": {
+    "post_state.json": {
+      "status": "FAILED",
+      "time": 1793058441.7633088,
+      "error": "AssertionError()",
+      "traceback": "Traceback (most recent call last):\n  File \"/home/esjung/MLLM-EP-github/poc_flashvep/looped_moe_affinity/post_campaign.py\", line 30, in <module>\n    try:main()\n        ~~~~^^\n  File \"/home/esjung/MLLM-EP-github/poc_flashvep/looped_moe_affinity/post_campaign.py\", line 26, in main\n    print(launch(job),flush=True)\n          ~~~~~~^^^^^\n  File \"/home/esjung/MLLM-EP-github/poc_flashvep/looped_moe_affinity/launch.py\", line 43, in launch\n    assert all(p.returncode==0 for p in children)\n           ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n"
+    },
+    "attribution_campaign_state.json": {
+      "status": "FAILED",
+      "time": 1793058451.6813796,
+      "error": "RuntimeError('The prior GPU control campaign failed. Preserve its evidence.')",
+      "traceback": "Traceback (most recent call last):\n  File \"/home/esjung/MLLM-EP-github/poc_flashvep/looped_moe_affinity/attribution_campaign.py\", line 51, in <module>\n    try:main()\n        ~~~~^^\n  File \"/home/esjung/MLLM-EP-github/poc_flashvep/looped_moe_affinity/attribution_campaign.py\", line 20, in main\n    if status=='FAILED':raise RuntimeError('The prior GPU control campaign failed. Preserve its evidence.')\n                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nRuntimeError: The prior GPU control campaign failed. Preserve its evidence.\n"
+    },
+    "finalization_state.json": {
+      "status": "FAILED",
+      "time": 1793058452.9998581,
+      "error": "RuntimeError('Upstream campaign failed: post_state.json. Do not publish a complete result.')",
+      "traceback": "Traceback (most recent call last):\n  File \"/home/esjung/MLLM-EP-github/poc_flashvep/looped_moe_affinity/finalize.py\", line 31, in main\n    while not ready():\n              ~~~~~^^\n  File \"/home/esjung/MLLM-EP-github/poc_flashvep/looped_moe_affinity/finalize.py\", line 22, in ready\n    raise RuntimeError(f'Upstream campaign failed: {name}. Do not publish a complete result.')\nRuntimeError: Upstream campaign failed: post_state.json. Do not publish a complete result.\n"
+    }
+  },
+  "recovery": "Actual checkpoint RED/GREEN allocator regression. Preserve all failed attempts."
+}
