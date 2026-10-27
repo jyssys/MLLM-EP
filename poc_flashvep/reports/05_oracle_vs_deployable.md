@@ -1,6 +1,6 @@
 # Oracle versus deployable allocation
 
-Status: `PARTIAL_STRUCTURAL_ACCOUNTING`.
+Status: `FIXED_TRAJECTORY_ACCOUNTING_COMPLETE_REQUEST_ORACLE_UNVALIDATED`.
 Model and runtime identities appear in `00_runtime_audit.md`.
 No oracle speedup is a measured acceleration.
 
@@ -40,4 +40,46 @@ That synchronization must enter the deployable cost estimate.
 Do not promote an oracle-only result to a runtime implementation.
 The specification requires conservative E2E headroom of at least 5%.
 It also requires a credible additional EP-aware opportunity of at least 2% over P3.
-Both gates remain untested.
+Neither gate passes from structural counts alone.
+
+## Sixteen-request matched replay
+
+Evidence: `../results/refinement_aware_ep_expert_allocation/pilot/allocation_replay.csv`.
+The replay samples 24 evenly spaced forwards per request.
+It includes all 19 MoE layers and four EP ranks.
+Each policy and budget covers 7,296 sampled calls across 16 requests.
+All policies receive the same routes and per-source edge budget.
+
+| Target removal | Policy | Actual edge reduction | Remote token-rank pair reduction | Maximum-rank padded-row reduction | Mean owner CV after selection |
+|---|---|---:|---:|---:|---:|
+| 5% | P2 router | 4.6875% | 0.6974% | 3.4739% | 0.40001 |
+| 5% | P3 refinement proxy | 4.6875% | 0.7159% | 3.4513% | 0.39999 |
+| 5% | P4 EP proxy | 4.6875% | 0.3953% | 4.9777% | 0.35641 |
+| 5% | P5 joint proxy | 4.6875% | 0.4150% | 4.9360% | 0.35657 |
+| 20% | P2 router | 18.9581% | 4.3116% | 12.9026% | 0.41299 |
+| 20% | P3 refinement proxy | 18.9581% | 4.4650% | 12.7180% | 0.41298 |
+| 20% | P4 EP proxy | 18.9581% | 3.0895% | 15.1128% | 0.26699 |
+| 20% | P5 joint proxy | 18.9581% | 3.2002% | 15.0720% | 0.26617 |
+
+Evidence class: `TRACE_ESTIMATE`.
+The mean owner CV before selection is 0.39690.
+The table fixes baseline trajectories.
+It cannot predict changed candidate routes, NFE, or accuracy.
+NumPy arithmetic and stable sorting form a trace proxy, not a bit-exact live selector.
+
+EP-aware scores reduce load imbalance, but preserve more remote messages than P3.
+P5 improves maximum-rank padded-row reduction over P3 by 1.4847 percentage points at the lower budget.
+The difference is 2.3540 percentage points at the higher budget.
+These differences concern structural compute counts, not E2E latency.
+
+The native fallback tile size is 16 for at most 64 received rows.
+It is 64 above that threshold.
+Padding and destination deduplication prevent a linear expert-edge cost model.
+Global count exchange, policy scoring, collective startup, and rank waiting remain additional costs.
+
+The P6 marginal-quality oracle remains `NOT_RUN`.
+The campaign does not fabricate expert-output importance labels.
+Physical operator measurements appear separately in `04_ep_cost_model.md`.
+Observer-share projections cannot establish conservative request-level headroom.
+
+![Structural replay trade-off, not latency](../results/refinement_aware_ep_expert_allocation/figures/allocation_structural_tradeoff.svg)

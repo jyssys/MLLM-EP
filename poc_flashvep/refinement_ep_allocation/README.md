@@ -2,13 +2,18 @@
 
 This campaign uses `inclusionAI/LLaDA2.0-mini`, not `mini-preview`.
 The model revision is `dad945cac317da394b390f82c7b40691d8a881ed`.
-The current implementation covers the runtime audit and baseline evaluation.
+The implementation covers baseline evaluation, causal sensitivity diagnostics, structural replay, and physical operator checks.
 The user reduced the active pilot to GSM8K 128 and HumanEval 32 questions.
 The original full-evaluation queues are canceled.
 The baseline pilot is complete.
 The retained-all validation stage also completed 16 requests across two EP4 groups.
-Expert-omission sensitivity and physical sparse execution remain untested.
-Policy acceleration remains conditional on the specification gates.
+P1/P2/P3 each complete 16 free-running validation trajectories at two removal budgets.
+Dense semantic intervention changes expert contributions, but preserves all physical expert work.
+The separate native operator probe removes assignments before DeepEP.
+It does not implement a sparse end-to-end generation engine.
+Current verdict: `NO_GO` for the tested proxy design and native EP4 bridge.
+The discovery queues are complete. No sparse generation-engine expansion is approved by their results.
+See `../reports/11_final_decision.md` for the decision and missing evidence.
 
 ## Current execution
 
@@ -53,10 +58,12 @@ Each EP4 process uses one logical CUDA device.
 The native bridge combines dense TP4, source sequence sharding, and physical EP4.
 It does not represent four full model replicas.
 
-The current quality queue uses Group A for EP4.
-It uses four independent HF workers on Group B.
-This concurrent execution does not provide isolated latency measurements.
-Group B EP4 validation and A/B timing crossover remain pending.
+The original concurrent HF/EP4 quality queue ended.
+The user-approved pilot preserves its completed GSM8K generations.
+Both physical EP4 groups passed retained-all validation checks.
+Sensitivity collection uses two independent EP4 replicas.
+Isolated timing reserves the opposite group as quiet, without burners.
+The user explicitly approved this temporary measurement exception.
 
 The supervisor sets these variables for the validated native runtime:
 
@@ -118,6 +125,10 @@ Raw interrupted and validation runs also reside in bounded archive parts.
 Each part is at most 80,000,000 bytes.
 The archive index records all part hashes and the reassembled archive hash.
 Source raw files remain unchanged.
+The follow-up archive is `archives/sensitivity_and_physical_cost.index.json` under the result directory.
+It contains 1,420 entries, including failed attempts and raw per-rank operator records.
+Most bulky raw directories require archive extraction after a repository clone.
+The summary CSV files and SVG figures remain directly accessible in Git.
 The archive entry point is `python -m poc_flashvep.refinement_ep_allocation.archive_evidence`.
 
 The native B1 return removes EOS tokens.
@@ -150,7 +161,8 @@ The pilot lock rejects concurrent pilot controllers.
 The current state is `state/pilot.json`.
 Do not restart the canceled full-evaluation controllers.
 Completed request artifacts survive a worker failure.
-The current queue does not retry a failed worker silently.
+The sensitivity queue skips complete jobs and can adopt a verified active worker.
+It does not retry a failed worker silently.
 Review the failure log before a resume.
 
 The user stopped the previous Looped MoE research.
@@ -163,3 +175,57 @@ Do not identify the later Git checkpoint as the exact initial in-memory driver.
 The model, reference helper, observer, and native runtime source hashes are available.
 The driver corrections affect logging and observation, not model arithmetic or generation settings.
 New worker starts save exact driver source snapshots and metadata.
+
+## Follow-up commands
+
+Check active owners and durable state before a new start.
+Do not start overlapping controllers for the same GPU groups.
+
+```bash
+cd /home/esjung/MLLM-EP-github
+python -m poc_flashvep.refinement_ep_allocation.resources status
+python -m poc_flashvep.refinement_ep_allocation.sensitivity_campaign start
+python -m poc_flashvep.refinement_ep_allocation.cost_campaign start
+python -m poc_flashvep.refinement_ep_allocation.cost_campaign start-clean
+```
+
+The clean follow-up waits for the baseline queue.
+It measures operator wall time without the separate stage-event observer.
+Each controller restores owned burners after its GPU work ends.
+Completed run IDs do not execute again on resume.
+An incomplete rank result set requires a new run ID and a recorded failure review.
+
+Use these commands after the corresponding worker stages finish:
+
+```bash
+CUDA_VISIBLE_DEVICES='' /home/esjung/.venvs/llada2-flash-sglang-053/bin/python \
+  -m poc_flashvep.refinement_ep_allocation.sensitivity_analysis
+python -m poc_flashvep.refinement_ep_allocation.allocation_replay
+python -m poc_flashvep.refinement_ep_allocation.cost_analysis
+python -m poc_flashvep.refinement_ep_allocation.figures
+python -m poc_flashvep.refinement_ep_allocation.validate_cpu
+```
+
+The default CPU environment has NumPy and Matplotlib but no Torch.
+The sensitivity scorer imports the frozen parser through its original Torch-dependent module.
+Its command therefore uses the existing native environment with CUDA devices hidden.
+It does not create a GPU inference job.
+
+Important raw and derived paths:
+
+| Path under the result directory | Meaning |
+|---|---|
+| `pilot/sensitivity_summary.csv` | Full-trajectory validation accuracy and NFE |
+| `pilot/sensitivity_samples.jsonl` | Per-question answers, parity, transitions, and intervention counts |
+| `pilot/allocation_replay.csv` | Matched P2–P5 structural counts, not latency |
+| `pilot/isolated_baseline_summary.csv` | Isolated natural-generation P0 repeats |
+| `pilot/operator_cost_summary.csv` | Physical operator wall timings and work counts |
+| `latency_samples.csv` | Individual isolated baseline timing repetitions |
+| `figures/` | Editable SVG figures |
+| `state/sensitivity.json` | Durable semantic-screen state |
+| `state/cost.json`, `state/cost_clean.json` | Isolated cost queues |
+
+Stage-event intervals can include host submission gaps.
+The separate clean operator lane does not contain those event probes.
+Neither lane is a candidate request speedup.
+The current evidence does not pass the incremental algorithm or EP-headroom gates.

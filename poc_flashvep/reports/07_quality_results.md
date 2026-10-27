@@ -1,6 +1,7 @@
 # Quality results
 
-Status: `IN_PROGRESS`. No final policy quality claim is available.
+Status: `BASELINE_PILOT_AND_VALIDATION_SCREEN_COMPLETE`.
+No deployed sparse-policy quality claim is available.
 Model revision: `dad945cac317da394b390f82c7b40691d8a881ed`.
 Protocol audit: `01_baseline_reproduction.md`.
 
@@ -41,3 +42,27 @@ Paired quality intervals must resample questions.
 The two-request P0/no-op token and NFE checks passed.
 Full benchmark no-op agreement remains `NOT_MEASURED`.
 The specification's 0.5 pp quality target remains untested.
+
+## Completed pilot, not full evaluation
+
+| Dataset | Method | Correct/N | Accuracy | Wilson 95% CI | Official reference | Difference from official |
+|---|---|---:|---:|---|---:|---:|
+| GSM8K | HF reference | 118/128 | 92.1875% | [86.2153%, 95.7013%] | 94.24% | −2.0525 pp |
+| GSM8K | P0 physical EP4 | 119/128 | 92.9688% | [87.1765%, 96.2570%] | 94.24% | −1.2713 pp |
+| HumanEval | HF reference | 30/32 | 93.7500% | [79.8529%, 98.2689%] | 86.59% | +7.1600 pp |
+| HumanEval | P0 physical EP4 | 32/32 | 100.0000% | [89.2821%, 100.0000%] | 86.59% | +13.4100 pp |
+| HumanEval | P0-Hooked EP4 | 32/32 | 100.0000% | [89.2821%, 100.0000%] | 86.59% | +13.4100 pp |
+
+The HF and native decoder protocols differ.
+The table does not establish TP/EP-only accuracy differences or official-score superiority.
+HumanEval outcomes use the existing isolated sandbox.
+
+P1/P2/P3 each completed 16 full validation trajectories at two budgets.
+Their exact counts, intervals, output parity, NFE, caps, and failure IDs appear in `03_refinement_edge_sensitivity.md`.
+These training-split validation results must not fill the GSM8K test rows.
+P3 matches P2 correctness at both tested budgets.
+It does not establish an incremental refinement advantage.
+
+P4/P5 appear only in fixed-trajectory structural replay.
+Their benchmark accuracy, paired quality difference, and HumanEval results remain `NOT_MEASURED`.
+No projection substitutes for those missing measurements.

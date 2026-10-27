@@ -2,11 +2,13 @@
 import subprocess
 import sys
 import time
-from .common import REPO,ROOT,write,digest
+from .common import REPO,ROOT,write,digest,EP_PYTHON
 
 def main():
     commands=[
         [sys.executable,'-m','unittest','poc_flashvep.refinement_ep_allocation.test_contract','-v'],
+        [sys.executable,'-m','unittest','poc_flashvep.refinement_ep_allocation.test_replay','-v'],
+        [EP_PYTHON,'-m','unittest','poc_flashvep.refinement_ep_allocation.test_semantic','-v'],
         [sys.executable,'-m','compileall','-q','poc_flashvep/refinement_ep_allocation'],
         ['git','diff','--check','--','poc_flashvep/refinement_ep_allocation',
          'poc_flashvep/reports/00_runtime_audit.md','poc_flashvep/reports/01_baseline_reproduction.md',

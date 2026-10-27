@@ -104,6 +104,15 @@ def worker(rank, port, args):
     else:
         rec = Recorder(rank)
     rec.install(model, dllm)
+    emulator=None
+    if args.semantic_emulation!='NONE':
+        from .semantic_emulator import SemanticEmulator
+        emulator=SemanticEmulator(args.semantic_emulation,args.edge_fraction,rank)
+        emulator.install(model,dllm)
+    probe=None
+    if args.operator_probe:
+        from .operator_probe import OperatorProbe
+        probe=OperatorProbe(model,rank,dest)
     from dinfer.decoding.utils import TokenArray
     original_return = TokenArray.get_generated_tokens
     terminal = {}
@@ -147,6 +156,8 @@ def worker(rank, port, args):
         before = dllm.num_forwards
         before_actual = forward_counter[0]
         terminal.clear()
+        if emulator is not None:
+            emulator.reset(row.get('split') in ('validation','calibration'))
         start = time.perf_counter()
         signal.alarm(900)
         try:
@@ -183,6 +194,20 @@ def worker(rank, port, args):
             termination_evidence='MEASURED_TERMINAL_BUFFER',
             no_op_dispatch_calls=dispatch_counts[0], peak_allocated_bytes=torch.cuda.max_memory_allocated(rank),
             timing_kind='MEASURED_WALL_ISOLATED_EP4_REQUEST' if args.timing_kind=='ISOLATED_EP4' and mode in ('bypass','hooked_noop') else 'MEASURED_WALL_PARALLEL_QUALITY_OR_OBSERVER_NOT_PRIMARY_LATENCY', time=time.time())
+        if emulator is not None and emulator.active:
+            result['method']=args.semantic_emulation+'_DENSE_SEMANTIC_EMULATION'
+            result['emulation']=emulator.summary()
+            result['timing_kind']='DENSE_SEMANTIC_EMULATION_NOT_SPEEDUP_MEASUREMENT'
+            if args.edge_fraction==0:
+                source=[ROOT/'ep4'/f'{group}_pilot_validation_trace'/name/'bypass.result.rank0.json' for group in ('A','B')]
+                reference=next((p for p in source if p.exists()),None)
+                assert reference is not None,'Zero-edge control requires a retained-all reference'
+                expected=json.loads(reference.read_text())
+                write(output.parent/f'zero_control_diagnostic.rank{rank}.json',dict(
+                    result=result,reference=str(reference),reference_nfe=expected['nfe'],
+                    first_divergence=next((i for i,(a,b) in enumerate(zip(new,expected['output_ids'])) if a!=b),None),
+                    expected_output_ids=expected['output_ids']))
+                assert new==expected['output_ids'] and result['nfe']==expected['nfe'],'EMULATION_ZERO_PARITY_FAILED'
         write(output, result)
         if mode in ('trace','timing','acceptance'):
             rec.finish(output.parent, mode, new)
@@ -215,6 +240,8 @@ def worker(rank, port, args):
             if args.trace:
                 traced=generate(row,'trace',name)
                 assert traced['output_ids']==baseline['output_ids'], 'TRACE_PARITY_FAILED'
+    if probe is not None:
+        probe.run()
     dist.barrier()
     dist.destroy_process_group()
 
@@ -227,6 +254,9 @@ def main():
     p.add_argument('--parity', action='store_true')
     p.add_argument('--trace', action='store_true')
     p.add_argument('--refinement-telemetry',action='store_true')
+    p.add_argument('--semantic-emulation',choices=('NONE','P1','P2','P3'),default='NONE')
+    p.add_argument('--edge-fraction',type=float,default=0.)
+    p.add_argument('--operator-probe',action='store_true')
     p.add_argument('--repeats', type=int, default=1)
     p.add_argument('--timing-kind', choices=('PARALLEL_QUALITY','ISOLATED_EP4'), default='PARALLEL_QUALITY')
     p.add_argument('--shard', type=int, default=0)
@@ -235,6 +265,11 @@ def main():
     assert 0 <= args.shard < args.shards
     assert args.repeats>=1
     assert not args.refinement_telemetry or args.trace
+    if args.semantic_emulation!='NONE':
+        assert not args.operator_probe
+        assert not args.trace and not args.parity and args.timing_kind!='ISOLATED_EP4'
+        assert 0<=args.edge_fraction<=.25
+        assert all(r.get('split') in ('validation','calibration') for r in rows(args.manifest)), 'Do not tune on test questions'
     with socket.socket() as sock:
         sock.bind(('127.0.0.1', 0))
         port = sock.getsockname()[1]

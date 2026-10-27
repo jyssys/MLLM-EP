@@ -59,6 +59,12 @@ They are not physical NVLink wire counters.
 The same file contains structural pruning counterfactuals.
 Those counterfactuals are not physically executed sparse policies.
 
-Primary isolated request latency remains `NOT_MEASURED`.
+Isolated retained-all baseline repeats now appear in `08_latency_ep_results.md`.
+Candidate request acceleration remains `NOT_MEASURED`.
 Group B now has physical EP4 ownership and dispatch evidence.
 The earlier HF jobs on Group B were independent Single-GPU jobs, not EP4.
+
+The revised zero-removal diagnostic also matches all 16 validation requests.
+The physical sparse operator probe verifies fewer received assignments in both groups.
+Its counts and measured operator times appear in `04_ep_cost_model.md`.
+It does not establish full-generation sparse-policy correctness.

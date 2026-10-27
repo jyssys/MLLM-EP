@@ -59,6 +59,10 @@ The generation cap is 2,048 new tokens.
 HumanEval uses the original task prompt inside the official chat template.
 Its generation cap is 1,024 new tokens.
 Both paths use BF16, block length 32, threshold 0.95, and EOS stopping.
+The native path aligns the allocated total sequence to a 32-token boundary.
+Its returned capacity can exceed the requested cap by at most 31 tokens.
+Raw records preserve the requested cap, actual length, and terminal state.
+This pre-existing behavior remains unchanged across native variants.
 
 The HF implementation always calls `torch.multinomial` after softmax.
 Temperature zero skips temperature scaling but does not select argmax.
@@ -100,7 +104,7 @@ A correct number in an unfinished response does not prove a complete answer.
 
 HumanEval requires the existing networkless namespace sandbox.
 A fresh sandbox smoke test passed.
-Full completion execution remains pending.
+Full 164-problem completion execution is deferred by the user's pilot amendment.
 Token agreement alone does not replace executable scoring.
 
 The two fresh HF sanity requests completed.

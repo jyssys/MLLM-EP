@@ -55,6 +55,12 @@ def main():
         'ep4/A_pilot_validation_trace','ep4/B_pilot_validation_trace',
         'logs/A_pilot_validation_trace.log','logs/B_pilot_validation_trace.log',
         'state/pilot_traces.json'])
+    targets=[str(p.relative_to(ROOT)) for p in sorted((ROOT/'ep4').iterdir())
+        if p.is_dir() and ('_semantic_' in p.name or '_operator_cost' in p.name or p.name=='B_baseline_repeat_even')]
+    targets += [str(p.relative_to(ROOT)) for p in sorted((ROOT/'logs').glob('*.log'))
+        if any(word in p.name for word in ('semantic','sensitivity','operator_cost','cost_','baseline_repeat_even'))]
+    targets += ['state/sensitivity.json','state/cost.json','state/cost_clean.json']
+    archive('sensitivity_and_physical_cost',targets)
 
 if __name__=='__main__':
     main()

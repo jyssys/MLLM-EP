@@ -1,0 +1,33 @@
+{
+  "evidence": "OBSERVED_TOOL_OUTPUT_TRANSCRIPTION_NOT_A_NEW_GPU_EXPERIMENT",
+  "observed_before_fix": [
+    {
+      "command": "python -m unittest poc_flashvep.refinement_ep_allocation.test_replay -v",
+      "test": "test_equal_budget_and_minimum_k",
+      "status": "FAIL",
+      "observed_counts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "expected_counts": [
+        48,
+        48,
+        48,
+        48
+      ],
+      "layout": "Fortran-contiguous IDs"
+    },
+    {
+      "command": "CUDA_VISIBLE_DEVICES='' /home/esjung/.venvs/llada2-flash-sglang-053/bin/python -m unittest poc_flashvep.refinement_ep_allocation.test_semantic -v",
+      "test": "test_noncontiguous_geometry",
+      "status": "FAIL",
+      "observed_count": 0,
+      "expected_count": 12,
+      "layout": "Transposed 8 by 8 Torch tensor"
+    }
+  ],
+  "correction": "Use explicit row and slot indexing instead of assignment through a copied flatten result.",
+  "current_test_evidence": "cpu_validation.json: all_pass=true"
+}
