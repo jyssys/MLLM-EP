@@ -2,7 +2,7 @@
 
 Status: `NOT_MEASURED_PRIMARY_LATENCY`.
 Model and runtime identities appear in `00_runtime_audit.md`.
-The current quality workers share system resources.
+The completed quality runs shared system resources.
 Their request wall times are not isolated primary latency results.
 
 | Method | Group | B | Block | N isolated requests | Mean E2E | P50 | P90 | P95 | TTFT | Output tokens/s | Requests/s | Speedup | Paired 95% CI |

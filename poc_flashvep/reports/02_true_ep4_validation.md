@@ -1,6 +1,6 @@
 # Physical TRUE EP4 validation
 
-Status: `PASS_GROUP_A_SMOKE`. Group B EP4 validation remains `NOT_RUN`.
+Status: `PASS_GROUP_A_AND_B_SMOKE`. Full benchmark equivalence remains unproven.
 Model revision: `dad945cac317da394b390f82c7b40691d8a881ed`.
 Evidence: `../results/refinement_aware_ep_expert_allocation/ep4/A_sanity/`.
 
@@ -32,6 +32,12 @@ It leaves shared expert computation intact.
 | sanity:0 | 7 | PASS | PASS | PASS | MEASURED_GPU |
 | sanity:1 | 8 | PASS | PASS | PASS | MEASURED_GPU |
 
+Group B repeated these same two requests on physical GPUs 4–7.
+Its no-op and trace parity checks also passed.
+Its four ownership files record the same expert ranges on the second physical group.
+Evidence: `ep4/B_pilot_sanity/` under the campaign results directory.
+The 32-request native HumanEval pilot also passed token and NFE parity through the no-op hook.
+
 These checks compare all retained expert edges with an identity policy hook.
 They do not establish approximate-policy quality.
 They do not establish full-benchmark HF/EP4 equivalence.
@@ -54,5 +60,5 @@ The same file contains structural pruning counterfactuals.
 Those counterfactuals are not physically executed sparse policies.
 
 Primary isolated request latency remains `NOT_MEASURED`.
-Group B physical EP4 proof remains `NOT_RUN`.
-The current HF jobs on Group B are independent Single-GPU jobs, not EP4.
+Group B now has physical EP4 ownership and dispatch evidence.
+The earlier HF jobs on Group B were independent Single-GPU jobs, not EP4.

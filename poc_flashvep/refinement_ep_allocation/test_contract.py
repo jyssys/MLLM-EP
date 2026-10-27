@@ -47,5 +47,29 @@ class ContractTests(unittest.TestCase):
             tail=r['raw_prompt'].rsplit('Question: ',1)[-1]
             self.assertEqual(tail,r['question']+"\nLet's think step by step\nAnswer:")
 
+    @unittest.skipUnless((ROOT/'pilot/scope_amendment.json').exists(),'Pilot amendment not active')
+    def test_pilot_frozen_counts_and_ids(self):
+        gsm=rows(ROOT/'pilot/gsm8k_manifest.jsonl')
+        he=rows(ROOT/'pilot/humaneval_manifest.jsonl')
+        self.assertEqual([r['id'] for r in gsm],list(range(128)))
+        self.assertEqual([r['id'] for r in he],list(range(32)))
+        self.assertTrue(all(r['gen_length_cap']==2048 for r in gsm))
+        self.assertTrue(all(r['gen_length_cap']==1024 for r in he))
+
+    @unittest.skipUnless((ROOT/'pilot/scope_amendment.json').exists(),'Pilot amendment not active')
+    def test_pilot_reused_inputs_match(self):
+        hf=rows(ROOT/'pilot/gsm8k_reused_REFERENCE_HF.jsonl')
+        ep=rows(ROOT/'pilot/gsm8k_reused_P0_FULL_EP4.jsonl')
+        self.assertEqual(len(hf),128)
+        self.assertEqual(len(ep),128)
+        self.assertEqual([r['sample_id'] for r in hf],[r['sample_id'] for r in ep])
+        self.assertEqual([r['input_ids'] for r in hf],[r['input_ids'] for r in ep])
+
+    @unittest.skipUnless((ROOT/'pilot/scope_amendment.json').exists(),'Pilot amendment not active')
+    def test_full_queue_cannot_restart(self):
+        from . import campaign
+        with self.assertRaisesRegex(RuntimeError,'deferred full evaluation'):
+            campaign.main()
+
 if __name__=='__main__':
     unittest.main()

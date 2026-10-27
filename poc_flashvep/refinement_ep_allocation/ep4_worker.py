@@ -98,7 +98,11 @@ def worker(rank, port, args):
     # Read-only reuse of the validated, bounded observer. Source hashes are frozen.
     sys.path.insert(0, str(LEGACY_EP))
     from poc_dllm_ep_comm.instrumentation import Recorder
-    rec = Recorder(rank)
+    if args.refinement_telemetry:
+        from .refinement_observer import RefinementRecorder
+        rec=RefinementRecorder(rank)
+    else:
+        rec = Recorder(rank)
     rec.install(model, dllm)
     from dinfer.decoding.utils import TokenArray
     original_return = TokenArray.get_generated_tokens
@@ -222,6 +226,7 @@ def main():
     p.add_argument('--limit', type=int)
     p.add_argument('--parity', action='store_true')
     p.add_argument('--trace', action='store_true')
+    p.add_argument('--refinement-telemetry',action='store_true')
     p.add_argument('--repeats', type=int, default=1)
     p.add_argument('--timing-kind', choices=('PARALLEL_QUALITY','ISOLATED_EP4'), default='PARALLEL_QUALITY')
     p.add_argument('--shard', type=int, default=0)
@@ -229,6 +234,7 @@ def main():
     args = p.parse_args()
     assert 0 <= args.shard < args.shards
     assert args.repeats>=1
+    assert not args.refinement_telemetry or args.trace
     with socket.socket() as sock:
         sock.bind(('127.0.0.1', 0))
         port = sock.getsockname()[1]

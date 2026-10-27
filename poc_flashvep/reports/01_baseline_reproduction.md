@@ -1,8 +1,33 @@
 # Baseline reproduction
 
-Status: `IN_PROGRESS`. Full fresh accuracy is not yet available.
+Status: `PILOT_COMPLETE_NOT_FULL_REPRODUCTION`. The user deferred full fresh evaluation.
 Model revision: `dad945cac317da394b390f82c7b40691d8a881ed`.
 Evidence: `../results/refinement_aware_ep_expert_allocation/`.
+
+The current scope is 128 GSM8K questions and 32 HumanEval questions per method.
+See `refinement_ep_pilot_scope_amendment.md` for the user-approved change.
+The original full-evaluation rows below remain unmeasured.
+
+## Current pilot
+
+| Dataset | Method | Correct/N | Accuracy | Wilson 95% CI | Difference from official |
+|---|---|---:|---:|---|---:|
+| GSM8K | Fresh HF, reused raw outputs | 118/128 | 92.18750% | [86.21531%, 95.70126%] | -2.05250 pp |
+| GSM8K | Fresh physical EP4, reused raw outputs | 119/128 | 92.96875% | [87.17652%, 96.25702%] | -1.27125 pp |
+| HumanEval | Fresh HF | 30/32 | 93.75000% | [79.85288%, 98.26894%] | +7.16000 pp |
+| HumanEval | Fresh physical EP4 | 32/32 | 100.00000% | [89.28208%, 100.00000%] | +13.41000 pp |
+| HumanEval | Fresh physical EP4, identity hook | 32/32 | 100.00000% | [89.28208%, 100.00000%] | +13.41000 pp |
+
+The GSM8K EP4-minus-HF paired difference is +0.78125 pp.
+Its question-bootstrap 95% interval is [-2.34375, +4.68750] pp.
+HF and native token-selection protocols differ.
+This difference is not a sharding-only accuracy estimate.
+The small pilot does not prove 0.5 pp non-inferiority.
+The HumanEval EP4-minus-HF difference is +6.25 pp.
+Its paired bootstrap 95% interval is [0.00, +15.625] pp.
+The native identity hook preserves token IDs and NFE on all 32 HumanEval requests.
+This does not establish a new allocation method's quality.
+The fixed first-32 subset and different decoder protocols prevent an official-score superiority claim.
 
 ## Published and historical accuracy
 
@@ -81,4 +106,8 @@ Token agreement alone does not replace executable scoring.
 The two fresh HF sanity requests completed.
 The Group A EP4 sanity requests also completed.
 These requests do not establish benchmark accuracy.
-The full 1,319/164-question evaluations run in the durable queue.
+The full 1,319/164-question queues stopped at the user's request.
+Their completed raw outputs remain preserved.
+The reduced HumanEval pilot completed and passed sandbox scoring.
+All methods retain capped outputs in the denominator.
+The HF and native HumanEval pilots each contain one length-capped response.

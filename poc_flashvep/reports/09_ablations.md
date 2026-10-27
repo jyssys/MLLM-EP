@@ -5,7 +5,7 @@ Model and runtime identities appear in `00_runtime_audit.md`.
 
 | Ablation | Required control | Status |
 |---|---|---|
-| Identity hook | Same full expert work | PASS on two sanity requests only |
+| Identity hook | Same full expert work | PASS on 32 HumanEval requests and two smoke requests per EP4 group |
 | Uniform versus router | Same actual executed edges | NOT_RUN |
 | Refinement versus EP-only versus joint | Same actual executed edges | NOT_RUN |
 | Refinement signal | Same EP cost and router information | NOT_RUN |

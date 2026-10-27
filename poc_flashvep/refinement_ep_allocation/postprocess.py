@@ -1,6 +1,7 @@
 """Score completed requests without interpreting partial cohorts as full evaluations."""
 import argparse
 import csv
+import fcntl
 import hashlib
 import json
 import statistics
@@ -44,7 +45,7 @@ def normalize_native_record(record):
         r['native_filtered_eos_count']=removed
     return r
 
-def collect():
+def collect(include_hooked=False):
     cohorts={}
     for path in (ROOT/'hf').glob('*/shard*.jsonl'):
         records=rows(path,allow_incomplete=True)
@@ -54,17 +55,34 @@ def collect():
                 cohorts.setdefault(key,[]).append(r)
     for path in (ROOT/'ep4').glob('*/quality_samples.jsonl'):
         for r in rows(path,allow_incomplete=True):
-            if r['task'] in ('gsm8k','humaneval') and r.get('split','').endswith('_test') and r['mode']=='bypass':
+            if r['task'] in ('gsm8k','humaneval') and r.get('split','').endswith('_test') and (r['mode']=='bypass' or (include_hooked and r['mode']=='hooked_noop')):
                 r=normalize_native_record(r)
-                key=('P0_FULL_EP4',r['task'],r['run_id'])
+                key=('P0_HOOKED_EP4' if r['mode']=='hooked_noop' else 'P0_FULL_EP4',r['task'],r['run_id'])
                 cohorts.setdefault(key,[]).append(r)
     return cohorts
 
 def main():
     p=argparse.ArgumentParser()
     p.add_argument('--score-humaneval',action='store_true')
+    p.add_argument('--pilot',action='store_true')
     a=p.parse_args()
-    cohorts=collect()
+    scoring_lock=(ROOT/'state/scoring.lock').open('a')
+    fcntl.flock(scoring_lock,fcntl.LOCK_EX)
+    cohorts=collect(include_hooked=a.pilot)
+    destination=ROOT/'pilot' if a.pilot else ROOT
+    destination.mkdir(exist_ok=True)
+    if a.pilot:
+        for method in ('REFERENCE_HF','P0_FULL_EP4'):
+            saved=ROOT/'pilot'/f'gsm8k_reused_{method}.jsonl'
+            if saved.exists():
+                data=rows(saved)
+                if method=='P0_FULL_EP4':
+                    data=[normalize_native_record(r) for r in data]
+                cohorts[(method,'gsm8k',data[0]['run_id'])]=data
+        allowed={task:{r['sample_id'] for r in rows(ROOT/'pilot'/f'{task}_manifest.jsonl')}
+                 for task in ('gsm8k','humaneval')}
+        cohorts={key:[r for r in data if r['sample_id'] in allowed[key[1]]] for key,data in cohorts.items()}
+        cohorts={key:data for key,data in cohorts.items() if data}
     sys.path.insert(0,str(REFERENCE))
     from score_humaneval import sandbox_check
     cachepath=ROOT/'human_eval_scoring_cache.json'
@@ -89,12 +107,13 @@ def main():
         n=len(evaluated)
         k=sum(bool(r['correct']) for r in evaluated)
         official=94.24 if task=='gsm8k' else 86.59
-        expected=1319 if task=='gsm8k' else 164
+        expected=(128 if task=='gsm8k' else 32) if a.pilot else (1319 if task=='gsm8k' else 164)
         summary=dict(method=method,task=task,run_id=runid,generated_n=len(data),scored_n=n,
             expected_n=expected,correct=k,accuracy_percent=100*k/n if n else None,
             wilson_95_percent=[100*x for x in wilson(k,n)] if n else None,
             official_percent=official,difference_official_pp=100*k/n-official if n else None,
-            status='COMPLETE' if n==expected else 'PARTIAL_NOT_FINAL',
+            status=('COMPLETE_PILOT_NOT_FULL_BENCHMARK' if a.pilot else 'COMPLETE') if n==expected else 'PARTIAL_NOT_FINAL',
+            scope='USER_APPROVED_PILOT' if a.pilot else 'ORIGINAL_FULL_BENCHMARK',
             mean_nfe=statistics.mean(r['nfe'] for r in data),p95_nfe=percentile([r['nfe'] for r in data],95),
             mean_output_tokens=statistics.mean(r['generation_tokens'] for r in data),
             eos=sum(r['termination_reason'] in ('EOS','EOS_FILTERED_SOURCE_DERIVED') for r in data),
@@ -115,13 +134,13 @@ def main():
             accuracy_ep_minus_hf_pp=100*statistics.mean(int(ep[i]['correct'])-int(hf[i]['correct']) for i in scored) if scored else None,
             paired_bootstrap_95_pp=paired_bootstrap([hf[i]['correct'] for i in scored],[ep[i]['correct'] for i in scored]),
             caveat='Different HF multinomial and native greedy decoder protocols. Not a sharding-only attribution.'))
-    write(ROOT/'baseline_quality_summary.json',dict(cohorts=summaries, comparisons=comparisons))
+    write(destination/'baseline_quality_summary.json',dict(cohorts=summaries, comparisons=comparisons))
     if summaries:
-        with (ROOT/'baseline_accuracy.csv').open('w') as stream:
+        with (destination/'baseline_accuracy.csv').open('w') as stream:
             out=csv.DictWriter(stream,fieldnames=list(summaries[0]))
             out.writeheader()
             out.writerows(summaries)
-    with (ROOT/'quality_samples.jsonl').open('w') as stream:
+    with (destination/'quality_samples.jsonl').open('w') as stream:
         for r in samples:
             stream.write(json.dumps(r,ensure_ascii=False)+'\n')
     print(json.dumps(dict(cohorts=summaries,comparisons=comparisons),indent=2))

@@ -70,5 +70,5 @@ def rows(manifest, allow_incomplete=False):
     return [json.loads(line) for line in lines if line.strip()]
 
 def setup():
-    for name in ('state', 'logs', 'manifests', 'hf', 'ep4', 'sources', 'figures'):
+    for name in ('state', 'logs', 'manifests', 'hf', 'ep4', 'sources', 'figures','archives'):
         (ROOT/name).mkdir(parents=True, exist_ok=True)

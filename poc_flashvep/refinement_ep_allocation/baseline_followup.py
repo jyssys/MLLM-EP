@@ -82,6 +82,8 @@ def run():
 
 def main():
     setup()
+    if (ROOT/'pilot/scope_amendment.json').exists():
+        raise RuntimeError('The full-evaluation follow-up was canceled by the pilot amendment.')
     p=argparse.ArgumentParser()
     p.add_argument('action',choices=('start','run'))
     a=p.parse_args()

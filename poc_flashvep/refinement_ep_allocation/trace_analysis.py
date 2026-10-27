@@ -116,7 +116,8 @@ def main():
                 interpretation='TRACE_ESTIMATE_ONLY. No altered quality or physical sparse execution measured.'))
         request['deduplicated_traffic_counterfactuals']=deletion
         requests.append(request)
-    write(ROOT/'ep_trace_audit.json',dict(run_id=a.run_id, requests=requests,
+    target=ROOT/('ep_trace_audit.json' if a.run_id=='A_sanity' else f'ep_trace_audit.{a.run_id}.json')
+    write(target,dict(run_id=a.run_id, requests=requests,
         evidence_scope='Fresh two-request sanity traces. Not a quality or speedup claim.'))
     print(json.dumps([{k:v for k,v in r.items() if k not in ('rank_metrics',)} for r in requests],indent=2))
 

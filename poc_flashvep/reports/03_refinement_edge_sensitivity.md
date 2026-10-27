@@ -1,9 +1,33 @@
 # Refinement edge sensitivity
 
-Status: `NOT_RUN_AFTER_BASELINE_GATE`.
+Status: `BASELINE_TRACE_ANALYSIS_COMPLETE_OMISSION_SENSITIVITY_NOT_RUN`.
 Runtime and model identities appear in `00_runtime_audit.md`.
-The fresh full baseline evaluation remains in progress.
+The user-approved 128/32 baseline pilot is complete.
+Two independent EP4 replicas collected 16 different non-test validation trajectories.
+The observer records prior completed-forward confidence before each current dispatch.
+It does not change router results or omit expert work.
+Observed-versus-bypass output parity remains a required per-request assertion.
+This collection does not establish an approximate policy's quality or speedup.
 No approximate policy passed the quality gate yet.
+
+## Completed retained-all observations
+
+All 16 requests preserved output tokens and NFE across baseline, no-op, and observer execution.
+Each stored confidence feature predates its current dispatch.
+The analysis uses the first MoE layer once per forward for commitment labels.
+It does not count the same label 19 times across physical layers.
+
+Prior confidence predicts next-iteration commitment with macro AUROC 0.92619.
+The question-bootstrap 95% interval is [0.91610, 0.93418], with N=16 requests.
+This is `TRACE_ANALYSIS`, not an expert-omission result.
+Commit predictability does not establish marginal expert importance.
+It also does not establish that expert work can be skipped safely.
+
+The median observer-to-baseline wall ratio is 1.16964 across these 16 requests.
+This overhead is approximately 16.96% under this parallel collection setup.
+Do not use the instrumented absolute times as clean serving latency.
+The rank-local stage shares reside in `pilot/observer_breakdown.csv` under the result directory.
+Those shares do not identify the clean global critical path.
 
 ## Frozen partitions
 

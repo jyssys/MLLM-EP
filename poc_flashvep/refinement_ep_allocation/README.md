@@ -3,23 +3,27 @@
 This campaign uses `inclusionAI/LLaDA2.0-mini`, not `mini-preview`.
 The model revision is `dad945cac317da394b390f82c7b40691d8a881ed`.
 The current implementation covers the runtime audit and baseline evaluation.
+The user reduced the active pilot to GSM8K 128 and HumanEval 32 questions.
+The original full-evaluation queues are canceled.
+The baseline pilot is complete.
+The retained-all validation stage also completed 16 requests across two EP4 groups.
+Expert-omission sensitivity and physical sparse execution remain untested.
 Policy acceleration remains conditional on the specification gates.
 
 ## Current execution
 
-The durable supervisor evaluates the HF baseline and physical EP4 baseline.
+The pilot supervisor evaluates the HF baseline and physical EP4 baseline.
 It saves each completed request before the next request.
 It restores owned burners when a GPU group becomes free.
 It does not approve later research phases automatically.
-The separate baseline follow-up controller waits for that queue to finish.
-It scores HumanEval and executes isolated P0/no-op A/B comparisons.
-It does not implement approximate expert policies.
+The pilot reuses completed GSM8K generations from both backends.
+It generates and scores the selected HumanEval responses.
+It also checks identity-hook parity on those native HumanEval requests.
+The previous isolated-baseline follow-up no longer runs automatically.
 
 ```bash
 cd /home/esjung/MLLM-EP-github
-python -m poc_flashvep.refinement_ep_allocation.prepare
-python -m poc_flashvep.refinement_ep_allocation.audit
-python -m poc_flashvep.refinement_ep_allocation.campaign start
+python -m poc_flashvep.refinement_ep_allocation.postprocess --pilot --score-humaneval
 ```
 
 The preparation command uses the existing CPU Python environment.
@@ -89,7 +93,8 @@ The online worker does not receive those answers.
 ## Evidence
 
 Artifacts reside in `poc_flashvep/results/refinement_aware_ep_expert_allocation/`.
-The state file is `state/campaign.json`.
+The pilot state file is `state/pilot.json`.
+The trace collection state file is `state/pilot_traces.json`.
 The command ledger is `commands.jsonl`.
 The job ledger is `job_events.jsonl`.
 The supervisor log is `logs/supervisor.log`.
@@ -103,6 +108,17 @@ python -m poc_flashvep.refinement_ep_allocation.resources status
 `ep_trace_audit.json` distinguishes logical payload estimates from physical traffic counters.
 The trace analysis does not report an implemented sparse-execution speedup.
 The two-request sanity test does not establish benchmark quality.
+
+The reduced pilot quality table is `pilot/baseline_accuracy.csv`.
+The validation summary is `pilot/refinement_trace_summary.json`.
+The observer breakdown is `pilot/observer_breakdown.csv`.
+These files do not establish an allocation policy's speedup.
+
+Raw interrupted and validation runs also reside in bounded archive parts.
+Each part is at most 80,000,000 bytes.
+The archive index records all part hashes and the reassembled archive hash.
+Source raw files remain unchanged.
+The archive entry point is `python -m poc_flashvep.refinement_ep_allocation.archive_evidence`.
 
 The native B1 return removes EOS tokens.
 Postprocessing corrects the initial logger's stop labels without rewriting raw evidence.
@@ -130,9 +146,9 @@ Do not sum overlapping stage times into a global critical path.
 ## Resume
 
 Check the supervisor PID and current GPU owners before another start.
-The supervisor lock rejects concurrent controllers.
-Also check `state/followup.json` before another follow-up start.
-The existing follow-up controller uses its own exclusive lock.
+The pilot lock rejects concurrent pilot controllers.
+The current state is `state/pilot.json`.
+Do not restart the canceled full-evaluation controllers.
 Completed request artifacts survive a worker failure.
 The current queue does not retry a failed worker silently.
 Review the failure log before a resume.

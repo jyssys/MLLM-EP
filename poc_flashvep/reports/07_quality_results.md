@@ -4,6 +4,11 @@ Status: `IN_PROGRESS`. No final policy quality claim is available.
 Model revision: `dad945cac317da394b390f82c7b40691d8a881ed`.
 Protocol audit: `01_baseline_reproduction.md`.
 
+The user changed the current scope to a 128/32-question pilot.
+The table below retains the original full-evaluation requirements as unmeasured fields.
+Pilot baseline results appear in `01_baseline_reproduction.md` and the [pilot table](../results/refinement_aware_ep_expert_allocation/pilot/baseline_accuracy.csv).
+Those results must not fill the full-evaluation rows.
+
 | Dataset | Method | Correct/N | Accuracy | Wilson 95% CI | Official reference | Difference from official | Paired difference from vanilla |
 |---|---|---|---|---|---:|---|---|
 | GSM8K | Fresh HF reference | NOT_MEASURED_FULL | NOT_MEASURED_FULL | NOT_MEASURED_FULL | 94.24% | NOT_MEASURED | NOT_APPLICABLE |

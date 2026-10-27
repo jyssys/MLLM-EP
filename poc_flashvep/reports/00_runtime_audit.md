@@ -1,6 +1,7 @@
 # Runtime audit
 
-Status: `PASS_AUDIT`. Baseline quality remains in progress.
+Status: `PASS_AUDIT`. The 128/32-question baseline pilot is complete.
+The user deferred full benchmark reproduction.
 Evidence: `../results/refinement_aware_ep_expert_allocation/environment.json`.
 The authoritative contract is `refinement_aware_ep_expert_allocation_poc_spec.md`.
 The campaign read all 356 specification lines before implementation.
