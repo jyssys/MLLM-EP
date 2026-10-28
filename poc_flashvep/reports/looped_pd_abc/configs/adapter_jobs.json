@@ -1,0 +1,7 @@
+[
+ {"name":"dory_official_compat","gpus":[6],"module":"poc_flashvep.looped_pd_abc.dory_reference","env":{"ABC_DORY_PLUGIN":"1","VLLM_WORKER_MULTIPROC_METHOD":"spawn"},"args":["--name","dory_official_compat","--cap","32","--requests","4"]},
+ {"name":"dory_adapter_native","gpus":[7],"env":{"ABC_RLT_DORY":"1"},"args":["--model","dory","--mode","native","--gpus","7","--name","dory_adapter_native","--requests","4","--length","0","--cap","32","--warmup"]},
+ {"name":"dory_state_cut_pilot","gpus":[4,5],"module":"poc_flashvep.looped_pd_abc.state_probe","args":["--model","dory","--name","dory_state_cut_pilot","--enable-recurrence-split","--cuts","0,1,2","--requests","2","--length","128","--cap","8"]},
+ {"name":"huginn_pd_adapter","gpus":[0,1],"args":["--model","huginn","--mode","pd","--gpus","0,1","--name","huginn_pd_adapter","--enable-boundary-adapter","--requests","4","--length","128","--cap","8","--warmup"]},
+ {"name":"ouro_c_service_smoke","gpus":[2,3],"args":["--model","ouro","--mode","pd","--gpus","2,3","--name","ouro_c_service_smoke","--requests","8","--cap","32","--length","512","--concurrency","4","--chunk","256","--wavefront","--warmup","--graphs","--asynchronous","--placement","service"]}
+]

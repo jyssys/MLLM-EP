@@ -1,0 +1,93 @@
+[transformers] `torch_dtype` is deprecated! Use `dtype` instead!
+Attention implementation: {'backend': 'flash_attn', 'generation': 4, 'package': 'flash-attn-4', 'version': '4.0.0b30'}
+2026-10-29 02:56:31 NIXL INFO    _api.py:407 Backend UCX was instantiated
+2026-10-29 02:56:31 NIXL INFO    _api.py:285 Initialized NIXL agent: 72124cbed239443b90c8926bc564ef81-decode-1
+Attention implementation: {'backend': 'flash_attn', 'generation': 4, 'package': 'flash-attn-4', 'version': '4.0.0b30'}
+2026-10-29 02:56:33 NIXL INFO    _api.py:407 Backend UCX was instantiated
+2026-10-29 02:56:33 NIXL INFO    _api.py:285 Initialized NIXL agent: 72124cbed239443b90c8926bc564ef81-prefill-0
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_abc/worker.py", line 163, in <module>
+    if __name__=='__main__':main()
+                            ~~~~^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_abc/worker.py", line 158, in main
+    try:run(args)
+        ~~~^^^^^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_abc/worker.py", line 127, in run
+    if args.warmup:serve(engine,inputs[:min(args.concurrency,len(inputs))],args,-1,warmup=True)
+                   ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_abc/worker.py", line 46, in serve
+    for output in engine.step():
+                  ~~~~~~~~~~~^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/pd/engine.py", line 428, in step
+    self._poll()
+    ~~~~~~~~~~^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/pd/engine.py", line 176, in _poll
+    for message in peer.client.poll():
+                   ~~~~~~~~~~~~~~~~^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/llm_engine.py", line 118, in poll
+    message = self._receive()
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/llm_engine.py", line 141, in _receive
+    raise error(f"stage worker failed:\n{self.failure}")
+ValueError: stage worker failed:
+Traceback (most recent call last):
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/worker.py", line 225, in worker_main
+    owner.run()
+    ~~~~~~~~~^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/worker.py", line 189, in run
+    for output in self.engine.step():
+                  ~~~~~~~~~~~~~~~~^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/stage_engine.py", line 445, in step
+    return self._step()
+           ~~~~~~~~~~^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/stage_engine.py", line 486, in _step
+    ticket = self.executor.submit(batch)
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/worker/executor.py", line 104, in submit
+    return self.runner.submit(scheduled_batch, batch=batch)
+           ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/utils/_contextlib.py", line 124, in decorate_context
+    return func(*args, **kwargs)
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/worker/model_runner.py", line 1217, in submit
+    result = self._execute(scheduled_batch, prepared)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/utils/_contextlib.py", line 124, in decorate_context
+    return func(*args, **kwargs)
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/worker/model_runner.py", line 1105, in _execute
+    return self._execute_batch(prepared.batch, prepared)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/worker/model_runner.py", line 1114, in _execute_batch
+    result = self.runtime.forward(forward)
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/worker/executor.py", line 187, in forward
+    hidden = self.model.prelude_prepared(
+        batch.tokens[: len(batch.prelude_coda_kv_metadata.position_ids)],
+    ...<2 lines>...
+        generators=batch.generators,
+    )
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/models/huginn.py", line 255, in prelude_prepared
+    raise ValueError("one request generator is required per token row")
+ValueError: one request generator is required per token row
+
+[transformers] `torch_dtype` is deprecated! Use `dtype` instead!
+Attention implementation: {'backend': 'flash_attn', 'generation': 4, 'package': 'flash-attn-4', 'version': '4.0.0b30'}
+2026-10-29 03:00:22 NIXL INFO    _api.py:407 Backend UCX was instantiated
+2026-10-29 03:00:22 NIXL INFO    _api.py:285 Initialized NIXL agent: d15c286e8d244ca995d349fad0af78a8-decode-1
+Attention implementation: {'backend': 'flash_attn', 'generation': 4, 'package': 'flash-attn-4', 'version': '4.0.0b30'}
+2026-10-29 03:00:25 NIXL INFO    _api.py:407 Backend UCX was instantiated
+2026-10-29 03:00:25 NIXL INFO    _api.py:285 Initialized NIXL agent: d15c286e8d244ca995d349fad0af78a8-prefill-0
+/home/esjung/.venvs/ouro-chunk-loop-prefill/lib/python3.14/site-packages/nvidia_cutlass_dsl/dsl_packages/cutlass/base_dsl/dsl.py:2300: UserWarning: Argument aux_data (position 17) cannot be converted to a JitArgument for function 'cutlass___call___flash_attncuteflash_fwd_sm90FlashAttentionForwardSm90_object_at__Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_None_01020'. Its type `<class 'flash_attn.cute.utils.AuxData'>` is not supported. If the value is known at compile time, annotate it: `aux_data: Constexpr`. Otherwise, implement the `JitArgument` or `DynamicExpression` protocol for type `<class 'flash_attn.cute.utils.AuxData'>`, or register a custom argument adapter.
+  exe_args, func_types, adapted_args = self.generate_mlir_function_types(
+/home/esjung/.venvs/ouro-chunk-loop-prefill/lib/python3.14/site-packages/nvidia_cutlass_dsl/dsl_packages/cutlass/base_dsl/dsl.py:2300: UserWarning: Argument aux_data (position 17) cannot be converted to a JitArgument for function 'cutlass___call___flash_attncuteflash_fwd_sm90FlashAttentionForwardSm90_object_at__Tensorgmemoi64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i641_None_01020620726'. Its type `<class 'flash_attn.cute.utils.AuxData'>` is not supported. If the value is known at compile time, annotate it: `aux_data: Constexpr`. Otherwise, implement the `JitArgument` or `DynamicExpression` protocol for type `<class 'flash_attn.cute.utils.AuxData'>`, or register a custom argument adapter.
+  exe_args, func_types, adapted_args = self.generate_mlir_function_types(
+/home/esjung/.venvs/ouro-chunk-loop-prefill/lib/python3.14/site-packages/nvidia_cutlass_dsl/dsl_packages/cutlass/base_dsl/dsl.py:2300: UserWarning: Argument aux_data (position 17) cannot be converted to a JitArgument for function 'cutlass___call___flash_attncuteflash_fwd_sm90FlashAttentionForwardSm90_object_at__Tensorgmemoi64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i641_None_01020620726'. Its type `<class 'flash_attn.cute.utils.AuxData'>` is not supported. If the value is known at compile time, annotate it: `aux_data: Constexpr`. Otherwise, implement the `JitArgument` or `DynamicExpression` protocol for type `<class 'flash_attn.cute.utils.AuxData'>`, or register a custom argument adapter.
+  exe_args, func_types, adapted_args = self.generate_mlir_function_types(
+/home/esjung/.venvs/ouro-chunk-loop-prefill/lib/python3.14/site-packages/nvidia_cutlass_dsl/dsl_packages/cutlass/base_dsl/dsl.py:2300: UserWarning: Argument aux_data (position 17) cannot be converted to a JitArgument for function 'cutlass___call___flash_attncuteflash_fwd_sm90FlashAttentionForwardSm90_object_at__Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_None_01020'. Its type `<class 'flash_attn.cute.utils.AuxData'>` is not supported. If the value is known at compile time, annotate it: `aux_data: Constexpr`. Otherwise, implement the `JitArgument` or `DynamicExpression` protocol for type `<class 'flash_attn.cute.utils.AuxData'>`, or register a custom argument adapter.
+  exe_args, func_types, adapted_args = self.generate_mlir_function_types(
+DONE huginn_A_integrated_pilot2 0 8 length 12316.42
+DONE huginn_A_integrated_pilot2 0 8 length 1362.79
+DONE huginn_A_integrated_pilot2 1 8 length 1361.33
+DONE huginn_A_integrated_pilot2 2 8 length 1353.32
+DONE huginn_A_integrated_pilot2 3 8 length 1371.64
+[1793210463.851288] [cloud-0n58xq:2430401:0]        cuda_ctx.c:23   UCX  ERROR cuDevicePrimaryCtxGetState(cuda_device, &flags, &active) failed: unrecognized error code 4
+[1793210463.851288] [cloud-0n58xq:2430400:0]        cuda_ctx.c:23   UCX  ERROR cuDevicePrimaryCtxGetState(cuda_device, &flags, &active) failed: unrecognized error code 4
+[1793210463.851329] [cloud-0n58xq:2430400:0]        cuda_ctx.c:23   UCX  ERROR cuDevicePrimaryCtxGetState(cuda_device, &flags, &active) failed: unrecognized error code 4
+[1793210463.851333] [cloud-0n58xq:2430400:0]        cuda_ctx.c:23   UCX  ERROR cuDevicePrimaryCtxGetState(cuda_device, &flags, &active) failed: unrecognized error code 4

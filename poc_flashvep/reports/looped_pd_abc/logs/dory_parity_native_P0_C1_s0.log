@@ -1,0 +1,79 @@
+[transformers] The tokenizer you are loading from '/home/esjung/.cache/huggingface/hub/models--nvidia--NVIDIA-Nemotron-Labs-Dory1.0-4B-BF16/snapshots/b5437f97df4b998a505f4cac5b23791cd3e9df94' with an incorrect regex pattern: https://huggingface.co/mistralai/Mistral-Small-3.1-24B-Instruct-2503/discussions/84#69121093e8b480e709447d5e. This will lead to incorrect tokenization. You should set the `fix_mistral_regex=True` flag when loading this tokenizer to fix this issue.
+Attention implementation: {'backend': 'flash_attn', 'generation': 4, 'package': 'flash-attn-4', 'version': '4.0.0b30'}
+/home/esjung/.venvs/ouro-chunk-loop-prefill/lib/python3.14/site-packages/nvidia_cutlass_dsl/dsl_packages/cutlass/base_dsl/dsl.py:2300: UserWarning: Argument aux_data (position 17) cannot be converted to a JitArgument for function 'cutlass___call___flash_attncuteflash_fwd_sm90FlashAttentionForwardSm90_object_at__Tensorgmemoi64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i641_None_00625_Tenso'. Its type `<class 'flash_attn.cute.utils.AuxData'>` is not supported. If the value is known at compile time, annotate it: `aux_data: Constexpr`. Otherwise, implement the `JitArgument` or `DynamicExpression` protocol for type `<class 'flash_attn.cute.utils.AuxData'>`, or register a custom argument adapter.
+  exe_args, func_types, adapted_args = self.generate_mlir_function_types(
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_abc/worker.py", line 168, in <module>
+    if __name__=='__main__':main()
+                            ~~~~^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_abc/worker.py", line 163, in main
+    try:run(args)
+        ~~~^^^^^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_abc/worker.py", line 131, in run
+    if args.warmup:serve(engine,inputs[:min(args.concurrency,len(inputs))],args,-1,warmup=True)
+                   ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_abc/worker.py", line 47, in serve
+    for output in engine.step():
+                  ~~~~~~~~~~~^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/stage_engine.py", line 445, in step
+    return self._step()
+           ~~~~~~~~~~^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/stage_engine.py", line 486, in _step
+    ticket = self.executor.submit(batch)
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/worker/executor.py", line 104, in submit
+    return self.runner.submit(scheduled_batch, batch=batch)
+           ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/utils/_contextlib.py", line 124, in decorate_context
+    return func(*args, **kwargs)
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/worker/model_runner.py", line 1233, in submit
+    prepared = self.prepare_on_gpu(prepared)
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/worker/model_runner.py", line 993, in prepare_on_gpu
+    return self._prepare_forward(prepared)
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/worker/model_runner.py", line 1035, in _prepare_forward
+    return replace(prepared, forwards=(PreparedForward(self.runtime.prepare(forward)),))
+                                                       ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/worker/executor.py", line 162, in prepare
+    batch.graphs.prepare_inputs(calls[0], batch.hidden)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/utils/_contextlib.py", line 124, in decorate_context
+    return func(*args, **kwargs)
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/worker/cuda_graph.py", line 479, in prepare_inputs
+    entry.graph, entry.output = _capture(
+                                ~~~~~~~~^
+        entry.hidden, self.stream, self.pool, run, startup=startup
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/worker/cuda_graph.py", line 79, in _capture
+    run()
+    ~~~^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/worker/cuda_graph.py", line 472, in <lambda>
+    lambda: self.model.coda_prepared(
+            ~~~~~~~~~~~~~~~~~~~~~~~~^
+        entry.hidden, entry.metadata, _DeviceCache(self.cache)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_abc/dory_adapter.py", line 130, in coda_prepared
+    for layer in self.backbone.layers[c['n_input_layers']+c['n_recurrent_layers']:]:h=layer(h,batch,cache)
+                                                                                      ~~~~~^^^^^^^^^^^^^^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/nn/modules/module.py", line 1779, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/nn/modules/module.py", line 1790, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_abc/dory_adapter.py", line 99, in forward
+    out=self.mixer(h,batch,cache) if self.attention else self.mixer(h)
+        ~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/nn/modules/module.py", line 1779, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/nn/modules/module.py", line 1790, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_abc/dory_adapter.py", line 70, in forward
+    max_seqlen_q=batch.max_seqlen_q,max_seqlen_k=batch.block_tables.shape[1]*cache.block_size,
+                                                                             ^^^^^^^^^^^^^^^^
+AttributeError: '_DeviceCache' object has no attribute 'block_size'

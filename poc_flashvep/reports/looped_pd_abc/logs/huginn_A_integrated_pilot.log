@@ -1,0 +1,45 @@
+[transformers] `torch_dtype` is deprecated! Use `dtype` instead!
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_abc/worker.py", line 151, in <module>
+    if __name__=='__main__':main()
+                            ~~~~^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_abc/worker.py", line 146, in main
+    try:run(args)
+        ~~~^^^^^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_abc/worker.py", line 107, in run
+    engine=PDEngine(MODELS[args.model],pd_config=PDConfig(prefill_devices=tuple(range(p)),decode_devices=tuple(range(p,len(devices))),startup_timeout=300),
+     prefill_cache_config=cfg['cache_config'],decode_cache_config=cfg['cache_config'],
+     prefill_scheduler_config=cfg['scheduler_config'],decode_scheduler_config=cfg['scheduler_config'],
+     execution_config=cfg['execution_config'],exit_config=cfg['exit_config'],attention_backend=cfg['attention_backend'],seed=20261029)
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/pd/engine.py", line 147, in __init__
+    self._wait(lambda: all(p.client.ready for p in self.peers.values()), deadline)
+    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/pd/engine.py", line 169, in _wait
+    self._poll()
+    ~~~~~~~~~~^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/pd/engine.py", line 176, in _poll
+    for message in peer.client.poll():
+                   ~~~~~~~~~~~~~~~~^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/llm_engine.py", line 118, in poll
+    message = self._receive()
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/llm_engine.py", line 141, in _receive
+    raise error(f"stage worker failed:\n{self.failure}")
+ValueError: stage worker failed:
+Traceback (most recent call last):
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/worker.py", line 216, in worker_main
+    owner = StageWorker(
+        stage_config,
+    ...<5 lines>...
+        max_control_messages=max_control_messages,
+    )
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/worker.py", line 62, in __init__
+    self.engine = StageEngine(self.model, stage_config=stage_config, **options["engine"])
+                  ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/stage_engine.py", line 78, in __init__
+    raise ValueError(
+        "Huginn does not support staged prefill required by this scheduler"
+    )
+ValueError: Huginn does not support staged prefill required by this scheduler
+

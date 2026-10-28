@@ -1,0 +1,160 @@
+Error processing line 1 of /home/esjung/.venvs/looped-pd-abc/lib/python3.14/site-packages/abc_dory.pth:
+
+  Traceback (most recent call last):
+    File "<frozen site>", line 213, in addpackage
+    File "<string>", line 1, in <module>
+    File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_abc/dory_plugin.py", line 14, in install
+      from transformers import AutoConfig
+  ModuleNotFoundError: No module named 'transformers'
+
+Remainder of file ignored
+INFO 10-29 02:42:59 [api_utils.py:273] non-default args: {'dtype': 'bfloat16', 'max_model_len': 4096, 'gpu_memory_utilization': 0.55, 'max_num_seqs': 4, 'disable_log_stats': True, 'hf_overrides': {'n_recurrent_loops': 2, 'recurrent_kv_cache_mode': 'per_loop'}, 'enforce_eager': True, 'model': '/home/esjung/.cache/huggingface/hub/models--nvidia--NVIDIA-Nemotron-Labs-Dory1.0-4B-BF16/snapshots/b5437f97df4b998a505f4cac5b23791cd3e9df94'}
+Traceback (most recent call last):
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/huggingface_hub/dataclasses.py", line 251, in validate
+    validator(self)
+    ~~~~~~~~~^^^^^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/reports/looped_pd_abc/sources/dory_config_876edc.py", line 123, in validate_rope
+    raise ValueError("rope_parameters must define each attention block type")
+ValueError: rope_parameters must define each attention block type
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_abc/dory_reference.py", line 32, in <module>
+    if __name__=='__main__':main()
+                            ~~~~^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_abc/dory_reference.py", line 15, in main
+    llm=LLM(model=str(MODELS['dory']),dtype='bfloat16',tensor_parallel_size=1,enforce_eager=True,
+     max_model_len=4096,max_num_seqs=4,gpu_memory_utilization=.55,trust_remote_code=False,
+     hf_overrides=dict(n_recurrent_loops=2,recurrent_kv_cache_mode='per_loop'),disable_log_stats=True)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/entrypoints/llm.py", line 338, in __init__
+    self.llm_engine = LLMEngine.from_engine_args(
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        engine_args=engine_args, usage_context=UsageContext.LLM_CLASS
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/v1/engine/llm_engine.py", line 171, in from_engine_args
+    vllm_config = engine_args.create_engine_config(usage_context)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/engine/arg_utils.py", line 1880, in create_engine_config
+    model_config = self.create_model_config()
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/engine/arg_utils.py", line 1639, in create_model_config
+    return ModelConfig(
+        model=self.model,
+    ...<61 lines>...
+        renderer_num_workers=self.renderer_num_workers,
+    )
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/pydantic/_internal/_dataclasses.py", line 121, in __init__
+    s.__pydantic_validator__.validate_python(ArgsKwargs(args, kwargs), self_instance=s)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/config/model.py", line 559, in __post_init__
+    hf_config = get_config(
+        self.hf_config_path or self.model,
+    ...<6 lines>...
+        token=self.hf_token,
+    )
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/transformers_utils/config.py", line 735, in get_config
+    config_dict, config = config_parser.parse(
+                          ~~~~~~~~~~~~~~~~~~~^
+        model,
+        ^^^^^^
+    ...<4 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    )
+    ^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/transformers_utils/config.py", line 312, in parse
+    config = AutoConfig.from_pretrained(
+        model,
+    ...<3 lines>...
+        **kwargs,
+    )
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/transformers/models/auto/configuration_auto.py", line 431, in from_pretrained
+    return config_class.from_dict(config_dict, **unused_kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/transformers/configuration_utils.py", line 904, in from_dict
+    config = cls(**config_dict)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/huggingface_hub/dataclasses.py", line 276, in init_with_validate
+    cls.validate(self)  # type: ignore [attr-defined]
+    ~~~~~~~~~~~~^^^^^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/huggingface_hub/dataclasses.py", line 253, in validate
+    raise StrictDataclassClassValidationError(validator=validator.__name__, cause=e) from e
+huggingface_hub.errors.StrictDataclassClassValidationError: Class validation error for validator 'validate_rope':
+    ValueError: rope_parameters must define each attention block type
+INFO 10-29 02:45:20 [api_utils.py:273] non-default args: {'dtype': 'bfloat16', 'max_model_len': 4096, 'gpu_memory_utilization': 0.55, 'max_num_seqs': 4, 'disable_log_stats': True, 'hf_overrides': {'n_recurrent_loops': 2, 'recurrent_kv_cache_mode': 'per_loop'}, 'enforce_eager': True, 'model': '/home/esjung/.cache/huggingface/hub/models--nvidia--NVIDIA-Nemotron-Labs-Dory1.0-4B-BF16/snapshots/b5437f97df4b998a505f4cac5b23791cd3e9df94'}
+Traceback (most recent call last):
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/huggingface_hub/dataclasses.py", line 251, in validate
+    validator(self)
+    ~~~~~~~~~^^^^^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/reports/looped_pd_abc/sources/dory_config_876edc.py", line 123, in validate_rope
+    raise ValueError("rope_parameters must define each attention block type")
+ValueError: rope_parameters must define each attention block type
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_abc/dory_reference.py", line 32, in <module>
+    if __name__=='__main__':main()
+                            ~~~~^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_abc/dory_reference.py", line 15, in main
+    llm=LLM(model=str(MODELS['dory']),dtype='bfloat16',tensor_parallel_size=1,enforce_eager=True,
+     max_model_len=4096,max_num_seqs=4,gpu_memory_utilization=.55,trust_remote_code=False,
+     hf_overrides=dict(n_recurrent_loops=2,recurrent_kv_cache_mode='per_loop'),disable_log_stats=True)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/entrypoints/llm.py", line 338, in __init__
+    self.llm_engine = LLMEngine.from_engine_args(
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        engine_args=engine_args, usage_context=UsageContext.LLM_CLASS
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/v1/engine/llm_engine.py", line 171, in from_engine_args
+    vllm_config = engine_args.create_engine_config(usage_context)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/engine/arg_utils.py", line 1880, in create_engine_config
+    model_config = self.create_model_config()
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/engine/arg_utils.py", line 1639, in create_model_config
+    return ModelConfig(
+        model=self.model,
+    ...<61 lines>...
+        renderer_num_workers=self.renderer_num_workers,
+    )
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/pydantic/_internal/_dataclasses.py", line 121, in __init__
+    s.__pydantic_validator__.validate_python(ArgsKwargs(args, kwargs), self_instance=s)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/config/model.py", line 559, in __post_init__
+    hf_config = get_config(
+        self.hf_config_path or self.model,
+    ...<6 lines>...
+        token=self.hf_token,
+    )
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/transformers_utils/config.py", line 735, in get_config
+    config_dict, config = config_parser.parse(
+                          ~~~~~~~~~~~~~~~~~~~^
+        model,
+        ^^^^^^
+    ...<4 lines>...
+        **kwargs,
+        ^^^^^^^^^
+    )
+    ^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/transformers_utils/config.py", line 312, in parse
+    config = AutoConfig.from_pretrained(
+        model,
+    ...<3 lines>...
+        **kwargs,
+    )
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/transformers/models/auto/configuration_auto.py", line 431, in from_pretrained
+    return config_class.from_dict(config_dict, **unused_kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/transformers/configuration_utils.py", line 904, in from_dict
+    config = cls(**config_dict)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/huggingface_hub/dataclasses.py", line 276, in init_with_validate
+    cls.validate(self)  # type: ignore [attr-defined]
+    ~~~~~~~~~~~~^^^^^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/huggingface_hub/dataclasses.py", line 253, in validate
+    raise StrictDataclassClassValidationError(validator=validator.__name__, cause=e) from e
+huggingface_hub.errors.StrictDataclassClassValidationError: Class validation error for validator 'validate_rope':
+    ValueError: rope_parameters must define each attention block type

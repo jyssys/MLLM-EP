@@ -1,0 +1,71 @@
+/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/transformers/modeling_rope_utils.py:1080: FutureWarning: `rope_config_validation` is deprecated and has been removed. Its functionality has been moved to RotaryEmbeddingConfigMixin.validate_rope method. PreTrainedConfig inherits this class, so please call self.validate_rope() instead. Also, make sure to use the new rope_parameters syntax. You can call self.standardize_rope_params() in the meantime.
+  warnings.warn(
+[transformers] `layer_type_validation` is deprecated and will be removed in v5.20. Use `PreTrainedConfig.validate_layer_type` instead
+[transformers] `layer_type_validation` is deprecated and will be removed in v5.20. Use `PreTrainedConfig.validate_layer_type` instead
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_abc/worker.py", line 134, in <module>
+    if __name__=='__main__':main()
+                            ~~~~^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_abc/worker.py", line 129, in main
+    try:run(args)
+        ~~~^^^^^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_abc/worker.py", line 92, in run
+    engine=PDEngine(MODELS[args.model],pd_config=PDConfig(prefill_devices=tuple(range(p)),decode_devices=tuple(range(p,len(devices))),startup_timeout=300),
+     prefill_cache_config=cfg['cache_config'],decode_cache_config=cfg['cache_config'],
+     prefill_scheduler_config=cfg['scheduler_config'],decode_scheduler_config=cfg['scheduler_config'],
+     execution_config=cfg['execution_config'],exit_config=cfg['exit_config'],attention_backend=cfg['attention_backend'],seed=20261029)
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/pd/engine.py", line 146, in __init__
+    self._wait(lambda: all(p.client.ready for p in self.peers.values()), deadline)
+    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/pd/engine.py", line 168, in _wait
+    self._poll()
+    ~~~~~~~~~~^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/pd/engine.py", line 175, in _poll
+    for message in peer.client.poll():
+                   ~~~~~~~~~~~~~~~~^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/llm_engine.py", line 118, in poll
+    message = self._receive()
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/llm_engine.py", line 141, in _receive
+    raise error(f"stage worker failed:\n{self.failure}")
+ValueError: stage worker failed:
+Traceback (most recent call last):
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/worker.py", line 216, in worker_main
+    owner = StageWorker(
+        stage_config,
+    ...<5 lines>...
+        max_control_messages=max_control_messages,
+    )
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/worker.py", line 62, in __init__
+    self.engine = StageEngine(self.model, stage_config=stage_config, **options["engine"])
+                  ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/stage_engine.py", line 148, in __init__
+    raise ValueError(
+        "async scheduling requires ouro_delayed, random_lookahead or trace exit mode"
+    )
+ValueError: async scheduling requires ouro_delayed, random_lookahead or trace exit mode
+
+/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/transformers/modeling_rope_utils.py:1080: FutureWarning: `rope_config_validation` is deprecated and has been removed. Its functionality has been moved to RotaryEmbeddingConfigMixin.validate_rope method. PreTrainedConfig inherits this class, so please call self.validate_rope() instead. Also, make sure to use the new rope_parameters syntax. You can call self.standardize_rope_params() in the meantime.
+  warnings.warn(
+[transformers] `layer_type_validation` is deprecated and will be removed in v5.20. Use `PreTrainedConfig.validate_layer_type` instead
+[transformers] `layer_type_validation` is deprecated and will be removed in v5.20. Use `PreTrainedConfig.validate_layer_type` instead
+Attention implementation: {'backend': 'flash_attn', 'generation': 4, 'package': 'flash-attn-4', 'version': '4.0.0b30'}
+Attention implementation: {'backend': 'flash_attn', 'generation': 4, 'package': 'flash-attn-4', 'version': '4.0.0b30'}
+2026-10-29 02:45:24 NIXL INFO    _api.py:407 Backend UCX was instantiated
+2026-10-29 02:45:24 NIXL INFO    _api.py:285 Initialized NIXL agent: 65140844e5e34628a67403f51336b30a-prefill-0
+2026-10-29 02:45:24 NIXL INFO    _api.py:407 Backend UCX was instantiated
+2026-10-29 02:45:24 NIXL INFO    _api.py:285 Initialized NIXL agent: 65140844e5e34628a67403f51336b30a-decode-1
+/home/esjung/.venvs/ouro-chunk-loop-prefill/lib/python3.14/site-packages/nvidia_cutlass_dsl/dsl_packages/cutlass/base_dsl/dsl.py:2300: UserWarning: Argument aux_data (position 17) cannot be converted to a JitArgument for function 'cutlass___call___flash_attncuteflash_fwd_sm90FlashAttentionForwardSm90_object_at__Tensorgmemoi64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i641_None_00883883476'. Its type `<class 'flash_attn.cute.utils.AuxData'>` is not supported. If the value is known at compile time, annotate it: `aux_data: Constexpr`. Otherwise, implement the `JitArgument` or `DynamicExpression` protocol for type `<class 'flash_attn.cute.utils.AuxData'>`, or register a custom argument adapter.
+  exe_args, func_types, adapted_args = self.generate_mlir_function_types(
+/home/esjung/.venvs/ouro-chunk-loop-prefill/lib/python3.14/site-packages/nvidia_cutlass_dsl/dsl_packages/cutlass/base_dsl/dsl.py:2300: UserWarning: Argument aux_data (position 17) cannot be converted to a JitArgument for function 'cutlass___call___flash_attncuteflash_fwd_sm90FlashAttentionForwardSm90_object_at__Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_None_00883'. Its type `<class 'flash_attn.cute.utils.AuxData'>` is not supported. If the value is known at compile time, annotate it: `aux_data: Constexpr`. Otherwise, implement the `JitArgument` or `DynamicExpression` protocol for type `<class 'flash_attn.cute.utils.AuxData'>`, or register a custom argument adapter.
+  exe_args, func_types, adapted_args = self.generate_mlir_function_types(
+DONE ouro_pd_frontier_smoke 0 32 length 9632.6
+DONE ouro_pd_frontier_smoke 0 32 length 843.36
+DONE ouro_pd_frontier_smoke 1 32 length 777.26
+DONE ouro_pd_frontier_smoke 2 32 length 795.26
+DONE ouro_pd_frontier_smoke 3 32 length 806.57
+[1793209542.714722] [cloud-0n58xq:2390300:0]        cuda_ctx.c:23   UCX  ERROR cuDevicePrimaryCtxGetState(cuda_device, &flags, &active) failed: unrecognized error code 4
+[1793209542.714758] [cloud-0n58xq:2390300:0]        cuda_ctx.c:23   UCX  ERROR cuDevicePrimaryCtxGetState(cuda_device, &flags, &active) failed: unrecognized error code 4
+[1793209542.714762] [cloud-0n58xq:2390300:0]        cuda_ctx.c:23   UCX  ERROR cuDevicePrimaryCtxGetState(cuda_device, &flags, &active) failed: unrecognized error code 4
+[1793209542.714777] [cloud-0n58xq:2390301:0]        cuda_ctx.c:23   UCX  ERROR cuDevicePrimaryCtxGetState(cuda_device, &flags, &active) failed: unrecognized error code 4

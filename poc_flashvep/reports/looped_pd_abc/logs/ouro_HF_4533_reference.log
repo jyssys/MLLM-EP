@@ -1,0 +1,25 @@
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_abc/reference_probe.py", line 34, in <module>
+    if __name__=='__main__':main()
+                            ~~~~^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_abc/reference_probe.py", line 17, in main
+    model=AutoModelForCausalLM.from_pretrained(MODELS[a.model],dtype=torch.bfloat16,trust_remote_code=True,local_files_only=True).to('cuda:0').eval()
+          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/.venvs/looped-pd-abc-hf-reference/lib/python3.14/site-packages/transformers/models/auto/auto_factory.py", line 582, in from_pretrained
+    model_class = get_class_from_dynamic_module(
+        class_ref, pretrained_model_name_or_path, code_revision=code_revision, **hub_kwargs, **kwargs
+    )
+  File "/home/esjung/.venvs/looped-pd-abc-hf-reference/lib/python3.14/site-packages/transformers/dynamic_module_utils.py", line 582, in get_class_from_dynamic_module
+    return get_class_in_module(class_name, final_module, force_reload=force_download)
+  File "/home/esjung/.venvs/looped-pd-abc-hf-reference/lib/python3.14/site-packages/transformers/dynamic_module_utils.py", line 277, in get_class_in_module
+    module_spec.loader.exec_module(module)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^
+  File "<frozen importlib._bootstrap_external>", line 759, in exec_module
+  File "<frozen importlib._bootstrap>", line 491, in _call_with_frames_removed
+  File "/home/esjung/.cache/huggingface/modules/transformers_modules/574fa66cb8bf5abdc979642d01cf2b79b16bfab1/modeling_ouro.py", line 16, in <module>
+    from transformers.modeling_layers import (
+    ...<4 lines>...
+    )
+ImportError: cannot import name 'GenericForQuestionAnswering' from 'transformers.modeling_layers' (/home/esjung/.venvs/looped-pd-abc-hf-reference/lib/python3.14/site-packages/transformers/modeling_layers.py)
