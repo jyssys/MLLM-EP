@@ -30,26 +30,31 @@ def plots(summary,comparisons):
  matplotlib.use('Agg')
  import matplotlib.pyplot as plt
  plt.rcParams['svg.fonttype']='none'
- colors={'DP':'#595959','DP_Mixed':'#171717','PD':'#929292','PD_G1':'#8c6d31','PD_A_control':'#c7a76c','A':'#2166ac','B':'#1a9850'}
+ from .frozen_runs import preferred
+ def selected(prefix):
+  names={preferred(prefix+str(i)) for i in range(3)}
+  return [r for r in summary if r['name'] in names]
+ colors={'DP':'#595959','DP_Mixed':'#171717','PD':'#929292','PD_G1':'#8c6d31','PD_A_control':'#c7a76c','PD_A_coalesced':'#a6761d','A':'#2166ac','B':'#1a9850'}
  for track in ('A','B'):
   fig,axes=plt.subplots(1,3,figsize=(13,3.6))
   for ax,model in zip(axes,('ouro','huginn','dory')):
-   for label in ('DP','DP_Mixed','PD','PD_G1','PD_A_control',track):
+   labels=('DP','DP_Mixed','PD','PD_G1','PD_A_control')+(('PD_A_coalesced',) if model=='ouro' else ())+(track,)
+   for label in labels:
     xs=[];ys=[];starts=[]
     for x,(length,width) in enumerate(((128,1),(512,4),(2048,8))):
-     rows=[r for r in summary if r['name'].startswith(f'{model}_{label}_P{length}_C{width}_s')]
+     rows=selected(f'{model}_{label}_P{length}_C{width}_s')
      if rows:xs.append(x);ys.append(float(np.median([float(r['e2e_ms_p95']) for r in rows])));starts.append(len(rows))
     if xs:ax.plot(xs,ys,'o-',label=label,color=colors[label],linewidth=1.5)
    ax.set_title(model);ax.set_xticks(range(3),['P128/C1','P512/C4','P2048/C8']);ax.set_ylabel('Median per-start request p95 E2E (ms)')
    ax.grid(alpha=.2)
   if axes[-1].get_legend_handles_labels()[0]:axes[-1].legend(fontsize=7)
-  fig.suptitle(f'Track {track}: actual isolated two-GPU serving; output cap 32; completed starts only')
+  fig.suptitle(f'Track {track}: isolated two-GPU serving; cap 32; preferred completed starts; drafts may lack three frozen starts')
   fig.tight_layout();fig.savefig(ROOT/f'figures/track_{track}.svg');plt.close(fig)
  fig,axes=plt.subplots(1,3,figsize=(13,3.6))
  for ax,model in zip(axes,('ouro','huginn','dory')):
   labels=[];times=[]
   for label in ('C_DP4','C_DP4_Mixed','C_PD1','C_PD3','C_upstream','C_queue','C_token','C_service','C_loop'):
-   rows=[r for r in summary if r['name'].startswith(f'{model}_{label}_P0_C8_s')]
+   rows=selected(f'{model}_{label}_P0_C8_s')
    if rows:labels.append(label.removeprefix('C_'));times.append(float(np.median([float(r['e2e_ms_p95']) for r in rows])))
   if times:ax.bar(range(len(times)),times,color=['#2166ac' if x=='loop' else '#777777' for x in labels])
   else:ax.text(.5,.5,'NOT_MEASURED',ha='center',transform=ax.transAxes)
@@ -63,6 +68,27 @@ def plots(summary,comparisons):
   for i,r in enumerate(refs):ax.text(i,values[i]+1,f"{r['exact']}/{r['N']}",ha='center')
  ax.set_title('Native RLT / official reference, cap 32\nMEASURED output fidelity, not answer accuracy')
  fig.tight_layout();fig.savefig(ROOT/'figures/reference_correctness.svg');plt.close(fig)
+ from .critical_path_analysis import PHASES
+ shares=read('e2e_phase_percent_summary.csv');fig,ax=plt.subplots(figsize=(12,5.5))
+ names=[];vectors=[]
+ for model in ('ouro','huginn','dory'):
+  for label in ('PD','PD_G1','A','B'):
+   names_in_plot={r['name'] for r in selected(f'{model}_{label}_P512_C4_s')}
+   totals=[]
+   for phase in PHASES:
+    totals.append(sum(float(r['N'])*float(r['phase_mean_ms']) for r in shares
+     if r['run'] in names_in_plot and r['phase']==phase))
+   if sum(totals)>0:names.append(model+' '+label);vectors.append(np.asarray(totals)/sum(totals)*100)
+ if vectors:
+  values=np.asarray(vectors);left=np.zeros(len(names))
+  for i,phase in enumerate(PHASES):
+   ax.barh(range(len(names)),values[:,i],left=left,label=phase.replace('_',' '));left+=values[:,i]
+  ax.set_yticks(range(len(names)),names);ax.set_xlim(0,100)
+ else:ax.text(.5,.5,'NOT_MEASURED',ha='center',transform=ax.transAxes)
+ ax.set_xlabel('Share of summed request E2E time (%) — not GPU utilization')
+ ax.set_title('Measured host critical-path partition; P512/C4; cap 32; preferred completed starts')
+ ax.legend(fontsize=7,loc='upper left',bbox_to_anchor=(1,1))
+ fig.tight_layout();fig.savefig(ROOT/'figures/host_E2E_partition.svg');plt.close(fig)
 
 def main():
  summary=read('results_raw.csv');comparisons=read('paired_comparisons.csv')
@@ -79,23 +105,23 @@ def main():
   'No global queue simulator or infinite-bandwidth serving oracle is validated.\n'
   'GPU kernel times and overlapping transfer durations must not be added to E2E.\n'
   'Short profiled runs are separate from clean serving runs.\n')
- headers=['Run','GPU IDs','P:D / replicas','N','Output cap','TTFT p95 ms','TPOT mean ms','E2E p95 ms','Requests/s','Peak HBM bytes']
+ headers=['Run','GPU IDs','P:D / replicas','N','Output cap','TTFT p95 ms','TPOT mean ms','E2E p95 ms','Requests/s','Peak Torch allocation bytes','Sampled cohort NVML HBM bytes']
  def master(rows):
   values=[]
   for r in rows:
    placement=f"{r['P']}:{r.get('D','?')}" if r['method']=='pd' else f"{r.get('colocated_replicas','?')} colocated"
    values.append([r['name'],r['gpus'],placement,r['requests'],r.get('output_cap','NOT_AVAILABLE'),
-    float(r['ttft_ms_p95']),r['tpot_ms_mean'],float(r['e2e_ms_p95']),float(r['requests_s']),r.get('peak_HBM_bytes_max','NOT_MEASURED')])
+    float(r['ttft_ms_p95']),r['tpot_ms_mean'],float(r['e2e_ms_p95']),float(r['requests_s']),r.get('peak_HBM_bytes_max','NOT_MEASURED'),r.get('NVML_sampled_cohort_peak_HBM_bytes_max','NOT_MEASURED')])
   return table(headers,values) if values else 'NOT_MEASURED.\n'
  scale=[r for r in summary if '_scale' in r['name']]
  document('04_baseline_2_4_8gpu.md','Equal-budget baseline measurements',scope+master(scale)+'\n'+limits)
- comparison_headers=['Model / regime','Baseline','Candidate','Starts','Exact outputs / N','Baseline p95 E2E ms','Candidate p95 E2E ms','Speedup','Paired 95% CI']
+ comparison_headers=['Model / regime','Baseline','Candidate','Starts / frozen pairs','Exact outputs / N','Baseline p95 E2E ms','Candidate p95 E2E ms','Speedup','Paired 95% CI']
  def matched(rows):
   result=[]
   for r in rows:
    interval=json.loads(r['p95_E2E_speedup_ci95'])
    result.append([f"{r['model']} / {r['kind']} / P{r['input_tokens']} C{r['concurrency']}",r['baseline'],r['candidate'],
-    r['starts'],f"{r['exact_outputs']}/{r['N']}",float(r['baseline_p95_E2E_ms']),float(r['candidate_p95_E2E_ms']),
+    f"{r['starts']} / {r.get('matched_frozen_runtime_starts','NOT_AVAILABLE')}",f"{r['exact_outputs']}/{r['N']}",float(r['baseline_p95_E2E_ms']),float(r['candidate_p95_E2E_ms']),
     f"{float(r['p95_E2E_speedup']):.3f}×",f"{interval[0]:.3f}–{interval[1]:.3f}×"])
   return table(comparison_headers,result) if result else 'NOT_MEASURED. Repeated matched comparisons are pending.\n'
  rows_board=[]
@@ -138,7 +164,10 @@ def main():
   'The repeated comparisons are `paired_comparisons.csv`.\n'
   'The frozen-grid request SLO results are `slo_results.csv`.\n'
   'The exact-transfer results are `transfer_identity.csv`.\n'
+  'The full-depth submission accounting is `full_depth_work_accounting.csv`.\n'
   'The host phase partition is `e2e_phase_breakdown.csv`.\n'
+  'The E2E component percentages are `e2e_phase_percent_summary.csv`.\n'
+  'The frozen-timeline handoff oracle is `handoff_frozen_timeline_oracle.csv`. It is not measured speedup.\n'
   'The request outputs and source snapshots remain under `raw/`.\n\n'+limits)
  plots(summary,comparisons)
 

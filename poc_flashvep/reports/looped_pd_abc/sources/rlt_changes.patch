@@ -26,10 +26,16 @@ index 8402b24..a1aa2b0 100644
  
      def submit_control(self, method, *args, session_id=None, **kwargs):
 diff --git a/vllm_rlt/engine/stage_engine.py b/vllm_rlt/engine/stage_engine.py
-index a83d510..85f0a5e 100644
+index a83d510..5da0ee6 100644
 --- a/vllm_rlt/engine/stage_engine.py
 +++ b/vllm_rlt/engine/stage_engine.py
-@@ -74,7 +74,7 @@ class StageEngine:
+@@ -1,4 +1,5 @@
+ import logging
++import os
+ from dataclasses import dataclass, replace
+ from typing import TYPE_CHECKING, cast
+ 
+@@ -74,7 +75,7 @@ class StageEngine:
              scheduler_config, produces_tokens=self.stage_config.produces_tokens
          )
          if getattr(model, "requires_boundary_kv", False):
@@ -38,7 +44,7 @@ index a83d510..85f0a5e 100644
                  raise ValueError(
                      "Huginn does not support staged prefill required by this scheduler"
                  )
-@@ -201,7 +201,7 @@ class StageEngine:
+@@ -201,7 +202,7 @@ class StageEngine:
              speculative_config,
              produces_tokens=self.stage_config.produces_tokens,
              total_ut_steps=config.total_ut_steps,
@@ -47,9 +53,12 @@ index a83d510..85f0a5e 100644
              exit_mode=self.exit_config.mode,
          )
          self.connector = connector
-@@ -384,7 +384,17 @@ class StageEngine:
+@@ -383,8 +384,22 @@ class StageEngine:
+         return request is not None and request.phase != RequestPhase.FINISHED
  
      def stats(self):
++        if not os.environ.get('ABC_RUN_DIR'):
++            return dict(requests=len(self.scheduler.requests), used_blocks=self.cache_manager.num_used_blocks)
          return dict(
 -            requests=len(self.scheduler.requests), used_blocks=self.cache_manager.num_used_blocks
 +            requests=len(self.scheduler.requests), used_blocks=self.cache_manager.num_used_blocks,
@@ -63,10 +72,12 @@ index a83d510..85f0a5e 100644
 +            transport_bytes_sent=getattr(getattr(self.connector, 'transport', None), 'bytes_sent', 0),
 +            transport_completed_count=getattr(getattr(self.connector, 'transport', None), 'transfers', 0),
 +            transport_completion_observation_seconds=getattr(getattr(self.connector, 'transport', None), 'transfer_seconds', 0),
++            append_evidence_IO=__import__('poc_flashvep.looped_pd_abc.common', fromlist=['append_cost']).append_cost()
++                if os.environ.get('ABC_RUN_DIR') else {},
          )
  
      def has_unfinished_requests(self) -> bool:
-@@ -425,9 +435,11 @@ class StageEngine:
+@@ -425,9 +440,11 @@ class StageEngine:
          return RequestOutput.from_request(self.scheduler.abort(request_id))
  
      def start_profile(self, config, *, scheduled=False, **identity):
@@ -135,7 +146,7 @@ index b7c4c11..7332d12 100644
          state = state * math.sqrt(self.config.n_embd)
          return torch.cat((state, hidden), dim=-1)
 diff --git a/vllm_rlt/pd/engine.py b/vllm_rlt/pd/engine.py
-index 47f58ad..ebe0e22 100644
+index 47f58ad..4d483b8 100644
 --- a/vllm_rlt/pd/engine.py
 +++ b/vllm_rlt/pd/engine.py
 @@ -5,6 +5,7 @@ outputs; NIXL moves KV directly between registered worker allocations.
@@ -183,7 +194,18 @@ index 47f58ad..ebe0e22 100644
                  w.p_released = True
                  peer.slots -= 1
                  peer.reserved_blocks -= w.p_reserved_blocks
-@@ -352,7 +358,7 @@ class PDEngine:
+@@ -255,6 +261,10 @@ class PDEngine:
+                     request_id=w.request.request_id,
+                     transfer_id=w.tid,
+                     cancelled=w.cancelled,
++                    created_monotonic=w.created,
++                    prefill_worker=w.p,
++                    decode_worker=w.d,
++                    route_predictions=getattr(w, "abc_route_predictions", {}),
+                     timings=w.timings,
+                 )
+             )
+@@ -352,7 +362,7 @@ class PDEngine:
                      break
                  candidates[role] = min(
                      eligible,
@@ -192,6 +214,36 @@ index 47f58ad..ebe0e22 100644
                          p.reserved_blocks / p.client.info["num_blocks"],
                          p.slots / p.client.info["transfer_slots"],
                      ),
+diff --git a/vllm_rlt/pd/transport.py b/vllm_rlt/pd/transport.py
+index fca044a..6bad954 100644
+--- a/vllm_rlt/pd/transport.py
++++ b/vllm_rlt/pd/transport.py
+@@ -1,6 +1,7 @@
+ """NIXL WRITE on registered GPU pools; no tensor payloads on the control channel."""
+ 
+ import json
++import os
+ import time
+ from collections import deque
+ from dataclasses import dataclass
+@@ -100,6 +101,17 @@ class NixlConnector:
+         self.bytes_sent = 0
+         self.transfers = 0
+         self.transfer_seconds = 0.0
++        if os.environ.get("ABC_PROFILE_RANGES") == "1":
++            import torch
++
++            for method in ("submit", "poll"):
++                original = getattr(self, method)
++
++                def profiled(*args, _original=original, _method=method, **kwargs):
++                    with torch.profiler.record_function("ABC_NIXL_" + _method):
++                        return _original(*args, **kwargs)
++
++                setattr(self, method, profiled)
+ 
+     def connect(self, peer):
+         name = self.agent.add_remote_agent(peer["metadata"])
 diff --git a/vllm_rlt/worker/executor.py b/vllm_rlt/worker/executor.py
 index bad146d..4521254 100644
 --- a/vllm_rlt/worker/executor.py

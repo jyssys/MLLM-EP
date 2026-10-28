@@ -15,6 +15,7 @@ MODEL_PINS={
  'ouro':('ByteDance/Ouro-1.4B','574fa66cb8bf5abdc979642d01cf2b79b16bfab1',4),
  'huginn':('tomg-group-umd/huginn-0125','bb6621b65e90b6a4b9b29ef88dc83866d450470c',32),
  'dory':('nvidia/NVIDIA-Nemotron-Labs-Dory1.0-4B-BF16','b5437f97df4b998a505f4cac5b23791cd3e9df94',2)}
+_APPEND_COST={}
 MODELS={key:Path('/home/esjung/.cache/huggingface/hub')/('models--'+name.replace('/','--'))/'snapshots'/revision
  for key,(name,revision,depth) in MODEL_PINS.items()}
 UUIDS=['GPU-f217c8a0-1142-20f4-d84b-af29f3a47a0d','GPU-a77f3471-67d4-20b0-9fab-e502d4de5adb',
@@ -33,9 +34,15 @@ def write(path,value):
  os.replace(temporary,path)
 
 def append(path,value):
+ begin=time.perf_counter()
  path=Path(path);path.parent.mkdir(parents=True,exist_ok=True)
  with path.open('a') as f:
   f.write(json.dumps(value,default=str)+'\n');f.flush();os.fsync(f.fileno())
+ elapsed=time.perf_counter()-begin
+ stats=_APPEND_COST.setdefault(str(path),dict(count=0,total_seconds=0.,max_seconds=0.))
+ stats['count']+=1;stats['total_seconds']+=elapsed;stats['max_seconds']=max(stats['max_seconds'],elapsed)
+
+def append_cost():return {path:dict(values) for path,values in _APPEND_COST.items()}
 
 def digest(path):
  h=hashlib.sha256()

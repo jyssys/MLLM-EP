@@ -2,7 +2,7 @@
 
 DRAFT: final scientific review is pending. No GO claim is accepted.
 
-Campaign status: `RUNNING`. Evidence snapshot: 2026-10-28T19:56:43.853073+00:00.
+Campaign status: `RUNNING`. Evidence snapshot: 2026-10-28T21:47:48.668731+00:00.
 
 These are actual GPU measurements from completed runs.
 Unfinished and failed runs do not contribute latency values.
@@ -35,6 +35,8 @@ The repeated comparisons are `paired_comparisons.csv`.
 The frozen-grid request SLO results are `slo_results.csv`.
 The exact-transfer results are `transfer_identity.csv`.
 The host phase partition is `e2e_phase_breakdown.csv`.
+The E2E component percentages are `e2e_phase_percent_summary.csv`.
+The frozen-timeline handoff oracle is `handoff_frozen_timeline_oracle.csv`. It is not measured speedup.
 The request outputs and source snapshots remain under `raw/`.
 
 ## Limits

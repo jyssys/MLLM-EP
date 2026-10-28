@@ -2,6 +2,8 @@
 import argparse
 import csv
 import json
+import hashlib
+import zipfile
 from collections import defaultdict
 from pathlib import Path
 import numpy as np
@@ -43,9 +45,29 @@ def summarize():
   config=folder/'configuration.json'
   if config.exists():
    arguments=json.loads(config.read_text()).get('arguments',{})
+   config_data=json.loads(config.read_text())
+   r['worker_source_sha256']=config_data.get('source_sha256','NOT_AVAILABLE')
+   provenance=folder/'workload_provenance.json'
+   if provenance.exists():
+    extra=json.loads(provenance.read_text())
+    r.update(effective_prompt_source=extra['raw_prompt_source_override'],prompt_manifest_sha256=extra['sha256'])
+   else:r['effective_prompt_source']=first.get('prompt_source','NOT_AVAILABLE')
+   archive=folder/f"source-{arguments.get('attempt_id')}.zip"
+   if archive.exists():
+    with zipfile.ZipFile(archive) as bundle:r['runtime_patch_sha256']=hashlib.sha256(bundle.read('rlt_changes.patch')).hexdigest()
+   else:r['runtime_patch_sha256']='NOT_AVAILABLE'
    r.update(output_cap=arguments.get('cap','NOT_AVAILABLE'),arrival_rate=arguments.get('rate',0),
     scheduler_mode=arguments.get('scheduler_mode','refill'),split_cut=arguments.get('split_cut') if r['A'] else first['depth'],
     unique_input_hashes=len({json.dumps(x['input_ids']) for x in rows}))
+   r.update(r_boundary=arguments.get('split_cut') if r['A'] else 0 if first['method']=='decode_local' else first['depth'] if first['method']=='pd' else 'NOT_APPLICABLE',
+    configured_prefill_G=1 if arguments.get('wavefront') or arguments.get('scheduler_mode')=='mixed' else first['depth'],
+    configured_decode_G=1,frontier_policy='loop_frontier' if r['B'] else 'upstream_chunk' if first['method']=='pd' else 'local',
+    quantum_evidence='STRUCTURAL_CONFIG_ACCOUNTING. Actual short-run execution appears in separate profiler annotations.')
+   nvml=folder/f"NVML-summary-{arguments.get('attempt_id')}.json"
+   if nvml.exists():
+    data=json.loads(nvml.read_text());peaks=data.get('measured_cohort_peak_sampled_HBM_bytes',{})
+    r['NVML_sampled_cohort_peak_HBM_bytes_max']=max(peaks.values(),default='NOT_MEASURED')
+   else:r['NVML_sampled_cohort_peak_HBM_bytes_max']='NOT_MEASURED'
   r['lane']=first.get('lane','parallel_discovery')
   r['official_huginn_protocol']=first.get('huginn_reference_compat',False)
   r['dory_adapter']=first.get('dory_adapter','initial_unpacked_adapter')
@@ -55,8 +77,18 @@ def summarize():
    for q in (50,95,99):r[key+f'_p{q}']=float(np.percentile(values,q)) if values else 'NOT_AVAILABLE'
   r['TPOT_defined_requests']=sum(x['output_tokens']>1 for x in rows)
   r['coalesced_output_events']=sum(e['new_tokens']>1 for x in rows for e in x['token_events'])
-  intervals=[(e['time']-e['previous_time'])*1000 for x in rows for e in x['token_events'] if not e['first'] and e['new_tokens']==1]
-  for q in (50,95,99):r[f'ITL_ms_p{q}']=float(np.percentile(intervals,q)) if intervals else 'NOT_AVAILABLE'
+  single=[(e['time']-e['previous_time'])*1000 for x in rows for e in x['token_events'] if not e['first'] and e['new_tokens']==1]
+  intervals=[]
+  for x in rows:
+   for e in x['token_events']:
+    if not e['first']:intervals.append((e['time']-e['previous_time'])*1000)
+    intervals.extend([0.]*(e['new_tokens']-1))
+  for q in (50,95,99):
+   r[f'ITL_ms_p{q}']=float(np.percentile(intervals,q)) if intervals else 'NOT_AVAILABLE'
+   r[f'single_emission_ITL_ms_p{q}']=float(np.percentile(single,q)) if single else 'NOT_AVAILABLE'
+  r['ITL_ms_mean']=float(np.mean(intervals)) if intervals else 'NOT_AVAILABLE'
+  r['single_emission_ITL_ms_mean']=float(np.mean(single)) if single else 'NOT_AVAILABLE'
+  r['ITL_scope']='Harness-visible token population. Coalesced outputs include the observed gap and explicit zero intra-emission intervals.'
   span=max(x['finish'] for x in rows)-min(x['arrival'] for x in rows)
   r['cohort_makespan_s']=span;r['requests_s']=len(rows)/span;r['output_tokens_s']=r['output_tokens']/span
   stats=folder/'closed_stats.json'
@@ -73,6 +105,8 @@ def summarize():
    data=json.loads(stats.read_text());wm=data.get('worker_metrics') or {}
    r['bytes_sent']=sum(v.get('bytes_sent',0) for v in wm.values());r['transfers']=sum(v.get('transfers',0) for v in wm.values())
    r['peak_HBM_bytes_max']=max((v['peak_allocated_bytes'] for v in wm.values() if 'peak_allocated_bytes' in v),default=data.get('local_peak_allocated','NOT_AVAILABLE'))
+   r['peak_HBM_scope']='PyTorch allocator high watermark, including warmup. Sampled NVML memory is a separate field.'
+   client_rows={f"r{x['run']}_q{x['sample_id']}":x for x in rows}
    for metric in data.get('metrics',[]):
     if metric['request_id'].startswith('r-1_'):continue
     t=metric['timings']
@@ -82,6 +116,14 @@ def summarize():
     names=['coordinator_queue','reservation_control','P_assigned_prefill_including_backpressure','uncovered_handoff','D_resume_coda_first_token','remaining_decode_phase']
     line=dict(name=folder.name,request_id=metric['request_id'],coordinator_E2E_ms=t['finished']*1000,evidence='MEASURED_HOST_PHASE_PARTITION_NOT_PURE_GPU_TIME')
     for name,value in zip(names,components):line[name+'_ms']=value*1000;line[name+'_percent']=100*value/t['finished']
+    client=client_rows.get(metric['request_id'])
+    line['phase_order_valid']=all(value>=0 for value in components)
+    if client:
+     residual=client['e2e_ms']-1000*t['finished']
+     line.update(harness_E2E_ms=client['e2e_ms'],harness_delivery_poll_residual_ms=residual,
+      harness_delivery_poll_residual_percent=100*residual/client['e2e_ms'])
+     for name,value in zip(names,components):line[name+'_harness_percent']=100000*value/client['e2e_ms']
+     line['phase_order_valid']=line['phase_order_valid'] and residual>=0
     phase.append(line)
   summary.append(r)
  save_csv(ROOT/'experiment_inventory.csv',inventory);save_csv(ROOT/'results_raw.csv',summary);save_csv(ROOT/'e2e_phase_breakdown.csv',phase)
@@ -107,7 +149,7 @@ def summarize():
 def calibrate():
  result={}
  for model in ('ouro','huginn','dory'):
-  points=[];decode=[]
+  points=[];decode=[];handoff=[]
   for n in (128,512,2048):
    f=ROOT/'raw'/f'{model}_calibration_P{n}_C1_s0'
    alternate=ROOT/'raw'/f'{model}_calibration2_P{n}_C1_s0'
@@ -116,15 +158,20 @@ def calibrate():
    stats=json.loads((f/'closed_stats.json').read_text())
    for row in stats['metrics'][1:]:
     t=row['timings'];points.append((n,t['prefill_compute_completed']-t['prefill_started']))
+    if 'd_received' in t:handoff.append((n,max(0.,t['d_received']-t['prefill_compute_completed'])))
    for row in requests(f):decode.append((n,row['tpot_ms']/1000))
   if len({x for x,y in points})<2:continue
   p=np.polyfit(*np.asarray(points).T,1);d=np.polyfit(*np.asarray(decode).T,1)
   result[model]=dict(prefill_per_token=max(float(p[0]),0),prefill_intercept=max(float(p[1]),0),
    decode_per_context_token=max(float(d[0]),0),decode_intercept=max(float(d[1]),.0001),
    source='C1 warmed live PD calibration. No online future output lengths.',samples=len(points),evidence='MODEL_FIT_TO_MEASURED_PHASE_TIMES')
-  ratios={'1':1.}
+  if len({x for x,y in handoff})>=2:
+   h=np.polyfit(*np.asarray(handoff).T,1)
+   result[model].update(handoff_per_token=max(float(h[0]),0),handoff_intercept=max(float(h[1]),0),
+    handoff_scope='Observed final uncovered handoff. This is not total DMA duration.')
+  ratios={'1':1.};prefill_ratios={'1':1.}
   for width in (2,4,8):
-   values=[]
+   values=[];pvalues=[]
    for n in (128,512):
     f=ROOT/'raw'/f'{model}_calibration_P{n}_C{width}_s0'
     alternate=ROOT/'raw'/f'{model}_calibration2_P{n}_C{width}_s0'
@@ -133,8 +180,18 @@ def calibrate():
     if rows:
      base=max(.0001,result[model]['decode_intercept']+result[model]['decode_per_context_token']*n)
      values.extend(r['tpot_ms']/1000/base for r in rows)
+    path=f/'closed_stats.json'
+    if path.exists():
+     base=max(.0001,result[model]['prefill_intercept']+result[model]['prefill_per_token']*n)
+     for row in json.loads(path.read_text()).get('metrics',[]):
+      if row['request_id'].startswith('r-1_'):continue
+      t=row['timings']
+      if all(k in t for k in ('prefill_compute_completed','prefill_started')):
+       pvalues.append((t['prefill_compute_completed']-t['prefill_started'])/base)
    if values:ratios[str(width)]=float(np.median(values))
+   if pvalues:prefill_ratios[str(width)]=float(np.median(pvalues))
   result[model]['observed_decode_batch_ratios']=ratios
+  result[model]['observed_prefill_batch_ratios']=prefill_ratios
  write(ROOT/'configs/service_calibration.json',result);print('CALIBRATION',result)
 
 def main():

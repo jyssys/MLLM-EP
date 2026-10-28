@@ -42,6 +42,14 @@ def main():
     for n in (128,512):
      jobs.append(job(model,'calibration',pair,length=n,count=16,cap=16,concurrency=width,extra=opt+boundary+['--wavefront','--chunk','256']))
  elif a.phase=='C':
+  from .repair_known_failure import repair
+  repair()
+  from .coalesced_a_control import run as coalesced_control
+  coalesced_control()
+  from .frozen_runs import confirm
+  confirm()
+  from .analyze import calibrate
+  calibrate()
   for repeat in range(3):
    for model in ('ouro','huginn','dory'):
     opt=['--graphs']+(['--asynchronous'] if model=='ouro' else [])
@@ -54,6 +62,8 @@ def main():
     jobs.append(job(model,'C_DP4_Mixed',group,mode='dp',length=0,count=48,cap=64,concurrency=8,extra=opt+['--scheduler-mode','mixed','--chunk','256'],repeat=repeat))
     for pcount in (1,3):
      jobs.append(job(model,f'C_PD{pcount}',group,length=0,count=48,cap=64,concurrency=8,extra=opt+boundary+['--prefill',str(pcount),'--chunk','256'],repeat=repeat))
+  from .heterogeneous_c import jobs as heterogeneous_jobs
+  jobs.extend(heterogeneous_jobs())
  elif a.phase=='A_sweep':
   for model,pair,cuts in [('ouro',(0,1),(1,2,3)),('huginn',(2,3),(1,8,16,24,31)),('dory',(4,5),(1,))]:
    opt=['--graphs']+(['--asynchronous'] if model=='ouro' else [])
@@ -127,6 +137,47 @@ def main():
       extra=opt+['--chunk','256']
       if prefill:extra+=boundary+['--prefill',str(prefill)]
       jobs.append(job(model,f'scale{n}_{label}',group,mode='pd' if prefill else 'dp',length=512,count=32,cap=32,concurrency=8,extra=extra,repeat=repeat))
+     jobs.append(job(model,f'scale{n}_DP_Mixed',group,mode='dp',length=512,count=32,cap=32,concurrency=8,
+      extra=opt+['--chunk','256','--scheduler-mode','mixed'],repeat=repeat))
+     # One-start discovery tests ratio-dependent headroom without calling it a gain.
+     # Repeated acceptance runs are conditional on these actual measurements.
+     if repeat==0 and n in (4,8):
+      for prefill in ((1,2) if n==4 else (1,2,4)):
+       extra=opt+boundary+['--prefill',str(prefill),'--wavefront','--chunk','512',
+        '--enable-recurrence-split','--split-cut',str(selected_cut(model,512))]
+       jobs.append(job(model,f'scale{n}_A{prefill}',group,length=512,count=32,cap=32,concurrency=8,extra=extra))
+       control=opt+boundary+['--prefill',str(prefill),'--wavefront','--chunk','512']
+       if model=='ouro':control+=['--enable-boundary-adapter']
+       jobs.append(job(model,f'scale{n}_PD_A{prefill}',group,length=512,count=32,cap=32,concurrency=8,extra=control))
+      control=opt+boundary+['--prefill','1','--wavefront','--chunk','256']
+      if model=='ouro':control+=['--enable-boundary-adapter']
+      jobs.append(job(model,f'scale{n}_PD1_G1',group,length=512,count=32,cap=32,concurrency=8,extra=control))
+      jobs.append(job(model,f'scale{n}_B1',group,length=512,count=32,cap=32,concurrency=8,extra=opt+boundary+
+       ['--prefill','1','--wavefront','--chunk','256','--enable-frontier-handoff']))
+      for policy in ('service','loop'):
+       jobs.append(job(model,f'scale{n}_C_{policy}',group,length=512,count=32,cap=32,concurrency=8,
+        extra=opt+boundary+['--prefill',str(n//2),'--wavefront','--chunk','256','--placement',policy]))
+  # High-pressure natural questions avoid a C8/DP8-only scale conclusion.
+  # These are one-start discovery cases, not statistically accepted gains.
+  for n in (4,8):
+   for model in ('ouro','huginn','dory'):
+    group=range(n);opt=['--graphs']+(['--asynchronous'] if model=='ouro' else [])
+    boundary=['--enable-boundary-adapter'] if model!='ouro' else []
+    methods=['DP','DP_Mixed','PD1','PD2']+(['PD4'] if n==8 else [])+['PD1_G1','PD_A1','PD_A2','A1','A2','B1','C_service','C_loop']
+    for label in methods:
+     mode='dp' if label.startswith('DP') else 'pd';extra=opt[:]
+     if mode=='pd':extra+=boundary
+     if label=='DP_Mixed':extra+=['--scheduler-mode','mixed','--chunk','256']
+     elif label.startswith('A'):
+      extra+=['--prefill',label[1:],'--wavefront','--chunk','512','--enable-recurrence-split','--split-cut',str(selected_cut(model,512))]
+     elif label=='B1':extra+=['--prefill','1','--wavefront','--chunk','256','--enable-frontier-handoff']
+     elif label=='PD1_G1' or label.startswith('PD_A'):
+      extra+=['--prefill','1' if label=='PD1_G1' else label[4:],'--wavefront','--chunk','256' if label=='PD1_G1' else '512']
+      if model=='ouro':extra+=['--enable-boundary-adapter']
+     elif label.startswith('C_'):extra+=['--prefill',str(n//2),'--wavefront','--chunk','256','--placement',label[2:]]
+     elif label.startswith('PD'):extra+=['--prefill',label[2:],'--chunk','256']
+     else:extra+=['--chunk','256']
+     jobs.append(job(model,f'pressure{n}_{label}',group,mode=mode,length=0,count=128,cap=64,concurrency=32,extra=extra))
  if a.phase in ('serving','scale','C','A_sweep'):
   for j in jobs:j['quiet']=True
  dest=ROOT/'configs'/f'{a.phase}_campaign.json';write(dest,jobs);print(dest,len(jobs))

@@ -2,7 +2,7 @@
 
 DRAFT: final scientific review is pending. No GO claim is accepted.
 
-Campaign status: `RUNNING`. Evidence snapshot: 2026-10-28T19:56:43.852317+00:00.
+Campaign status: `RUNNING`. Evidence snapshot: 2026-10-28T21:47:48.667964+00:00.
 
 | Model | Status | Reason |
 | --- | --- | --- |

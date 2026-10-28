@@ -75,8 +75,23 @@ The helper restores idle owned GPUs after a dispatcher releases its pool.
 CUDA_VISIBLE_DEVICES='' PYTHONPATH=/home/esjung/external/looped-pd-abc-rlt:/home/esjung/MLLM-EP-github /home/esjung/.venvs/looped-pd-abc/bin/python -m pytest -q poc_flashvep/looped_pd_abc/test_contracts.py /home/esjung/external/looped-pd-abc-rlt/tests/test_pd.py /home/esjung/external/looped-pd-abc-rlt/tests/test_tensor_transfer.py
 ```
 
-The current combined run passed 53 CPU tests and skipped 77 GPU-marked cases.
+That earlier subset passed 54 CPU tests and skipped 77 GPU-marked cases.
+The extended corrected suite passed 97 CPU tests and deselected 86 GPU cases.
+It included upstream StageEngine, PD, and tensor-transfer tests.
+Its 12 warnings concern unregistered GPU test marks.
+The PoC-specific suite separately passed 11 tests.
 These tests do not replace actual model qualification.
+The original failed extended-suite log remains available.
+The corrected log is `logs/frozen_source_cpu_tests_corrected.log`.
+
+The extended command is:
+
+```bash
+CUDA_VISIBLE_DEVICES='' PYTHONPATH=/home/esjung/external/looped-pd-abc-rlt:/home/esjung/MLLM-EP-github /home/esjung/.venvs/looped-pd-abc/bin/python -m pytest -q -m 'not gpu' poc_flashvep/looped_pd_abc/test_contracts.py /home/esjung/external/looped-pd-abc-rlt/tests/test_pd.py /home/esjung/external/looped-pd-abc-rlt/tests/test_tensor_transfer.py /home/esjung/external/looped-pd-abc-rlt/tests/test_stage_engine.py
+```
+
+New accounting tests use `poc_flashvep/looped_pd_abc/test_analysis.py`.
+Their result is separate from the earlier frozen-runtime qualification.
 
 ## Small actual PD run
 

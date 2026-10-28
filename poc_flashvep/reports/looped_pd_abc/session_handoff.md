@@ -1,0 +1,159 @@
+# Active session handoff
+
+The active task is the integrated Dense Looped PD A/B/C PoC.
+Read the authoritative `../looped_pd_abc_disaggregation_poc_spec.md` before further work.
+Read the reporting skill and its required references too.
+Do not resume old MoE, diffusion, or decode Loop PP experiments.
+
+## Live controllers
+
+| Process | PID | Role |
+|---|---:|---|
+| `run_benchmarks` | 2521142 | Main GPU campaign |
+| `analysis_watch` | 2549242 | CPU analysis after the GPU campaign |
+| `failed_worker_guard` | 2606599 | Cleanup of verified owned FAILED job sessions only |
+
+These PIDs are historical identifiers. Check `/proc` and the current state files before using them.
+`state/dispatcher.json` records current child jobs and pending names.
+The main campaign currently measures repeated serving trials.
+The controller does not stop when the assistant stops sampling.
+Do not start a duplicate controller while it remains active.
+
+## Runtime lock
+
+The private RLT clone is `/home/esjung/external/looped-pd-abc-rlt`.
+Its upstream commit is `6b164d3844d35ab8e753df1864f0c87dc180401a`.
+The main Python is `/home/esjung/.venvs/looped-pd-abc/bin/python`.
+The official HF reference Python is `/home/esjung/.venvs/looped-pd-abc-hf457/bin/python`.
+That reference uses Transformers 4.57.6. The main environment uses 5.16.1.
+
+The final runtime patch hash is `4904a311358c5cf6467678d0e1c30af38b5a96064cae4c96ed680943d7e694c7`.
+`configs/runtime_freeze_final.json` locks the execution files.
+`frozen_runs.py` repeats earlier telemetry epochs under that lock before the C phase.
+It retains the original trials and writes a logical-to-actual replacement map.
+Do not change execution files again without a concrete failure and explicit requalification.
+Analysis and reports can still change.
+
+## Model facts
+
+Ouro uses its pinned Base 1.4B checkpoint at R4.
+Huginn uses its pinned 0125 checkpoint at the original default R32, not the earlier R16 configuration.
+Dory uses the official BF16 4B checkpoint at R2 with per-loop KV.
+The Dory reference source is the official-card-linked vLLM PR head `876edc971507f602b18d1ec523c174a068cc02d7`.
+It is not stock vLLM 0.26 support.
+The local adapter retains the original sublayers, reinjection, nGPT operations, and sliding attention.
+
+All three models passed 100/100 bounded internal RLT PD/A/B output comparisons.
+Initial exact-transfer checks passed 18/18 imports, including warmup.
+Tuned-cut qualification added nine passing exact imports.
+Each newly selected cut also passed 100/100 bounded outputs.
+
+| Model | Short-prompt A cut | 2048-token A cut |
+|---|---:|---:|
+| Ouro | 3 | 1 |
+| Huginn | 1 | 16 |
+| Dory | 1 | 1 |
+
+`configs/chosen_cuts.json` records selection and qualification.
+The sweep used a separate output-cap-8 workload.
+The repeated main cases use cap 32 and a separate cap-128 regime.
+
+Official-reference sequence agreement is Ouro 88/100, Huginn 89/100, and Dory 80/100.
+These are not accuracy scores.
+Full GSM8K test and HumanEval accuracy remain NOT_MEASURED.
+The natural pilot uses 128 available GSM8K training-validation questions without answer labels.
+Its maximum chat-tokenized prompt lengths are Ouro 178, Huginn 164, and Dory 174.
+
+## Additional reference audit
+
+Ouro's checkpoint sets `early_exit_threshold=1.0`.
+The official implementation still selects an output state through a BF16 cumulative gate probability.
+Source analysis suggests that rounding could select an earlier state despite q=1.
+This is only a hypothesis until the queued audit executes.
+All four loops execute before that post-hoc selection.
+
+`ouro_gate_audit.py` compares selected diagnostic prompts under q=1 and explicit zero-based `exit_at_step=3`.
+If it observes earlier selection, it collects a separate 100-prompt explicit-R4 reference.
+It must not overwrite or relabel the original q=1 outputs.
+Diagnostic prompt selection includes previous mismatches and cannot estimate population accuracy.
+The audit runs before C through the coalesced-control helper.
+
+## Campaign order
+
+The main controller executes A cut sweep, repeated serving, C, scale, and short profiles.
+The C manifest generator first performs these prerequisites:
+
+1. Retry only the identified stats-import failures after archiving their original status and configuration.
+2. Run explicit generic-coalesced Ouro A controls and the reference-gate audit.
+3. Confirm earlier telemetry epochs under the final runtime lock.
+4. Refresh the frozen service-cost calibration from separate measured pilots.
+
+The main C comparison then uses three starts of P2:D2 and strong four-GPU controls.
+The cost model includes prefill/decode batch effects and uncovered handoff.
+Each policy saves its actual initialization-time cost coefficients in its run directory.
+The loop feature uses CUDA-completed frontiers, not submitted future work.
+The placement score is a work heuristic, not a validated ETA or queue simulator.
+
+Scale includes repeated 2/4/8GPU DP, Mixed DP, and selected static ratios.
+It also includes one-start A/B/C scale discovery and C32 natural-prompt pressure cases.
+One-start results cannot support accepted gain intervals.
+Promising points require frozen repetition.
+P6:D2 and P7:D1 at eight GPUs are not measured in the initial matrix.
+Do not call those ratios empirically dominated.
+
+## Failures and process cleanup
+
+An evidence-statistics hook briefly omitted an `os` import.
+It failed Huginn A/B at P128/C1 and DP at P512/C4 in start zero.
+The import is fixed. A CPU regression test covers it.
+One failed DP process retained a child GPU context for 1491.796 seconds after its failed status.
+The verified failed session alone received SIGTERM. The main controller continued.
+This interval is not productive GPU compute or measured latency.
+
+The failed-worker guard now checks only FAILED statuses and verified owned sessions.
+It never signals a healthy job or a burner.
+Raw failure logs and the cleanup record remain under `logs/` and `archives/`.
+Retry status must be checked before declaring those configurations complete.
+
+Two extended CPU tests initially failed because instrumentation added statistics keys to the upstream API.
+The extended schema is now opt-in through `ABC_RUN_DIR`.
+The corrected extended suite passed 97 tests and deselected 86 GPU cases.
+The PoC-specific suite passed 11 tests.
+Do not erase the earlier failed test log.
+
+## Evidence interpretation
+
+The persistent two-process NIXL probe passed 40 byte checks.
+Its 64MiB median was 0.227632ms, approximately 294.813GB/s.
+The earlier single-process 188.238ms result is not a valid hardware bandwidth floor.
+Neither probe is serving E2E.
+
+The phase table partitions host coordinator time and also includes the harness residual.
+It is not a pure GPU attention/MLP breakdown.
+Transfer-observation durations can overlap and cannot be added to E2E.
+NVML memory peaks are sampled at 0.2 seconds.
+PyTorch allocator peaks include warmup and remain separate.
+Evidence-I/O time is a CPU measurement, not an additive request component.
+
+The original short profiles lack every matched staged control.
+Add matched profiles if a positive claim needs them.
+C2 migration, dynamic-role hybrid PD, and a validated wall-time oracle remain unimplemented.
+
+## Git and final work
+
+The branch is `flashvep/looped-pd-abc-disaggregation-poc`.
+The intermediate pushed commit is `7b8bffa636c27724d7d20be3e6aba4e6e0401731`.
+The remote SHA matched that commit.
+This is not the final experiment commit.
+Later code, logs, and measurements still require a scoped commit and push.
+
+The outside-index hash is `c162445edb25097abbf18627e41ba8dffc2a15f9a35e6d11385b37a9eb449a22`.
+Preserve all unrelated staged and dirty changes.
+Use quiet scoped Git commands. Raw logs contain preserved whitespace and must not be reformatted.
+
+After the GPU campaign, the analysis watcher generates comparisons, profile tables, and draft final-file names.
+Those drafts do not approve a verdict.
+Review all three models, scales, output parity, and uncertainty before writing `configs/reviewed_decisions.json`.
+Then regenerate the reports, complete any justified confirmation, and commit only the two owned PoC directories.
+Verify the pushed remote SHA.
+Finally restore owned burners on every idle GPU with an explicit 0–7 mask.

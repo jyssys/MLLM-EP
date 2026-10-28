@@ -24,6 +24,8 @@ The cost model uses prompt length, the fixed configured depth, generated-token c
 It never uses a future EOS position or future generated token.
 Calibration uses separate warmed GPU runs.
 The calibration includes observed batch-size effects on decode time.
+The final comparison also includes observed prefill batching effects and uncovered handoff cost.
+Both service and loop controls use these same calibrated terms.
 The resulting completion scores are `MODEL_PREDICTION`, not measured future service times.
 
 ## Strong controls
@@ -44,11 +46,40 @@ This pair is the main loop-state feature ablation.
 Service subtracts elapsed prefill work once per GPU queue.
 It does not subtract elapsed service independently from every queued request.
 The latter calculation would weaken the generic baseline.
+Charging one independent weight reload per batched request would also weaken that baseline.
+The final cost model instead uses separately measured prefill batch ratios.
 
 The implementation also compares colocated DP4, colocated Mixed DP4, and static P1:D3/P3:D1.
 The four-GPU main placement comparison uses P2:D2.
 There is no placement choice in an isolated P1:D1 pool.
 Its initial routing headroom is structurally zero.
+
+## Heterogeneous prompt-length control
+
+The original natural-question pilot contains relatively short prompts.
+That workload alone cannot test broad prompt-service heterogeneity.
+A separate one-start discovery matrix therefore adds mixed prompt lengths at global concurrency 16.
+It compares eight policies on each of the three models.
+These 24 GPU jobs remain queued until the main C phase.
+
+Each model receives the same deterministic length sequence.
+The 48 inputs contain 17 prompts of 128 tokens, one of 256, twelve of 512, and eighteen of 2048.
+The 256-token exception preserves a question that does not fit its intended 128-token bucket.
+The harness prepends synthetic context and retains the complete question and chat-generation suffix.
+It uses real greedy generation with EOS enabled and output cap 64.
+It does not freeze output tokens.
+
+`workload_worker.py` changes only the input provider.
+It records the manifest hash and its synthetic origin before it starts the frozen worker.
+The raw request row retains the worker's original source label.
+`workload_provenance.json` supplies the explicit source correction without rewriting that row.
+The master table reports this corrected source as `effective_prompt_source`.
+
+The matched queue, token, service, and loop policies retain staged G1 and conventional ownership.
+The strong P1:D3/P3:D1 controls retain their normal atomic execution path.
+Colocated Mixed DP4 remains a separate strong control.
+No one-start result can establish an accepted gain or sustainable capacity.
+Any promising point requires independent frozen confirmation.
 
 ## Measurement limits
 
@@ -56,6 +87,10 @@ Route logs record worker scores, pending counts, and selector CPU time.
 The reported selector time excludes the subsequent synchronous log write.
 Actual E2E includes that write.
 The report must not describe selector CPU time as the complete scheduling overhead.
+An early counter used a batch offset in place of its start timestamp.
+The experiment fixed that counter before the repeated C comparison.
+A CPU regression test checks that counter.
+Earlier smoke-counter values cannot establish selector overhead.
 
 The baseline cost model is affine and hardware-calibrated.
 It is not a validated global queue simulator.

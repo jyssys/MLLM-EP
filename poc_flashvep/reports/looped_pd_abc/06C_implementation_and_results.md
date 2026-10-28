@@ -2,7 +2,7 @@
 
 DRAFT: final scientific review is pending. No GO claim is accepted.
 
-Campaign status: `RUNNING`. Evidence snapshot: 2026-10-28T19:56:43.852559+00:00.
+Campaign status: `RUNNING`. Evidence snapshot: 2026-10-28T21:47:48.668222+00:00.
 
 These are actual GPU measurements from completed runs.
 Unfinished and failed runs do not contribute latency values.

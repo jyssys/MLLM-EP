@@ -26,4 +26,3 @@ class ReplicaPool:
  def stats(self):return {str(i):c.stats() for i,c in enumerate(self.clients)}
  def close(self):
   for i,c in enumerate(self.clients):c.close();self.worker_metrics[str(i)]=c.final_stats
-

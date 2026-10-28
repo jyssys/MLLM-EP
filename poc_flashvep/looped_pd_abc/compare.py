@@ -44,9 +44,18 @@ def reference_checks():
   row.update(model=model,native=native.name,reference=refname,evidence='MEASURED_BOUNDED_REFERENCE_GENERATION',
    output_cap=32,downstream_accuracy='NOT_MEASURED',reference_equal=row['exact']==row['N'])
   result.append(row);write(ROOT/'state'/f'{model}_reference_divergences.json',detail)
+  extra=ROOT/'raw'/'ouro_HF_4576_explicit_last_R4_100'
+  if model=='ouro' and complete(extra):
+   fixed=agreement(a,load_rows(extra/'requests.jsonl'));mismatches=fixed.pop('first_divergences')
+   fixed.update(model=model,native=native.name,reference=extra.name,
+    evidence='MEASURED_BOUNDED_REFERENCE_GENERATION_EXPLICIT_LAST_R4',output_cap=32,
+    downstream_accuracy='NOT_MEASURED',reference_equal=fixed['exact']==fixed['N'],
+    protocol='Explicit zero-based exit_at_step=3. Separate from the unchanged original q=1 reference.')
+   result.append(fixed);write(ROOT/'state'/'ouro_explicit_R4_reference_divergences.json',mismatches)
  save_csv(ROOT/'reference_agreement.csv',result)
  transfer=[]
- for folder in sorted((ROOT/'raw').glob('*KV_identity*')):
+ for folder in sorted((ROOT/'raw').iterdir()):
+  if not folder.is_dir():continue
   rows=[r for f in folder.glob('KV_checks*.jsonl') for r in load_rows(f)]
   for i,r in enumerate(rows):
    transfer.append(dict(run=folder.name,check=i,passed=r['passed'],
@@ -70,16 +79,19 @@ def bootstrap(blocks,metric='e2e_ms',quantile=95,samples=3000,seed=20261029):
  return dict(speedup=ratio,ci95=np.percentile(values,[2.5,97.5]).tolist())
 
 def paired_runs(model,base,method,length,concurrency,kind='serving'):
+ from .frozen_runs import preferred,matches
  blocks=[];exact=total=length_equal=0;raw_pairs=[]
+ frozen_starts=0
  for repeat in range(3):
   names=[f'{model}_{label}_P{length}_C{concurrency}_s{repeat}' for label in (base,method)]
-  folders=[ROOT/'raw'/name for name in names]
+  names=[preferred(name) for name in names];folders=[ROOT/'raw'/name for name in names]
   if not all(complete(p) for p in folders):continue
   a,b=[{r['sample_id']:r for r in requests(p)} for p in folders]
   ids=sorted(a.keys()&b.keys())
   if not ids or len(ids)!=len(a) or len(ids)!=len(b):continue
   if not all(a[i]['input_ids']==b[i]['input_ids'] for i in ids):continue
   blocks.append([(a[i],b[i]) for i in ids]);total+=len(ids)
+  frozen_starts+=all(matches(folder) for folder in folders)
   exact+=sum(a[i]['output_ids']==b[i]['output_ids'] for i in ids)
   length_equal+=sum(a[i]['output_tokens']==b[i]['output_tokens'] for i in ids)
   raw_pairs.append(names)
@@ -94,7 +106,8 @@ def paired_runs(model,base,method,length,concurrency,kind='serving'):
   candidate_p95_E2E_ms=float(np.percentile([r['e2e_ms'] for r in right],95)),
   baseline_p95_TTFT_ms=float(np.percentile([r['ttft_ms'] for r in left],95)),
   candidate_p95_TTFT_ms=float(np.percentile([r['ttft_ms'] for r in right],95)),
-  strict_same_output=exact==total,accepted_independent_starts=len(blocks)>=3,
+  strict_same_output=exact==total,three_or_more_independent_starts=len(blocks)>=3,
+  matched_frozen_runtime_starts=frozen_starts,
   evidence='MEASURED_WITH_PAIRED_HIERARCHICAL_BOOTSTRAP',raw_pairs=raw_pairs,
   limitation='Closed-loop bounded natural generation. This is not sustainable open-loop capacity.')
 
@@ -103,14 +116,14 @@ def comparisons():
  for model in ('ouro','huginn','dory'):
   for length,width in ((128,1),(512,4),(2048,8)):
    for method in ('A','B'):
-    for base in ('DP','DP_Mixed','PD','PD_G1','PD_A_control'):
+    for base in ('DP','DP_Mixed','PD','PD_G1','PD_A_control','PD_A_coalesced'):
      row=paired_runs(model,base,method,length,width)
      if row:output.append(row)
   for base in ('C_upstream','C_queue','C_token','C_service','C_DP4','C_DP4_Mixed','C_PD1','C_PD3'):
    row=paired_runs(model,base,'C_loop',0,8,kind='C')
    if row:output.append(row)
   for method in ('A','B'):
-   for base in ('DP','DP_Mixed','PD','PD_G1','PD_A_control'):
+   for base in ('DP','DP_Mixed','PD','PD_G1','PD_A_control','PD_A_coalesced'):
     row=paired_runs(model,'L128_'+base,'L128_'+method,512,4,kind='serving_long128')
     if row:output.append(row)
  save_csv(ROOT/'paired_comparisons.csv',output)
@@ -127,11 +140,15 @@ def slo_results():
   model=raw[0]['model']
   if model not in grid:continue
   span=max(x['finish'] for x in raw)-min(x['arrival'] for x in raw)
-  for level,limit in grid[model]['ITL_thresholds_ms'].items():
+  thresholds=dict(grid[model]['ITL_thresholds_ms'])
+  thresholds.update({f'absolute_{limit}ms':limit for limit in grid[model].get('absolute_ITL_grid_ms',[])})
+  for level,limit in thresholds.items():
    for ttft in grid[model]['TTFT_grid_ms']:
     passed=[]
     for x in raw:
-     intervals=[1000*(e['time']-e['previous_time']) for e in x['token_events'] if not e['first'] and e['new_tokens']==1]
+     # The first token in a coalesced emission still exposes its full waiting gap.
+     # Unknown internal token times must not erase a client-visible stall.
+     intervals=[1000*(e['time']-e['previous_time']) for e in x['token_events'] if not e['first'] and e['new_tokens']>=1]
      normal=x['finish_reason'] in ('eos','length','stop') and x['output_tokens']>0
      passed.append(normal and x['ttft_ms']<=ttft and max(intervals,default=0)<=limit and x['e2e_ms']<=grid[model]['E2E_limit_ms'])
     count=sum(passed)
@@ -155,9 +172,53 @@ def contention_results():
    evidence='MEASURED_CONTENDING_LANES' if 'parallel' in folder.name else 'MEASURED_ISOLATED_LANE'))
  save_csv(ROOT/'contention.csv',data);return data
 
+def scale_discovery():
+ rows=[]
+ for prefix,length,width in [('scale4',512,8),('scale8',512,8),('pressure4',0,32),('pressure8',0,32)]:
+  for model in ('ouro','huginn','dory'):
+   candidates=('A1','A2','A4','B1','C_loop')
+   for candidate in candidates:
+    target=ROOT/'raw'/f'{model}_{prefix}_{candidate}_P{length}_C{width}_s0'
+    if not complete(target):continue
+    right=requests(target)
+    for baseline in ('DP','DP_Mixed','PD1','PD2','PD3','PD4','PD1_G1','PD_A1','PD_A2','PD_A4','C_service'):
+     control=ROOT/'raw'/f'{model}_{prefix}_{baseline}_P{length}_C{width}_s0'
+     if not complete(control):continue
+     left=requests(control);match=agreement(left,right)
+     if match['input_equal']!=len(left) or len(left)!=len(right):continue
+     before=float(np.percentile([r['e2e_ms'] for r in left],95));after=float(np.percentile([r['e2e_ms'] for r in right],95))
+     rows.append(dict(model=model,regime=prefix,baseline=baseline,candidate=candidate,
+      concurrency=width,starts=1,N=len(left),exact_outputs=match['exact'],length_equal=match['length_equal'],
+      baseline_p95_E2E_ms=before,candidate_p95_E2E_ms=after,p95_E2E_speedup=before/after,
+      confidence_interval='NOT_MEASURED_ONE_START',accepted_gain=False,
+      evidence='MEASURED_SINGLE_START_DISCOVERY_NOT_ACCEPTED_SPEEDUP'))
+ save_csv(ROOT/'scale_track_comparisons.csv',rows)
+
+def heterogeneous_discovery():
+ rows=[]
+ for model in ('ouro','huginn','dory'):
+  target=ROOT/'raw'/f'{model}_Chet_loop_P0_C16_s0'
+  if not complete(target):continue
+  right=requests(target)
+  for label in ('upstream','queue','token','service','DP4_Mixed','PD1','PD3'):
+   control=ROOT/'raw'/f'{model}_Chet_{label}_P0_C16_s0'
+   if not complete(control):continue
+   left=requests(control);match=agreement(left,right)
+   if match['input_equal']!=len(left) or len(left)!=len(right):continue
+   before=float(np.percentile([r['e2e_ms'] for r in left],95));after=float(np.percentile([r['e2e_ms'] for r in right],95))
+   rows.append(dict(model=model,baseline=label,candidate='loop',starts=1,N=len(left),
+    exact_outputs=match['exact'],length_equal=match['length_equal'],
+    baseline_p95_E2E_ms=before,candidate_p95_E2E_ms=after,p95_E2E_speedup=before/after,
+    confidence_interval='NOT_MEASURED_ONE_START',accepted_gain=False,
+    workload='Synthetic padded questions, mixed 128/256/512/2048 prompt tokens, C16, cap64',
+    evidence='MEASURED_SINGLE_START_DISCOVERY_NOT_ACCEPTED_SPEEDUP'))
+ save_csv(ROOT/'heterogeneous_C_comparisons.csv',rows)
+
 def main():
  parser=argparse.ArgumentParser();parser.add_argument('--comparisons',action='store_true');args=parser.parse_args()
- summarize();reference_checks();slo_results();contention_results()
+ summarize();reference_checks();slo_results();contention_results();scale_discovery();heterogeneous_discovery()
+ from .critical_path_analysis import main as critical_path_analysis
+ critical_path_analysis()
  if args.comparisons:comparisons()
 
 if __name__=='__main__':main()

@@ -59,3 +59,29 @@ def test_bootstrap_uses_paired_observations():
  blocks=[[(dict(e2e_ms=x),dict(e2e_ms=x/2)) for x in (2.,4.,8.)] for _ in range(3)]
  r=bootstrap(blocks,samples=30)
  assert r['speedup']==2. and r['ci95']==[2.,2.]
+
+def test_placement_counter_does_not_use_a_batch_offset_as_its_clock(tmp_path):
+ import json,time
+ from types import SimpleNamespace as NS
+ from .placement import install
+ request=NS(prompt_token_ids=list(range(128)),generated_token_ids=[],sampling_params=NS(max_tokens=32))
+ active=NS(request=request,p='worker',d='other',p_released=False,d_released=False,created=time.monotonic(),
+  timings={'prefill_started':0.},loop_frontiers=[[0,128] for _ in range(4)])
+ peer=NS(name='worker',role='prefill',client=NS(info={'max_active_requests':8,'num_blocks':4096}),reserved_blocks=10,slots=1)
+ for policy in ('service','loop'):
+  engine=NS(model_config=NS(model_type='ouro',total_ut_steps=4),transfers={'active':active})
+  incoming=NS(request=NS(request_id='new'));path=tmp_path/(policy+'.jsonl')
+  install(engine,policy,path);score=engine.placement_key(peer,incoming)
+  record=json.loads(path.read_text())
+  assert score[0]>=0 and 0<=record['overhead_us']<1e6
+  assert 'worker' in incoming.abc_route_predictions
+
+def test_cpu_stats_hook_has_its_required_import(monkeypatch,tmp_path):
+ import torch
+ from types import SimpleNamespace as NS
+ from vllm_rlt.engine.stage_engine import StageEngine
+ monkeypatch.setenv('ABC_RUN_DIR',str(tmp_path))
+ fake=NS(scheduler=NS(requests={}),model=torch.nn.Module(),model_runner=NS(),connector=None,
+  cache_manager=NS(num_used_blocks=0,key_cache=torch.empty(1,dtype=torch.bfloat16),device=torch.device('cpu')))
+ row=StageEngine.stats(fake)
+ assert row['requests']==0 and isinstance(row['append_evidence_IO'],dict)

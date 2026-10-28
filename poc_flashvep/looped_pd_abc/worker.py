@@ -9,7 +9,7 @@ import random
 import uuid
 import zipfile
 import subprocess
-from .common import ROOT,MODELS,MODEL_PINS,RLT_REVISION,UUIDS,setup,write,append,digest
+from .common import ROOT,MODELS,MODEL_PINS,RLT_REVISION,UUIDS,setup,write,append,digest,append_cost
 
 def prompts(model,count,length):
  from transformers import AutoTokenizer,PreTrainedTokenizerFast
@@ -106,6 +106,7 @@ def run(args):
   from dataclasses import replace
   cfg['scheduler_config']=replace(cfg['scheduler_config'],wavefront_chunked_prefill=True)
  os.environ['ABC_RUN_DIR']=str(dest)
+ if args.profile:os.environ['ABC_PROFILE_RANGES']='1'
  if args.model=='dory':
   from .dory_adapter import install
   install()
@@ -167,6 +168,7 @@ def run(args):
    while engine.has_unfinished_requests():engine.step()
   before={name:peer.client.stats() for name,peer in engine.peers.items()} if args.mode=='pd' else engine.stats()
   write(dest/'before_measured.json',before)
+  write(dest/'coordinator_IO_before.json',append_cost())
   if args.barrier:
    barrier=ROOT/'state'/args.barrier;barrier.mkdir(parents=True,exist_ok=True)
    write(barrier/(args.gpus+'.json'),dict(pid=os.getpid(),time=time.monotonic()))
@@ -177,13 +179,16 @@ def run(args):
   if args.profile:
    from vllm_rlt.profiling import ProfileConfig
    engine.start_profile(ProfileConfig(output_dir=str(dest/'profile'),record_shapes=True))
+  os.environ['ABC_MEASURED_ACTIVE']='1'
   for repeat in range(args.repeats):serve(engine,inputs,args,repeat)
+  os.environ['ABC_MEASURED_ACTIVE']='0'
   if args.profile:
    engine.stop_profile();engine.wait_for_profile_artifacts(180)
   if args.mode=='pd':
    while engine.has_unfinished_requests():engine.step()
   after={name:peer.client.stats() for name,peer in engine.peers.items()} if args.mode=='pd' else engine.stats()
   write(dest/'after_measured.json',after)
+  write(dest/'coordinator_IO_after.json',append_cost())
   write(dest/'stats.json',dict(stats=engine.stats() if hasattr(engine,'stats') else None,
     worker_metrics=getattr(engine,'worker_metrics',None),metrics=list(getattr(engine,'metrics',[]))))
  finally:
@@ -211,9 +216,12 @@ def main():
  args.attempt_id=uuid.uuid4().hex
  assert os.environ.get('CUDA_VISIBLE_DEVICES')==args.gpus
  status=ROOT/'raw'/args.name/'status.json';write(status,dict(status='RUNNING',pid=os.getpid(),time=time.time()))
+ from .nvml_watch import GPUWatch
+ monitor=GPUWatch(status.parent,list(map(int,args.gpus.split(','))),args.attempt_id);monitor.start()
  try:run(args)
  except BaseException as error:
   write(status,dict(status='FAILED',error=repr(error),time=time.time()));raise
+ finally:monitor.stop()
  write(status,dict(status='COMPLETE',time=time.time()))
 
 if __name__=='__main__':main()

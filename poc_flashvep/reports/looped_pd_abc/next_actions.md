@@ -4,6 +4,11 @@ The active task is Dense Looped PD A/B/C, not an earlier MoE or diffusion task.
 Do not resume the paused decode Loop PP project.
 Do not terminate the active campaign when the user asks for status only.
 
+The intermediate commit is `7b8bffa636c27724d7d20be3e6aba4e6e0401731`.
+The branch push and remote SHA check succeeded.
+This commit is not a completed experiment or a final decision.
+Later raw measurements and analysis changes still require a final scoped commit.
+
 1. Read the complete authoritative PD specification and the reporting skill.
 2. Check `state/main_campaign.json`, `state/dispatcher.json`, and the recorded live PIDs.
 3. Keep the current controller if it remains active.
@@ -36,6 +41,13 @@ The main serving comparison includes a matched staged A control.
 It also includes a generic descriptor-coalesced B control for Ouro.
 The longer output-cap-128 regime prevents a cap-32-only conclusion.
 All final performance claims still require three independent starts and output agreement.
+The tuned-cut qualifier runs before repeated A serving.
+It rejects a new cut if its 100-prompt pilot or exact-byte check fails.
+It then retains the previously qualified cut. It does not cancel B or C.
+
+`analysis_watch.py` waits for the GPU campaign to finish.
+It then generates CPU comparisons, profiler summaries, and draft report tables.
+It does not approve a verdict or commit/push automatically.
 
 ## Safety
 

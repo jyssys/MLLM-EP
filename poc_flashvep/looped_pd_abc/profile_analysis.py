@@ -52,14 +52,15 @@ def analyze_profiles():
  return rows
 
 def memory_and_transport():
- rows=[]
+ rows=[];io=[]
  for after in sorted((ROOT/'raw').glob('*/after_measured.json')):
   before=after.with_name('before_measured.json');config=after.with_name('configuration.json')
   if not before.exists() or not config.exists():continue
   a=json.loads(before.read_text());b=json.loads(after.read_text());args=json.loads(config.read_text())['arguments']
   if not isinstance(b,dict):continue
+  if 'requests' in b and 'used_blocks' in b:a={'local':a};b={'local':b}
   for worker,v in b.items():
-   if not isinstance(v,dict):continue
+   if not isinstance(v,dict) or 'weight_bytes' not in v:continue
    fields=('weight_bytes','derived_weight_pack_bytes','reserved_kv_bytes','peak_allocated_bytes')
    row=dict(run=after.parent.name,model=args['model'],worker=worker,physical_GPU_mask=args['gpus'],
     evidence='MEASURED_WORKER_ALLOCATIONS_AND_COHORT_COUNTER_DELTAS')
@@ -69,9 +70,45 @@ def memory_and_transport():
    row['graph_workspace_bytes']='NOT_MEASURED_SEPARATELY'
    row['actual_active_KV_bytes']='NOT_MEASURED_FROM_POST_DRAIN_SNAPSHOT'
    rows.append(row)
+   for filename,stats in v.get('append_evidence_IO',{}).items():
+    previous=a.get(worker,{}).get('append_evidence_IO',{}).get(filename,{})
+    io.append(dict(run=after.parent.name,worker=worker,filename=filename,
+     append_calls=stats['count']-previous.get('count',0),
+     append_wall_ms=1000*(stats['total_seconds']-previous.get('total_seconds',0)),
+     maximum_single_append_ms=1000*stats['max_seconds'],
+     maximum_scope='Process lifetime, including warmup',
+     evidence='MEASURED_CPU_LOGGING_COST_NOT_ADDITIVE_E2E_TIME'))
+  iobefore=after.with_name('coordinator_IO_before.json');ioafter=after.with_name('coordinator_IO_after.json')
+  if iobefore.exists() and ioafter.exists():
+   x=json.loads(iobefore.read_text());y=json.loads(ioafter.read_text())
+   for filename,stats in y.items():
+    previous=x.get(filename,{})
+    io.append(dict(run=after.parent.name,worker='coordinator',filename=filename,
+     append_calls=stats['count']-previous.get('count',0),append_wall_ms=1000*(stats['total_seconds']-previous.get('total_seconds',0)),
+     maximum_single_append_ms=1000*stats['max_seconds'],maximum_scope='Process lifetime, including warmup',
+     evidence='MEASURED_CPU_LOGGING_COST_NOT_ADDITIVE_E2E_TIME'))
  save_csv(ROOT/'worker_memory_transport.csv',rows)
+ save_csv(ROOT/'evidence_IO_cost.csv',io)
+
+def placement_residuals():
+ rows=[]
+ for path in sorted((ROOT/'raw').glob('*_C_*/closed_stats.json')):
+  data=json.loads(path.read_text())
+  for request in data.get('metrics',[]):
+   if request['request_id'].startswith('r-1_'):continue
+   worker=request.get('prefill_worker');pred=request.get('route_predictions',{}).get(worker)
+   timings=request['timings']
+   if not pred or not all(k in timings for k in ('admitted','prefill_started')):continue
+   observed=timings['prefill_started']-timings['admitted']
+   rows.append(dict(run=path.parent.name,request_id=request['request_id'],prefill_worker=worker,
+    assigned_queue_work_prediction_ms=1000*pred['score'],observed_reservation_to_prefill_ms=1000*observed,
+    assigned_P_phase_ms=1000*(timings['prefill_compute_completed']-timings['prefill_started']) if 'prefill_compute_completed' in timings else 'NOT_MEASURED',
+    calibrated_completion_prediction_error_ms='NOT_MEASURED',
+    evidence='MEASURED_CHOSEN_ROUTE_WITH_MODEL_PREDICTION',
+    limitation='The rank score is pending work, not an ETA. The control timestamp is not a GPU first-kernel timestamp. These quantities cannot define a prediction error.'))
+ save_csv(ROOT/'placement_residuals.csv',rows)
 
 def main():
- memory_and_transport();analyze_profiles()
+ memory_and_transport();placement_residuals();analyze_profiles()
 
 if __name__=='__main__':main()

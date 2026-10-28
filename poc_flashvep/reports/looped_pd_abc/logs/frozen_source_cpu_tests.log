@@ -1,0 +1,129 @@
+........................................................................ [ 74%]
+.....F.....F.............                                                [100%]
+=================================== FAILURES ===================================
+______ test_stage_client_owns_process_and_isolates_cancelled_generations _______
+
+    def test_stage_client_owns_process_and_isolates_cancelled_generations():
+        import os
+    
+        from vllm_rlt.engine.llm_engine import StageClient
+    
+        client = StageClient(
+            tiny_ouro_config(),
+            device="cpu",
+            dtype="float32",
+            seed=123,
+            cache_config=CacheConfig(256, 2),
+        )
+        try:
+            assert client.process.pid != os.getpid()
+            assert client.model_config.model_type == "ouro"
+            with pytest.raises(ValueError, match="prompt"):
+                client.add_request("bad", [])
+            assert client.request_ids() == ()
+            assert client.process.is_alive()
+            params = SamplingParams(max_tokens=60, ignore_eos=True)
+            client.add_request("reuse", [1, 2, 3], params)
+            client.abort_request("reuse")
+            client.add_request("reuse", [4, 5], SamplingParams(max_tokens=2, ignore_eos=True))
+            result = drain(client)
+            assert len(result["reuse"][0]) == 2
+            assert client.stats()["used_blocks"] == 0
+            client.add_request("close-live", [2, 3], params)
+        finally:
+            client.close()
+        assert not client.process.is_alive()
+>       assert client.stats() == dict(requests=0, used_blocks=0)
+E       AssertionError: assert {'requests': ...ytes': 0, ...} == {'requests': ...ed_blocks': 0}
+E         
+E         Omitting 2 identical items, use -vv to show
+E         Left contains 10 more items:
+E         {'append_evidence_IO': {},
+E          'derived_weight_pack_bytes': 0,
+E          'issued_loop_rows': 32,
+E          'issued_submissions': 10,...
+E         
+E         ...Full output truncated (7 lines hidden), use '-vv' to show
+
+../external/looped-pd-abc-rlt/tests/test_stage_engine.py:359: AssertionError
+________ test_stage_client_controls_can_be_submitted_before_collecting _________
+
+    def test_stage_client_controls_can_be_submitted_before_collecting():
+        import time
+    
+        from vllm_rlt.engine.llm_engine import StageClient
+    
+        client = StageClient(tiny_ouro_config(), dtype="float32", cache_config=CacheConfig(64, 2))
+        try:
+            discarded = client.submit_control("stats")
+            client.discard_control(discarded)
+            calls = [client.submit_control("stats") for _ in range(2)]
+            replies = {}
+            deadline = time.monotonic() + 10
+            while len(replies) < len(calls):
+                assert time.monotonic() < deadline
+                client.poll()
+                for control_id in calls:
+                    reply = client.take_control_reply(control_id)
+                    if reply is not None:
+                        replies[control_id] = reply
+                time.sleep(0.001)
+>           assert all(r["result"] == dict(requests=0, used_blocks=0) for r in replies.values())
+E           assert False
+E            +  where False = all(<generator object test_stage_client_controls_can_be_submitted_before_collecting.<locals>.<genexpr> at 0x7f6ed4105120>)
+
+../external/looped-pd-abc-rlt/tests/test_stage_engine.py:536: AssertionError
+=============================== warnings summary ===============================
+../external/looped-pd-abc-rlt/tests/test_pd.py:362
+  /home/esjung/external/looped-pd-abc-rlt/tests/test_pd.py:362: PytestUnknownMarkWarning: Unknown pytest.mark.gpu - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.gpu
+
+../external/looped-pd-abc-rlt/tests/test_pd.py:403
+  /home/esjung/external/looped-pd-abc-rlt/tests/test_pd.py:403: PytestUnknownMarkWarning: Unknown pytest.mark.gpu - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.gpu
+
+../external/looped-pd-abc-rlt/tests/test_pd.py:431
+  /home/esjung/external/looped-pd-abc-rlt/tests/test_pd.py:431: PytestUnknownMarkWarning: Unknown pytest.mark.gpu - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.gpu
+
+../external/looped-pd-abc-rlt/tests/test_pd.py:448
+  /home/esjung/external/looped-pd-abc-rlt/tests/test_pd.py:448: PytestUnknownMarkWarning: Unknown pytest.mark.gpu - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.gpu
+
+../external/looped-pd-abc-rlt/tests/test_pd.py:535
+  /home/esjung/external/looped-pd-abc-rlt/tests/test_pd.py:535: PytestUnknownMarkWarning: Unknown pytest.mark.gpu - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.gpu
+
+../external/looped-pd-abc-rlt/tests/test_pd.py:629
+  /home/esjung/external/looped-pd-abc-rlt/tests/test_pd.py:629: PytestUnknownMarkWarning: Unknown pytest.mark.gpu - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.gpu
+
+../external/looped-pd-abc-rlt/tests/test_tensor_transfer.py:22
+  /home/esjung/external/looped-pd-abc-rlt/tests/test_tensor_transfer.py:22: PytestUnknownMarkWarning: Unknown pytest.mark.gpu - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    pytest.param("cuda", False, id="cuda-copy", marks=pytest.mark.gpu),
+
+../external/looped-pd-abc-rlt/tests/test_tensor_transfer.py:23
+  /home/esjung/external/looped-pd-abc-rlt/tests/test_tensor_transfer.py:23: PytestUnknownMarkWarning: Unknown pytest.mark.gpu - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    pytest.param("cuda", True, id="cuda-uva", marks=pytest.mark.gpu),
+
+../external/looped-pd-abc-rlt/tests/test_tensor_transfer.py:141
+  /home/esjung/external/looped-pd-abc-rlt/tests/test_tensor_transfer.py:141: PytestUnknownMarkWarning: Unknown pytest.mark.gpu - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.gpu
+
+../external/looped-pd-abc-rlt/tests/test_tensor_transfer.py:247
+  /home/esjung/external/looped-pd-abc-rlt/tests/test_tensor_transfer.py:247: PytestUnknownMarkWarning: Unknown pytest.mark.gpu - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.gpu
+
+../external/looped-pd-abc-rlt/tests/test_stage_engine.py:399
+  /home/esjung/external/looped-pd-abc-rlt/tests/test_stage_engine.py:399: PytestUnknownMarkWarning: Unknown pytest.mark.gpu - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.gpu
+
+../external/looped-pd-abc-rlt/tests/test_stage_engine.py:649
+  /home/esjung/external/looped-pd-abc-rlt/tests/test_stage_engine.py:649: PytestUnknownMarkWarning: Unknown pytest.mark.gpu - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.parametrize("device", ["cpu", pytest.param("cuda", marks=pytest.mark.gpu)])
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED ::test_stage_client_owns_process_and_isolates_cancelled_generations - ...
+FAILED ::test_stage_client_controls_can_be_submitted_before_collecting - asse...
+2 failed, 95 passed, 86 deselected, 12 warnings in 13.61s
