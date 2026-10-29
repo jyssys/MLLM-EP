@@ -1,0 +1,51 @@
+{
+  "review_complete": true,
+  "review_date": "2026-10-29",
+  "review_scope": "Completed Ouro and Huginn measurements. Dory is deferred by the user. This is a closed PoC, not a deployment qualification.",
+  "accept_lossless_serving_GO": false,
+  "A": {
+    "overall": {"status": "CONDITIONAL", "reason": "Huginn has a bounded strict-ITL goodput signal. General E2E improvement, original-reference fidelity, sustainable capacity, and loop-specific novelty are not established."},
+    "ouro": {
+      "status": "NO_GO_PERFORMANCE",
+      "reason": "A loses to the strongest measured equal-GPU DP/Mixed controls in all four repeated two-GPU regimes. This finding does not exclude untested long-context or other PD implementations.",
+      "scale_status": {"2": "NO_GO_PERFORMANCE", "4": "NO_GO_PERFORMANCE", "8": "NO_GO_PERFORMANCE"},
+      "scale_notes": {"2": "Three frozen starts per regime, exact bounded outputs. No accepted equal-budget benefit.", "4": "One-start candidate discovery. No accepted gain. Natural pressure also changes outputs.", "8": "Best synthetic candidate is 1.066x in one start, below the target. No gain CI."}
+    },
+    "huginn": {
+      "status": "CONDITIONAL",
+      "reason": "At P512/C4, a frozen absolute-150ms ITL cell improves bounded goodput. The strongest E2E baseline is still faster. Multiple SLO cells, three starts, unresolved reference fidelity, and generic migration limit the claim.",
+      "scale_status": {"2": "CONDITIONAL", "4": "NO_GO_PERFORMANCE", "8": "NO_GO_PERFORMANCE"},
+      "scale_notes": {"2": "Strict-ITL goodput signal only. No deployment or general E2E GO.", "4": "One-start candidate discovery does not beat the strongest baseline. No gain CI.", "8": "One-start synthetic gains are below the target. Pressure comparisons change outputs."}
+    }
+  },
+  "B": {
+    "overall": {"status": "CONDITIONAL", "reason": "Immutable-frontier transfer is internally correct. Narrow two-GPU signals remain. Generic layerwise streaming, reference fidelity, three-start uncertainty, and incomplete capacity tests prevent GO."},
+    "ouro": {
+      "status": "CONDITIONAL",
+      "reason": "P512/C4 gives 1.090x p95 E2E versus DP Mixed, with a 1.012-1.153x conditional CI. Moderate-SLO goodput is only 1.034x. Other repeated regimes lose. No general loop-specific GO.",
+      "scale_status": {"2": "CONDITIONAL", "4": "NO_GO_PERFORMANCE", "8": "NO_GO_PERFORMANCE"},
+      "scale_notes": {"2": "A narrow 8.3% latency reduction is below the 10% target and does not generalize.", "4": "One-start synthetic and pressure discovery do not establish a benefit.", "8": "The apparent pressure gain is one-start and output-confounded. Synthetic B loses."}
+    },
+    "huginn": {
+      "status": "CONDITIONAL",
+      "reason": "At P512/C4 and absolute ITL 150ms, bounded goodput improves versus the best measured control. E2E remains worse than DP/Mixed. Official-reference mismatch and generic streaming controls remain unresolved.",
+      "scale_status": {"2": "CONDITIONAL", "4": "NO_GO_PERFORMANCE", "8": "NO_GO_PERFORMANCE"},
+      "scale_notes": {"2": "Frozen-grid goodput signal, not sustainable serving capacity or an original-model fidelity GO.", "4": "One-start discovery lacks a gain against the strongest baseline.", "8": "One-start discovery lacks a gain. Pressure output parity is incomplete."}
+    }
+  },
+  "C": {
+    "overall": {"status": "NO_GO_CORRECTNESS", "reason": "Natural batched placement changes output sequences. The repeated service-time ablation also lacks a demonstrated incremental gain. No lossless scheduling speedup is accepted."},
+    "ouro": {
+      "status": "NO_GO_CORRECTNESS",
+      "reason": "Loop versus service-time placement matches 125/144 outputs and gives 0.981x p95 E2E. A one-start synthetic four-GPU signal does not repair the natural-output gate or prove loop-specific novelty.",
+      "scale_status": {"2": "NOT_MEASURED", "4": "NO_GO_CORRECTNESS", "8": "NO_GO_CORRECTNESS"},
+      "scale_notes": {"2": "A fixed 1P:1D pool has no initial placement choice. No independent C gain is measured.", "4": "Repeated natural output parity fails. A single synthetic signal remains unconfirmed.", "8": "Synthetic loop versus service is 1.001x in one start. Natural-pressure parity fails."}
+    },
+    "huginn": {
+      "status": "NO_GO_CORRECTNESS",
+      "reason": "Loop versus service-time placement matches 139/144 outputs and gives 1.016x p95 E2E with a 0.977-1.093x conditional CI. No lossless incremental gain is established.",
+      "scale_status": {"2": "NOT_MEASURED", "4": "NO_GO_CORRECTNESS", "8": "NO_GO_CORRECTNESS"},
+      "scale_notes": {"2": "A fixed 1P:1D pool has no initial placement choice. No independent C gain is measured.", "4": "Repeated natural output parity fails. Strong static controls remain faster.", "8": "One-start synthetic loop placement loses to service-time placement. Natural-pressure parity fails."}
+    }
+  }
+}

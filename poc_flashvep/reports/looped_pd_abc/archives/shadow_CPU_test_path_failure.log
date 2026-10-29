@@ -1,0 +1,55 @@
+.....F...........                                                        [100%]
+=================================== FAILURES ===================================
+__________ test_shadow_routing_preserves_the_actual_state_dictionary ___________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f7100d65220>
+tmp_path = PosixPath('/tmp/pytest-of-esjung/pytest-101/test_shadow_routing_preserves_0')
+
+    def test_shadow_routing_preserves_the_actual_state_dictionary(monkeypatch,tmp_path):
+     import json,time
+     from types import SimpleNamespace as NS
+     from . import placement,shadow_worker,workload_worker
+     monkeypatch.setattr(placement,'install',placement.install)
+     monkeypatch.setattr(shadow_worker,'ROOT',tmp_path)
+     monkeypatch.setenv('ABC_MANIFEST_RUN','shadow_test')
+     request=NS(request_id='old',prompt_token_ids=list(range(128)),generated_token_ids=[],sampling_params=NS(max_tokens=32))
+     active=NS(request=request,p='P',d='D',p_released=False,d_released=False,created=time.monotonic(),
+      timings={'prefill_started':0.},loop_frontiers=[[64,128],[0,64],[0,0],[0,0]])
+     engine=NS(model_config=NS(model_type='ouro',total_ut_steps=4),transfers={'old':active})
+     peer=NS(name='P',role='prefill',client=NS(info={'max_active_requests':8,'num_blocks':4096}),reserved_blocks=10,slots=1)
+     original=engine.transfers
+     def fake_workload():
+      placement.install(engine,'loop',tmp_path/'shadow_test/placements.jsonl')
+      score=engine.placement_key(peer,NS(request=NS(request_id='new')))
+      assert score[0]>=0 and engine.transfers is original and engine.transfers['old'] is active
+     monkeypatch.setattr(workload_worker,'main',fake_workload)
+     shadow_worker.main()
+>    row=json.loads((tmp_path/'shadow_test/shadow_states.jsonl').read_text())
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+poc_flashvep/looped_pd_abc/test_analysis.py:61: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../anaconda3/lib/python3.14/pathlib/__init__.py:787: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors, newline=newline) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/tmp/pytest-of-esjung/pytest-101/test_shadow_routing_preserves_0/shadow_test/shadow_states.jsonl')
+mode = 'r', buffering = -1, encoding = 'locale', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/tmp/pytest-of-esjung/pytest-101/test_shadow_routing_preserves_0/shadow_test/shadow_states.jsonl'
+
+../anaconda3/lib/python3.14/pathlib/__init__.py:771: FileNotFoundError
+=========================== short test summary info ============================
+FAILED poc_flashvep/looped_pd_abc/test_analysis.py::test_shadow_routing_preserves_the_actual_state_dictionary
+1 failed, 16 passed in 4.46s

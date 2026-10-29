@@ -1,5 +1,34 @@
 # Failures, corrections, and unresolved limits
 
+## Final disposition, 2026-10-29
+
+The current PoC is closed with limitations. Read `09_final_summary.md` for the final decisions.
+Historical progress statements below describe earlier experiment stages. They are not a live queue.
+Dory remains deferred by the user. No new Dory run starts during finalization.
+
+Two final DP Mixed timeline jobs fail for Ouro and Huginn.
+Both raise `AttributeError: 'ReplicaPool' object has no attribute 'start_profile'`.
+The original logs remain under `logs/*_timeline_DP_Mixed_P2048_C8_s0.log`.
+These optional timelines remain unavailable. Separately completed clean DP Mixed timing runs remain valid evidence.
+The review starts no new GPU experiment to fix that gap.
+
+The first closeout test command omitted `ABC_ASYNC_EVIDENCE=1`.
+Its nonblocking-recorder test fails as expected in the synchronous mode. The other 35 tests pass.
+The second command enables asynchronous writes for every test.
+Two synchronous file-read fixtures then fail because they read before the background writer drains.
+The final check separates the 35 synchronous-fixture tests from the one asynchronous logging-seam test.
+This test isolation does not change the measured runtime or the stored evidence.
+All four test logs remain under `logs/final_closeout_cpu_tests*.log`.
+
+The natural batched C comparisons fail exact sequence parity.
+Loop versus service placement matches 125/144 Ouro outputs and 139/144 Huginn outputs.
+The current evidence does not prove whether BF16 batch geometry or a state error causes each mismatch.
+No C lossless speedup is accepted.
+
+Official-reference sequence agreement remains 88/100 for Ouro and 89/100 for Huginn.
+Answer accuracy, sustainable open-loop capacity, dynamic-depth extensions, and C2 migration remain NOT_MEASURED.
+The final report does not convert those gaps into completed experiments.
+
 The experiment preserves original logs, attempt archives, seeds, and outputs.
 `experiment_inventory.csv` records run status.
 A failed run does not contribute a completed latency measurement.

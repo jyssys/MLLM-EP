@@ -1,5 +1,15 @@
 # Active session handoff
 
+## Final closure, 2026-10-29
+
+The GPU queue is complete. The final scientific review is complete with explicit limitations.
+Read `09_final_summary.md` and `configs/reviewed_decisions.json` before the historical notes below.
+A: CONDITIONAL overall. B: CONDITIONAL overall. C: NO_GO_CORRECTNESS overall.
+No original-model-equivalent lossless serving GO is accepted.
+No inference controller needs a resume. Two optional DP Mixed timelines remain failed and documented.
+Owned burners run on physical GPUs 0–7 after the experiment releases its quiet lane.
+Future fidelity, capacity, generic-control, or long-context experiments require a new follow-up scope.
+
 ## Latest user override
 
 Read `user_scope_override.md` first.

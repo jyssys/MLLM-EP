@@ -1,5 +1,35 @@
 # Reproduction and resume
 
+## Finalized PoC
+
+The current campaign is closed with limitations. No inference worker remains active.
+The earlier resume commands below are historical reproduction instructions, not a pending task list.
+Use `09_final_summary.md` for the final independent A/B/C decisions.
+
+The final review retains the 128 canonical replay jobs, 70 C jobs, 174 scaling/profile jobs, and eight short-profile jobs.
+Two optional DP Mixed timelines fail. Their logs remain available.
+Do not restart the entire campaign merely to regenerate reports.
+
+Regenerate final tables and figures from the existing raw evidence and the explicit reviewed decision file:
+
+```bash
+CUDA_VISIBLE_DEVICES='' PYTHONPATH=/home/esjung/external/looped-pd-abc-rlt:/home/esjung/MLLM-EP-github /home/esjung/.venvs/looped-pd-abc/bin/python -m poc_flashvep.looped_pd_abc.finalize
+```
+
+This command starts no GPU model. It checks queue completion, frozen comparison counts, and the two documented profile failures.
+It preserves raw experiment files. It writes final tables, report files, figures, and raw-evidence checksums.
+
+Run the CPU checks in separate recorder modes. Some earlier fixtures read append files synchronously.
+The actual request-thread recorder regression instead requires the registered asynchronous hook.
+
+```bash
+CUDA_VISIBLE_DEVICES='' PYTHONPATH=/home/esjung/external/looped-pd-abc-rlt:/home/esjung/MLLM-EP-github /home/esjung/.venvs/looped-pd-abc/bin/python -m pytest -q poc_flashvep/looped_pd_abc/test_finalize.py poc_flashvep/looped_pd_abc/test_scope.py poc_flashvep/looped_pd_abc/test_analysis.py poc_flashvep/looped_pd_abc/test_contracts.py
+CUDA_VISIBLE_DEVICES='' ABC_ASYNC_EVIDENCE=1 PYTHONPATH=/home/esjung/external/looped-pd-abc-rlt:/home/esjung/MLLM-EP-github /home/esjung/.venvs/looped-pd-abc/bin/python -m pytest -q poc_flashvep/looped_pd_abc/test_evidence_protocol.py
+```
+
+The original failing combined-mode invocations remain in the closeout logs.
+They do not establish a new GPU model or inference error.
+
 ## Current user scope
 
 Only Ouro and Huginn remain active after the 2026-10-29 user instruction.

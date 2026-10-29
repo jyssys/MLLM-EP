@@ -1,5 +1,15 @@
 # Resume checklist
 
+## Final closure
+
+The current campaign is complete with explicit limitations. No inference resume is required.
+The final decisions are A CONDITIONAL, B CONDITIONAL, and C NO_GO_CORRECTNESS.
+Read `09_final_summary.md` and `configs/reviewed_decisions.json` first.
+The earlier checklist below is historical. It does not authorize another GPU campaign.
+Future reference-fidelity, complete-answer quality, long-context, generic-streaming, or capacity work needs a new scope.
+Two optional DP Mixed profile failures remain documented. Their clean unprofiled controls are complete.
+Owned burners run on physical GPUs 0–7. Preserve unrelated user processes and the outside Git index.
+
 The latest user instruction limits active work to Ouro and Huginn.
 Dory is deferred. Preserve its existing code and evidence.
 Read `user_scope_override.md` and `configs/model_scope.json` before launching jobs.

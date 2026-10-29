@@ -1,0 +1,92 @@
+[
+  {
+    "name": "ouro_C_shadow_P0_C16_s0",
+    "gpus": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "args": [
+      "--model",
+      "ouro",
+      "--mode",
+      "pd",
+      "--gpus",
+      "0,1,2,3",
+      "--name",
+      "ouro_C_shadow_P0_C16_s0",
+      "--requests",
+      "24",
+      "--length",
+      "0",
+      "--cap",
+      "16",
+      "--concurrency",
+      "16",
+      "--warmup",
+      "--graphs",
+      "--asynchronous",
+      "--prefill",
+      "2",
+      "--wavefront",
+      "--chunk",
+      "256",
+      "--placement",
+      "loop"
+    ],
+    "env": {
+      "ABC_ASYNC_EVIDENCE": "1",
+      "ABC_PROMPT_MANIFEST": "/home/esjung/MLLM-EP-github/poc_flashvep/reports/looped_pd_abc/configs/ouro_C_heterogeneous_inputs.jsonl",
+      "ABC_MANIFEST_MODEL": "ouro",
+      "ABC_MANIFEST_RUN": "ouro_C_shadow_P0_C16_s0"
+    },
+    "module": "poc_flashvep.looped_pd_abc.shadow_worker",
+    "quiet": true
+  },
+  {
+    "name": "huginn_C_shadow_P0_C16_s0",
+    "gpus": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "args": [
+      "--model",
+      "huginn",
+      "--mode",
+      "pd",
+      "--gpus",
+      "0,1,2,3",
+      "--name",
+      "huginn_C_shadow_P0_C16_s0",
+      "--requests",
+      "24",
+      "--length",
+      "0",
+      "--cap",
+      "16",
+      "--concurrency",
+      "16",
+      "--warmup",
+      "--graphs",
+      "--enable-boundary-adapter",
+      "--prefill",
+      "2",
+      "--wavefront",
+      "--chunk",
+      "256",
+      "--placement",
+      "loop"
+    ],
+    "env": {
+      "ABC_ASYNC_EVIDENCE": "1",
+      "ABC_PROMPT_MANIFEST": "/home/esjung/MLLM-EP-github/poc_flashvep/reports/looped_pd_abc/configs/huginn_C_heterogeneous_inputs.jsonl",
+      "ABC_MANIFEST_MODEL": "huginn",
+      "ABC_MANIFEST_RUN": "huginn_C_shadow_P0_C16_s0"
+    },
+    "module": "poc_flashvep.looped_pd_abc.shadow_worker",
+    "quiet": true
+  }
+]
