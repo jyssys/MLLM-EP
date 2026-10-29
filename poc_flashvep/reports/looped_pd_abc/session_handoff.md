@@ -165,12 +165,16 @@ Evidence-I/O time is a CPU measurement, not an additive request component.
 
 The original short profiles lack every matched staged control.
 Add matched profiles if a positive claim needs them.
+The scale manifest now queues 15 additional matched long-prompt profiles.
+They use P2048/C8, eight requests, and output cap eight.
+Each model compares Mixed DP2, overlapped staged PD, whole-prompt staged PD, A, and B.
+Their latency remains profiled diagnostic evidence, not clean serving data.
 C2 migration, dynamic-role hybrid PD, and a validated wall-time oracle remain unimplemented.
 
 ## Git and final work
 
 The branch is `flashvep/looped-pd-abc-disaggregation-poc`.
-The latest intermediate pushed commit is `ee2172e250fc66d44787fd09a82764237cf37420`.
+The latest intermediate pushed commit is `2b31a247799d1f289c387cd2de4ce9c824ea0608`.
 The remote SHA matched that commit.
 This is not the final experiment commit.
 Later code, logs, and measurements still require a scoped commit and push.
@@ -185,3 +189,27 @@ Review all three models, scales, output parity, and uncertainty before writing `
 Then regenerate the reports, complete any justified confirmation, and commit only the two owned PoC directories.
 Verify the pushed remote SHA.
 Finally restore owned burners on every idle GPU with an explicit 0–7 mask.
+
+## Latest resume notes
+
+The controller reached the cap-128 serving regime after completing the main cap-32 matrix.
+The remaining C prerequisites include the corrected 42-job cut sweep, recorder qualification, canonical replay, and 27 calibration jobs.
+The scale generator also includes 15 matched long-prompt timeline jobs.
+The latest analysis/control CPU suite passed 25 tests.
+
+The first corrected Dory P2048/C8 start does not reproduce the old B goodput advantage.
+Matched G1 PD qualifies 24/24 requests at the frozen 100ms ITL cell.
+B qualifies 17/24. Both methods match all 24 output sequences.
+Their p95 E2E values are 2995.06ms and 3820.73ms, respectively.
+This is one start only. No final gain interval or architecture verdict follows from it.
+The raw names end in `_P2048_C8_s2`.
+
+Long startup gaps can contain active FlashAttention compilation.
+Check child CPU activity and log changes before declaring a hang.
+The observed Dory compilation workers used approximately 180% CPU each while GPU utilization was zero.
+That observation does not classify every later idle interval.
+
+The user received an estimated additional 12–18 hours for the full remaining matrix and review.
+The estimate assumed no new correctness or resource failures.
+It was not a completion promise.
+The main controller and its GPU workers were not stopped for that status response.

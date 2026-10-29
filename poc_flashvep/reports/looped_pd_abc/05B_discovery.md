@@ -112,3 +112,30 @@ Generic immutable layerwise streaming remains another competing explanation.
 The current adapter's 80/100 official-reference agreement remains unresolved.
 No performance signal removes that fidelity or novelty limitation.
 `timing_correction.md` records the recorder defect, CPU tests, and required canonical retiming.
+
+## First corrected-protocol Dory comparison
+
+The same P2048/C8 setting now has one completed nonblocking start, `s2`.
+All seven methods passed the recorder's durable evidence checks.
+Each method matched the staged G1 PD control on all 24 output sequences.
+This is a single-start observation, not an accepted gain or a causal pre/post estimate.
+
+The SLO remains TTFT at most 10 seconds, E2E at most 30 seconds, and every ITL at most 100ms.
+
+| Method | Qualified requests / N | SLO goodput, requests/s | Request p95 E2E, ms |
+|---|---:|---:|---:|
+| Colocated DP2 | 2/24 | 0.207 | 3304.63 |
+| Colocated Mixed DP2 | 1/24 | 0.111 | 3389.34 |
+| Ordinary atomic PD | 1/24 | 0.060 | 5980.84 |
+| Matched overlapped G1 PD | 24/24 | 2.696 | 2995.06 |
+| Whole-prompt staged PD | 1/24 | 0.080 | 4337.96 |
+| A, cut 1 | 3/24 | 0.311 | 3317.04 |
+| B frontier handoff | 17/24 | 1.577 | 3820.73 |
+
+Evidence: `MEASURED_SINGLE_START_REGISTERED_NONBLOCKING_PROTOCOL`.
+Sources: `raw/dory_{DP,DP_Mixed,PD,PD_G1,PD_A_control,A,B}_P2048_C8_s2/`.
+The original large B goodput advantage does not repeat in this corrected start.
+The generic overlapped G1 control is faster and attains more requests here.
+This result does not prove that all earlier differences came from logging.
+It does show why the old positive signal cannot establish B's benefit.
+Independent canonical repetitions remain pending. A 95% gain interval is not accepted from this start alone.

@@ -61,7 +61,7 @@ The selected intermediate cut comes from the completed cap-8 discovery set.
 The selection reads no future outputs during serving.
 The matched A control uses the same full-prompt chunk and staged G1 execution.
 
-The selected cuts are now frozen:
+The original selected cuts were frozen before the evidence-I/O correction:
 
 | Model | P128/P512 serving cut | P2048 serving cut |
 |---|---:|---:|
@@ -74,6 +74,13 @@ Those new cuts also passed nine additional byte-identity imports in total, inclu
 The original qualified cuts retain their earlier evidence.
 `configs/chosen_cuts.json` records the tuning and qualification sources.
 The cap-128 serving regime remains separate from cap-32 measurement.
+
+The recorder correction invalidates the original sweep's clean timing interpretation.
+Its output and state checks remain correctness evidence.
+`clean_cut_sweep.py` repeats all 42 tuning jobs with the nonblocking recorder.
+It preserves the original choices and writes qualified new choices to `configs/clean_chosen_cuts.json`.
+Canonical A timing confirmations use those new choices.
+No old cut is described as optimal under the corrected protocol before that sweep completes.
 
 ## Structural limit and novelty
 

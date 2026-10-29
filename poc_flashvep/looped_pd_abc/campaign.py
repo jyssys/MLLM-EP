@@ -198,6 +198,22 @@ def main():
      elif label.startswith('PD'):extra+=['--prefill',label[2:],'--chunk','256']
      else:extra+=['--chunk','256']
      jobs.append(job(model,f'pressure{n}_{label}',group,mode=mode,length=0,count=128,cap=64,concurrency=32,extra=extra))
+  # Matched long-prompt timelines are diagnostics, never clean latency samples.
+  for model in ('ouro','huginn','dory'):
+   opt=['--graphs']+(['--asynchronous'] if model=='ouro' else [])
+   boundary=['--enable-boundary-adapter'] if model!='ouro' else []
+   for label in ('DP_Mixed','PD_G1','PD_A_control','A','B'):
+    mode='dp' if label=='DP_Mixed' else 'pd';extra=opt+['--profile']
+    if label=='DP_Mixed':extra+=['--scheduler-mode','mixed','--chunk','256']
+    elif label in ('A','PD_A_control'):
+     extra+=boundary+['--wavefront','--chunk','2048']
+     if label=='A':extra+=['--enable-recurrence-split','--split-cut',str(selected_cut(model,2048))]
+     elif model=='ouro':extra+=['--enable-boundary-adapter']
+    else:
+     extra+=boundary+['--wavefront','--chunk','256']
+     if label=='B':extra+=['--enable-frontier-handoff']
+     elif model=='ouro':extra+=['--enable-boundary-adapter']
+    jobs.append(job(model,'timeline_'+label,(0,1),mode=mode,length=2048,count=8,cap=8,concurrency=8,extra=extra))
  if a.phase in ('serving','scale','C','A_sweep'):
   for j in jobs:j['quiet']=True
  dest=ROOT/'configs'/f'{a.phase}_campaign.json';write(dest,jobs);print(dest,len(jobs))

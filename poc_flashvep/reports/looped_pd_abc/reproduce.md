@@ -98,7 +98,7 @@ It requires the same explicit private-RLT `PYTHONPATH` as the extended command.
 The later shadow-state test increased that suite to 17 passing tests.
 Its initial fixture-path failure remains in `archives/shadow_CPU_test_path_failure.log`.
 
-The later analysis/control suite passed 24 tests after the evidence-protocol correction.
+The later analysis/control suite passed 25 tests after the evidence-protocol correction.
 Its log is `logs/post_epoch_analysis_tests.log`.
 
 ```bash

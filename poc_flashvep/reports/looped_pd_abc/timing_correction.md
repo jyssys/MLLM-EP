@@ -73,6 +73,10 @@ The private RLT patch remains `4904a311358c5cf6467678d0e1c30af38b5a96064cae4c96e
 
 The RED and GREEN logs remain under `logs/evidence_protocol_RED.log` and `logs/evidence_protocol_GREEN.log`.
 `logs/telemetry_spawn_smoke.log` records the spawn check.
+The later analysis/control suite passed 25 tests.
+`logs/post_epoch_analysis_tests.log` records that run.
+The new checks reject a stale writer summary from a reused PID.
+They also check clean calibration selection and preserved failed-run retiming.
 
 The first two completed new-protocol DP jobs passed durable writer checks.
 They each saved 25 records, including warmup.

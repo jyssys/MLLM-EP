@@ -64,6 +64,12 @@ It does not remove a slow trial because its result is inconvenient.
 Accepted comparisons require at least three matched frozen starts.
 Any new source change after this freeze requires another explicit qualification decision.
 
+The evidence recorder has a separate locked epoch in `configs/evidence_protocol_epoch.json`.
+Legacy foreground-I/O timings are invalid for clean method comparisons.
+The canonical replay also repeats A tuning and C cost calibration without that foreground I/O.
+The raw legacy trials remain intact.
+`timing_correction.md` specifies the CPU tests and pending GPU requalification.
+
 ## Track A
 
 A must preserve the complete recurrent snapshot and continue without prefill restart.

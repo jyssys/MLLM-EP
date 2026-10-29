@@ -4,7 +4,7 @@ The active task is Dense Looped PD A/B/C, not an earlier MoE or diffusion task.
 Do not resume the paused decode Loop PP project.
 Do not terminate the active campaign when the user asks for status only.
 
-The latest intermediate commit is `ee2172e250fc66d44787fd09a82764237cf37420`.
+The latest intermediate commit is `2b31a247799d1f289c387cd2de4ce9c824ea0608`.
 The branch push and remote SHA check succeeded.
 This commit is not a completed experiment or a final decision.
 Later raw measurements and analysis changes still require a final scoped commit.

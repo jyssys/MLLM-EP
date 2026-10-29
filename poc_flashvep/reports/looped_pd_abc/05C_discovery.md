@@ -114,6 +114,11 @@ Route logs record worker scores, pending counts, and selector CPU time.
 The reported selector time excludes the subsequent synchronous log write.
 Actual E2E includes that write.
 The report must not describe selector CPU time as the complete scheduling overhead.
+This statement describes the original recorder.
+The registered timing correction moves durable writes to a background thread.
+New selector counters still exclude subsequent serialization and enqueue costs.
+`nonblocking_evidence_cost.csv` records those producer costs separately.
+The final C calibration and measurements require the registered nonblocking protocol.
 An early counter used a batch offset in place of its start timestamp.
 The experiment fixed that counter before the repeated C comparison.
 A CPU regression test checks that counter.

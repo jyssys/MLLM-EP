@@ -14,9 +14,13 @@ def check(folder):
  for proof in folder.glob('async_evidence_writer_*.json'):
   data=json.loads(proof.read_text())
   if data.get('attempt_id')!=attempt:continue
+  if data.get('telemetry_sha256')!=reference['telemetry_sha256']:
+   return dict(valid=False,mode=record['mode'],reason='A writer uses a different recorder implementation')
   summary=folder/f"async_evidence_summary_{data['pid']}.json"
   if not summary.exists():return dict(valid=False,mode=record['mode'],reason='An evidence writer has no final durable summary')
   stats=json.loads(summary.read_text())
+  if stats.get('attempt_id')!=attempt or stats.get('telemetry_sha256')!=reference['telemetry_sha256']:
+   return dict(valid=False,mode=record['mode'],reason='A writer summary belongs to a different attempt or recorder')
   if stats.get('error') or stats.get('enqueued_records')!=stats.get('background_written_records'):
    return dict(valid=False,mode=record['mode'],reason='Evidence records are incomplete')
   proofs.append(data)

@@ -156,3 +156,20 @@ def test_canonical_replay_keeps_failed_evidence_and_uses_the_new_qualified_cut(m
  assert calls[0]['args'][calls[0]['args'].index('--split-cut')+1]=='3'
  assert calls[0]['name'].endswith('_s3')
  assert json.loads((tmp_path/'raw/ouro_DP_P512_C4_s0/status.json').read_text())['status']=='FAILED'
+
+def test_protocol_rejects_a_reused_PID_with_a_stale_summary(monkeypatch,tmp_path):
+ import json
+ from . import evidence_protocol
+ monkeypatch.setattr(evidence_protocol,'ROOT',tmp_path)
+ (tmp_path/'configs').mkdir();folder=tmp_path/'raw/case';folder.mkdir(parents=True)
+ (tmp_path/'configs/evidence_protocol_epoch.json').write_text(json.dumps(dict(telemetry_sha256='locked')))
+ record=dict(mode='async_nonblocking',telemetry_sha256='locked',attempt_id='current',pid=12)
+ (folder/'evidence_protocol.json').write_text(json.dumps(record))
+ (folder/'configuration.json').write_text(json.dumps(dict(arguments=dict(attempt_id='current'))))
+ (folder/'async_evidence_writer_12.json').write_text(json.dumps(record))
+ (folder/'async_evidence_summary_12.json').write_text(json.dumps(dict(record,attempt_id='old',
+  enqueued_records=2,background_written_records=2,error=None)))
+ assert not evidence_protocol.check(folder)['valid']
+ (folder/'async_evidence_summary_12.json').write_text(json.dumps(dict(record,
+  enqueued_records=2,background_written_records=2,error=None)))
+ assert evidence_protocol.check(folder)['valid']
