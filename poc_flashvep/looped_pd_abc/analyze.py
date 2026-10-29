@@ -8,6 +8,7 @@ from collections import defaultdict
 from pathlib import Path
 import numpy as np
 from .common import ROOT,write
+from .scope import active_models
 
 def load_rows(path):
  if not path.exists():return []
@@ -42,6 +43,7 @@ def summarize():
    depth=first['depth'],kv_layout=first['kv_layout'],precision=first['dtype'],
    D=len(first['gpus'].split(','))-first['prefill_devices'] if first['method']=='pd' else 0,
    colocated_replicas=len(first['gpus'].split(',')) if first['method']=='dp' else int(first['method'] in ('native','decode_local')))
+  r['model_scope_status']='ACTIVE' if first['model'] in active_models() else 'HISTORICAL_DEFERRED_BY_USER'
   config=folder/'configuration.json'
   from .evidence_protocol import check as check_evidence_protocol
   protocol=check_evidence_protocol(folder)
@@ -140,7 +142,7 @@ def summarize():
   summary.append(r)
  save_csv(ROOT/'experiment_inventory.csv',inventory);save_csv(ROOT/'results_raw.csv',summary);save_csv(ROOT/'e2e_phase_breakdown.csv',phase)
  parity=[]
- for model in ('ouro','huginn','dory'):
+ for model in active_models():
   def preferred(label):
    third=ROOT/'raw'/f'{model}_parity3_{label}_P0_C1_s0'
    if (third/'status.json').exists():return third
@@ -169,8 +171,9 @@ def calibration_folder(model,length,width):
  return alternate if (alternate/'closed_stats.json').exists() else original
 
 def calibrate():
- result={}
- for model in ('ouro','huginn','dory'):
+ target=ROOT/'configs/service_calibration.json'
+ result=json.loads(target.read_text()) if target.exists() else {}
+ for model in active_models():
   points=[];decode=[];handoff=[]
   for n in (128,512,2048):
    f=calibration_folder(model,n,1)

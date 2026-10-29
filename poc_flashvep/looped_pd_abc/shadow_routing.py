@@ -1,11 +1,12 @@
 """Run a bounded C shadow diagnostic before clean C comparisons."""
 from .common import ROOT,write
+from .scope import active_models
 
 def run():
  from .campaign import job
  from .dispatch import execute
  jobs=[]
- for model in ('ouro','huginn','dory'):
+ for model in active_models():
   opt=['--graphs']+(['--asynchronous'] if model=='ouro' else [])
   boundary=['--enable-boundary-adapter'] if model!='ouro' else []
   j=job(model,'C_shadow',range(4),length=0,count=24,cap=16,concurrency=16,

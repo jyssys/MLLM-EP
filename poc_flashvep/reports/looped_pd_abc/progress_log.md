@@ -1,5 +1,21 @@
 # Progress
 
+## User scope change: 2026-10-29
+
+The user restricted future work to Ouro and Huginn in vLLM-RLT.
+Dory is deferred. Existing Dory evidence and the original specification remain unchanged.
+The controller update sent signals only to verified owned scheduling and analysis controllers.
+The current inference job completed normally without a signal.
+Owned burners occupied all idle GPUs during the controller update.
+
+The scope and regression suite passed 31 CPU tests.
+The locked model execution files and private RLT patch remain unchanged.
+The scope-aware controller resumed the existing canonical confirmations.
+Its first jobs are Ouro B and Ouro A on physical GPUs 6 and 7.
+The active manifest contains 128 cases: 66 Ouro and 62 Huginn.
+Completed cases are skipped. The remaining workload is not restarted from zero.
+The A/B/C tracks and 2/4/8GPU budgets remain in scope.
+
 The experiment read the complete authoritative specification.
 The experiment preserved the existing index and created a separate branch.
 The experiment downloaded the pinned official Dory BF16 checkpoint.

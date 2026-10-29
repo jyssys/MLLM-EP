@@ -5,6 +5,7 @@ from .common import ROOT,write
 from .analyze import requests
 from .compare import complete,agreement
 from .dispatch import execute
+from .scope import active_models
 
 DEFAULT={'ouro':2,'huginn':16,'dory':1}
 
@@ -30,9 +31,10 @@ def discovery_cut(model,length,sweep_prefix='A_sweep_'):
 
 def qualify(sweep_prefix='A_sweep_',qualification_prefix='cut',output='chosen_cuts.json'):
  from .campaign import job
- choices={m:{str(P):discovery_cut(m,P,sweep_prefix) for P in (512,2048)} for m in DEFAULT}
+ choices={m:{str(P):discovery_cut(m,P,sweep_prefix) for P in (512,2048)} for m in active_models()}
  jobs=[]
  for model,pair in [('ouro',(0,1)),('huginn',(2,3)),('dory',(4,5))]:
+  if model not in active_models():continue
   opt=['--graphs']+(['--asynchronous'] if model=='ouro' else [])
   for cut in sorted(set(choices[model].values())-{DEFAULT[model]}):
    extra=opt+['--wavefront','--enable-recurrence-split','--split-cut',str(cut)]
@@ -41,8 +43,9 @@ def qualify(sweep_prefix='A_sweep_',qualification_prefix='cut',output='chosen_cu
    check['env']['ABC_VERIFY_KV']='1';jobs.append(check)
  manifest=ROOT/'configs'/('tuned_cut_qualification.json' if output=='chosen_cuts.json' else 'clean_tuned_cut_qualification.json');write(manifest,jobs)
  if jobs:execute(manifest)
- result={}
- for model in DEFAULT:
+ output_path=ROOT/'configs'/output
+ result=json.loads(output_path.read_text()) if output_path.exists() else {}
+ for model in active_models():
   version={'ouro':'parity','huginn':'parity2','dory':'parity3'}[model]
   native=requests(ROOT/'raw'/f'{model}_{version}_native_P0_C1_s0');result[model]={}
   for P,cut in choices[model].items():

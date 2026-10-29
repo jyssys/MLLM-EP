@@ -4,6 +4,7 @@ import json
 import numpy as np
 from .common import ROOT,write
 from .analyze import load_rows,requests,save_csv,summarize
+from .scope import active_models
 
 def complete(folder):
  path=folder/'status.json'
@@ -43,6 +44,7 @@ def reference_checks():
  result=[]
  for model,version,refname in [('ouro','parity','ouro_HF_4576_natural100'),
    ('huginn','parity2','huginn_HF_4576_natural100'),('dory','parity3','dory_official_B1_100')]:
+  if model not in active_models():continue
   native=ROOT/'raw'/f'{model}_{version}_native_P0_C1_s0';reference=ROOT/'raw'/refname
   if not complete(native) or not complete(reference):continue
   a=requests(native);b=load_rows(reference/'requests.jsonl')
@@ -128,7 +130,7 @@ def paired_runs(model,base,method,length,concurrency,kind='serving'):
 
 def comparisons():
  output=[]
- for model in ('ouro','huginn','dory'):
+ for model in active_models():
   for length,width in ((128,1),(512,4),(2048,8)):
    for method in ('A','B'):
     for base in ('DP','DP_Mixed','PD','PD_G1','PD_A_control','PD_A_coalesced'):
@@ -142,6 +144,7 @@ def comparisons():
     row=paired_runs(model,'L128_'+base,'L128_'+method,512,4,kind='serving_long128')
     if row:output.append(row)
  for base,method in [('Bpace_generic_confirm','Bpace_frontier_confirm'),('Bpace_generic_confirm','B')]:
+  if 'dory' not in active_models():continue
   row=paired_runs('dory',base,method,2048,8,kind='B_generic_pacing_confirmation')
   if row:output.append(row)
  save_csv(ROOT/'paired_comparisons.csv',output)
@@ -175,6 +178,7 @@ def slo_results():
      passed.append(normal and x['ttft_ms']<=ttft and max(intervals,default=0)<=limit and x['e2e_ms']<=grid[model]['E2E_limit_ms'])
     count=sum(passed)
     rows.append(dict(run=folder.name,model=model,level=level,ITL_limit_ms=limit,TTFT_limit_ms=ttft,
+     model_scope_status='ACTIVE' if model in active_models() else 'HISTORICAL_DEFERRED_BY_USER',
      E2E_limit_ms=grid[model]['E2E_limit_ms'],SLO_qualifying_completions=count,N=len(raw),
      attainment_percent=100*count/len(raw),wilson_95_percent=wilson(count,len(raw)),
      SLO_goodput_requests_s=count/span,evidence='MEASURED_BOUNDED_REQUEST_SLO' if clean else 'MEASURED_DIAGNOSTIC_SLO_NOT_CLEAN_SERVING',
@@ -199,7 +203,7 @@ def contention_results():
 def scale_discovery():
  rows=[]
  for prefix,length,width in [('scale4',512,8),('scale8',512,8),('pressure4',0,32),('pressure8',0,32)]:
-  for model in ('ouro','huginn','dory'):
+  for model in active_models():
    candidates=('A1','A2','A4','B1','C_loop')
    for candidate in candidates:
     target=ROOT/'raw'/f'{model}_{prefix}_{candidate}_P{length}_C{width}_s0'
@@ -220,7 +224,7 @@ def scale_discovery():
 
 def heterogeneous_discovery():
  rows=[]
- for model in ('ouro','huginn','dory'):
+ for model in active_models():
   target=ROOT/'raw'/f'{model}_Chet_loop_P0_C16_s0'
   if not complete(target):continue
   right=requests(target)

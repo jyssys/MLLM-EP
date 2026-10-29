@@ -3,12 +3,14 @@ import json
 from .common import ROOT,write
 from .analyze import requests,load_rows,save_csv
 from .compare import agreement
+from .scope import active_models
 
 def run():
  from .campaign import job,selected_cut
  from .dispatch import execute
  jobs=[];names={}
  for model,pair in [('ouro',(0,1)),('huginn',(2,3)),('dory',(4,5))]:
+  if model not in active_models():continue
   names[model]={};opt=['--graphs']+(['--asynchronous'] if model=='ouro' else [])
   boundary=['--enable-boundary-adapter'] if model!='ouro' else []
   short=selected_cut(model,512);long=selected_cut(model,2048)
@@ -28,7 +30,8 @@ def run():
    j['env'].update(ABC_ASYNC_EVIDENCE='1',ABC_VERIFY_KV='1',ABC_REVERSE_FRAGMENTS='1')
    jobs.append(j);names[model]['KV_'+label]=j['name']
  manifest=ROOT/'configs/async_qualification_jobs.json';write(manifest,jobs);execute(manifest)
- gates={};rows=[]
+ gate_path=ROOT/'state/async_qualification_gates.json'
+ gates=json.loads(gate_path.read_text()) if gate_path.exists() else {};rows=[]
  for model,entries in names.items():
   native=requests(ROOT/'raw'/entries['native'])
   version={'ouro':'parity','huginn':'parity2','dory':'parity3'}[model]

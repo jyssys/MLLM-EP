@@ -5,6 +5,7 @@ import json
 import numpy as np
 from .common import ROOT
 from .analyze import save_csv
+from .scope import active_models
 
 def read(name):
  path=ROOT/name
@@ -20,7 +21,7 @@ def reviewed_decisions():
  for track in ('A','B','C'):
   overall=value.get(track,{}).get('overall',{})
   if overall.get('status') not in allowed or not overall.get('reason'):raise ValueError('Missing independent overall decision: '+track)
-  for model in ('ouro','huginn','dory'):
+  for model in active_models():
    item=value.get(track,{}).get(model,{})
    if item.get('status') not in allowed or not item.get('reason'):raise ValueError('Missing model-specific decision: '+track+'/'+model)
    for count in ('2','4','8'):
@@ -40,6 +41,7 @@ def document(name,title,text):
  banner='Reviewed decision file present.' if reviewed_decisions() else 'DRAFT: final scientific review is pending. No GO claim is accepted.'
  if (ROOT/'configs/evidence_protocol_epoch.json').exists():
   banner+='\n\nTiming correction: legacy foreground-I/O runs are not valid clean method comparisons. Read `timing_correction.md`. Accepted comparisons require the registered nonblocking protocol.'
+ banner+='\n\nActive model scope: '+', '.join(active_models())+'. Dory is deferred by explicit user instruction. Existing Dory evidence remains historical, not a new verdict.'
  stamp=datetime.now(timezone.utc).isoformat()
  (ROOT/name).write_text(f'# {title}\n\n{banner}\n\nCampaign status: `{status}`. Evidence snapshot: {stamp}.\n\n'+text)
 
@@ -54,8 +56,8 @@ def plots(summary,comparisons):
   return [r for r in summary if r['name'] in names and str(r.get('clean_serving_eligible')).lower()=='true']
  colors={'DP':'#595959','DP_Mixed':'#171717','PD':'#929292','PD_G1':'#8c6d31','PD_A_control':'#c7a76c','PD_A_coalesced':'#a6761d','A':'#2166ac','B':'#1a9850'}
  for track in ('A','B'):
-  fig,axes=plt.subplots(1,3,figsize=(13,3.6))
-  for ax,model in zip(axes,('ouro','huginn','dory')):
+  fig,axes=plt.subplots(1,len(active_models()),figsize=(13,3.6))
+  for ax,model in zip(axes,active_models()):
    labels=('DP','DP_Mixed','PD','PD_G1','PD_A_control')+(('PD_A_coalesced',) if model=='ouro' else ())+(track,)
    for label in labels:
     xs=[];ys=[];starts=[]
@@ -68,8 +70,8 @@ def plots(summary,comparisons):
   if axes[-1].get_legend_handles_labels()[0]:axes[-1].legend(fontsize=7)
   fig.suptitle(f'Track {track}: isolated two-GPU serving; cap 32; preferred completed starts; drafts may lack three frozen starts')
   fig.tight_layout();fig.savefig(ROOT/f'figures/track_{track}.svg');plt.close(fig)
- fig,axes=plt.subplots(1,3,figsize=(13,3.6))
- for ax,model in zip(axes,('ouro','huginn','dory')):
+ fig,axes=plt.subplots(1,len(active_models()),figsize=(13,3.6))
+ for ax,model in zip(axes,active_models()):
   labels=[];times=[]
   for label in ('C_DP4','C_DP4_Mixed','C_PD1','C_PD3','C_upstream','C_queue','C_token','C_service','C_loop'):
    rows=selected(f'{model}_{label}_P0_C8_s')
@@ -79,7 +81,7 @@ def plots(summary,comparisons):
   ax.set_title(model);ax.set_xticks(range(len(labels)),labels,rotation=50,ha='right');ax.set_ylabel('Median per-start request p95 E2E (ms)')
  fig.suptitle('Track C: actual isolated four-GPU natural-prompt serving; C8; cap 64; completed starts only')
  fig.tight_layout();fig.savefig(ROOT/'figures/track_C.svg');plt.close(fig)
- refs=read('reference_agreement.csv');fig,ax=plt.subplots(figsize=(6,3.6))
+ refs=[r for r in read('reference_agreement.csv') if r['model'] in active_models()];fig,ax=plt.subplots(figsize=(6,3.6))
  if refs:
   names=[r['model']+('\nexplicit R4' if 'explicit_last_R4' in r['reference'] else '\ndefault reference') for r in refs]
   values=[float(r['agreement_percent']) for r in refs]
@@ -91,7 +93,7 @@ def plots(summary,comparisons):
  from .critical_path_analysis import PHASES
  shares=read('e2e_phase_percent_summary.csv');fig,ax=plt.subplots(figsize=(12,5.5))
  names=[];vectors=[]
- for model in ('ouro','huginn','dory'):
+ for model in active_models():
   for label in ('PD','PD_G1','A','B'):
    names_in_plot={r['name'] for r in selected(f'{model}_{label}_P512_C4_s')}
    totals=[]
@@ -111,14 +113,15 @@ def plots(summary,comparisons):
  fig.tight_layout();fig.savefig(ROOT/'figures/host_E2E_partition.svg');plt.close(fig)
 
 def main():
- summary=read('results_raw.csv');comparisons=read('paired_comparisons.csv')
+ summary=[r for r in read('results_raw.csv') if r['model'] in active_models()]
+ comparisons=[r for r in read('paired_comparisons.csv') if r['model'] in active_models()]
  decisions=reviewed_decisions()
  scope=('These are actual GPU measurements from completed runs.\n'
   'Unfinished and failed runs do not contribute latency values.\n'
   'Natural generation permits EOS and preserves the declared output cap.\n'
   'Cap termination is not proof of answer completeness.\n'
   'A lower latency with different output IDs is not an accepted lossless speedup.\n\n')
- limits=('## Limits\n\nOfficial-reference sequence agreement is incomplete for all three models.\n'
+ limits=('## Limits\n\nOfficial-reference sequence agreement is incomplete for both active models.\n'
   'Full GSM8K test accuracy and HumanEval accuracy are `NOT_MEASURED`.\n'
   'A closed-loop cohort does not establish sustainable open-loop capacity.\n'
   'No global queue simulator or infinite-bandwidth serving oracle is validated.\n'
@@ -171,7 +174,7 @@ def main():
     'A one-prefill/one-decode pool has no initial routing choice.\n')
   document(f'06{track}_implementation_and_results.md',f'Track {track}: measured implementation results',text+'\n'+limits)
   decision_rows=[]
-  for model in ('ouro','huginn','dory'):
+  for model in active_models():
    item=decisions.get(track,{}).get(model,{})
    status=item.get('status','NOT_MEASURED');reason=item.get('reason','Final review pending. Do not interpret partial comparisons as a final verdict.')
    decision_rows.append([model,status,reason]);rows_board.append(dict(track=track,model=model,status=status,reason=reason,evidence='REVIEWED_DECISION' if item else 'NOT_MEASURED_PENDING_REVIEW'))
@@ -188,7 +191,7 @@ def main():
  save_csv(ROOT/'overall_decisions.csv',overall_board)
  document('08_comparison_matrix.md','Independent A/B/C decision matrix',table(['Track','Model','Status','Reason'],[[r[k] for k in ('track','model','status','reason')] for r in rows_board])+'\n'+
   table(['Track','Model','GPU budget','Status','Scope'],[[r[k] for k in ('track','model','GPU_count','status','scope_note')] for r in scale_board])+'\n'+limits)
- refs=read('reference_agreement.csv')
+ refs=[r for r in read('reference_agreement.csv') if r['model'] in active_models()]
  ref_table=table(['Model','Reference run / protocol','Exact output / N','Wilson 95% CI, %','GSM8K test','HumanEval'],[
   [r['model'],r['reference'],f"{r['exact']}/{r['N']}",r['wilson_95_percent'],'NOT_MEASURED','NOT_MEASURED'] for r in refs])
  document('09_final_summary.md','Dense Looped PD: evidence and decisions',scope+

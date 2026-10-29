@@ -1,5 +1,6 @@
 """Repeat A tuning without foreground evidence I/O. Preserve the original sweep."""
 from .common import ROOT,write
+from .scope import active_models
 
 def run():
  from .campaign import job
@@ -7,6 +8,7 @@ def run():
  from .qualify_cuts import qualify
  jobs=[]
  for model,pair,cuts in [('ouro',(0,1),(1,2,3)),('huginn',(2,3),(1,8,16,24,31)),('dory',(4,5),(1,))]:
+  if model not in active_models():continue
   opt=['--graphs']+(['--asynchronous'] if model=='ouro' else [])
   boundary=['--enable-boundary-adapter'] if model!='ouro' else []
   for length in (512,2048):

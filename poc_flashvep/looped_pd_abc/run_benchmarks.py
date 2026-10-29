@@ -10,6 +10,7 @@ from .campaign import job
 from .dispatch import execute
 from .analyze import summarize,calibrate,requests
 from . import resources
+from .scope import active_models
 
 def wait_for_quiet_lease():
  deadline=time.monotonic()+1200
@@ -84,7 +85,7 @@ def contention():
 
 def profiles():
  jobs=[]
- for model in ('ouro','huginn','dory'):
+ for model in active_models():
   opt=['--graphs']+(['--asynchronous'] if model=='ouro' else [])
   boundary=['--enable-boundary-adapter'] if model!='ouro' else []
   for label in ('PD','A','B','C'):

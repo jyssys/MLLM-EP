@@ -39,10 +39,12 @@ def matches_cut(folder,args):
 
 def confirm():
  from .dispatch import execute
+ from .scope import enabled
  path=ROOT/'configs/serving_campaign.json'
  if not path.exists():return
  jobs=[];mapping={}
  for job in json.loads(path.read_text()):
+  if not enabled(job):continue
   name=job['name'];folder=ROOT/'raw'/name;status=folder/'status.json'
   if '--mode' not in job['args'] or 'qualification' in name or not status.exists():continue
   data=json.loads(status.read_text())

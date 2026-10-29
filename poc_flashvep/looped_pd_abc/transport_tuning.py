@@ -16,6 +16,11 @@ def paced(label,chunk,inflight,repeat=0,frontier=False):
 
 def run():
  from .dispatch import execute
+ from .scope import active_models
+ if 'dory' not in active_models():
+  write(ROOT/'state/B_generic_pacing_followup.json',dict(status='DEFERRED_BY_USER',model='dory',
+   reason='Dory is outside the active two-model campaign. Existing raw results remain unchanged.'))
+  return
  candidates=pair('dory','PD_G1','B',2048,8,draws=200)
  pilot=next((r for r in candidates if r['level']=='absolute_100ms' and r['TTFT_limit_ms']==10000),None)
  if not pilot or pilot['starts']<3 or pilot['matched_frozen_runtime_starts']<3 or pilot['exact_outputs']!=pilot['N'] or not isinstance(pilot['SLO_goodput_ratio'],float) or pilot['SLO_goodput_ratio']<1.10:

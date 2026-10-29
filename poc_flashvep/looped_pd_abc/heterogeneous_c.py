@@ -1,12 +1,13 @@
 """One-start C discovery with mixed prompt lengths. This is not accepted gain evidence."""
 import json
 from .common import ROOT,write
+from .scope import active_models
 
 def jobs():
  from .worker import prompts
  from .campaign import job
  result=[];pattern=(128,2048,512,128,2048,128,512,2048)
- for model in ('ouro','huginn','dory'):
+ for model in active_models():
   questions=prompts(model,48,0);context=prompts(model,1,4096)[0];rows=[]
   for index,question in enumerate(questions):
    # Preserve the entire question and generation suffix, including the chat template.

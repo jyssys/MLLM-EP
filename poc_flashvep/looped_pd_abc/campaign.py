@@ -2,6 +2,7 @@
 import argparse
 import json
 from .common import ROOT,write
+from .scope import active_models,enabled
 
 def selected_cut(model,length):
  """Use the frozen, qualified cut. Never read live future outputs."""
@@ -72,7 +73,7 @@ def main():
   from .shadow_routing import run as shadow_routing
   shadow_routing()
   for repeat in range(3):
-   for model in ('ouro','huginn','dory'):
+   for model in active_models():
     opt=['--graphs']+(['--asynchronous'] if model=='ouro' else [])
     boundary=['--enable-boundary-adapter'] if model!='ouro' else []
     group=range(4) if repeat%2==0 else range(4,8)
@@ -106,7 +107,7 @@ def main():
    extra=['--graphs','--asynchronous','--wavefront','--chunk','256','--enable-boundary-adapter']))
   # Each process starts independently. The repeated order alternates controls and methods.
   for repeat in range(3):
-   for model in ('ouro','huginn','dory'):
+   for model in active_models():
     opt=['--graphs']+(['--asynchronous'] if model=='ouro' else [])
     boundary=['--enable-boundary-adapter'] if model!='ouro' else []
     methods=['DP','DP_Mixed','PD','PD_G1','PD_A_control','A','B'] if repeat%2==0 else ['B','A','PD_A_control','PD_G1','PD','DP_Mixed','DP']
@@ -126,7 +127,7 @@ def main():
       jobs.append(job(model,label,pair,mode=mode,length=length,count=24,cap=32,concurrency=concurrency,extra=extra,repeat=repeat))
   # A longer natural-output regime prevents a cap-32-only PD conclusion.
   for repeat in range(3):
-   for model in ('ouro','huginn','dory'):
+   for model in active_models():
     pair=(0,1) if repeat%2==0 else (6,7)
     opt=['--graphs']+(['--asynchronous'] if model=='ouro' else [])
     boundary=['--enable-boundary-adapter'] if model!='ouro' else []
@@ -148,7 +149,7 @@ def main():
   for repeat in range(3):
    for n in (2,4,8):
     group=(list(range(n)) if repeat%2==0 else list(range(6,8)) if n==2 else list(range(4,8)) if n==4 else [(g+repeat)%8 for g in range(8)])
-    for model in ('ouro','huginn','dory'):
+    for model in active_models():
      opt=['--graphs']+(['--asynchronous'] if model=='ouro' else [])
      boundary=['--enable-boundary-adapter'] if model!='ouro' else []
      counts=(0,1) if n==2 else (0,1,2,3) if n==4 else (0,1,2,4)
@@ -180,7 +181,7 @@ def main():
   # High-pressure natural questions avoid a C8/DP8-only scale conclusion.
   # These are one-start discovery cases, not statistically accepted gains.
   for n in (4,8):
-   for model in ('ouro','huginn','dory'):
+   for model in active_models():
     group=range(n);opt=['--graphs']+(['--asynchronous'] if model=='ouro' else [])
     boundary=['--enable-boundary-adapter'] if model!='ouro' else []
     methods=['DP','DP_Mixed','PD1','PD2']+(['PD4'] if n==8 else [])+['PD1_G1','PD_A1','PD_A2','A1','A2','B1','C_service','C_loop']
@@ -199,7 +200,7 @@ def main():
      else:extra+=['--chunk','256']
      jobs.append(job(model,f'pressure{n}_{label}',group,mode=mode,length=0,count=128,cap=64,concurrency=32,extra=extra))
   # Matched long-prompt timelines are diagnostics, never clean latency samples.
-  for model in ('ouro','huginn','dory'):
+  for model in active_models():
    opt=['--graphs']+(['--asynchronous'] if model=='ouro' else [])
    boundary=['--enable-boundary-adapter'] if model!='ouro' else []
    for label in ('DP_Mixed','PD_G1','PD_A_control','A','B'):
@@ -216,6 +217,7 @@ def main():
     jobs.append(job(model,'timeline_'+label,(0,1),mode=mode,length=2048,count=8,cap=8,concurrency=8,extra=extra))
  if a.phase in ('serving','scale','C','A_sweep'):
   for j in jobs:j['quiet']=True
+ jobs=[task for task in jobs if enabled(task)]
  dest=ROOT/'configs'/f'{a.phase}_campaign.json';write(dest,jobs);print(dest,len(jobs))
 
 if __name__=='__main__':main()

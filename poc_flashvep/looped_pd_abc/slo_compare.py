@@ -4,6 +4,7 @@ import numpy as np
 from .common import ROOT
 from .analyze import requests,save_csv
 from .frozen_runs import preferred,matches
+from .scope import active_models
 
 def qualifies(row,itl_limit,ttft_limit,e2e_limit):
  gaps=[1000*(event['time']-event['previous_time']) for event in row['token_events']
@@ -64,7 +65,7 @@ def pair(model,baseline,candidate,length,width,draws=3000):
 
 def main():
  output=[]
- for model in ('ouro','huginn','dory'):
+ for model in active_models():
   for length,width in ((128,1),(512,4),(2048,8)):
    for candidate in ('A','B'):
     for baseline in ('DP','DP_Mixed','PD','PD_G1','PD_A_control','PD_A_coalesced'):
@@ -75,6 +76,7 @@ def main():
    for baseline in ('DP','DP_Mixed','PD','PD_G1','PD_A_control','PD_A_coalesced'):
     output.extend(pair(model,'L128_'+baseline,'L128_'+candidate,512,4))
  for baseline,candidate in [('Bpace_generic_confirm','Bpace_frontier_confirm'),('Bpace_generic_confirm','B')]:
+  if 'dory' not in active_models():continue
   output.extend(pair('dory',baseline,candidate,2048,8))
  save_csv(ROOT/'paired_SLO_comparisons.csv',output)
 

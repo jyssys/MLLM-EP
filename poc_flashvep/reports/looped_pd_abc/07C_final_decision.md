@@ -2,6 +2,8 @@
 
 DRAFT: final scientific review is pending. No GO claim is accepted.
 
+User scope update: only Ouro and Huginn remain active. Dory entries below are historical. Read `user_scope_override.md`.
+
 Timing correction: legacy foreground-I/O timings are invalid for clean method comparisons. Read `timing_correction.md`. Canonical nonblocking retiming is pending.
 
 Campaign status: `RUNNING`. Evidence snapshot: 2026-10-28T22:34:18.765398+00:00.

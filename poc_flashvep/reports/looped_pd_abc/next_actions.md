@@ -1,5 +1,10 @@
 # Resume checklist
 
+The latest user instruction limits active work to Ouro and Huginn.
+Dory is deferred. Preserve its existing code and evidence.
+Read `user_scope_override.md` and `configs/model_scope.json` before launching jobs.
+Use `resume_campaign.py --from-phase C` if the scope-aware controller needs a completed-run resume.
+
 The active task is Dense Looped PD A/B/C, not an earlier MoE or diffusion task.
 Do not resume the paused decode Loop PP project.
 Do not terminate the active campaign when the user asks for status only.

@@ -1,5 +1,27 @@
 # Reproduction and resume
 
+## Current user scope
+
+Only Ouro and Huginn remain active after the 2026-10-29 user instruction.
+Dory is deferred. Its code and evidence remain preserved.
+Read `user_scope_override.md` and `configs/model_scope.json` before running a dispatcher.
+The scope and regression suite passed 31 CPU tests.
+
+```bash
+CUDA_VISIBLE_DEVICES='' PYTHONPATH=/home/esjung/external/looped-pd-abc-rlt:/home/esjung/MLLM-EP-github /home/esjung/.venvs/looped-pd-abc/bin/python -m pytest -q poc_flashvep/looped_pd_abc/test_scope.py poc_flashvep/looped_pd_abc/test_analysis.py poc_flashvep/looped_pd_abc/test_contracts.py
+```
+
+If the current controller stops, resume the unfinished stage with this command.
+Do not start another controller while one remains active.
+
+```bash
+PYTHONPATH=/home/esjung/external/looped-pd-abc-rlt:/home/esjung/MLLM-EP-github /home/esjung/.venvs/looped-pd-abc/bin/python -m poc_flashvep.looped_pd_abc.resume_campaign --from-phase C
+```
+
+This entry waits for an existing inference worker before it schedules another job.
+It skips completed valid cases and preserves all prior failures.
+The original full-campaign command below is historical, not the current resume entry.
+
 This experiment uses the current repository and a separate patched RLT clone.
 Do not apply its patch to a shared runtime with active jobs.
 Do not delete existing raw data to repeat a run.

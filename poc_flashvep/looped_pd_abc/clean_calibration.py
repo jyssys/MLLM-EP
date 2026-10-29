@@ -1,11 +1,13 @@
 """Refit every C policy from a separate, nonblocking, isolated calibration."""
 from .common import ROOT,write
+from .scope import active_models
 
 def run():
  from .campaign import job
  from .dispatch import execute
  jobs=[]
  for model,pair in [('ouro',(0,1)),('huginn',(2,3)),('dory',(4,5))]:
+  if model not in active_models():continue
   opt=['--graphs']+(['--asynchronous'] if model=='ouro' else [])
   boundary=['--enable-boundary-adapter'] if model!='ouro' else []
   for length,width,count in [(n,1,6) for n in (128,512,2048)]+[(n,w,16) for w in (2,4,8) for n in (128,512)]:

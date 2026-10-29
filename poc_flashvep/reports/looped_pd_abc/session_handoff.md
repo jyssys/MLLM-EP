@@ -1,5 +1,16 @@
 # Active session handoff
 
+## Latest user override
+
+Read `user_scope_override.md` first.
+Only Ouro and Huginn remain active. Dory is deferred by the user.
+`configs/model_scope.json` controls future job admission.
+Do not resume Dory without a new user request.
+The original three-model specification and all Dory evidence remain preserved.
+Controller PIDs listed below are historical after this scope transition.
+Read the current `state/main_campaign.json` and `state/dispatcher.json` instead.
+The scope-aware resume entry is `resume_campaign.py --from-phase C`.
+
 The active task is the integrated Dense Looped PD A/B/C PoC.
 Read the authoritative `../looped_pd_abc_disaggregation_poc_spec.md` before further work.
 Read the reporting skill and its required references too.

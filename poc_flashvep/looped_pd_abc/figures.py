@@ -5,9 +5,10 @@ import numpy as np
 from .common import ROOT
 from .analyze import requests,save_csv
 from .frozen_runs import preferred,matches
+from .scope import active_models
 
 def make(summary):
- summary=[row for row in summary if str(row.get('clean_serving_eligible')).lower()=='true']
+ summary=[row for row in summary if str(row.get('clean_serving_eligible')).lower()=='true' and row['model'] in active_models()]
  import matplotlib
  matplotlib.use('Agg')
  import matplotlib.pyplot as plt
@@ -25,8 +26,8 @@ def make(summary):
  labels=tuple(colors)
 
  # Recurrence split tuning uses a different cap and must not become an accepted gain figure.
- fig,axes=plt.subplots(2,3,figsize=(13,7))
- for col,model in enumerate(('ouro','huginn','dory')):
+ fig,axes=plt.subplots(2,len(active_models()),figsize=(13,7))
+ for col,model in enumerate(active_models()):
   for row_index,length in enumerate((512,2048)):
    ax=axes[row_index,col]
    rows=[r for r in summary if r['name'].startswith(model+'_A_sweep_') and f'_P{length}_C4_' in r['name']]
@@ -43,8 +44,8 @@ def make(summary):
  fig.suptitle('MEASURED single-start tuning; N16 per point; natural outputs capped at 8; not accepted gain evidence')
  fig.tight_layout();fig.savefig(ROOT/'figures/A_cut_sensitivity.svg');plt.close(fig)
 
- fig,axes=plt.subplots(1,3,figsize=(13,4.1))
- for ax,model in zip(axes,('ouro','huginn','dory')):
+ fig,axes=plt.subplots(1,len(active_models()),figsize=(13,4.1))
+ for ax,model in zip(axes,active_models()):
   for label in labels:
    for (length,width),marker in zip(((128,1),(512,4),(2048,8)),('o','s','^')):
     rows=selected(model,label,length,width)
@@ -57,8 +58,8 @@ def make(summary):
  fig.suptitle('MEASURED two-GPU serving, cap32; circle=P128/C1, square=P512/C4, triangle=P2048/C8')
  fig.tight_layout();fig.savefig(ROOT/'figures/throughput_vs_TTFT.svg');plt.close(fig)
 
- fig,axes=plt.subplots(1,3,figsize=(13,4.1))
- for ax,model in zip(axes,('ouro','huginn','dory')):
+ fig,axes=plt.subplots(1,len(active_models()),figsize=(13,4.1))
+ for ax,model in zip(axes,active_models()):
   for label in labels:
    rows=selected(model,label,512,4);times=[]
    for row in rows:times.extend(r['e2e_ms'] for r in requests(ROOT/'raw'/row['name']))
@@ -76,8 +77,8 @@ def make(summary):
   with phase_path.open() as stream:
    for row in csv.DictReader(stream):
     if row['phase_order_valid']=='True':phase_groups[row['name']].append(float(row['uncovered_handoff_ms']))
- fig,axes=plt.subplots(1,3,figsize=(13,4.1))
- for ax,model in zip(axes,('ouro','huginn','dory')):
+ fig,axes=plt.subplots(1,len(active_models()),figsize=(13,4.1))
+ for ax,model in zip(axes,active_models()):
   for label in ('PD','PD_G1','B'):
    rows=selected(model,label,512,4);values=[]
    for row in rows:
