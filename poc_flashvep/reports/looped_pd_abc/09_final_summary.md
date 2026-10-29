@@ -2,7 +2,9 @@
 
 DRAFT: final scientific review is pending. No GO claim is accepted.
 
-Campaign status: `RUNNING`. Evidence snapshot: 2026-10-28T21:47:48.668731+00:00.
+Timing correction: legacy foreground-I/O timings are invalid for clean method comparisons. Read `timing_correction.md`. Canonical nonblocking retiming is pending.
+
+Campaign status: `RUNNING`. Evidence snapshot: 2026-10-28T22:34:18.766266+00:00.
 
 These are actual GPU measurements from completed runs.
 Unfinished and failed runs do not contribute latency values.
@@ -10,11 +12,11 @@ Natural generation permits EOS and preserves the declared output cap.
 Cap termination is not proof of answer completeness.
 A lower latency with different output IDs is not an accepted lossless speedup.
 
-| Model | Exact output / N | Wilson 95% CI, % | GSM8K test | HumanEval |
-| --- | --- | --- | --- | --- |
-| ouro | 88/100 | [80.18790057328857, 93.00059356298051] | NOT_MEASURED | NOT_MEASURED |
-| huginn | 89/100 | [81.3687034969197, 93.74580364293543] | NOT_MEASURED | NOT_MEASURED |
-| dory | 80/100 | [71.11708344068411, 86.66330666689676] | NOT_MEASURED | NOT_MEASURED |
+| Model | Reference run / protocol | Exact output / N | Wilson 95% CI, % | GSM8K test | HumanEval |
+| --- | --- | --- | --- | --- | --- |
+| ouro | ouro_HF_4576_natural100 | 88/100 | [80.18790057328857, 93.00059356298051] | NOT_MEASURED | NOT_MEASURED |
+| huginn | huginn_HF_4576_natural100 | 89/100 | [81.3687034969197, 93.74580364293543] | NOT_MEASURED | NOT_MEASURED |
+| dory | dory_official_B1_100 | 80/100 | [71.11708344068411, 86.66330666689676] | NOT_MEASURED | NOT_MEASURED |
 
 | Track | Model | Status |
 | --- | --- | --- |
@@ -34,6 +36,7 @@ The master measurement table is `results_raw.csv`.
 The repeated comparisons are `paired_comparisons.csv`.
 The frozen-grid request SLO results are `slo_results.csv`.
 The exact-transfer results are `transfer_identity.csv`.
+The full-depth submission accounting is `full_depth_work_accounting.csv`.
 The host phase partition is `e2e_phase_breakdown.csv`.
 The E2E component percentages are `e2e_phase_percent_summary.csv`.
 The frozen-timeline handoff oracle is `handoff_frozen_timeline_oracle.csv`. It is not measured speedup.

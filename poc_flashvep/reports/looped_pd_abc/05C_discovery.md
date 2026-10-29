@@ -28,6 +28,14 @@ The final comparison also includes observed prefill batching effects and uncover
 Both service and loop controls use these same calibrated terms.
 The resulting completion scores are `MODEL_PREDICTION`, not measured future service times.
 
+The added loop feature currently covers prefill frontiers only.
+Decode-worker placement uses the same emitted-token progress and service model in both controls.
+It does not use a decode token's in-flight recurrent position.
+The policy also scales total prefill cost by completed recurrent rows.
+It does not separately weight prelude, core, and coda time in that progress fraction.
+These limits matter particularly for boundary-heavy Dory.
+A negative result rejects this C1 variant, not every possible loop-state estimator.
+
 ## Strong controls
 
 | Policy | Initial placement signal | Loop progress |
@@ -80,6 +88,25 @@ The strong P1:D3/P3:D1 controls retain their normal atomic execution path.
 Colocated Mixed DP4 remains a separate strong control.
 No one-start result can establish an accepted gain or sustainable capacity.
 Any promising point requires independent frozen confirmation.
+
+## Bounded shadow capture before clean C timing
+
+Three queued diagnostic jobs collect legal routing states before the clean C matrix.
+Each model uses P2:D2, concurrency 16, 24 heterogeneous inputs, and output cap 16.
+The diagnostics retain real generation and unchanged model execution.
+
+At each feasible worker evaluation, `shadow_worker.py` records the current queue and completed prefill frontiers.
+It evaluates queue, token, service, and loop scores on that same observed state.
+It does not use future tokens, future arrivals, or future GPU completion times.
+Alternative scores do not change the actual loop policy's score.
+The extra CPU logging can change scheduling time and batch composition.
+These runs therefore cannot supply clean latency or goodput comparisons.
+
+`C_shadow_opportunities.csv` separates single-worker rounds from rounds with an actual placement choice.
+It also records whether an observed frontier exists and whether service and loop scores select different workers.
+A scoring round does not necessarily become an accepted admission.
+The analysis excludes warmup requests.
+Its one-start results do not establish population rates or a serving speedup.
 
 ## Measurement limits
 

@@ -2,7 +2,9 @@
 
 DRAFT: final scientific review is pending. No GO claim is accepted.
 
-Campaign status: `RUNNING`. Evidence snapshot: 2026-10-28T21:47:48.668534+00:00.
+Timing correction: legacy foreground-I/O timings are invalid for clean method comparisons. Read `timing_correction.md`. Canonical nonblocking retiming is pending.
+
+Campaign status: `RUNNING`. Evidence snapshot: 2026-10-28T22:34:18.766027+00:00.
 
 | Track | Model | Status | Reason |
 | --- | --- | --- | --- |
@@ -15,6 +17,36 @@ Campaign status: `RUNNING`. Evidence snapshot: 2026-10-28T21:47:48.668534+00:00.
 | C | ouro | NOT_MEASURED | Final review pending. Do not interpret partial comparisons as a final verdict. |
 | C | huginn | NOT_MEASURED | Final review pending. Do not interpret partial comparisons as a final verdict. |
 | C | dory | NOT_MEASURED | Final review pending. Do not interpret partial comparisons as a final verdict. |
+
+| Track | Model | GPU budget | Status | Scope |
+| --- | --- | --- | --- | --- |
+| A | ouro | 2 | NOT_MEASURED | Review pending. Consult the measurement tables for actual completed runs. |
+| A | ouro | 4 | NOT_MEASURED | Review pending. Consult the measurement tables for actual completed runs. |
+| A | ouro | 8 | NOT_MEASURED | Review pending. Consult the measurement tables for actual completed runs. |
+| A | huginn | 2 | NOT_MEASURED | Review pending. Consult the measurement tables for actual completed runs. |
+| A | huginn | 4 | NOT_MEASURED | Review pending. Consult the measurement tables for actual completed runs. |
+| A | huginn | 8 | NOT_MEASURED | Review pending. Consult the measurement tables for actual completed runs. |
+| A | dory | 2 | NOT_MEASURED | Review pending. Consult the measurement tables for actual completed runs. |
+| A | dory | 4 | NOT_MEASURED | Review pending. Consult the measurement tables for actual completed runs. |
+| A | dory | 8 | NOT_MEASURED | Review pending. Consult the measurement tables for actual completed runs. |
+| B | ouro | 2 | NOT_MEASURED | Review pending. Consult the measurement tables for actual completed runs. |
+| B | ouro | 4 | NOT_MEASURED | Review pending. Consult the measurement tables for actual completed runs. |
+| B | ouro | 8 | NOT_MEASURED | Review pending. Consult the measurement tables for actual completed runs. |
+| B | huginn | 2 | NOT_MEASURED | Review pending. Consult the measurement tables for actual completed runs. |
+| B | huginn | 4 | NOT_MEASURED | Review pending. Consult the measurement tables for actual completed runs. |
+| B | huginn | 8 | NOT_MEASURED | Review pending. Consult the measurement tables for actual completed runs. |
+| B | dory | 2 | NOT_MEASURED | Review pending. Consult the measurement tables for actual completed runs. |
+| B | dory | 4 | NOT_MEASURED | Review pending. Consult the measurement tables for actual completed runs. |
+| B | dory | 8 | NOT_MEASURED | Review pending. Consult the measurement tables for actual completed runs. |
+| C | ouro | 2 | NOT_MEASURED | Review pending. Consult the measurement tables for actual completed runs. |
+| C | ouro | 4 | NOT_MEASURED | Review pending. Consult the measurement tables for actual completed runs. |
+| C | ouro | 8 | NOT_MEASURED | Review pending. Consult the measurement tables for actual completed runs. |
+| C | huginn | 2 | NOT_MEASURED | Review pending. Consult the measurement tables for actual completed runs. |
+| C | huginn | 4 | NOT_MEASURED | Review pending. Consult the measurement tables for actual completed runs. |
+| C | huginn | 8 | NOT_MEASURED | Review pending. Consult the measurement tables for actual completed runs. |
+| C | dory | 2 | NOT_MEASURED | Review pending. Consult the measurement tables for actual completed runs. |
+| C | dory | 4 | NOT_MEASURED | Review pending. Consult the measurement tables for actual completed runs. |
+| C | dory | 8 | NOT_MEASURED | Review pending. Consult the measurement tables for actual completed runs. |
 
 ## Limits
 

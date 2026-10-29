@@ -28,6 +28,6 @@ def check(connector,request):
  transfer=connector.transfers[request.request_id]
  actual=fingerprint(connector,transfer);expected=getattr(transfer,'expected_fingerprint',None)
  row=dict(tid=transfer.tid,model=connector.engine.model.config.to_dict()['model_type'],expected=expected,actual=actual,
-  passed=actual==expected,evidence='MEASURED_NIXL_BYTE_IDENTITY_HEAVY_CORRECTNESS_ONLY')
+  passed=actual==expected,attempt_id=os.environ.get('ABC_ATTEMPT_ID'),evidence='MEASURED_NIXL_BYTE_IDENTITY_HEAVY_CORRECTNESS_ONLY')
  append(Path(os.environ['ABC_RUN_DIR'])/('KV_checks-'+str(os.getpid())+'.jsonl'),row)
  if actual!=expected:raise RuntimeError('NIXL KV or hidden byte fingerprint mismatch')

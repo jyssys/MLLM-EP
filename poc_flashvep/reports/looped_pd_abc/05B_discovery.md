@@ -19,6 +19,9 @@ Their recurrent KV remains depth-indexed.
 The coda prefix is valid only after the final recurrent loop.
 The last prompt token's coda executes on D, as in the matched PD control.
 Unused boundary-layer planes are not valid transfer payload.
+For boundary models, the final recurrent submission also writes the valid prompt-prefix coda KV.
+Its completion event follows that write.
+The frontier transfer waits for that complete event, not merely the recurrent operation's submission.
 
 ## Measured identity
 
@@ -66,3 +69,46 @@ Loop-frontier transfer is a structured form of immutable layerwise transfer.
 Generic layerwise streaming is therefore a required novelty counterexample.
 The current implementation does not establish superiority over every generic layerwise connector.
 No accepted loop-specific serving gain is established yet.
+
+## Recorder-confounded Dory SLO region
+
+One completed frozen-runtime start showed a possible operating region for further controls.
+Subsequent analysis found synchronous evidence I/O in its request path.
+Its timing status is now `TIMING_INVALID_FOR_CLEAN_METHOD_COMPARISON`.
+The following values remain as historical observations, not clean performance evidence.
+The workload uses P2048, concurrency 8, 24 requests, and output cap 32.
+The SLO requires TTFT at most 10 seconds, E2E at most 30 seconds, and every request ITL at most 100ms.
+This SLO cell belongs to the grid frozen before the main serving campaign.
+
+| Method | Qualified requests / N | SLO goodput, requests/s | Request p95 E2E, ms |
+|---|---:|---:|---:|
+| Colocated DP2 | 2/24 | 0.210 | 3189.0 |
+| Colocated Mixed DP2 | 2/24 | 0.270 | 2489.1 |
+| Matched overlapped G1 PD | 5/24 | 0.452 | 4574.9 |
+| B frontier handoff | 18/24 | 1.875 | 3414.9 |
+
+Evidence: `MEASURED_INSTRUMENTED_EVIDENCE_IO_NOT_CLEAN_SERVING`.
+The frontier and the three listed controls match on all 24 output sequences and output lengths.
+The point goodput ratio against matched G1 PD is 4.151×.
+That number is not an accepted multi-start speedup.
+It also does not establish sustainable open-loop capacity.
+Mixed DP2 remains faster in p95 E2E despite its lower attainment in this strict-ITL cell.
+The trade-off must remain visible.
+
+The source runs are `dory_*_P2048_C8_s0` under `raw/`.
+The paired SLO analysis uses the same request IDs and conditions on observed cohort spans.
+It reports undefined ratio draws when a resampled baseline has zero goodput.
+One start cannot quantify between-start uncertainty.
+
+If the signal survives three nonblocking, frozen, output-matched starts, a generic NIXL pacing sweep runs before C.
+It changes only transfer-packet bytes and maximum inflight bytes.
+It never changes the 256-token prefill chunk or G1 computation.
+The confirmation then compares both mechanisms at the same selected transport budget.
+`configs/B_transport_followup_plan.json` records this pilot-guided secondary experiment before tuning.
+Generic pacing is a control, not a new loop-specific contribution.
+
+Any surviving gain also needs a boundary-only versus recurrent-frontier streaming ablation.
+Generic immutable layerwise streaming remains another competing explanation.
+The current adapter's 80/100 official-reference agreement remains unresolved.
+No performance signal removes that fidelity or novelty limitation.
+`timing_correction.md` records the recorder defect, CPU tests, and required canonical retiming.

@@ -33,6 +33,19 @@ The audit compares the original q=1 path with explicit zero-based `exit_at_step=
 Both paths still evaluate all four loops. This is not actual early compute skipping.
 The experiment preserves the original q=1 reference and records any new protocol separately.
 
+A CPU counterexample shows that this selection rule can choose an earlier state in BF16.
+Four synthetic gate logits of 2.2 produce a third-step cumulative probability of 1.0 in BF16.
+The same FP32 calculation remains below 1.0 until the fourth step.
+This example does not use checkpoint-generated gate values.
+It does not establish the frequency or cause of any actual reference mismatch.
+The queued model audit must supply that evidence separately.
+
+That audit completed on 16 prompts, including all 12 known mismatches.
+It observed no early post-hoc selection on their default paths.
+The explicit-last-state and default outputs matched on 16/16.
+The gate-rounding hypothesis therefore does not explain those observed mismatch cases.
+The original 88/100 reference agreement remains unresolved.
+
 Batched trials also require per-request output and length comparisons.
 An earlier B1 match cannot conceal a later concurrency failure.
 Internal parity and official-reference fidelity remain distinct even when both have 100 samples.
@@ -95,6 +108,14 @@ The experiment does not invent a placement gain there.
 The current score is a pending-work heuristic, not a validated completion forecast.
 Its live comparison does not validate a global queue simulator automatically.
 C2 migration and dynamic-role hybrid control remain separate unimplemented capabilities.
+
+A positive C result also requires a stronger generic completed-phase control.
+That control can use the existing full-prefill completion notification without any recurrent frontier.
+The current service model subtracts elapsed service once per worker queue.
+It does not remove every completed request's compute term separately.
+Loop-frontier information could otherwise receive credit for ordinary phase-completion information.
+If C shows a gain, that competing explanation must be tested before GO.
+No additional runtime is required if C already loses to the existing controls.
 
 ## Scale and scope
 

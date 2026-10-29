@@ -19,9 +19,14 @@ def wilson(correct,total):
 def agreement(left,right):
  a={r['sample_id']:r for r in left};b={r['sample_id']:r for r in right}
  ids=sorted(a.keys()&b.keys());exact=lengths=inputs=depths=depth_compared=0;divergences=[]
+ finish_compared=finish_equal=truncated_compared=truncated_equal=0
  for i in ids:
   x=a[i];y=b[i];u=x['output_ids'];v=y['output_ids']
   exact+=u==v;lengths+=len(u)==len(v);inputs+=x['input_ids']==y['input_ids']
+  if 'finish_reason' in x and 'finish_reason' in y:
+   finish_compared+=1;finish_equal+=x['finish_reason']==y['finish_reason']
+  if 'truncated' in x and 'truncated' in y:
+   truncated_compared+=1;truncated_equal+=x['truncated']==y['truncated']
   if 'exit_depths' in x and 'exit_depths' in y:
    depths+=x['exit_depths']==y['exit_depths'];depth_compared+=1
   if u!=v:
@@ -29,6 +34,8 @@ def agreement(left,right):
    divergences.append(dict(sample_id=i,first_mismatch=first,left_length=len(u),right_length=len(v)))
  return dict(N=len(ids),exact=exact,length_equal=lengths,input_equal=inputs,
   depth_compared=depth_compared,depth_equal=depths if depth_compared else 'NOT_AVAILABLE',
+  finish_reason_compared=finish_compared,finish_reason_equal=finish_equal if finish_compared else 'NOT_AVAILABLE',
+  truncation_compared=truncated_compared,truncation_equal=truncated_equal if truncated_compared else 'NOT_AVAILABLE',
   agreement_percent=100*exact/len(ids) if ids else None,wilson_95_percent=wilson(exact,len(ids)),
   first_divergences=divergences)
 
@@ -80,7 +87,7 @@ def bootstrap(blocks,metric='e2e_ms',quantile=95,samples=3000,seed=20261029):
 
 def paired_runs(model,base,method,length,concurrency,kind='serving'):
  from .frozen_runs import preferred,matches
- blocks=[];exact=total=length_equal=0;raw_pairs=[]
+ blocks=[];exact=total=length_equal=0;raw_pairs=[];spans=[]
  frozen_starts=0
  for repeat in range(3):
   names=[f'{model}_{label}_P{length}_C{concurrency}_s{repeat}' for label in (base,method)]
@@ -91,6 +98,8 @@ def paired_runs(model,base,method,length,concurrency,kind='serving'):
   if not ids or len(ids)!=len(a) or len(ids)!=len(b):continue
   if not all(a[i]['input_ids']==b[i]['input_ids'] for i in ids):continue
   blocks.append([(a[i],b[i]) for i in ids]);total+=len(ids)
+  spans.append((max(r['finish'] for r in a.values())-min(r['arrival'] for r in a.values()),
+   max(r['finish'] for r in b.values())-min(r['arrival'] for r in b.values())))
   frozen_starts+=all(matches(folder) for folder in folders)
   exact+=sum(a[i]['output_ids']==b[i]['output_ids'] for i in ids)
   length_equal+=sum(a[i]['output_tokens']==b[i]['output_tokens'] for i in ids)
@@ -98,6 +107,8 @@ def paired_runs(model,base,method,length,concurrency,kind='serving'):
  if not blocks:return None
  E=bootstrap(blocks);T=bootstrap(blocks,'ttft_ms')
  left=[a for block in blocks for a,b in block];right=[b for block in blocks for a,b in block]
+ span_array=np.asarray(spans);draws=np.random.default_rng(20261029).integers(0,len(spans),size=(3000,len(spans)))
+ span_bootstrap=span_array[draws,0].mean(axis=1)/span_array[draws,1].mean(axis=1)
  return dict(model=model,kind=kind,baseline=base,candidate=method,input_tokens=length,concurrency=concurrency,
   starts=len(blocks),N=total,exact_outputs=exact,length_equal=length_equal,
   output_agreement_percent=100*exact/total,p95_E2E_speedup=E['speedup'],p95_E2E_speedup_ci95=E['ci95'],
@@ -108,6 +119,10 @@ def paired_runs(model,base,method,length,concurrency,kind='serving'):
   candidate_p95_TTFT_ms=float(np.percentile([r['ttft_ms'] for r in right],95)),
   strict_same_output=exact==total,three_or_more_independent_starts=len(blocks)>=3,
   matched_frozen_runtime_starts=frozen_starts,
+  baseline_cohort_makespan_mean_s=float(span_array[:,0].mean()),candidate_cohort_makespan_mean_s=float(span_array[:,1].mean()),
+  cohort_makespan_speedup=float(span_array[:,0].mean()/span_array[:,1].mean()),
+  cohort_makespan_speedup_ci95=np.percentile(span_bootstrap,[2.5,97.5]).tolist(),
+  makespan_uncertainty_scope='Bootstrap independent starts only. Request resampling cannot reproduce a changed cohort makespan.',
   evidence='MEASURED_WITH_PAIRED_HIERARCHICAL_BOOTSTRAP',raw_pairs=raw_pairs,
   limitation='Closed-loop bounded natural generation. This is not sustainable open-loop capacity.')
 
@@ -126,6 +141,9 @@ def comparisons():
    for base in ('DP','DP_Mixed','PD','PD_G1','PD_A_control','PD_A_coalesced'):
     row=paired_runs(model,'L128_'+base,'L128_'+method,512,4,kind='serving_long128')
     if row:output.append(row)
+ for base,method in [('Bpace_generic_confirm','Bpace_frontier_confirm'),('Bpace_generic_confirm','B')]:
+  row=paired_runs('dory',base,method,2048,8,kind='B_generic_pacing_confirmation')
+  if row:output.append(row)
  save_csv(ROOT/'paired_comparisons.csv',output)
  return output
 
@@ -137,6 +155,10 @@ def slo_results():
   if not folder.is_dir() or not complete(folder):continue
   raw=requests(folder)
   if not raw or 'token_events' not in raw[0]:continue
+  configuration=folder/'configuration.json'
+  arguments=json.loads(configuration.read_text()).get('arguments',{}) if configuration.exists() else {}
+  from .evidence_protocol import check as check_evidence_protocol
+  clean=check_evidence_protocol(folder)['valid'] and not (folder/'shadow_provenance.json').exists() and not arguments.get('profile',False)
   model=raw[0]['model']
   if model not in grid:continue
   span=max(x['finish'] for x in raw)-min(x['arrival'] for x in raw)
@@ -153,9 +175,11 @@ def slo_results():
      passed.append(normal and x['ttft_ms']<=ttft and max(intervals,default=0)<=limit and x['e2e_ms']<=grid[model]['E2E_limit_ms'])
     count=sum(passed)
     rows.append(dict(run=folder.name,model=model,level=level,ITL_limit_ms=limit,TTFT_limit_ms=ttft,
-     E2E_limit_ms=grid[model]['E2E_limit_ms'],correct_completions=count,N=len(raw),
+     E2E_limit_ms=grid[model]['E2E_limit_ms'],SLO_qualifying_completions=count,N=len(raw),
      attainment_percent=100*count/len(raw),wilson_95_percent=wilson(count,len(raw)),
-     SLO_goodput_requests_s=count/span,evidence='MEASURED_BOUNDED_REQUEST_SLO',
+     SLO_goodput_requests_s=count/span,evidence='MEASURED_BOUNDED_REQUEST_SLO' if clean else 'MEASURED_DIAGNOSTIC_SLO_NOT_CLEAN_SERVING',
+     clean_serving_eligible=clean,
+     correctness_scope='Normal bounded termination and latency SLO only. This is not answer correctness.',
      sustainable_capacity='NOT_MEASURED' if not raw[0].get('arrival_rate') else 'REQUIRES_QUEUE_STABILITY_AND_RATE_SWEEP',
      length_terminations=sum(x['finish_reason']=='length' for x in raw),
      completion_scope='A length termination is valid only for this bounded workload. It does not establish answer completeness.'))
@@ -219,6 +243,11 @@ def main():
  summarize();reference_checks();slo_results();contention_results();scale_discovery();heterogeneous_discovery()
  from .critical_path_analysis import main as critical_path_analysis
  critical_path_analysis()
+ from .shadow_analysis import main as shadow_analysis
+ shadow_analysis()
  if args.comparisons:comparisons()
+ if args.comparisons:
+  from .slo_compare import main as slo_comparisons
+  slo_comparisons()
 
 if __name__=='__main__':main()

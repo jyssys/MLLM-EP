@@ -14,6 +14,9 @@ The source transfers valid depth-indexed KV and the complete prompt's recurrent 
 It also transfers request RNG state when the model uses that state.
 The destination restores cache validity, position frontiers, and the prefill phase.
 It does not recompute earlier prompt loops.
+Under A, the upstream `prefill_complete` notification means the source assignment completed.
+It does not mean the entire fixed-depth model prefill completed.
+The destination must finish the remaining loops before it samples the first output token.
 
 The initial implementation accepts a complete prompt in one chunk.
 It rejects a prompt that exceeds that chunk.
@@ -36,6 +39,8 @@ Evidence: `MEASURED_NIXL_BYTE_IDENTITY_HEAVY_CORRECTNESS_ONLY`.
 The registered hidden buffer can contain padding beyond the useful prompt state.
 The source zeros that padding before transfer.
 The measured transfer payload includes the padding. It is not a zero-cost hidden vector.
+These byte counts exclude host control messages, page-table metadata, and serialized RNG messages.
+Their latency still contributes to measured request wall time.
 
 The earlier operator probes also compared resumed KV and logits against uninterrupted execution.
 Ouro passed 10 cases. Huginn passed 10 cases. Dory passed six cases.
@@ -55,6 +60,20 @@ Repeated serving uses a separate output-cap-32 workload.
 The selected intermediate cut comes from the completed cap-8 discovery set.
 The selection reads no future outputs during serving.
 The matched A control uses the same full-prompt chunk and staged G1 execution.
+
+The selected cuts are now frozen:
+
+| Model | P128/P512 serving cut | P2048 serving cut |
+|---|---:|---:|
+| Ouro R4 | 3 | 1 |
+| Huginn R32 | 1 | 16 |
+| Dory R2 | 1 | 1 |
+
+Each newly selected cut passed a separate 100-prompt bounded output comparison.
+Those new cuts also passed nine additional byte-identity imports in total, including warmup.
+The original qualified cuts retain their earlier evidence.
+`configs/chosen_cuts.json` records the tuning and qualification sources.
+The cap-128 serving regime remains separate from cap-32 measurement.
 
 ## Structural limit and novelty
 

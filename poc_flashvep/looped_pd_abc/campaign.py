@@ -6,6 +6,8 @@ from .common import ROOT,write
 def selected_cut(model,length):
  """Use the frozen, qualified cut. Never read live future outputs."""
  path=ROOT/'configs/chosen_cuts.json';probe_length=512 if length<512 else length
+ clean=ROOT/'configs/clean_chosen_cuts.json'
+ if clean.exists():path=clean
  if path.exists():
   return json.loads(path.read_text())[model][str(probe_length)]['cut']
  return {'ouro':2,'huginn':16,'dory':1}[model]
@@ -15,6 +17,7 @@ def job(model,label,gpus,*,mode='pd',length=128,count=8,cap=32,concurrency=1,ext
  args=['--model',model,'--mode',mode,'--gpus',','.join(map(str,gpus)),'--name',name,
   '--requests',str(count),'--length',str(length),'--cap',str(cap),'--concurrency',str(concurrency),'--warmup',*extra]
  env={'ABC_RLT_DORY':'1'} if model=='dory' else {}
+ if (ROOT/'configs/evidence_protocol_epoch.json').exists():env['ABC_ASYNC_EVIDENCE']='1'
  return dict(name=name,gpus=list(gpus),args=args,env=env)
 
 def main():
@@ -42,14 +45,32 @@ def main():
     for n in (128,512):
      jobs.append(job(model,'calibration',pair,length=n,count=16,cap=16,concurrency=width,extra=opt+boundary+['--wavefront','--chunk','256']))
  elif a.phase=='C':
-  from .repair_known_failure import repair
-  repair()
+  if (ROOT/'configs/evidence_protocol_epoch.json').exists():
+   from .clean_cut_sweep import run as clean_cut_sweep
+   clean_cut_sweep()
+   from .async_qualification import run as async_qualification
+   async_qualification()
+  else:
+   from .repair_known_failure import repair
+   repair()
   from .coalesced_a_control import run as coalesced_control
   coalesced_control()
   from .frozen_runs import confirm
   confirm()
+  from .transport_tuning import run as transport_tuning
+  try:transport_tuning()
+  except Exception as error:
+   import traceback
+   write(ROOT/'state/B_generic_pacing_followup.json',dict(status='FAILED_CONTROL_C_CONTINUES',error=repr(error),traceback=traceback.format_exc()))
+  if (ROOT/'configs/evidence_protocol_epoch.json').exists():
+   from .clean_calibration import run as clean_calibration
+   clean_calibration()
   from .analyze import calibrate
   calibrate()
+  from .heterogeneous_c import jobs as heterogeneous_jobs
+  heterogeneous=heterogeneous_jobs()
+  from .shadow_routing import run as shadow_routing
+  shadow_routing()
   for repeat in range(3):
    for model in ('ouro','huginn','dory'):
     opt=['--graphs']+(['--asynchronous'] if model=='ouro' else [])
@@ -62,8 +83,7 @@ def main():
     jobs.append(job(model,'C_DP4_Mixed',group,mode='dp',length=0,count=48,cap=64,concurrency=8,extra=opt+['--scheduler-mode','mixed','--chunk','256'],repeat=repeat))
     for pcount in (1,3):
      jobs.append(job(model,f'C_PD{pcount}',group,length=0,count=48,cap=64,concurrency=8,extra=opt+boundary+['--prefill',str(pcount),'--chunk','256'],repeat=repeat))
-  from .heterogeneous_c import jobs as heterogeneous_jobs
-  jobs.extend(heterogeneous_jobs())
+  jobs.extend(heterogeneous)
  elif a.phase=='A_sweep':
   for model,pair,cuts in [('ouro',(0,1),(1,2,3)),('huginn',(2,3),(1,8,16,24,31)),('dory',(4,5),(1,))]:
    opt=['--graphs']+(['--asynchronous'] if model=='ouro' else [])

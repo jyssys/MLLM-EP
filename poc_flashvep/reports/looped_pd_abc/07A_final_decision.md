@@ -2,7 +2,9 @@
 
 DRAFT: final scientific review is pending. No GO claim is accepted.
 
-Campaign status: `RUNNING`. Evidence snapshot: 2026-10-28T21:47:48.667964+00:00.
+Timing correction: legacy foreground-I/O timings are invalid for clean method comparisons. Read `timing_correction.md`. Canonical nonblocking retiming is pending.
+
+Campaign status: `RUNNING`. Evidence snapshot: 2026-10-28T22:34:18.764900+00:00.
 
 | Model | Status | Reason |
 | --- | --- | --- |

@@ -109,3 +109,53 @@ GSM8K test accuracy and HumanEval accuracy remain NOT_MEASURED.
 The current bounded parity pilot cannot establish official paper quality.
 Generated-code execution requires a separate safe evaluation sandbox.
 The final report must preserve these limits even if native RLT parity passes.
+
+## Ouro post-hoc gate audit
+
+The pinned official implementation computes all four recurrent loops before it selects output hidden states.
+Its q=1 selection uses a BF16 cumulative gate probability when the model runs in BF16.
+An earlier cumulative value can round to 1.0.
+Thus q=1 does not guarantee selection of the final R4 hidden state mathematically.
+This behavior is separate from actual compute skipping.
+
+A synthetic CPU counterexample uses gate logits of 2.2 at all four steps.
+Its cumulative values are:
+
+| Arithmetic | Step 1 | Step 2 | Step 3 | Step 4 | Selected output depth |
+|---|---:|---:|---:|---:|---:|
+| FP32 | 0.90024954 | 0.99004984 | 0.99900746 | 1.0 | 4 |
+| BF16 | 0.90234375 | 0.9921875 | 1.0 | 1.0 | 3 |
+
+Evidence class: synthetic gate inputs with measured CPU tensor operations.
+These are not checkpoint routing statistics or GPU serving measurements.
+The example cannot explain the observed 88/100 reference agreement by itself.
+`test_analysis.py` checks the arithmetic and the audit helper.
+
+The queued official-model audit records actual gate values on selected diagnostic prompts.
+It compares the unchanged q=1 path with explicit zero-based `exit_at_step=3`.
+If it observes early post-hoc selection, it creates a separate 100-prompt explicit-R4 reference.
+It does not overwrite or relabel the original q=1 reference.
+The diagnostic sample includes earlier mismatches and cannot estimate population frequency.
+
+Source: [pinned official Ouro implementation](https://huggingface.co/ByteDance/Ouro-1.4B/blob/574fa66cb8bf5abdc979642d01cf2b79b16bfab1/modeling_ouro.py).
+
+The actual checkpoint audit completed on 16 diagnostic prompts.
+The sample includes all 12 earlier mismatch cases and four controls.
+All 16 default paths selected R4 at every observed output position.
+Default outputs reproduced the earlier official reference on 16/16 prompts.
+Explicit final-state selection also matched those default outputs on 16/16 prompts.
+Thus the rounding counterexample does not explain these 12 observed mismatch cases.
+It remains a mathematical possibility, not the measured cause here.
+
+The audit did not run the conditional 100-prompt explicit-R4 reference.
+Its trigger found no earlier selection on the diagnostic paths.
+The original 88/100 reference agreement remains unchanged.
+The remaining model or backend discrepancy is unresolved.
+Raw evidence is `raw/ouro_reference_gate_audit/diagnostics.jsonl` and its status file.
+
+The audit ran between complete benchmark jobs.
+The experiment paused only the non-inference launcher during that interval.
+It never paused an active benchmark worker.
+Owned burners ran on the other seven devices during this non-timing audit.
+The experiment stopped those burners before it resumed clean serving jobs.
+The launcher resumed automatically. The safety guard did not need its fallback signal.

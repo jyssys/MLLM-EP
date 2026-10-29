@@ -90,6 +90,27 @@ def memory_and_transport():
  save_csv(ROOT/'worker_memory_transport.csv',rows)
  save_csv(ROOT/'evidence_IO_cost.csv',io)
 
+def nonblocking_evidence():
+ """Report producer cost separately from background durability time."""
+ rows=[]
+ from .evidence_protocol import check
+ for config in sorted((ROOT/'raw').glob('*/configuration.json')):
+  folder=config.parent;data=json.loads(config.read_text())
+  attempt=data.get('arguments',{}).get('attempt_id')
+  for path in sorted(folder.glob('async_evidence_summary_*.json')):
+   stats=json.loads(path.read_text())
+   if stats.get('attempt_id')!=attempt:continue
+   protocol=check(folder)
+   rows.append(dict(run=folder.name,pid=stats['pid'],attempt_id=attempt,protocol_valid=protocol['valid'],
+    enqueued_records=stats['enqueued_records'],durable_records=stats['background_written_records'],
+    foreground_enqueue_ms=1000*stats['foreground_enqueue_seconds'],
+    foreground_max_enqueue_ms=1000*stats['foreground_max_enqueue_seconds'],
+    background_write_ms=1000*stats['background_write_seconds'],
+    background_fsync_batches=stats['background_fsync_batches'],peak_queued_records=stats['peak_queued_records'],
+    evidence='MEASURED_INSTRUMENTATION_COUNTERS_NOT_ADDITIVE_E2E_COMPONENTS',
+    scope=stats['scope'],limitation='Producer counters exclude one-time writer initialization. Background I/O can still contend for shared CPU or storage.'))
+ save_csv(ROOT/'nonblocking_evidence_cost.csv',rows)
+
 def placement_residuals():
  rows=[]
  for path in sorted((ROOT/'raw').glob('*_C_*/closed_stats.json')):
@@ -109,6 +130,6 @@ def placement_residuals():
  save_csv(ROOT/'placement_residuals.csv',rows)
 
 def main():
- memory_and_transport();placement_residuals();analyze_profiles()
+ memory_and_transport();nonblocking_evidence();placement_residuals();analyze_profiles()
 
 if __name__=='__main__':main()

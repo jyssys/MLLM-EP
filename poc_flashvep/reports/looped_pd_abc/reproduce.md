@@ -92,6 +92,44 @@ CUDA_VISIBLE_DEVICES='' PYTHONPATH=/home/esjung/external/looped-pd-abc-rlt:/home
 
 New accounting tests use `poc_flashvep/looped_pd_abc/test_analysis.py`.
 Their result is separate from the earlier frozen-runtime qualification.
+The combined PoC and analysis suite later passed 16 tests.
+Its log is `logs/combined_poc_analysis_tests.log`.
+It requires the same explicit private-RLT `PYTHONPATH` as the extended command.
+The later shadow-state test increased that suite to 17 passing tests.
+Its initial fixture-path failure remains in `archives/shadow_CPU_test_path_failure.log`.
+
+The later analysis/control suite passed 24 tests after the evidence-protocol correction.
+Its log is `logs/post_epoch_analysis_tests.log`.
+
+```bash
+CUDA_VISIBLE_DEVICES='' PYTHONPATH=/home/esjung/external/looped-pd-abc-rlt:/home/esjung/MLLM-EP-github /home/esjung/.venvs/looped-pd-abc/bin/python -m pytest -q poc_flashvep/looped_pd_abc/test_analysis.py poc_flashvep/looped_pd_abc/test_contracts.py
+```
+
+## Nonblocking evidence protocol
+
+Read `timing_correction.md` before comparing timings.
+Old foreground-I/O runs are not valid clean method comparisons.
+Their raw values remain unchanged.
+
+The private environment installs `configs/00_abc_evidence.pth` as `00_abc_evidence.pth` in its site-packages directory.
+The hook activates before the worker imports its recorder alias.
+`configs/evidence_protocol_epoch.json` locks the recorder hash.
+An explicit `ABC_ASYNC_EVIDENCE=1` enables the hook for PoC wrapper modules and spawned children.
+The marker also enables future direct `worker` interpreters.
+Do not install this hook in a shared environment.
+
+The regression test uses the actual worker alias without loading a GPU model.
+
+```bash
+CUDA_VISIBLE_DEVICES='' ABC_ASYNC_EVIDENCE=1 PYTHONPATH=/home/esjung/external/looped-pd-abc-rlt:/home/esjung/MLLM-EP-github /home/esjung/.venvs/looped-pd-abc/bin/python -m pytest -q poc_flashvep/looped_pd_abc/test_evidence_protocol.py
+CUDA_VISIBLE_DEVICES='' ABC_ASYNC_EVIDENCE=1 PYTHONPATH=/home/esjung/external/looped-pd-abc-rlt:/home/esjung/MLLM-EP-github /home/esjung/.venvs/looped-pd-abc/bin/python -m poc_flashvep.looped_pd_abc.telemetry_smoke
+```
+
+Before C, the campaign repeats A tuning, qualifies outputs and state, and remeasures legacy timing cases.
+It then refreshes C's cost model with isolated nonblocking pilots.
+`configs/frozen_serving_replacements.json` identifies each canonical replacement.
+`configs/clean_chosen_cuts.json` preserves new cut selection separately from the original tuning.
+Do not start these auxiliary dispatchers while the main controller owns the GPU pool.
 
 ## Small actual PD run
 

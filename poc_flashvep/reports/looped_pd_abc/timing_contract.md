@@ -96,6 +96,12 @@ Its duration can overlap GPU computation. It is not additive E2E time.
 The lifetime maximum can include warmup. Cohort count and duration use counter deltas.
 Some early trials predate this counter. Their I/O cost is unavailable, not zero.
 
+The original foreground recorder invalidates legacy timings for clean method comparisons.
+The registered nonblocking epoch replaces foreground flush and fsync with background durable writes.
+`timing_correction.md` records the defect, tests, and required canonical retiming.
+The new recorder still has serialization, enqueue, and background resource costs.
+`nonblocking_evidence_cost.csv` reports these costs without adding background I/O to request E2E.
+
 ## Statistical acceptance
 
 Accepted gains require at least three independent starts and equivalent outputs.
@@ -112,3 +118,22 @@ Each attempt retains its complete source ZIP and runtime patch hash.
 Speedup uses `baseline / method` at the same GPU budget.
 A 10% latency reduction requires speedup of at least `1 / 0.9`, approximately 1.111×.
 Single-request latency, cohort makespan, and throughput remain separate metrics.
+
+The cohort-makespan interval resamples independent starts only.
+It does not resample request timestamps to invent a new cohort schedule.
+The request-tail interval separately resamples starts and paired request IDs.
+These uncertainty procedures answer different questions.
+
+## Full-depth work accounting
+
+`full_depth_work_accounting.csv` compares submitted recurrent rows with structural required work.
+The formula is `sum(R * (input_tokens + max(output_tokens - 1, 0)))`.
+The first output token follows prompt completion.
+The last emitted token needs no further forward pass in that request.
+The formula uses actual output lengths, not maximum output caps.
+
+The counter counts logical submitted rows before graph padding.
+It excludes prelude and coda layers.
+Extra asynchronous work before EOS or cap readback can exceed the structural minimum.
+A counter match is not an independent measurement of padded GPU FLOPs.
+It also does not establish answer accuracy.

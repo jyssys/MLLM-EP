@@ -4,11 +4,24 @@ import json
 import os
 import time
 import torch
-from .common import ROOT,MODELS,MODEL_PINS,UUIDS,append,write
+from .common import ROOT,MODELS,MODEL_PINS,UUIDS,append,write,digest
+
+def q1_posthoc_selection(gates):
+ remaining=torch.ones_like(gates[0].squeeze(-1));pdf=[]
+ for index,gate in enumerate(gates):
+  hazard=torch.sigmoid(gate.squeeze(-1))
+  pdf.append(hazard*remaining if index<len(gates)-1 else remaining)
+  if index<len(gates)-1:remaining=remaining*(1-hazard)
+ cdf=torch.stack(pdf,dim=2).cumsum(dim=2);mask=cdf>=1.
+ choice=torch.argmax(mask.float(),dim=2);choice[~mask.any(dim=2)]=len(gates)-1
+ return choice,cdf
 
 def main():
  parser=argparse.ArgumentParser();parser.add_argument('--name',default='ouro_reference_gate_audit');args=parser.parse_args()
  folder=ROOT/'raw'/args.name;write(folder/'status.json',dict(status='RUNNING',pid=os.getpid()))
+ write(folder/'configuration.json',dict(arguments=vars(args),model_pin=MODEL_PINS['ouro'],source_sha256=digest(__file__),
+  sampling='Greedy, max_new_tokens32, EOS enabled',default_threshold=1.,explicit_last_step=3,
+  scope='Reference diagnostic only. Not clean serving performance.'))
  try:
   torch.set_num_threads(1)
   physical=int(os.environ['CUDA_VISIBLE_DEVICES'])
@@ -28,13 +41,7 @@ def main():
   def hook(module,arguments,result):
    gates=result[2]
    if len(gates)!=4:raise RuntimeError('The official model did not return four recurrent gate values')
-   remaining=torch.ones_like(gates[0].squeeze(-1));pdf=[]
-   for index,gate in enumerate(gates):
-    hazard=torch.sigmoid(gate.squeeze(-1))
-    pdf.append(hazard*remaining if index<3 else remaining)
-    if index<3:remaining=remaining*(1-hazard)
-   cdf=torch.stack(pdf,dim=2).cumsum(dim=2);mask=cdf>=1.
-   choice=torch.argmax(mask.float(),dim=2);choice[~mask.any(dim=2)]=3
+   choice,cdf=q1_posthoc_selection(gates)
    traces.append(dict(posthoc_q1_depth_on_current_path=int(choice[0,-1])+1,
     final_position_cdf=cdf[0,-1].tolist(),gate_dtype=str(gates[0].dtype),
     evaluated_loop_count=len(gates),meaning='Post-hoc output selection, not compute skipping'))

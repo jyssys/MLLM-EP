@@ -69,24 +69,52 @@ Its maximum chat-tokenized prompt lengths are Ouro 178, Huginn 164, and Dory 174
 Ouro's checkpoint sets `early_exit_threshold=1.0`.
 The official implementation still selects an output state through a BF16 cumulative gate probability.
 Source analysis suggests that rounding could select an earlier state despite q=1.
-This is only a hypothesis until the queued audit executes.
+The audit completed. The hypothesis did not explain the observed mismatches.
 All four loops execute before that post-hoc selection.
 
 `ouro_gate_audit.py` compares selected diagnostic prompts under q=1 and explicit zero-based `exit_at_step=3`.
 If it observes earlier selection, it collects a separate 100-prompt explicit-R4 reference.
 It must not overwrite or relabel the original q=1 outputs.
 Diagnostic prompt selection includes previous mismatches and cannot estimate population accuracy.
-The audit runs before C through the coalesced-control helper.
+The audit evaluated all 12 known mismatch prompts and four controls.
+No default path selected before R4 in these 16 prompts.
+Default and explicit-R4 outputs matched on 16/16 prompts.
+The original official-reference agreement remains 88/100.
+The conditional 100-prompt explicit-R4 expansion did not run because its trigger was false.
+
+## Critical timing correction
+
+Read `timing_correction.md` before interpreting any serving result.
+The original recorder performed foreground `fsync` during serving.
+An Ouro B run recorded 768 P-side appends with 7167.440053ms cumulative wall time.
+These durations are not additive E2E components.
+Old timing evidence is invalid for clean method comparisons, including the positive Dory SLO signal.
+Do not subtract I/O durations to invent corrected latency.
+
+The new private-environment hook installs a nonblocking background recorder before future worker imports.
+`configs/evidence_protocol_epoch.json` records the source hash.
+The request-thread regression passed after failing on the old implementation.
+Multiprocessing durability passed for 200 parent and 200 child records.
+GPU requalification remains pending.
+Existing healthy inference processes are not restarted or signaled.
+
+Before C, `async_qualification.py` checks natural outputs and exact state imports.
+`clean_cut_sweep.py` first repeats A tuning under the nonblocking recorder.
+It preserves the old sweep and writes `configs/clean_chosen_cuts.json` after qualification.
+`frozen_runs.py` repeats completed legacy timing cases under the locked protocol.
+`clean_calibration.py` then runs 27 isolated cost-calibration jobs.
+The model/RLT runtime remains unchanged.
+Do not edit `telemetry.py` without registering another protocol epoch and repeating qualification.
 
 ## Campaign order
 
 The main controller executes A cut sweep, repeated serving, C, scale, and short profiles.
 The C manifest generator first performs these prerequisites:
 
-1. Retry only the identified stats-import failures after archiving their original status and configuration.
+1. Repeat A cut tuning without foreground I/O, then qualify the new protocol on all three models and transfer tracks.
 2. Run explicit generic-coalesced Ouro A controls and the reference-gate audit.
 3. Confirm earlier telemetry epochs under the final runtime lock.
-4. Refresh the frozen service-cost calibration from separate measured pilots.
+4. Refresh the frozen service-cost calibration from 27 separate nonblocking isolated pilots.
 
 The main C comparison then uses three starts of P2:D2 and strong four-GPU controls.
 The cost model includes prefill/decode batch effects and uncovered handoff.
@@ -142,7 +170,7 @@ C2 migration, dynamic-role hybrid PD, and a validated wall-time oracle remain un
 ## Git and final work
 
 The branch is `flashvep/looped-pd-abc-disaggregation-poc`.
-The intermediate pushed commit is `7b8bffa636c27724d7d20be3e6aba4e6e0401731`.
+The latest intermediate pushed commit is `ee2172e250fc66d44787fd09a82764237cf37420`.
 The remote SHA matched that commit.
 This is not the final experiment commit.
 Later code, logs, and measurements still require a scoped commit and push.

@@ -4,7 +4,7 @@ The active task is Dense Looped PD A/B/C, not an earlier MoE or diffusion task.
 Do not resume the paused decode Loop PP project.
 Do not terminate the active campaign when the user asks for status only.
 
-The intermediate commit is `7b8bffa636c27724d7d20be3e6aba4e6e0401731`.
+The latest intermediate commit is `ee2172e250fc66d44787fd09a82764237cf37420`.
 The branch push and remote SHA check succeeded.
 This commit is not a completed experiment or a final decision.
 Later raw measurements and analysis changes still require a final scoped commit.
@@ -12,6 +12,8 @@ Later raw measurements and analysis changes still require a final scoped commit.
 1. Read the complete authoritative PD specification and the reporting skill.
 2. Check `state/main_campaign.json`, `state/dispatcher.json`, and the recorded live PIDs.
 3. Keep the current controller if it remains active.
+   Read `timing_correction.md`. Legacy foreground-I/O timing runs need nonblocking replay.
+   Check the new GPU qualification before accepting any timing claim.
 4. Inspect new failed run statuses and their logs before any retry.
 5. Use a new run name for a changed scientific configuration.
 6. Preserve original failures and per-attempt source ZIPs.

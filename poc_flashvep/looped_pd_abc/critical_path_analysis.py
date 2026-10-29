@@ -79,9 +79,12 @@ def main():
   for row in csv.DictReader(stream):groups[row['name']].append(row)
  shares=[];oracles=[]
  for name,records in sorted(groups.items()):
-  for row in partition_statistics(records):shares.append(dict(run=name,**row))
+  from .evidence_protocol import check
+  protocol=check(ROOT/'raw'/name)
+  interpretation=dict(evidence_io_mode=protocol['mode'],clean_method_timing_eligible=protocol['valid'])
+  for row in partition_statistics(records):shares.append(dict(run=name,**row,**interpretation))
   row=fixed_timeline_oracle(records)
-  if row:oracles.append(dict(run=name,**row))
+  if row:oracles.append(dict(run=name,**row,**interpretation))
  save_csv(ROOT/'e2e_phase_percent_summary.csv',shares)
  save_csv(ROOT/'handoff_frozen_timeline_oracle.csv',oracles)
  full_depth_work()

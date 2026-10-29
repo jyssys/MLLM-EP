@@ -95,3 +95,9 @@ Any positive candidate requires a frozen-build confirmation before acceptance.
 The original short profile does not contain every matched G1 transfer control.
 The report must not attribute profiler differences across those controls solely to B.
 No unvalidated simulator, transfer-only estimate, or component-time sum counts as measured E2E speedup.
+
+Quiet-lane isolation excludes other GPU workers and owned burners.
+The controller, monitors, and lightweight CPU analysis still run.
+The experiment does not claim exclusive CPU or storage access.
+The parallel-pair calibration does not separate CPU, storage, and GPU contention causes.
+Any positive final confirmation must avoid concurrent CPU tests and heavy analysis too.

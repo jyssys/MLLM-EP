@@ -1,0 +1,28 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+___________ test_worker_append_does_not_fsync_on_the_request_thread ____________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fc44b8ac9d0>
+tmp_path = PosixPath('/tmp/pytest-of-esjung/pytest-104/test_worker_append_does_not_fs0')
+
+    def test_worker_append_does_not_fsync_on_the_request_thread(monkeypatch,tmp_path):
+     from .common import write
+     from .worker import append
+     producer=threading.get_ident();foreground=[];original=os.fsync
+     def tracked(descriptor):
+      if threading.get_ident()==producer:foreground.append(descriptor)
+      return original(descriptor)
+     monkeypatch.setattr(os,'fsync',tracked)
+     write(tmp_path/'configuration.json',{'arguments':{'attempt_id':'unit_evidence'}})
+     append(tmp_path/'requests.jsonl',{'sample_id':1,'output_ids':[2,3]})
+>    assert foreground==[], 'Evidence append blocks the request thread on fsync'
+E    AssertionError: Evidence append blocks the request thread on fsync
+E    assert [12] == []
+E      
+E      Left contains one more item: 12
+E      Use -v to get more diff
+
+poc_flashvep/looped_pd_abc/test_evidence_protocol.py:16: AssertionError
+=========================== short test summary info ============================
+FAILED poc_flashvep/looped_pd_abc/test_evidence_protocol.py::test_worker_append_does_not_fsync_on_the_request_thread
+1 failed in 1.24s

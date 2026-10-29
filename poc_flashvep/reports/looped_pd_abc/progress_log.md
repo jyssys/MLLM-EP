@@ -56,3 +56,21 @@ The CPU analysis now separates measured host E2E percentages from a frozen-timel
 Neither quantity is a pure GPU DMA or compute percentage.
 The C phase also queues a separate 24-job heterogeneous-length discovery matrix.
 No result is assumed for those queued jobs.
+
+## Evidence-protocol correction: 2026-10-29
+
+The original recorder performed synchronous flush and fsync in the serving path.
+One Ouro B source recorded 768 append calls and 7167.440053ms cumulative CPU wall time.
+This finding invalidates old timings for clean method comparisons.
+It applies to positive signals too, including the Dory strict-ITL pilot.
+All raw records remain unchanged. Correctness evidence remains separate.
+
+The actual request-thread regression failed before the correction and passed afterward.
+The background recorder also preserved 400 multiprocessing records in order.
+The analysis/control suite passed 21 tests.
+The private environment activates the locked recorder only for future PoC workers.
+No healthy inference worker was restarted or signaled.
+
+The campaign queues new GPU output/state qualification before canonical timing replay.
+A separate isolated calibration refreshes C's shared service-cost model.
+No accepted architecture speedup or final verdict exists yet.

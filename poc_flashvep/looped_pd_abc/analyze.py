@@ -43,6 +43,9 @@ def summarize():
    D=len(first['gpus'].split(','))-first['prefill_devices'] if first['method']=='pd' else 0,
    colocated_replicas=len(first['gpus'].split(',')) if first['method']=='dp' else int(first['method'] in ('native','decode_local')))
   config=folder/'configuration.json'
+  from .evidence_protocol import check as check_evidence_protocol
+  protocol=check_evidence_protocol(folder)
+  r['evidence_io_mode']=protocol['mode'];r['evidence_protocol_valid']=protocol['valid']
   if config.exists():
    arguments=json.loads(config.read_text()).get('arguments',{})
    config_data=json.loads(config.read_text())
@@ -52,6 +55,15 @@ def summarize():
     extra=json.loads(provenance.read_text())
     r.update(effective_prompt_source=extra['raw_prompt_source_override'],prompt_manifest_sha256=extra['sha256'])
    else:r['effective_prompt_source']=first.get('prompt_source','NOT_AVAILABLE')
+   diagnostic=folder/'shadow_provenance.json'
+   r['clean_serving_eligible']=protocol['valid'] and not diagnostic.exists() and not arguments.get('profile',False)
+   if diagnostic.exists():r['evidence']='MEASURED_SHADOW_DIAGNOSTIC_NOT_CLEAN_SERVING_LATENCY'
+   elif arguments.get('profile',False):r['evidence']='MEASURED_PROFILED_NOT_CLEAN_SERVING_LATENCY'
+   elif not protocol['valid']:r['evidence']='MEASURED_INSTRUMENTED_EVIDENCE_IO_NOT_CLEAN_SERVING'
+   transport=folder/'transport_provenance.json'
+   if transport.exists():
+    budget=json.loads(transport.read_text())
+    r.update(transport_chunk_bytes=budget['transfer_chunk_bytes'],transport_max_inflight_bytes=budget['max_inflight_bytes'])
    archive=folder/f"source-{arguments.get('attempt_id')}.zip"
    if archive.exists():
     with zipfile.ZipFile(archive) as bundle:r['runtime_patch_sha256']=hashlib.sha256(bundle.read('rlt_changes.patch')).hexdigest()
@@ -146,14 +158,22 @@ def summarize():
  save_csv(ROOT/'parity.csv',parity)
  print('SUMMARY',len(summary),'PHASE_ROWS',len(phase),'PARITY',parity)
 
+def calibration_folder(model,length,width):
+ from .evidence_protocol import check
+ clean=ROOT/'raw'/f'{model}_calibration_async_P{length}_C{width}_s0'
+ status=clean/'status.json'
+ if status.exists() and json.loads(status.read_text()).get('status')=='COMPLETE' and check(clean)['valid']:
+  return clean
+ original=ROOT/'raw'/f'{model}_calibration_P{length}_C{width}_s0'
+ alternate=ROOT/'raw'/f'{model}_calibration2_P{length}_C{width}_s0'
+ return alternate if (alternate/'closed_stats.json').exists() else original
+
 def calibrate():
  result={}
  for model in ('ouro','huginn','dory'):
   points=[];decode=[];handoff=[]
   for n in (128,512,2048):
-   f=ROOT/'raw'/f'{model}_calibration_P{n}_C1_s0'
-   alternate=ROOT/'raw'/f'{model}_calibration2_P{n}_C1_s0'
-   if (alternate/'closed_stats.json').exists():f=alternate
+   f=calibration_folder(model,n,1)
    if not (f/'closed_stats.json').exists():continue
    stats=json.loads((f/'closed_stats.json').read_text())
    for row in stats['metrics'][1:]:
@@ -173,9 +193,7 @@ def calibrate():
   for width in (2,4,8):
    values=[];pvalues=[]
    for n in (128,512):
-    f=ROOT/'raw'/f'{model}_calibration_P{n}_C{width}_s0'
-    alternate=ROOT/'raw'/f'{model}_calibration2_P{n}_C{width}_s0'
-    if (alternate/'closed_stats.json').exists():f=alternate
+    f=calibration_folder(model,n,width)
     rows=requests(f)
     if rows:
      base=max(.0001,result[model]['decode_intercept']+result[model]['decode_per_context_token']*n)
@@ -192,6 +210,11 @@ def calibrate():
    if pvalues:prefill_ratios[str(width)]=float(np.median(pvalues))
   result[model]['observed_decode_batch_ratios']=ratios
   result[model]['observed_prefill_batch_ratios']=prefill_ratios
+  from .evidence_protocol import check
+  sources=[calibration_folder(model,n,w) for n,w in [(n,1) for n in (128,512,2048)]+[(n,w) for w in (2,4,8) for n in (128,512)]]
+  result[model]['source_runs']=[f.name for f in sources]
+  result[model]['nonblocking_calibration_complete']=all(check(f)['valid'] for f in sources)
+  result[model]['limitation']='Pending-work heuristic, not a validated completion ETA. Original legacy calibration may include foreground evidence I/O.'
  write(ROOT/'configs/service_calibration.json',result);print('CALIBRATION',result)
 
 def main():
