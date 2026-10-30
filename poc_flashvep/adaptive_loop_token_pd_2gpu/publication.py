@@ -10,10 +10,12 @@ import shutil
 import subprocess
 from .common import *
 from .analyze import csv_write
+from .calibration import percentile
 
 def read_csv(name):
     path=ROOT/name
-    return list(csv.DictReader(path.open())) if path.exists() else []
+    if not path.exists():return []
+    with path.open() as stream:return list(csv.DictReader(stream))
 
 def number(value):
     try:return float(value)
@@ -56,12 +58,13 @@ def paired(rows):
             row=dict(model=model,workload='W1',rate_multiplier=1.5,candidate='Loop_Dynamic',baseline=arm,
                 paired_independent_starts=len(values),mean_goodput_difference=sum(v[0] for v in values)/len(values) if values else 'NOT_AVAILABLE',
                 relative_goodput_gain_percent='NOT_AVAILABLE',CI95_low_percent='NOT_AVAILABLE',CI95_high_percent='NOT_AVAILABLE',
+                bootstrap_replicates=10000 if len(values)>=3 else 0,bootstrap_seed=2026103500,
                 scope='Paired start bootstrap. Fixed prompt set. Not population/domain generalization or proof of stable capacity.')
             if values and all(v[1] is not None for v in values):
                 gains=[v[1] for v in values];row['relative_goodput_gain_percent']=sum(gains)/len(gains)
                 if len(values)>=3:
                     rng=random.Random(2026103500);samples=sorted(sum(rng.choices(gains,k=len(gains)))/len(gains) for _ in range(10000))
-                    row.update(CI95_low_percent=samples[249],CI95_high_percent=samples[9749])
+                    row.update(CI95_low_percent=percentile(samples,.025),CI95_high_percent=percentile(samples,.975))
             result.append(row)
     csv_write(ROOT/'paired_start_comparisons.csv',result)
     return result
@@ -132,6 +135,24 @@ def reports():
         verdicts[model]='BLOCKED_CORRECTNESS' if failed else 'NOT_RUN_TIME_BUDGET' if complete<28 and budget_incomplete else 'NO_GO_PERFORMANCE' if complete==28 and negative else 'CONDITIONAL'
     completed=sum(r['status']=='COMPLETE' for r in matrix)
     wall=(time.time()-START_EPOCH)/3600
+    lengths=[]
+    for model in ('ouro','huginn'):
+        for w in ('W1','W2','W3','W4'):
+            config_path=ROOT/'configs'/f'primary_{model}_{w.lower()}_pd_g1_start0.json'
+            if not config_path.exists():continue
+            cfg=json.loads(config_path.read_text())
+            manifest=json.loads((ROOT/'data'/cfg['dataset']).read_text())[:cfg['count']]
+            inputs=[len(r['input_ids'][model]) for r in manifest]
+            caps=cfg['request_caps']
+            lengths.append(dict(model=model,workload=w,offered_N=len(manifest),
+                input_min=min(inputs),input_mean=sum(inputs)/len(inputs),
+                input_p50=percentile(inputs,.5),input_p95=percentile(inputs,.95),input_max=max(inputs),
+                controlled_output_min=min(caps),controlled_output_mean=sum(caps)/len(caps),
+                controlled_output_max=max(caps),max_prompt_plus_output=max(a+b for a,b in zip(inputs,caps)),
+                primary_reference_completed_N=next((r['completed_N'] for r in rows if r['model']==model and r['workload']==w and r['phase']=='primary' and r['arm']=='PD_G1'),0),
+                evidence='FROZEN_TOKENIZER_ACCOUNTING. Generation completion is recorded separately.',
+                source='Complete ShareGPT dialogue text. No original Azure prompts.'))
+    csv_write(ROOT/'workload_token_lengths.csv',lengths)
     summary=f'''# Two-GPU Dynamic Loop-versus-Token PD: Final Summary
 
 Campaign start: {START_UTC}.
@@ -190,6 +211,8 @@ All failures and missing requests remain in offered-request denominators.
 
 Each primary point has one 32-request or 24-request start unless the frozen reduced matrix applies.
 Secondary W1 trials use the predeclared 1.5-rate point and independent server starts.
+All secondary cells use the separately declared 16-request budget uniformly across target methods and models.
+The mandatory primary matrix keeps its original request counts.
 Base-rate and 1.5-rate trials are not pooled for confidence intervals.
 The exact completed start counts appear in the paired comparison table.
 Finite-cohort goodput includes final drain time.
@@ -247,7 +270,38 @@ Each individual run also retains its plain request JSONL file.
 `controller_commands.jsonl` contains the phase commands.
 Model and source pins are in `configs/initial_contract.json` and `configs/frozen_execution_hashes.json`.
 The final Git SHA is the verified branch tip, not an assumed clean-worktree source identity.
+
+## Reproduction
+
+Use `/home/esjung/.venvs/looped-pd-abc/bin/python`.
+The engine path is `/home/esjung/external/looped-pd-abc-rlt`.
+The repository path is `/home/esjung/MLLM-EP-github`.
+Each recorded GPU launch includes its actual configuration and environment.
+The corresponding source archive is in that run's raw directory.
+
+Run the CPU contract and report tests before a new authorized GPU reproduction.
+Use the following exact environment for those tests.
+
+```bash
+PYTHONPATH=/home/esjung/external/looped-pd-abc-rlt:/home/esjung/MLLM-EP-github /home/esjung/.venvs/looped-pd-abc/bin/python -m unittest poc_flashvep.adaptive_loop_token_pd_2gpu.test_contract poc_flashvep.adaptive_loop_token_pd_2gpu.test_reporting
+```
+
+Run `python -m poc_flashvep.adaptive_loop_token_pd_2gpu.analyze` to rebuild derived data from preserved raw files.
+Run `python -m poc_flashvep.adaptive_loop_token_pd_2gpu.resources status` before any GPU lease.
+Use `configure` to clone a completed configuration under a new run name.
+Never reuse a completed or failed raw namespace.
+Replay its recorded worker command and environment only after ownership checks and isolated GPU assignment.
+The original dispatcher deliberately refuses new jobs after this campaign deadline.
+Do not reset that deadline to extend this campaign.
+A future authorized reproduction needs a separate time budget.
 '''
+    summary+='\n## Exact workload token lengths\n\n'
+    summary+='The following values count frozen tokenizer IDs, not predicted generation lengths.\n'
+    summary+='Controlled output targets are not Natural-EOS measurements. Completion counts remain separate in the main matrix.\n\n'
+    summary+=table([{k:fmt(v) if isinstance(v,float) else v for k,v in r.items()} for r in lengths],
+        [('Model','model'),('Workload','workload'),('Offered N','offered_N'),('Input min','input_min'),
+         ('Input mean','input_mean'),('Input p50','input_p50'),('Input p95','input_p95'),('Input max','input_max'),
+         ('Output target mean','controlled_output_mean'),('Maximum prompt+target','max_prompt_plus_output')])
     selection_path=ROOT/'static_selection.json'
     if selection_path.exists():
         choices=json.loads(selection_path.read_text())['selected'];selected=[]
@@ -325,6 +379,7 @@ The final Git SHA is the verified branch tip, not an assumed clean-worktree sour
     body+='The CSV includes request-latency mean/p50/p95/p99, throughput, memory, communication, failures, and depth accounting.\n'
     body+='ITL quantiles use observed single-token delivery intervals. Multi-token events remain counted separately.\n'
     body+='One primary start does not provide a qualifying independent-start confidence interval.\n'
+    body+='Displayed values are rounded. The CSV files retain unrounded values.\n'
     body+='The paired table separates each repeated 1.5-rate W1 comparison.\n\n'
     body+=table([{k:fmt(v) if isinstance(v,float) else v for k,v in r.items()} for r in pairs],
         [('Model','model'),('Baseline','baseline'),('Paired starts','paired_independent_starts'),
@@ -410,16 +465,19 @@ def publish():
     from .index_guard import OWNED
     paths=[]
     candidates=subprocess.check_output(['git','ls-files','-z','--cached','--others','--exclude-standard','--',*OWNED],cwd=REPO).split(b'\0')
-    for value in candidates:
-        if not value:continue
-        name=value.decode()
+    files={v.decode() for v in candidates if v}
+    for owned in OWNED:
+        path=REPO/owned
+        if path.is_dir():files.update(str(p.relative_to(REPO)) for p in path.rglob('*') if p.is_file() and not p.is_symlink())
+        elif path.is_file():files.add(owned)
+    for name in files:
         if '__pycache__' in name or name.endswith('.pyc') or name.endswith('/burner.log') or name.endswith('/logs/controller.log') or name.endswith('/logs/auto_publication.log') or name.endswith('/per_request.jsonl'):continue
         if (REPO/name).is_file() and (REPO/name).stat().st_size>95*1024**2:raise RuntimeError('Oversized artifact requires explicit lossless packaging: '+name)
         if (REPO/name).is_file():paths.append(name)
     paths=sorted(set(paths))
     branch=subprocess.check_output(['git','branch','--show-current'],cwd=REPO,text=True).strip()
     if branch!='flashvep/adaptive-loop-token-pd-2gpu-w1-w4':raise RuntimeError('Unexpected branch. No commit or push was attempted.')
-    subprocess.run(['git','add','--',*paths],cwd=REPO,check=True)
+    subprocess.run(['git','add','-f','--',*paths],cwd=REPO,check=True)
     subprocess.run(['git','-c','commit.gpgsign=false','commit','--only','-m','Publish measured two-GPU loop/token PD serving evidence','--',*paths],cwd=REPO,check=True)
     sha=subprocess.check_output(['git','rev-parse','HEAD'],cwd=REPO,text=True).strip()
     subprocess.run(['git','push','-u','origin',branch],cwd=REPO,check=True,timeout=120)

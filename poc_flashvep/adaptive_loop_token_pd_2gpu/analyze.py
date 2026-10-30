@@ -6,7 +6,15 @@ from .common import *
 from .calibration import percentile
 
 def read(path):
-    return [json.loads(s) for s in path.read_text().splitlines() if s] if path.exists() else []
+    if not path.exists():return []
+    text=path.read_text();values=[];items=text.splitlines()
+    for i,line in enumerate(items):
+        if not line:continue
+        try:values.append(json.loads(line))
+        except json.JSONDecodeError:
+            if i==len(items)-1 and not text.endswith('\n'):break
+            raise
+    return values
 
 def csv_write(path,rows):
     rows=list(rows)
@@ -94,11 +102,20 @@ def metric(cfg,directory):
 
 def main():
     setup();all_metrics=[];requests=[];matrix=[];online=[];shares=[];communication=[];cut_outcomes=[]
-    skipped={r['name']:r['reason'] for r in read(ROOT/'state/skipped.jsonl')+read(ROOT/'state/primary_skipped.jsonl')}
+    skipped={r['name']:r['reason'] for r in read(ROOT/'state/skipped.jsonl')+read(ROOT/'state/primary_skipped.jsonl')+read(ROOT/'state/secondary_skipped.jsonl')}
+    all_cells=[]
     for path in sorted((ROOT/'configs').glob('*.json')):
         cfg=json.loads(path.read_text())
-        if 'arm' not in cfg or cfg.get('tune_jobs'):continue
+        if 'arm' not in cfg:continue
         directory=ROOT/'raw'/cfg['name']
+        status=directory/'status.json'
+        actual=[r for r in read(directory/'requests.jsonl') if not r['warmup']]
+        all_cells.append(dict(name=cfg['name'],model=cfg['model'],arm=cfg['arm'],
+            phase=cfg.get('phase','static_tuning' if cfg.get('tune_jobs') else 'calibration' if cfg.get('calibration') else 'qualification'),
+            planned_measured_requests=sum(j['count'] for j in cfg['tune_jobs']) if cfg.get('tune_jobs') else cfg['count'],
+            measured_requests=len(actual),tuning_cohorts=len(cfg.get('tune_jobs',[])),gpus=str(cfg['gpus']),
+            status=json.loads(status.read_text())['status'] if status.exists() else skipped.get(cfg['name'],'NOT_RUN')))
+        if cfg.get('tune_jobs'):continue
         if not directory.exists():continue
         result,rows=metric(cfg,directory);all_metrics.append(result)
         if cfg.get('phase') in ('primary','repeat','protocol_control'):
@@ -169,6 +186,7 @@ def main():
                 matrix.append(dict(model=model,workload=w,arm=arm,status=state,
                     completed_N=sum(r['completed_N'] for r in values),run_names=';'.join(r['name'] for r in values)))
     csv_write(ROOT/'per_run_metrics.csv',all_metrics);csv_write(ROOT/'experiment_matrix.csv',matrix)
+    csv_write(ROOT/'all_experiment_matrix.csv',all_cells)
     csv_write(ROOT/'e2e_component_shares.csv',shares)
     groups={}
     for r in shares:

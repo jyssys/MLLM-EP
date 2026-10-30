@@ -3,9 +3,24 @@ import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
-from .publication import fmt,table,paired,patch_report
+from .publication import fmt,table,paired,patch_report,reports
 
 class Reporting(unittest.TestCase):
+    def test_incomplete_report_does_not_invent_primary_results(self):
+        from .analyze import csv_write
+        with tempfile.TemporaryDirectory(prefix='pd_empty_report_test_') as temp:
+            repo=Path(temp);root=repo/'poc_flashvep/reports/adaptive_loop_token_pd_2gpu'
+            (root/'state').mkdir(parents=True);(root/'figures').mkdir()
+            rows=[dict(model=m,workload=w,arm=a,status='NOT_RUN') for m in ('ouro','huginn')
+                  for w in ('W1','W2','W3','W4') for a in ('DP','DP_Chunked','PD_G1','Loop_Static','Loop_Dynamic','Token_Static','Token_Dynamic')]
+            csv_write(root/'experiment_matrix.csv',rows)
+            with patch('poc_flashvep.adaptive_loop_token_pd_2gpu.publication.REPO',repo),patch('poc_flashvep.adaptive_loop_token_pd_2gpu.publication.ROOT',root),patch('poc_flashvep.adaptive_loop_token_pd_2gpu.publication.figures'):
+                patch_report('adaptive_loop_token_pd_2gpu_correctness_and_protocol.md','Unit-test fixture. No primary GPU result.\n')
+                patch_report('adaptive_loop_token_pd_2gpu_online_policy_and_slo.md','Unit-test fixture. No online gain.\n')
+                reports()
+            final=(repo/'poc_flashvep/reports/adaptive_loop_token_pd_2gpu_final_summary.md').read_text()
+            self.assertIn('Primary cells accepted as complete: 0/56.',final)
+            self.assertIn('NOT_ESTABLISHED',final)
     def test_report_edits_use_apply_patch(self):
         with tempfile.TemporaryDirectory(prefix='pd_report_patch_test_') as temp,patch('poc_flashvep.adaptive_loop_token_pd_2gpu.publication.REPO',Path(temp)):
             patch_report('unit_test_report.md','A measured value is unavailable.\n')
