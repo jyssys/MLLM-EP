@@ -1,0 +1,44 @@
+{
+  "variant": "canonical_all",
+  "execution": {
+    "async_scheduling": true,
+    "multi_stream": true,
+    "static_buffers": true,
+    "pad_to_power_of_two": false,
+    "cuda_graphs": true,
+    "cuda_graph_max_batch_size": 1,
+    "cuda_graph_max_graphs": 16,
+    "cuda_graph_memory_reserve_bytes": 1073741824,
+    "use_uva": true,
+    "prefill_uva": false
+  },
+  "scheduler": {
+    "max_num_seqs": 1,
+    "max_num_batched_tokens": 2048,
+    "mode": "refill",
+    "min_coda_batch_size": 1,
+    "admission_scan_limit": 64,
+    "max_admission_bypasses": 8,
+    "prefill_chunk_size": 256,
+    "max_prefill_batches_before_decode": 1,
+    "policy": "fcfs",
+    "enable_preemption": false,
+    "wavefront_chunked_prefill": false
+  },
+  "cache": {
+    "num_blocks": 4096,
+    "block_size": 16,
+    "layout": "last_exited",
+    "gpu_memory_utilization": 0.9,
+    "kv_cache_memory_bytes": null,
+    "memory_reserve_bytes": 268435456,
+    "enable_prefix_caching": false,
+    "incremental_allocation": false,
+    "watermark_ratio": 0.0
+  },
+  "exit": {
+    "mode": "ouro_delayed",
+    "seed": 0,
+    "depths_by_request": null
+  }
+}

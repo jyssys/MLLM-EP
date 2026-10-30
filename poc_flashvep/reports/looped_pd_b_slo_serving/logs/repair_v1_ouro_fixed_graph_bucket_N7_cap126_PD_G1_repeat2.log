@@ -1,0 +1,116 @@
+Traceback (most recent call last):
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_b_slo_serving/repair_python.py", line 20, in <module>
+    main()
+    ~~~~^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_b_slo_serving/repair_python.py", line 16, in main
+    worker.main()
+    ~~~~~~~~~~~^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_b_slo_serving/worker.py", line 188, in main
+    module.main()
+    ~~~~~~~~~~~^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_abc/worker.py", line 221, in main
+    try:run(args)
+        ~~~^^^^^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_abc/worker.py", line 150, in run
+    engine=PDEngine(MODELS[args.model],pd_config=PDConfig(prefill_devices=tuple(range(p)),decode_devices=tuple(range(p,len(devices))),startup_timeout=300),
+     prefill_cache_config=cfg['cache_config'],decode_cache_config=cfg['cache_config'],
+     prefill_scheduler_config=cfg['scheduler_config'],decode_scheduler_config=cfg['scheduler_config'],
+     execution_config=cfg['execution_config'],exit_config=cfg['exit_config'],attention_backend=cfg['attention_backend'],seed=20261029)
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/pd/engine.py", line 147, in __init__
+    self._wait(lambda: all(p.client.ready for p in self.peers.values()), deadline)
+    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/pd/engine.py", line 169, in _wait
+    self._poll()
+    ~~~~~~~~~~^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/pd/engine.py", line 176, in _poll
+    for message in peer.client.poll():
+                   ~~~~~~~~~~~~~~~~^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/llm_engine.py", line 118, in poll
+    message = self._receive()
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/llm_engine.py", line 141, in _receive
+    raise error(f"stage worker failed:\n{self.failure}")
+RuntimeError: stage worker failed:
+Traceback (most recent call last):
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/worker.py", line 217, in worker_main
+    owner = StageWorker(
+        stage_config,
+    ...<5 lines>...
+        max_control_messages=max_control_messages,
+    )
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/worker.py", line 55, in __init__
+    self.model = AutoModelForCausalLM.from_pretrained(
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        model_source,
+        ^^^^^^^^^^^^^
+    ...<3 lines>...
+        model_config=model_config,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/models/__init__.py", line 181, in from_pretrained
+    return cls._dispatch_from_config(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        config, source, revision=resolved_revision, device=device, dtype=dtype
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/models/__init__.py", line 160, in _dispatch_from_config
+    return model_cls.from_pretrained(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        path_or_repo,
+        ^^^^^^^^^^^^^
+    ...<3 lines>...
+        config=config.model_specific_config,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/models/ouro.py", line 340, in from_pretrained
+    model = cls(config)
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/models/ouro.py", line 242, in __init__
+    self.model = OuroModel(config)
+                 ~~~~~~~~~^^^^^^^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/models/ouro.py", line 227, in __init__
+    self.embed_tokens = nn.Embedding(config.vocab_size, config.hidden_size, config.pad_token_id)
+                        ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/nn/modules/sparse.py", line 169, in __init__
+    self.reset_parameters()
+    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/nn/modules/sparse.py", line 180, in reset_parameters
+    init.normal_(self.weight)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/nn/init.py", line 262, in normal_
+    return torch.overrides.handle_torch_function(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        normal_, (tensor,), tensor=tensor, mean=mean, std=std, generator=generator
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/overrides.py", line 1741, in handle_torch_function
+    result = mode.__torch_function__(public_api, types, args, kwargs)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/utils/_device.py", line 116, in __torch_function__
+    return func(*args, **kwargs)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/nn/init.py", line 265, in normal_
+    return _no_grad_normal_(tensor, mean, std, generator)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/nn/init.py", line 83, in _no_grad_normal_
+    return tensor.normal_(mean, std, generator=generator)
+           ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/_refs/__init__.py", line 6538, in normal_
+    return normal(mean, std, self.shape, out=self, generator=generator)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/_prims_common/wrappers.py", line 314, in _fn
+    result = fn(*args, **kwargs)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/_compile.py", line 47, in inner
+    import torch._dynamo
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/_dynamo/__init__.py", line 13, in <module>
+    from . import (
+    ...<6 lines>...
+    )
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/_dynamo/aot_compile.py", line 15, in <module>
+    from torch._dynamo.convert_frame import GraphRuntimeEnv
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/_dynamo/convert_frame.py", line 28, in <module>
+    import cProfile
+  File "/home/esjung/anaconda3/lib/python3.14/cProfile.py", line 11, in <module>
+    import profile as _pyprofile
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_b_slo_serving/profile.py", line 4, in <module>
+    from .common import ROOT, REPO, remaining, write
+ImportError: attempted relative import with no known parent package
+

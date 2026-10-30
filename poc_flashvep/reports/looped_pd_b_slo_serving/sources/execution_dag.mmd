@@ -1,0 +1,18 @@
+flowchart LR
+  subgraph CONTROL["Alternative 1: PD_G1, not combined with B"]
+    C1["P: chunk c, first loop"] --> CR["P: all remaining fixed loops and boundary KV"]
+    CR --> CN["P: next chunk"]
+    CR --> CK["Completed full-depth chunk KV transfer"]
+    CK --> CW["D: all required state and commit ready"]
+    CW --> CD["Full-fixed-depth decode"]
+  end
+  subgraph CANDIDATE["Alternative 2: B; rectangles are not equal-duration intervals"]
+    B1["P: chunk c, first loop"] --> BR["P: all remaining fixed loops and boundary KV"]
+    B1 --> BE["Producer CUDA event observed complete"]
+    BE --> BK["Immutable first depth-plane KV transfer"]
+    BR --> BN["P: next chunk"]
+    BR --> BT["Remaining valid planes, hidden state, and commit transfer"]
+    BK --> BW["D: all required state and commit ready"]
+    BT --> BW
+    BW --> BD["Full-fixed-depth decode"]
+  end

@@ -1,0 +1,12 @@
+flowchart LR
+  P["Prompt KV: exact in the captured pair"] --> D["Full-depth decode with identical emitted history"]
+  D --> B["Batch composition differs"]
+  B --> U["Working hypothesis: batch-dependent arithmetic; first operator unresolved"]
+  U --> K["Original R3 historical KV: 551,940 different elements"]
+  K --> H["Observed recurrent-state difference"]
+  H --> L["Output index125: logit delta up to0.125; one path ties"]
+  L --> T["Greedy argmax: token4533 versus token30"]
+  T --> A["Later autoregressive histories differ"]
+  B --> C["Canonical linear and masked fixed-capacity graph candidate"]
+  C --> Z["Same small capture: 0 different KV elements; outputs8/8"]
+  Z --> G["Required next gate:200 requests, repeat, full-depth counters, byte checks"]

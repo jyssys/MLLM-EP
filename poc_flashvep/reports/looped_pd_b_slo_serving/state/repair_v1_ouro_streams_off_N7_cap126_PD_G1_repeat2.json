@@ -1,0 +1,29 @@
+{
+  "job": {
+    "name": "repair_v1_ouro_streams_off_N7_cap126_PD_G1_repeat2",
+    "model": "ouro",
+    "arm": "PD_G1",
+    "workload": "diagnostic",
+    "dataset": "W1",
+    "count": 7,
+    "rate": 1.0,
+    "seed": 2026103001,
+    "gpus": [
+      0,
+      1
+    ],
+    "cap": 126,
+    "capacity": 8,
+    "timeout": 600,
+    "diagnostic": true,
+    "repair_order": 2.8200000000000003,
+    "python": "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_b_slo_serving/repair_python.py",
+    "env": {
+      "B_REPAIR_VARIANT": "streams_off",
+      "B_REPAIR_RUN_DIR": "/home/esjung/MLLM-EP-github/poc_flashvep/reports/looped_pd_b_slo_serving/raw/repair_v1_ouro_streams_off_N7_cap126_PD_G1_repeat2"
+    }
+  },
+  "status": "FAILED",
+  "error": "RuntimeError('stage worker failed:\\nTraceback (most recent call last):\\n  File \"/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/worker.py\", line 217, in worker_main\\n    owner = StageWorker(\\n        stage_config,\\n    ...<5 lines>...\\n        max_control_messages=max_control_messages,\\n    )\\n  File \"/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/worker.py\", line 55, in __init__\\n    self.model = AutoModelForCausalLM.from_pretrained(\\n                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^\\n        model_source,\\n        ^^^^^^^^^^^^^\\n    ...<3 lines>...\\n        model_config=model_config,\\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^\\n    )\\n    ^\\n  File \"/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/models/__init__.py\", line 181, in from_pretrained\\n    return cls._dispatch_from_config(\\n           ~~~~~~~~~~~~~~~~~~~~~~~~~^\\n        config, source, revision=resolved_revision, device=device, dtype=dtype\\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n    )\\n    ^\\n  File \"/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/models/__init__.py\", line 160, in _dispatch_from_config\\n    return model_cls.from_pretrained(\\n           ~~~~~~~~~~~~~~~~~~~~~~~~~^\\n        path_or_repo,\\n        ^^^^^^^^^^^^^\\n    ...<3 lines>...\\n        config=config.model_specific_config,\\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n    )\\n    ^\\n  File \"/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/models/ouro.py\", line 340, in from_pretrained\\n    model = cls(config)\\n  File \"/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/models/ouro.py\", line 242, in __init__\\n    self.model = OuroModel(config)\\n                 ~~~~~~~~~^^^^^^^^\\n  File \"/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/models/ouro.py\", line 227, in __init__\\n    self.embed_tokens = nn.Embedding(config.vocab_size, config.hidden_size, config.pad_token_id)\\n                        ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \"/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/nn/modules/sparse.py\", line 169, in __init__\\n    self.reset_parameters()\\n    ~~~~~~~~~~~~~~~~~~~~~^^\\n  File \"/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/nn/modules/sparse.py\", line 180, in reset_parameters\\n    init.normal_(self.weight)\\n    ~~~~~~~~~~~~^^^^^^^^^^^^^\\n  File \"/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/nn/init.py\", line 262, in normal_\\n    return torch.overrides.handle_torch_function(\\n           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^\\n        normal_, (tensor,), tensor=tensor, mean=mean, std=std, generator=generator\\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n    )\\n    ^\\n  File \"/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/overrides.py\", line 1741, in handle_torch_function\\n    result = mode.__torch_function__(public_api, types, args, kwargs)\\n  File \"/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/utils/_device.py\", line 116, in __torch_function__\\n    return func(*args, **kwargs)\\n  File \"/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/nn/init.py\", line 265, in normal_\\n    return _no_grad_normal_(tensor, mean, std, generator)\\n  File \"/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/nn/init.py\", line 83, in _no_grad_normal_\\n    return tensor.normal_(mean, std, generator=generator)\\n           ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\n  File \"/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/_refs/__init__.py\", line 6538, in normal_\\n    return normal(mean, std, self.shape, out=self, generator=generator)\\n  File \"/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/_prims_common/wrappers.py\", line 314, in _fn\\n    result = fn(*args, **kwargs)\\n  File \"/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/_compile.py\", line 47, in inner\\n    import torch._dynamo\\n  File \"/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/_dynamo/__init__.py\", line 13, in <module>\\n    from . import (\\n    ...<6 lines>...\\n    )\\n  File \"/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/_dynamo/aot_compile.py\", line 15, in <module>\\n    from torch._dynamo.convert_frame import GraphRuntimeEnv\\n  File \"/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/_dynamo/convert_frame.py\", line 28, in <module>\\n    import cProfile\\n  File \"/home/esjung/anaconda3/lib/python3.14/cProfile.py\", line 11, in <module>\\n    import profile as _pyprofile\\n  File \"/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_b_slo_serving/profile.py\", line 4, in <module>\\n    from .common import ROOT, REPO, remaining, write\\nImportError: attempted relative import with no known parent package\\n')",
+  "time": 1793293022.415797
+}
