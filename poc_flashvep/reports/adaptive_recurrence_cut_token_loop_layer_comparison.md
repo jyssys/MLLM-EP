@@ -1,12 +1,13 @@
 # Token, Loop, and Logical-Layer Migration
 
-Status: SOURCE_AUDIT_COMPLETE. New migration correctness and performance gates remain pending.
+Status: finite Loop migration verified. Token and intra-loop Layer migration are NOT_IMPLEMENTED.
 
 ## Execution contract
 
 The study uses Ouro BF16 R4 and Huginn BF16 R32. All Decode tokens retain the complete recurrent depth.
 The qualified numerical release is `3b7a722898dab5f6dd797b474c1ff461659d8fa1`.
 The experiment base is RCC release `b53a8fed36a1706ac74754b53753f20edb8b913e`.
+Code and raw-evidence release: `71453683a69d600a7cabc667386df4dd1b622f7a`.
 The private RLT source remains read-only. The source lock records its hashes.
 
 Native Mixed and cross-depth Prefill/Decode GEMM co-batching are disabled.
@@ -21,7 +22,7 @@ These entries describe state requirements. They are not measured speedups.
 | Axis | P computation | D continuation | Required migration state | Implementation status |
 |---|---|---|---|---|
 | Token | Full-depth prompt prefix | Full-depth prompt suffix | Valid prefix KV, positions, RNG, and model-specific state | NOT_IMPLEMENTED |
-| Loop | All prompt tokens through cut n | Remaining recurrent loops | Valid depth-indexed KV and all intermediate prompt rows | New retained-state implementation under validation |
+| Loop | All prompt tokens through cut n | Remaining recurrent loops | Valid depth-indexed KV and all intermediate prompt rows | Finite GPU qualification and fixed-cut timing complete |
 | Logical layer | All prompt tokens through an unfolded layer boundary | Remaining logical layers | Valid per-layer KV, intermediate rows, residual state, and injection state | Intra-loop migration NOT_IMPLEMENTED |
 
 The previous A connector rejects prompts longer than one configured chunk.
@@ -34,15 +35,27 @@ It keeps the original causal token chunks and per-depth progress frontiers.
 A P-side cut barrier prevents work above the committed cut.
 The connector transfers only consumer-valid KV and the required hidden rows.
 The source state remains leased until transfer acknowledgement.
-New GPU checks must establish its correctness independently of the previous A release.
+New GPU checks establish finite correctness independently of the previous A release.
+They do not establish universal original-model losslessness.
+
+The matched Full Cut R control sends one completed-prompt snapshot.
+The existing PD_G1 connector can stream completed full-depth token chunks.
+These controls are not identical transfer protocols.
+The study retains native streaming PD_G1 as a separate measured control.
+A snapshot-versus-streaming difference is not a recurrent-partitioning benefit.
 
 ## Logical-layer inclusion and equivalence
 
 Ouro has 24 physical core layers and four recurrent iterations.
 Its unfolded recurrent core has 96 logical transformer layers.
+Each Ouro iteration also includes its final RMSNorm and the gate required by the qualified path.
+The matching recurrent boundary follows those transition operations.
+A raw output after physical layer 24, before that norm, is not the same boundary.
 Huginn has two Prelude layers, four recurrent core layers, and two Coda layers.
 Its R32 path has 128 logical recurrent core layers, plus Prelude and Coda.
 Huginn also carries reinjection state. A valid layer cut must preserve that state.
+Its recurrent boundary includes the carrier with both state and injection.
+An internal core boundary must not apply the reinjection adapter twice.
 
 Let L be the set of valid logical-layer cuts.
 Let R be the recurrent-loop boundary subset.
@@ -55,6 +68,19 @@ This case is `EQUIVALENT_MECHANISM`.
 Renaming that case does not establish Loop-specific novelty.
 Both workers retain shared physical weights in the matched same-model comparison.
 Duplicating weights across logical layers would create an artificial disadvantage for the generic baseline.
+
+Measured weight storage is 2,869,305,346 bytes per Ouro worker.
+It is 7,129,953,600 bytes per Huginn worker.
+These values remain unchanged across the measured cuts.
+The current implementation does not demonstrate a cut-dependent weight-residency saving.
+The generic same-model comparator must also retain physical weight aliases.
+
+Token-prefix migration needs a separate correctness protocol.
+Huginn requires valid prefix Prelude and Coda KV, not only recurrent-core KV.
+The consumer must also preserve RNG progression for suffix initialization.
+An internal Layer cut needs per-layer validity and an unfinished-loop cursor.
+It must preserve the residual and injection state required by the next operation.
+These protocols are not implemented by relabeling the existing Loop connector.
 
 Possible practical differences include serialization complexity and online search overhead.
 They also include state-frontier management and memory requirements.
@@ -89,3 +115,8 @@ No Token-Dynamic or intra-loop Layer-Dynamic GPU result exists in this namespace
 No structural argument in this report is a measured latency improvement.
 Stage 2 must justify those implementations before the experiment scope expands.
 The final report must distinguish a blocked comparison from a measured negative result.
+
+The same-boundary structural verdict is `EQUIVALENT_LAYER`.
+Claiming a new partition axis from that equivalent boundary is `NO_GO_LOOP_SPECIFIC_NOVELTY`.
+This statement does not prove that every practical Loop-aware implementation lacks value.
+Practical search, packing, serialization, and implementation-cost advantages remain NOT_MEASURED against a complete generic baseline.

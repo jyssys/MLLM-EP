@@ -17,6 +17,9 @@ OWNED=('poc_flashvep/adaptive_recurrence_cut/', 'poc_flashvep/reports/adaptive_r
        'poc_flashvep/reports/adaptive_recurrence_cut_token_loop_layer_comparison.md',
        'poc_flashvep/reports/adaptive_recurrence_cut_online_policy_results.md',
        'poc_flashvep/reports/adaptive_recurrence_cut_final_summary.md')
+OWNED+=tuple('poc_flashvep/reports/'+name for name in (
+    'dynamic_a_static_cut_headroom.md','dynamic_a_chunk_loop_layer_axis_comparison.md',
+    'dynamic_a_online_slo_serving_results.md','dynamic_a_final_summary.md','dynamic_a_reproduce.md'))
 
 
 def setup():
