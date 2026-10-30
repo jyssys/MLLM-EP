@@ -6,6 +6,13 @@ from unittest.mock import patch
 from .publication import fmt,table,paired,patch_report,reports
 
 class Reporting(unittest.TestCase):
+    def test_wilson_stays_within_probability_bounds(self):
+        from .analyze import wilson
+        for n in (16,24,32):
+            low,high=wilson(n,n)
+            self.assertGreaterEqual(low,0.)
+            self.assertLessEqual(high,1.)
+        self.assertEqual(wilson(0,0),(None,None))
     def test_incomplete_report_does_not_invent_primary_results(self):
         from .analyze import csv_write
         with tempfile.TemporaryDirectory(prefix='pd_empty_report_test_') as temp:

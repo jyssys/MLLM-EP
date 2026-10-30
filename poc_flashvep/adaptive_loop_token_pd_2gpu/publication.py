@@ -94,10 +94,10 @@ def figures(rows):
                 for r in rows:
                     if r['model']==model and r['workload']=='W1' and r['phase'] in ('primary','repeat') and r['arm']==arm and r['status']=='COMPLETE':
                         points.setdefault(float(r['rate']),[]).append(float(r['SLO_attainment'])*100)
-                if points:ax.plot(sorted(points),[sum(points[k])/len(points[k]) for k in sorted(points)],marker='o',label=arm)
+                if points:ax.scatter(sorted(points),[sum(points[k])/len(points[k]) for k in sorted(points)],label=arm)
             ax.axhline(90,color='black',linestyle='--');ax.set_ylim(0,105);ax.set_xlabel('Offered requests/s')
             ax.set_ylabel('Joint SLO attainment (%)');ax.legend(fontsize=8)
-            ax.set_title(model+' W1 / measured rate points only / finite controlled cohorts')
+            ax.set_title(model+' W1 / primary N32, secondary N16 / no capacity interpolation')
             fig.savefig(ROOT/'figures'/f'{model}_w1_measured_rate_points.png',dpi=160)
             fig.savefig(ROOT/'figures'/f'{model}_w1_measured_rate_points.svg');plt.close(fig)
             count+=4
@@ -214,10 +214,14 @@ Secondary W1 trials use the predeclared 1.5-rate point and independent server st
 All secondary cells use the separately declared 16-request budget uniformly across target methods and models.
 The mandatory primary matrix keeps its original request counts.
 Base-rate and 1.5-rate trials are not pooled for confidence intervals.
+Their cohort sizes and prompt subsets differ. Rate-point figures therefore show markers without an interpolated capacity curve.
 The exact completed start counts appear in the paired comparison table.
 Finite-cohort goodput includes final drain time.
 Maximum indefinitely sustainable serving capacity is NOT_ESTABLISHED.
 A passing finite rate grid point is not proof of stationary queue stability.
+For reference, 32/32 successes give a Wilson 95% lower bound of 89.28%.
+Even perfect attainment in that cohort does not confirm 90% population attainment.
+Wilson intervals are descriptive binomial intervals. Queue coupling can violate their independence assumption.
 
 ## Transport and novelty controls
 
@@ -435,12 +439,35 @@ A future authorized reproduction needs a separate time budget.
     policy+='The main comparison CSV separates SLO-goodput ratios from p95 E2E speedups.\n'
     policy+='The paired-start CSV contains only equal-rate repeated comparisons.\n'
     policy+='Stable capacity remains NOT_ESTABLISHED for this finite experiment.\n'
+    policy+='\n## Why the online policy selects Full-PD\n\n'
+    reasons=read_csv('online_policy_reason_accounting.csv');groups={}
+    for r in reasons:
+        if not r['name'].startswith('primary_'):continue
+        key=(r['model'],r['workload'],r['arm'],r['reason'])
+        groups[key]=groups.get(key,0)+1
+    policy+=table([dict(model=k[0],workload=k[1],arm=k[2],reason=k[3],N=n) for k,n in sorted(groups.items())],
+        [('Model','model'),('Workload','workload'),('Arm','arm'),('Initial decision reason','reason'),('N','N')])
+    policy+='\nEvidence class: deterministic reconstruction from the recorded online state. It is not a counterfactual GPU measurement.\n'
+    policy+='The cost coefficient includes calibration queueing. It is not exclusive Prefill GPU time.\n'
+    policy+='The policy also compares continuation cost with next-token age slack, although the primary SLO uses request-average TPOT.\n'
+    policy+='This conservative restriction can exclude partitions that a different policy could consider.\n'
+    policy+='A Full-PD decision does not prove that every legal dynamic partition lacks headroom.\n'
+    policy+='No threshold or execution rule changed after held-out serving results.\n'
     patch_report(policy_path.name,policy)
     write(ROOT/'final_decisions.json',dict(verdicts=verdicts,accepted_primary_cells=completed,required_primary_cells=56,
         report_elapsed_hours=wall,measured_stable_capacity='NOT_ESTABLISHED',time=time.time()))
     return verdicts
 
 def publish():
+    test_command=[str(PYTHON),'-m','unittest',
+        'poc_flashvep.adaptive_loop_token_pd_2gpu.test_contract',
+        'poc_flashvep.adaptive_loop_token_pd_2gpu.test_reporting']
+    test_env=dict(os.environ,PYTHONPATH=str(RLT)+':'+str(REPO))
+    with (ROOT/'logs/cpu_contract_report_tests.log').open('w') as handle:
+        tested=subprocess.run(test_command,cwd=REPO,env=test_env,stdout=handle,stderr=subprocess.STDOUT)
+    write(ROOT/'state/cpu_test_result.json',dict(command=test_command,PYTHONPATH=test_env['PYTHONPATH'],
+        returncode=tested.returncode,time=time.time(),scope='CPU contract and report tests. No GPU serving measurement.'))
+    if tested.returncode:raise RuntimeError('CPU contract or report tests failed. Publication stopped.')
     from .gate import lines
     for path in (ROOT/'configs').glob('*.json'):
         cfg=json.loads(path.read_text())

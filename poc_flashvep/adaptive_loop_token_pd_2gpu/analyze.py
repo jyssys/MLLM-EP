@@ -28,7 +28,7 @@ def wilson(k,n):
     z=1.959963984540054;p=k/n;den=1+z*z/n
     center=(p+z*z/(2*n))/den
     delta=z*math.sqrt(p*(1-p)/n+z*z/(4*n*n))/den
-    return center-delta,center+delta
+    return max(0.,center-delta),min(1.,center+delta)
 
 def metric(cfg,directory):
     rows=[r for r in read(directory/'requests.jsonl') if not r['warmup']]
@@ -101,7 +101,7 @@ def metric(cfg,directory):
     return result,rows
 
 def main():
-    setup();all_metrics=[];requests=[];matrix=[];online=[];shares=[];communication=[];cut_outcomes=[]
+    setup();all_metrics=[];requests=[];matrix=[];online=[];shares=[];communication=[];cut_outcomes=[];policy_reasons=[]
     skipped={r['name']:r['reason'] for r in read(ROOT/'state/skipped.jsonl')+read(ROOT/'state/primary_skipped.jsonl')+read(ROOT/'state/secondary_skipped.jsonl')}
     all_cells=[]
     for path in sorted((ROOT/'configs').glob('*.json')):
@@ -155,6 +155,28 @@ def main():
                 for r in rows:
                     plan=plans.get(f'r{r["run"]}_q{r["sample_id"]}')
                     if plan is None:continue
+                    if cfg.get('dynamic'):
+                        from .policy import token_candidates
+                        state=plan['state'];n=r['input_tokens'];depth=cfg['depth']
+                        full_cost=cfg['prefill_ms_per_token']*n/1000.
+                        slack=state['tpot_slo_s']-state['max_decode_age_s']
+                        allowed=max(0.,slack)*cfg.get('slack_fraction',.5)
+                        fractions=([(depth-c)/depth for c in cfg['cut_candidates'] if 0<c<depth]
+                            if cfg['axis']=='loop' else [(n-k)/n for k in token_candidates(n,cfg['chunk'],depth,cfg['cut_candidates']) if 0<k<n])
+                        minimum=min(fractions,default=0.)
+                        selected_fraction=((depth-plan['cut'])/depth if cfg['axis']=='loop' else (n-plan['prefix_k'])/n)
+                        reason=('NO_P_BACKLOG' if state['p_backlog']<1 else
+                            'D_IDLE_HALF_WORK_FLOOR' if state['active_decode']==0 and selected_fraction>0 else
+                            'NON_FULL_BOUNDARY_SELECTED' if selected_fraction>0 else
+                            'D_AGE_SLACK_EXHAUSTED' if slack<=0 else
+                            'MINIMUM_LEGAL_CONTINUATION_EXCEEDS_CONSERVATIVE_ALLOWANCE' if minimum*full_cost>allowed else
+                            'OTHER_LEGAL_ALIGNMENT_CONSTRAINT')
+                        policy_reasons.append(dict(name=cfg['name'],model=cfg['model'],workload=cfg['workload'],arm=cfg['arm'],
+                            sample_id=r['sample_id'],reason=reason,observed_P_backlog=state['p_backlog'],
+                            observed_active_Decode=state['active_decode'],predicted_full_prefill_ms=1000*full_cost,
+                            minimum_nonzero_D_fraction=minimum,minimum_predicted_continuation_ms=1000*minimum*full_cost,
+                            allowed_continuation_ms=1000*allowed,initial_D_fraction=selected_fraction,
+                            evidence='DETERMINISTIC_POLICY_RECONSTRUCTION_FROM_RECORDED_STATE. Cost is a host-calibration model, not measured GPU time.'))
                     fallback=r['seed'] in refused
                     cut=cfg['depth'] if fallback else plan['cut'];prefix=r['input_tokens'] if fallback else plan['prefix_k']
                     cut_outcomes.append(dict(name=cfg['name'],model=cfg['model'],workload=cfg['workload'],arm=cfg['arm'],
@@ -198,6 +220,7 @@ def main():
     csv_write(ROOT/'e2e_component_shares_aggregate.csv',groups.values())
     csv_write(ROOT/'communication_payloads.csv',communication)
     csv_write(ROOT/'online_cut_outcomes.csv',cut_outcomes)
+    csv_write(ROOT/'online_policy_reason_accounting.csv',policy_reasons)
     with (ROOT/'per_request.jsonl').open('w') as stream:
         for row in requests:stream.write(json.dumps(row)+'\n')
     with (ROOT/'online_decisions.jsonl').open('w') as stream:
