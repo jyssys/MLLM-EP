@@ -1,0 +1,38 @@
+Attention implementation: {'backend': 'flash_attn', 'generation': 4, 'package': 'flash-attn-4', 'version': '4.0.0b30'}
+Attention implementation: {'backend': 'flash_attn', 'generation': 4, 'package': 'flash-attn-4', 'version': '4.0.0b30'}
+2026-10-30 22:49:16 NIXL INFO    _api.py:407 Backend UCX was instantiated
+2026-10-30 22:49:16 NIXL INFO    _api.py:285 Initialized NIXL agent: b1c4f975765e497bb9fbb120ef60f47f-decode-1
+2026-10-30 22:49:16 NIXL INFO    _api.py:407 Backend UCX was instantiated
+2026-10-30 22:49:16 NIXL INFO    _api.py:285 Initialized NIXL agent: b1c4f975765e497bb9fbb120ef60f47f-prefill-0
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/adaptive_recurrence_cut/worker.py", line 152, in <module>
+    if __name__=='__main__':main()
+                            ~~~~^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/adaptive_recurrence_cut/worker.py", line 149, in main
+    base.main()
+    ~~~~~~~~~^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_abc/worker.py", line 221, in main
+    try:run(args)
+        ~~~^^^^^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_abc/worker.py", line 166, in run
+    if args.warmup:serve(engine,inputs[:min(args.concurrency,len(inputs))],args,-1,warmup=True)
+                   ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/adaptive_recurrence_cut/worker.py", line 58, in serve
+    for output in engine.step():
+                  ~~~~~~~~~~~^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/pd/engine.py", line 439, in step
+    self._admit()
+    ~~~~~~~~~~~^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/pd/engine.py", line 386, in _admit
+    self._send(
+    ~~~~~~~~~~^
+        d.name,
+        ^^^^^^^
+    ...<5 lines>...
+        peer=p.client.info["info"]["agent"],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+TypeError: install_metadata.<locals>.send() got multiple values for argument 'peer'
