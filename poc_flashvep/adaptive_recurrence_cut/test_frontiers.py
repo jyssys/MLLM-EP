@@ -43,5 +43,10 @@ class FrontierTests(unittest.TestCase):
             args,fields=engine._send('P',kind,tid='T',peer='D')
             self.assertEqual(fields['arc_cut'],2)
 
+    def test_profiler_interval_union(self):
+        from .profile_analysis import union,category
+        self.assertEqual(union([(0,3),(1,2),(2,5),(8,9)]),6)
+        self.assertEqual(category('cutlass_flash_attention'),'attention_name_match')
+
 
 if __name__=='__main__':unittest.main()

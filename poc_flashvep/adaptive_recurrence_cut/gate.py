@@ -10,7 +10,9 @@ def read(path):
 
 def compare(reference,candidate):
     left=ROOT/'raw'/reference;right=ROOT/'raw'/candidate
+    cfg=json.loads((right/'arc_contract.json').read_text())
     a={r['seed']:r for r in read(left/'requests.jsonl') if not r['warmup']}
+    a={seed:r for seed,r in a.items() if r['sample_id']<cfg['count']}
     b={r['seed']:r for r in read(right/'requests.jsonl') if not r['warmup']}
     rows=[]
     for seed in sorted(a.keys()|b.keys()):
@@ -24,13 +26,13 @@ def compare(reference,candidate):
             for r in read(path):out[r['seed']]=r
         return out
     u,v=states(left),states(right)
+    u={seed:r for seed,r in u.items() if seed in a}
     state_rows=[]
     for seed in sorted(u.keys()|v.keys()):
         x=u.get(seed);y=v.get(seed)
         state_rows.append(dict(seed=seed,hidden_exact=bool(x and y and x['hidden_sha256']==y['hidden_sha256']),
                                KV_exact=bool(x and y and x['planes']==y['planes'])))
-    transfers=[r for p in right.glob('KV_checks_*.jsonl') for r in read(p)]
-    cfg=json.loads((right/'arc_contract.json').read_text())
+    transfers=[r for p in right.glob('KV_checks*.jsonl') for r in read(p)]
     before=json.loads((right/'before_measured.json').read_text())
     after=json.loads((right/'after_measured.json').read_text())
     issued=sum(after[k]['issued_loop_rows']-before[k]['issued_loop_rows'] for k in before)

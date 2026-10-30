@@ -21,7 +21,7 @@ def csv_write(name,rows):
 
 
 def main():
-    summaries=[];parity=[];phases=[];work=[];request_rows=[]
+    summaries=[];parity=[];phases=[];work=[];request_rows=[];exclusions=[]
     for folder in sorted((ROOT/'raw').glob('map_*')):
         status=folder/'status.json'
         if not status.exists() or json.loads(status.read_text())['status']!='COMPLETE':continue
@@ -36,6 +36,7 @@ def main():
             window=json.loads((folder/f'window_{key}.json').read_text());seconds=window['end']-window['start']
             intervals=[1000*(e['time']-e['previous_time']) for r in targets for e in r['token_events'] if not e['first'] and e['new_tokens']==1]
             row=dict(name=folder.name,model=cfg['model'],start=cfg['repeat'],gpus=','.join(map(str,cfg['gpus'])),
+                     handoff_mode=cfg.get('handoff_mode','cut_snapshot'),
                      cohort=key,regime=first['regime'],cut=cut,prompt_tokens=first['input_tokens'],
                      target_requests=len(targets),all_requests=len(cohort),window_s=seconds,
                      finite_requests_per_s=len(cohort)/seconds,finite_output_tokens_per_s=sum(r['output_tokens'] for r in cohort)/seconds,
@@ -44,6 +45,12 @@ def main():
                 values=[r[field] for r in targets]
                 row[field+'_mean']=statistics.mean(values)
                 for q in (.5,.95,.99):row[field+f'_p{int(q*100)}']=quantile(values,q)
+            background=[r for r in cohort if not r['target']]
+            row['background_tpot_ms_p95']=quantile([r['tpot_ms'] for r in background],.95)
+            row['all_requests_tpot_ms_p95']=quantile([r['tpot_ms'] for r in cohort],.95)
+            row['all_requests_e2e_ms_mean']=statistics.mean(r['e2e_ms'] for r in cohort)
+            bg_intervals=[1000*(e['time']-e['previous_time']) for r in background for e in r['token_events'] if not e['first'] and e['new_tokens']==1]
+            row['background_observed_ITL_ms_p95']=quantile(bg_intervals,.95)
             for q in (.5,.95,.99):row[f'observed_ITL_ms_p{int(q*100)}']=quantile(intervals,q)
             row['maximum_observed_ITL_ms']=max(intervals) if intervals else 'NOT_MEASURED'
             row['observed_single_token_intervals']=len(intervals)
@@ -59,21 +66,28 @@ def main():
             for r in targets:
                 ref=references.get((r['regime'],r['seed']))
                 exact=bool(ref and all(r[k]==ref[k] for k in ('input_ids','output_ids','exit_depths','finish_reason')))
-                parity.append(dict(name=folder.name,cohort=key,model=cfg['model'],seed=r['seed'],cut=r['cut'],passed=exact))
-                request_rows.append({k:r[k] for k in ('name','cohort_id','model','regime','cut','repeat','sample_id','input_tokens','output_tokens','ttft_ms','tpot_ms','e2e_ms','finish_reason')})
+                parity.append(dict(name=folder.name,cohort=key,model=cfg['model'],seed=r['seed'],cut=r['cut'],
+                                   is_reference_cohort=cut==depth,passed=exact))
+            for r in cohort:
+                request_rows.append({k:r[k] for k in ('name','cohort_id','model','regime','cut','repeat','sample_id','target','input_tokens','output_tokens','ttft_ms','tpot_ms','e2e_ms','finish_reason')})
                 m=metrics.get(f"r{r['run']}_q{r['sample_id']}")
-                if not m:continue
+                if not m:
+                    exclusions.append(dict(name=folder.name,cohort=key,sample_id=r['sample_id'],reason='Missing coordinator metric'))
+                    continue
                 t=m['timings'];created=m['created_monotonic']
                 ttft=r['arrival']+r['ttft_ms']/1000
-                if cut:
+                if r['cut']:
                     keys=['harness_delivery','coordinator_P_queue','P_interval_observed','exposed_handoff_observed','D_wait_and_continuation_to_first_token','generation_after_first_token']
                     points=[r['arrival'],r['admission'],created+t['prefill_started'],created+t['prefill_compute_completed'],created+t['d_received'],ttft,r['finish']]
                 else:
                     keys=['harness_delivery','coordinator_D_reservation','D_prefill_and_queue_to_first_token','generation_after_first_token']
                     points=[r['arrival'],r['admission'],created+t['d_reserved'],ttft,r['finish']]
-                if any(b<a for a,b in zip(points,points[1:])):continue
+                if any(b<a for a,b in zip(points,points[1:])):
+                    exclusions.append(dict(name=folder.name,cohort=key,sample_id=r['sample_id'],reason='Nonmonotonic host observations',points=points))
+                    continue
                 for phase,left,right in zip(keys,points,points[1:]):
                     phases.append(dict(name=folder.name,cohort=key,model=cfg['model'],cut=cut,sample_id=r['sample_id'],
+                                       actual_request_cut=r['cut'],is_target=r['target'],
                                        component=phase,ms=1000*(right-left),share_pct=100*(right-left)/(r['finish']-r['arrival']),
                                        denominator='One request E2E. Exclusive host-observed intervals. Not GPU kernel shares.',
                                        evidence='MEASURED_HOST_OBSERVATION'))
@@ -82,8 +96,25 @@ def main():
     csv_write('map_output_parity.csv',parity)
     csv_write('map_full_depth_work.csv',work)
     csv_write('e2e_component_shares.csv',phases)
+    totals=defaultdict(lambda:defaultdict(float));samples=defaultdict(set)
+    for r in phases:
+        key=(r['name'],r['cohort'],r['model'],r['cut'])
+        totals[key][r['component']]+=r['ms'];samples[key].add(r['sample_id'])
+    aggregates=[]
+    for key,values in totals.items():
+        denominator=sum(values.values())
+        for phase,value in values.items():
+            aggregates.append(dict(name=key[0],cohort=key[1],model=key[2],cut=key[3],component=phase,
+                                   N=len(samples[key]),summed_request_E2E_ms=denominator,component_ms=value,
+                                   share_pct=100*value/denominator,evidence='MEASURED_EXCLUSIVE_HOST_OBSERVATIONS',
+                                   scope='Sum of all request E2E intervals in this cohort. Not cohort wall time, GPU kernel shares, or pure DMA.'))
+    csv_write('e2e_component_shares_aggregate.csv',aggregates)
+    write(ROOT/'state/host_partition_exclusions.json',exclusions)
     write(ROOT/'state/map_validation.json',dict(completed_starts=len({r['name'] for r in summaries}),
           cells=len(summaries),paired_requests=len(parity),output_exact=sum(r['passed'] for r in parity),
+          measured_requests=sum(r['all_requests'] for r in summaries),
+          nonreference_candidate_checks=sum(not r['is_reference_cohort'] for r in parity),
+          nonreference_candidate_exact=sum(r['passed'] and not r['is_reference_cohort'] for r in parity),
           work_checks=len(work),work_exact=sum(r['passed'] for r in work),
           passed=bool(parity) and all(r['passed'] for r in parity) and all(r['passed'] for r in work)))
     print('MAP_CELLS',len(summaries),'PARITY',sum(r['passed'] for r in parity),'/',len(parity))

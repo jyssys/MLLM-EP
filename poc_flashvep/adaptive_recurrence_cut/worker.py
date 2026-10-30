@@ -24,8 +24,13 @@ def install():
     from .state_probe import install as probe
     probe(cfg)
     import vllm_rlt.pd.engine as pd
-    from .connector import CutConnector
-    pd.PDStageConnector=CutConnector
+    if cfg.get('handoff_mode')=='native_G1':
+        from ..looped_pd_abc.boundary import BoundaryConnector
+        pd.PDStageConnector=BoundaryConnector
+        if cfg.get('verify_transfer'):os.environ['ABC_VERIFY_KV']='1'
+    else:
+        from .connector import CutConnector
+        pd.PDStageConnector=CutConnector
 
 
 if os.environ.get('ARC_RUN'):
@@ -40,9 +45,13 @@ def serve(engine,inputs,args,run,warmup=False,contract=None):
     caps=cfg.get('request_caps',[args.cap]*len(inputs))
     start=time.monotonic()
     active,first,last,events,outputs,admitted={},{},{},{},{},{}
+    delivered_counts={}
+    gate_after=cfg.get('ready_background_requests',0)
+    release=None
     index=0
     while index<len(inputs) or active:
         while index<len(inputs) and time.monotonic()>=start+offsets[index]:
+            if gate_after and index>=gate_after and release is None:break
             rid=f'r{run}_q{index}'
             seed=cfg['seed']+index
             if hasattr(engine,'_arc_cuts'):engine._arc_cuts[rid]=cuts[index]
@@ -57,6 +66,7 @@ def serve(engine,inputs,args,run,warmup=False,contract=None):
         for output in engine.step():
             now=time.monotonic();rid=output.request_id
             count=len(output.token_ids)
+            delivered_counts[active[rid]]=count
             previous=last.get(rid,(now,0))
             if count>previous[1]:
                 first.setdefault(rid,now)
@@ -82,11 +92,20 @@ def serve(engine,inputs,args,run,warmup=False,contract=None):
                      regime=cfg.get('regime','correctness'),co_batching=False,
                      prompt_source=cfg.get('prompt_source','Frozen ShareGPT token-prefix diagnostic'),
                      generation='Controlled ignore-EOS' if cfg.get('ignore_eos',True) else 'Natural EOS, bounded output',
-                     evidence='MEASURED_HEAVY_CORRECTNESS' if cfg.get('verify_transfer') or cfg.get('state_probe') else 'MEASURED',
+                     evidence=('MEASURED_HEAVY_CORRECTNESS' if cfg.get('verify_transfer') or cfg.get('state_probe')
+                               else 'MEASURED_PROFILE' if cfg.get('profile') else 'MEASURED'),
                      timing_scope='Scheduled arrival to final output. Includes delivery and queueing. No HTTP.')
             append(ROOT/'raw'/args.name/'requests.jsonl',row)
             outputs[i]=row
             print('DONE',args.name,cfg.get('cohort_id','single'),i,count,round(row['e2e_ms'],3),flush=True)
+        if gate_after and release is None and all(delivered_counts.get(i,0)>=cfg.get('background_ready_tokens',4) for i in range(gate_after)):
+            release=time.monotonic()
+            background_active=[i for i in active.values() if i<gate_after]
+            if len(background_active)!=gate_after:raise RuntimeError('Background Decode ended before the loaded-D gate')
+            for i in range(gate_after,len(inputs)):offsets[i]=release-start+(i-gate_after)*.002
+            append(ROOT/'raw'/args.name/'ready_decode_gates.jsonl',dict(cohort=cfg.get('cohort_id'),warmup=warmup,
+                   release=release,background_active=background_active,delivered_counts=delivered_counts,
+                   evidence='MEASURED_STATE_TRIGGER',scope='Closed-loop state-conditioned mechanism probe. Not a Poisson serving trace.'))
         if time.monotonic()-start>args.timeout:raise TimeoutError('Fixed-cut cohort watchdog')
         if not active and index<len(inputs):time.sleep(min(.001,max(0.,start+offsets[index]-time.monotonic())))
     if not warmup:write(ROOT/'raw'/args.name/f'window_{cfg.get("cohort_id","single")}.json',dict(start=start,end=time.monotonic(),scope='Finite mechanism cohort, not sustainable capacity'))
@@ -154,6 +173,19 @@ def install_local_endpoint(engine):
 
 def main():
     cfg=json.loads(Path(sys.argv[1]).read_text())
+    block=ROOT/'state'/f'model_blocked_{cfg["model"]}.json'
+    if block.exists() and json.loads(block.read_text()).get('status')=='CORRECTNESS_BLOCKED':
+        raise RuntimeError('Further GPU runs are blocked for this model. Inspect '+str(block))
+    import subprocess
+    from .common import REPO,RLT,digest
+    write(ROOT/'raw'/cfg['name']/'arc_source_provenance.json',
+          dict(repo_HEAD=subprocess.check_output(['git','rev-parse','HEAD'],cwd=REPO,text=True).strip(),
+               RLT_HEAD=subprocess.check_output(['git','rev-parse','HEAD'],cwd=RLT,text=True).strip(),
+               runtime_overlay_SHA256={p.name:digest(p) for p in Path(__file__).parent.glob('*.py')},
+               numerical_variant=VARIANTS[cfg['model']],model_pin=MODEL_PINS[cfg['model']],
+               configuration_SHA256=digest(sys.argv[1]),python=sys.version,
+               CPU_affinity=sorted(os.sched_getaffinity(0)),
+               interpretation='HEAD plus archived process-local overlay. Do not infer a clean source tree from HEAD alone.'))
     install()
     from ..looped_pd_abc import worker as base
     base.ROOT=ROOT;base.setup=setup;base.append=append;base.serve=serve
@@ -221,7 +253,12 @@ def main():
     if cfg.get('profile'):flags.append('--profile')
     os.environ['ABC_ALLOW_BOUNDARY_PD']='1'
     sys.argv=flags
-    base.main()
+    try:
+        base.main()
+    except BaseException as error:
+        if any(message in str(error) for message in ('Unexplained output mismatch','KV or hidden transport identity failed','NIXL KV or hidden byte fingerprint mismatch','Fixed recurrent depth changed','Forbidden Prefill/Decode GEMM')):
+            write(block,dict(status='CORRECTNESS_BLOCKED',run=cfg['name'],error=repr(error)))
+        raise
 
 
 if __name__=='__main__':main()
