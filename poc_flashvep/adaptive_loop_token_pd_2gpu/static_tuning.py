@@ -11,17 +11,21 @@ def offsets(count,rate,seed):
     return values
 
 def make():
+    from .fairness_gate import qualify_final_token_grid
+    final_huginn_token_static_ready=qualify_final_token_grid()
     calibrated=json.loads((ROOT/'slo_calibration.json').read_text())
     plan=json.loads((ROOT/'state/preflight_plan.json').read_text()) if (ROOT/'state/preflight_plan.json').exists() else {}
     for model in ('ouro','huginn'):
         for axis in ('loop','token'):
+            if model=='huginn' and axis=='token' and not final_huginn_token_static_ready:continue
             arm='Loop_Static' if axis=='loop' else 'Token_Static'
             name=f'tuning_{model}_{axis}_v1'
             cfg=base(model,arm,name,'W1_calibration.json',4,[0,1])
             cfg.update(tune_jobs=[],timeout=3600,estimated_seconds=plan.get('tuning_server_estimate_s',1800))
             for wi,w in enumerate(('W1','W2','W3','W4')):
                 if f'{model}_{w}' not in calibrated:continue
-                choices=([0,1,2,3,4] if model=='ouro' else [0,8,16,24,28,32]) if axis=='loop' else [0.,.25,.5,.75,1.]
+                cuts=[0,1,2,3,4] if model=='ouro' else [0,8,16,24,28,32]
+                choices=cuts if axis=='loop' else [c/MODEL_PINS[model][2] for c in cuts]
                 if plan.get('limited_static_grid'):
                     choices=[0,MODEL_PINS[model][2]//2,MODEL_PINS[model][2]] if axis=='loop' else [0.,.5,1.]
                 random.Random(2026103190+wi).shuffle(choices)

@@ -75,10 +75,25 @@ def metric(cfg,directory):
     result['stability_status']='NOT_ESTABLISHED_FINITE_COHORT'
     result['GPU_kernel_time']='NOT_MEASURED_CLEAN'
     result['pure_DMA_time']='NOT_MEASURED'
+    for path in directory.glob('NVML-summary-*.json'):
+        summary=json.loads(path.read_text())
+        for gpu,value in summary.get('measured_cohort_peak_sampled_HBM_bytes',{}).items():
+            result[f'physical_GPU{gpu}_sampled_peak_HBM_bytes']=value
+    sampled=[r for path in directory.glob('NVML-*.jsonl') for r in read(path) if r.get('measured_cohort')]
+    for gpu in cfg['gpus']:
+        values=[r['sampled_utilization_percent'] for r in sampled if r['physical_GPU']==gpu]
+        if values:result[f'physical_GPU{gpu}_mean_NVML_utilization_percent']=sum(values)/len(values)
+    if cfg.get('phase') in ('primary','repeat','protocol_control'):
+        if (directory/'live_output_mismatch.json').exists():result['status']='BLOCKED_CORRECTNESS'
+        parity=ROOT/'state'/f'primary_parity_{cfg["name"]}.json'
+        if cfg['arm']!='PD_G1' and result['status']=='COMPLETE':
+            if not parity.exists():result['status']='PENDING_OUTPUT_PARITY'
+            elif not json.loads(parity.read_text())['passed']:result['status']='BLOCKED_CORRECTNESS'
+        if result.get('full_depth_work_exact') is False:result['status']='BLOCKED_CORRECTNESS_WORK_ACCOUNTING'
     return result,rows
 
 def main():
-    setup();all_metrics=[];requests=[];matrix=[];online=[];shares=[]
+    setup();all_metrics=[];requests=[];matrix=[];online=[];shares=[];communication=[];cut_outcomes=[]
     skipped={r['name']:r['reason'] for r in read(ROOT/'state/skipped.jsonl')+read(ROOT/'state/primary_skipped.jsonl')}
     for path in sorted((ROOT/'configs').glob('*.json')):
         cfg=json.loads(path.read_text())
@@ -86,17 +101,22 @@ def main():
         directory=ROOT/'raw'/cfg['name']
         if not directory.exists():continue
         result,rows=metric(cfg,directory);all_metrics.append(result)
-        if cfg.get('phase')=='primary':
-            requests.extend(rows);online.extend(dict(name=cfg['name'],**r) for r in read(directory/'online_decisions.jsonl'))
+        if cfg.get('phase') in ('primary','repeat','protocol_control'):
+            requests.extend(dict(r,phase=cfg['phase'],start=cfg.get('start',0),rate=cfg.get('rate')) for r in rows)
+            online.extend(dict(name=cfg['name'],phase=cfg['phase'],**r) for r in read(directory/'online_decisions.jsonl'))
             closed=directory/'closed_stats.json'
             intervals={}
             if closed.exists():
                 for m in json.loads(closed.read_text()).get('metrics',[]):intervals[m['request_id']]=m
             for r in rows:
                 m=intervals.get(f'r{r["run"]}_q{r["sample_id"]}')
-                if not m:continue
-                t=m['timings'];created=m['created_monotonic'];end=r['finish']
-                boundaries=[('harness_delivery',created),
+                end=r['finish']
+                if not m:
+                    boundaries=[('harness_delivery',r['admission']),
+                        ('colocated_queue_and_prefill_unseparated',r['first_token']),('generation_observed',end)]
+                else:
+                    t=m['timings'];created=m['created_monotonic']
+                    boundaries=[('harness_delivery',created),
                     ('reservation_queue',created+t.get('admitted',0)),
                     ('reservation_and_P_notification',created+t.get('prefill_started',t.get('admitted',0))),
                     ('P_queue_and_compute_observed',created+t.get('prefill_compute_completed',t.get('prefill_started',0))),
@@ -110,6 +130,36 @@ def main():
                         sample_id=r['sample_id'],component=label,component_ms=1000*duration,
                         E2E_ms=1000*den,share_percent=100*duration/den,
                         evidence='MEASURED_HOST_EXCLUSIVE_INTERVAL_ACCOUNTING_NOT_GPU_KERNEL_SHARES'))
+            window=directory/'window.json'
+            if window.exists():
+                t=json.loads(window.read_text())
+                plans={r['request_id']:r for r in read(directory/'online_decisions.jsonl') if r['event']=='INITIAL_PLAN'}
+                refused={r['seed'] for p in directory.glob('fallback_*.jsonl') for r in read(p) if t['start']<=r['time']<=t['end']}
+                for r in rows:
+                    plan=plans.get(f'r{r["run"]}_q{r["sample_id"]}')
+                    if plan is None:continue
+                    fallback=r['seed'] in refused
+                    cut=cfg['depth'] if fallback else plan['cut'];prefix=r['input_tokens'] if fallback else plan['prefix_k']
+                    cut_outcomes.append(dict(name=cfg['name'],model=cfg['model'],workload=cfg['workload'],arm=cfg['arm'],
+                        sample_id=r['sample_id'],input_tokens=r['input_tokens'],initial_cut=plan['cut'],actual_cut=cut,
+                        initial_prefix_k=plan['prefix_k'],actual_prefix_k=prefix,full_PD_fallback=fallback,
+                        P_work_fraction=cut/cfg['depth'] if cfg['axis']=='loop' else prefix/r['input_tokens'],
+                        actual_D_continuation_fraction=(cfg['depth']-cut)/cfg['depth'] if cfg['axis']=='loop' else (r['input_tokens']-prefix)/r['input_tokens'],
+                        scope='INITIAL_COORDINATOR_PLAN_PLUS_MEASURED_SOURCE_FALLBACK_AND_COMPLETED_REQUEST'))
+                payload=[r for p in directory.glob('migration_*.jsonl') for r in read(p) if t['start']<=r['time']<=t['end']]
+                kv=sum(r['KV_bytes'] for r in payload);hidden=sum(r['hidden_bytes'] for r in payload)
+                total=result.get('transport_bytes_sent',0)
+                if cfg['arm']=='PD_G1':
+                    hidden=len(rows)*(2048 if cfg['model']=='ouro' else 10560)*2;kv=total-hidden
+                    scope='MEASURED_TOTAL_PLUS_STRUCTURAL_SINGLE_CARRIER_SPLIT'
+                elif cfg['arm'] in ('DP','DP_Chunked'):scope='NO_REQUEST_STATE_TRANSFER_BY_DESIGN'
+                else:scope='MEASURED_DESCRIPTOR_PAYLOAD_ACCOUNTING'
+                communication.append(dict(name=cfg['name'],model=cfg['model'],arm=cfg['arm'],workload=cfg['workload'],
+                    KV_bytes=kv,hidden_and_initial_state_bytes=hidden,measured_total_payload_bytes=total,
+                    reconciles=kv+hidden==total,completed_NIXL_transfers=result.get('transport_completed_count','NOT_MEASURED'),
+                    descriptors=sum(r['descriptors'] for r in payload) if payload else 'NOT_MEASURED',
+                    host_cumulative_transfer_completion_observation_s=result.get('transport_completion_observation_seconds','NOT_MEASURED'),
+                    pure_DMA_s='NOT_MEASURED',control_metadata_bytes='NOT_MEASURED',evidence=scope))
     for model in ('ouro','huginn'):
         for w in ('W1','W2','W3','W4'):
             for arm in ARMS:
@@ -120,12 +170,23 @@ def main():
                     completed_N=sum(r['completed_N'] for r in values),run_names=';'.join(r['name'] for r in values)))
     csv_write(ROOT/'per_run_metrics.csv',all_metrics);csv_write(ROOT/'experiment_matrix.csv',matrix)
     csv_write(ROOT/'e2e_component_shares.csv',shares)
+    groups={}
+    for r in shares:
+        key=(r['name'],r['component']);g=groups.setdefault(key,dict(name=r['name'],model=r['model'],arm=r['arm'],
+            workload=r['workload'],component=r['component'],component_ms=0.,summed_request_E2E_ms=0.,requests=0,
+            evidence='HOST_REQUEST_TIME_SHARES_NOT_COHORT_CRITICAL_PATH_OR_GPU_SHARES'))
+        g['component_ms']+=r['component_ms'];g['summed_request_E2E_ms']+=r['E2E_ms'];g['requests']+=1
+    for g in groups.values():g['share_percent']=100*g['component_ms']/g['summed_request_E2E_ms']
+    csv_write(ROOT/'e2e_component_shares_aggregate.csv',groups.values())
+    csv_write(ROOT/'communication_payloads.csv',communication)
+    csv_write(ROOT/'online_cut_outcomes.csv',cut_outcomes)
     with (ROOT/'per_request.jsonl').open('w') as stream:
         for row in requests:stream.write(json.dumps(row)+'\n')
     with (ROOT/'online_decisions.jsonl').open('w') as stream:
         for row in online:stream.write(json.dumps(row)+'\n')
     write(ROOT/'status.json',dict(updated=time.time(),primary_complete=sum(r['status']=='COMPLETE' for r in matrix),
-        primary_total=56,completed_primary_requests=len(requests),elapsed_hours=(time.time()-START_EPOCH)/3600))
+        primary_total=56,completed_primary_requests=sum(r['phase']=='primary' for r in requests),
+        completed_repeat_requests=sum(r['phase']=='repeat' for r in requests),elapsed_hours=(time.time()-START_EPOCH)/3600))
     print(json.loads((ROOT/'status.json').read_text()))
 
 if __name__=='__main__':main()

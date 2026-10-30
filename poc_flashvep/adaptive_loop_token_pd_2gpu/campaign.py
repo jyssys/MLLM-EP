@@ -67,6 +67,10 @@ def run():
     while other_dispatchers():
         if remaining()<4000:return
         time.sleep(5)
+    if (ROOT/'configs/primary_sequence.json').exists():
+        command('primary','run',check=False);command('analyze')
+        write(ROOT/'state/controller.json',dict(pid=os.getpid(),status='PRIMARY_FINISHED_NEEDS_REVIEW',time=time.time()))
+        return
     eligible=qualify()
     if not any(eligible.get(f'{m}_PD_G1') for m in ('ouro','huginn')):
         write(ROOT/'state/controller.json',dict(status='BLOCKED_CORRECTNESS',time=time.time()));return
@@ -75,13 +79,14 @@ def run():
     write(ROOT/'state/controller.json',dict(pid=os.getpid(),status='SLO_CALIBRATION',time=time.time()))
     command('dispatch',*jobs,'--quiet',check=False)
     if not (ROOT/'slo_calibration.json').exists():command('calibration','freeze')
-    plan=preflight()
-    command('static_tuning','make')
+    plan_path=ROOT/'state/preflight_plan.json'
+    plan=json.loads(plan_path.read_text()) if plan_path.exists() else preflight()
+    if not list((ROOT/'configs').glob('tuning_*_v1.json')):command('static_tuning','make')
     jobs=[p.name for p in sorted((ROOT/'configs').glob('tuning_*_v1.json'))
           if eligible.get(f'{json.loads(p.read_text())["model"]}_{json.loads(p.read_text())["arm"]}')]
     write(ROOT/'state/controller.json',dict(pid=os.getpid(),status='STATIC_CALIBRATION',time=time.time()))
     command('dispatch',*jobs,'--quiet',check=False)
-    command('static_tuning','select')
+    if not (ROOT/'static_selection.json').exists():command('static_tuning','select')
     command('primary','make',*(['--reduced'] if plan['reduced_matrix'] else []))
     write(ROOT/'state/controller.json',dict(pid=os.getpid(),status='PRIMARY_MATRIX',time=time.time()))
     command('primary','run',check=False)
@@ -93,6 +98,14 @@ def run():
 def main():
     p=argparse.ArgumentParser();p.add_argument('action',choices=['start','run']);a=p.parse_args();setup()
     if a.action=='run':return run()
+    previous=ROOT/'state/controller_supervisor.json'
+    if previous.exists():
+        pid=json.loads(previous.read_text())['pid']
+        process=Path('/proc')/str(pid)
+        try:
+            if process.stat().st_uid==os.getuid() and (MODULE+'campaign').encode() in (process/'cmdline').read_bytes().split(b'\0'):
+                raise RuntimeError(f'A campaign controller is already active: {pid}')
+        except FileNotFoundError:pass
     with (ROOT/'logs/controller.log').open('a') as handle:
         child=subprocess.Popen([str(PYTHON),'-m',MODULE+'campaign','run'],cwd=REPO,
             stdout=handle,stderr=subprocess.STDOUT,start_new_session=True)

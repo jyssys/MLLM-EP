@@ -39,7 +39,11 @@ def freeze():
             results[f'{model}_{w}']=dict(ttft_slo_ms=1.5*percentile([r['ttft_ms'] for r in rows],.95),
                 tpot_slo_ms=1.5*percentile([r['tpot_ms'] for r in rows],.95),rate=rate,
                 baseline_name=name,request_count=len(rows),freeze_time=time.time(),
-                prefill_ms_per_token=percentile([r['ttft_ms']/r['input_tokens'] for r in rows],.5))
+                prefill_ms_per_token=percentile([r['ttft_ms']/r['input_tokens'] for r in rows],.5),
+                input_lengths=[r['input_tokens'] for r in rows],output_lengths=[r['output_tokens'] for r in rows],
+                arrival_pattern='Eight arrivals separated by2ms. Saturated diagnostic calibration, not Poisson main serving.',
+                coefficient_scope='Host TTFT per input token, including queueing. Not pure GPU Prefill time.',
+                W3_scope='Normal-branch calibration. The held-out W3 adds the explicitly defined long-input burst.' if w=='W3' else None)
     dest=ROOT/'slo_calibration.json'
     if dest.exists():raise FileExistsError('Frozen SLOs cannot be silently replaced')
     write(dest,results)

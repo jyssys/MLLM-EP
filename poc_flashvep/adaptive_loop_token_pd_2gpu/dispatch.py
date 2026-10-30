@@ -12,6 +12,10 @@ def main():
     p=argparse.ArgumentParser();p.add_argument('configs',nargs='+');p.add_argument('--parallel',type=int,default=1)
     p.add_argument('--quiet',action='store_true');p.add_argument('--keep-quiet',action='store_true');a=p.parse_args();setup()
     if a.keep_quiet and not a.quiet:raise ValueError('Persistent quiet lease requires --quiet')
+    frozen=ROOT/'configs/frozen_execution_hashes.json'
+    if frozen.exists():
+        for source,expected in json.loads(frozen.read_text())['hashes'].items():
+            if digest(source)!=expected:raise RuntimeError('Frozen execution source changed: '+source)
     from .resources import base as resources
     pending=[]
     for name in a.configs:
@@ -50,7 +54,8 @@ def main():
                 handle=(ROOT/'logs'/f'{cfg["name"]}.log').open('w')
                 command=[str(PYTHON),'-m','poc_flashvep.adaptive_loop_token_pd_2gpu.worker',str(path)]
                 child=subprocess.Popen(command,cwd=REPO,env=env,stdout=handle,stderr=subprocess.STDOUT,start_new_session=True)
-                append(ROOT/'commands.jsonl',dict(time=time.time(),name=cfg['name'],command=command,pid=child.pid,gpus=cfg['gpus'],quiet=a.quiet))
+                append(ROOT/'commands.jsonl',dict(time=time.time(),name=cfg['name'],command=command,pid=child.pid,gpus=cfg['gpus'],quiet=a.quiet,
+                    environment={k:env[k] for k in ('CUDA_VISIBLE_DEVICES','ARC_CONFIG','ARC_RUN','LTP_WORKER','ABC_LANE','PYTHONPATH','ABC_HUGINN_REFERENCE','OMP_NUM_THREADS')}))
                 active.append((child,cfg,handle));pending.remove((path,cfg));occupied.update(cfg['gpus'])
                 print('START',cfg['name'],child.pid,flush=True)
             for child,cfg,handle in list(active):

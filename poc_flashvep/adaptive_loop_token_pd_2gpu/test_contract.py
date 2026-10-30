@@ -4,6 +4,9 @@ from .prepare import base
 from .common import ROOT,MODEL_PINS
 
 class Contracts(unittest.TestCase):
+    def test_matched_huginn_candidate_fractions(self):
+        from .policy import token_candidates
+        self.assertEqual(token_candidates(1536,256,32,[0,8,16,24,28,32]),[0,256,768,1024,1280,1536])
     def test_token_fallback_requeues_suffix_prelude(self):
         from collections import defaultdict,deque
         from types import SimpleNamespace as S

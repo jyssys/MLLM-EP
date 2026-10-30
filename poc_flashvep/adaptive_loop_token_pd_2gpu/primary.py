@@ -83,6 +83,11 @@ def run():
         if key in blocked or not qualification.exists() or not json.loads(qualification.read_text())['passed']:
             append(ROOT/'state/primary_skipped.jsonl',dict(name=cfg['name'],reason='BLOCKED_CORRECTNESS',time=time.time()))
             continue
+        if cfg['arm']!='PD_G1':
+            ref=ROOT/'raw'/cfg.get('reference_run',f'primary_{cfg["model"]}_{cfg["workload"].lower()}_pd_g1_start0')/'status.json'
+            if not ref.exists() or json.loads(ref.read_text())['status']!='COMPLETE':
+                append(ROOT/'state/primary_skipped.jsonl',dict(name=cfg['name'],reason='BLOCKED_CORRECTNESS_REFERENCE',time=time.time()))
+                continue
         status=ROOT/'raw'/cfg['name']/'status.json'
         if status.exists() and json.loads(status.read_text())['status']=='COMPLETE':continue
         result=subprocess.run([str(PYTHON),'-m','poc_flashvep.adaptive_loop_token_pd_2gpu.dispatch',name,'--quiet','--keep-quiet'],cwd=REPO)
@@ -102,6 +107,10 @@ def run():
         write(ROOT/'state/primary_blocked.json',blocked)
     from .resources import base as resources
     resources.restore(list(range(8)))
+    from .secondary import run as secondary
+    secondary()
+    from .profiles import capture
+    capture()
 
 def main():
     p=argparse.ArgumentParser();p.add_argument('action',choices=['make','run']);p.add_argument('--reduced',action='store_true');a=p.parse_args()

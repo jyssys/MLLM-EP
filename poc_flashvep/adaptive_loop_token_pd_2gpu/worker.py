@@ -49,9 +49,11 @@ def serve(engine,inputs,args,run,warmup=False,contract=None):
     offsets=([0.]*n if warmup else cfg['arrival_offsets'])
     caps=([cfg.get('warmup_cap',2)]*n if warmup else cfg['request_caps'])
     reference={}
-    if not warmup and cfg.get('phase')=='primary' and cfg['arm']!='PD_G1':
-        path=ROOT/'raw'/f'primary_{cfg["model"]}_{cfg["workload"].lower()}_pd_g1_start0'/'requests.jsonl'
+    if not warmup and cfg.get('phase') in ('primary','repeat','protocol_control') and cfg['arm']!='PD_G1':
+        name=cfg.get('reference_run',f'primary_{cfg["model"]}_{cfg["workload"].lower()}_pd_g1_start0')
+        path=ROOT/'raw'/name/'requests.jsonl'
         reference={r['sample_id']:r for r in (json.loads(s) for s in path.read_text().splitlines()) if not r['warmup']}
+        if len(reference)!=cfg['count']:raise RuntimeError('Missing complete matched native output reference')
     start=time.monotonic();active={};first={};last={};admitted={};events={};out={};index=0;observation=start
     while index<n or active:
         while index<n and time.monotonic()>=start+offsets[index]:

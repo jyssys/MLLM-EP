@@ -2,6 +2,10 @@
 import time
 from .common import ROOT,append
 
+def token_candidates(n,chunk,depth,cuts):
+    """Match loop fractions before legal token-chunk alignment and deduplication."""
+    return sorted({0,n}|{min(n,max(min(chunk,n),int(n*c/depth)//chunk*chunk)) for c in cuts if c>0})
+
 def install(engine,cfg):
     depth=cfg['depth'];engine._arc_cuts={};engine._ltp_prefixes={}
     last_output={};decisions={};original_send=engine._send
@@ -31,7 +35,7 @@ def install(engine,cfg):
                 cut=min((c for c in candidates if (depth-c)/depth<=fraction+1e-9),default=depth)
                 prefix=n
             else:
-                candidates=sorted(set([0,n]+[min(n,max(chunk,int(n*f)//chunk*chunk)) for f in (.25,.5,.75)]))
+                candidates=token_candidates(n,chunk,depth,cfg.get('cut_candidates',[0,depth//4,depth//2,3*depth//4,depth]))
                 prefix=min((k for k in candidates if (n-k)/n<=fraction+1e-9),default=n);cut=depth
         else:
             cut=cfg.get('cut',depth)
