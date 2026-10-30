@@ -1,0 +1,113 @@
+{
+  "status": "COMPLETE",
+  "results": [
+    {
+      "name": "ouro_quiet_generic_queued_N8_cap8_r0",
+      "status": "COMPLETE",
+      "time": 1793346431.2790341
+    },
+    {
+      "name": "ouro_quiet_generic_queued_N8_cap8_r1",
+      "status": "COMPLETE",
+      "time": 1793346459.1899576
+    },
+    {
+      "name": "ouro_quiet_generic_queued_N8_cap8_r2",
+      "status": "COMPLETE",
+      "time": 1793346487.920298
+    },
+    {
+      "name": "huginn_quiet_generic_queued_N8_cap8_r0",
+      "status": "COMPLETE",
+      "time": 1793346548.966548
+    },
+    {
+      "name": "huginn_quiet_generic_queued_N8_cap8_r1",
+      "status": "COMPLETE",
+      "time": 1793346611.4040096
+    },
+    {
+      "name": "huginn_quiet_generic_queued_N8_cap8_r2",
+      "status": "COMPLETE",
+      "time": 1793346667.7907276
+    },
+    {
+      "name": "ouro_hot_component_timing_r0",
+      "returncode": 0,
+      "command": [
+        "/home/esjung/.venvs/looped-pd-abc/bin/python",
+        "-m",
+        "poc_flashvep.looped_pd_b_numerical_diagnosis.component_timing",
+        "--model",
+        "ouro",
+        "--name",
+        "ouro_hot_component_timing_r0"
+      ],
+      "gpu": 4
+    },
+    {
+      "name": "huginn_hot_component_timing_r0",
+      "returncode": 0,
+      "command": [
+        "/home/esjung/.venvs/looped-pd-abc/bin/python",
+        "-m",
+        "poc_flashvep.looped_pd_b_numerical_diagnosis.component_timing",
+        "--model",
+        "huginn",
+        "--name",
+        "huginn_hot_component_timing_r0"
+      ],
+      "gpu": 5
+    },
+    {
+      "name": "teacher_huginn_independent_sample85_residual_v8",
+      "returncode": 0,
+      "command": [
+        "/home/esjung/.venvs/looped-pd-abc/bin/python",
+        "-m",
+        "poc_flashvep.looped_pd_b_numerical_diagnosis.teacher_replay",
+        "--case",
+        "huginn_independent",
+        "--sample",
+        "85",
+        "--failure-manifest",
+        "configs/new_seed_failure_manifest.json",
+        "--sizes",
+        "1,2,4,8",
+        "--variant",
+        "down_norm",
+        "--track-all",
+        "--kv-hash",
+        "--name",
+        "teacher_huginn_independent_sample85_residual_v8"
+      ],
+      "gpu": 5
+    },
+    {
+      "name": "teacher_huginn_closed_loop_sample56_residual_v8",
+      "returncode": 0,
+      "command": [
+        "/home/esjung/.venvs/looped-pd-abc/bin/python",
+        "-m",
+        "poc_flashvep.looped_pd_b_numerical_diagnosis.teacher_replay",
+        "--case",
+        "huginn_closed_loop",
+        "--sample",
+        "56",
+        "--failure-manifest",
+        "configs/new_seed_failure_manifest.json",
+        "--sizes",
+        "1,2,4,8",
+        "--variant",
+        "down_norm",
+        "--track-all",
+        "--kv-hash",
+        "--name",
+        "teacher_huginn_closed_loop_sample56_residual_v8"
+      ],
+      "gpu": 5
+    }
+  ],
+  "time": 1793346892.5424726,
+  "scope": "Residual numerical diagnosis and hot operator timings. No serving-capacity campaign."
+}
