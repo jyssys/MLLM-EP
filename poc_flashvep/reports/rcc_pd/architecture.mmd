@@ -1,0 +1,17 @@
+flowchart LR
+    A[Incoming prompt] --> P[P worker: loops before cut]
+    P --> E[Producer CUDA event]
+    E --> T[NIXL: valid KV and all prompt states]
+    T --> I[D worker: verified import]
+    I --> Q[Continuation rows at cut depth]
+    D[Existing decode rows at other depths] --> M[Native Mixed row gather]
+    Q --> M
+    M --> G[Shared physical projections]
+    G --> K[Per-request and per-depth attention metadata]
+    K --> S[Scatter states to original owners]
+    S --> C[Full fixed-depth completion and sampling]
+
+    Q --> O[A_sep: separate phase execution]
+    D --> O
+
+    X[Unimplemented conditional admission] -. before cut .-> P
