@@ -7,11 +7,13 @@ from .common import ROOT,REPO,PYTHON,write
 
 
 def main():
-    state=ROOT/'state/postprocess.json'
+    import argparse
+    parser=argparse.ArgumentParser();parser.add_argument('--wait-for-adapter',action='store_true');args=parser.parse_args()
+    state=ROOT/('state/adapter_postprocess.json' if args.wait_for_adapter else 'state/postprocess.json')
     while True:
-        p=ROOT/'state/residual_followup.json'
-        if p.exists() and json.loads(p.read_text()).get('status')=='COMPLETE':break
-        write(state,dict(status='WAITING_FOR_RESIDUAL_PROBES',pid=os.getpid(),time=time.time()))
+        p=ROOT/('state/huginn_adapter_postcheck.json' if args.wait_for_adapter else 'state/residual_followup.json')
+        if p.exists() and json.loads(p.read_text()).get('status') in ('COMPLETE','SKIPPED_FAILED_DEPENDENCY','BLOCKED_RUNTIME'):break
+        write(state,dict(status='WAITING_FOR_NUMERICAL_PROBES',pid=os.getpid(),time=time.time()))
         time.sleep(10)
     commands=[]
     for folder in sorted((ROOT/'raw').iterdir()):

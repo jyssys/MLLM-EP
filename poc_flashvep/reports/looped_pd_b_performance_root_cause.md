@@ -299,7 +299,9 @@ The CSV retains those values without clipping. The complete algebraic partition 
 
 B has not demonstrated a loop-specific, lossless serving-capacity improvement.
 Ouro's selective numerical correction passes the finite internal qualification.
-Huginn's larger independent tests still fail.
+Huginn's larger independent tests fail for the Down-plus-norm candidate in those timing tables.
+The later adapter-specific correction passes the expanded internal correctness gates.
+No new clean serving-capacity result is measured for that later candidate.
 Any queued-readiness benefit must beat the same generic correction in PD_G1.
 The final decision uses the completed finite controls without extrapolating a capacity result.
 No new A/C method, native-vLLM Loop PP engine or large serving campaign was implemented.

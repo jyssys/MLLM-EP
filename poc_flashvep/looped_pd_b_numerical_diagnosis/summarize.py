@@ -22,6 +22,9 @@ def comparison(left,right,source=ROOT):
             changes.append(dict(sample_id=i,first_divergence=pos))
     return dict(left=left,right=right,N=len(ids),exact=len(ids)-len(changes),
         input_exact=sum(a[i]['input_ids']==b[i]['input_ids'] for i in ids),
+        seed_exact=sum(a[i].get('seed')==b[i].get('seed') for i in ids),
+        finish_reason_exact=sum(a[i].get('finish_reason')==b[i].get('finish_reason') for i in ids),
+        truncation_exact=sum(a[i].get('truncated')==b[i].get('truncated') for i in ids),
         depth_exact=sum(a[i].get('exit_depths')==b[i].get('exit_depths') for i in ids),
         complete=bool(ids) and len(ids)==len(a)==len(b),differences=changes)
 
@@ -81,6 +84,13 @@ def main():
             output_exact=sum(left[i]['output_ids']==right[i]['output_ids'] for i in ids),
             fresh_native_vs='Frozen official HF eight-prompt trace',
             scope='Numerical triage only. Not benchmark answer accuracy or proof of original-model equivalence.'))
+    candidate=ROOT/'raw/huginn_adapter_native_HF_triage8_Native_0'
+    if (candidate/'requests.jsonl').exists():
+        left=rows(candidate);right=rows(PRIOR/'raw/huginn_reference_HF');ids=sorted(left.keys()&right.keys())
+        references.append(dict(model='huginn',variant='down_norm_adapter',N=len(ids),
+            input_exact=sum(left[i]['input_ids']==right[i]['input_ids'] for i in ids),
+            output_exact=sum(left[i]['output_ids']==right[i]['output_ids'] for i in ids),
+            scope='Separate eight-prompt numerical triage. Not benchmark answer accuracy.'))
     write(ROOT/'configs/results_index.json',dict(runs=records,parity=checks,official_HF_triage=references))
     with (ROOT/'correctness_ablation.csv').open('w',newline='') as stream:
         names=list(dict.fromkeys(k for row in checks for k in row))

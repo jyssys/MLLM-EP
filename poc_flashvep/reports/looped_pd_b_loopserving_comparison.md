@@ -100,7 +100,9 @@ Thus the reference helped identify a real cause, but its Down-only result does n
 Fixing every Linear is neither justified nor accepted by this evidence.
 Subsequent real-history probes identify Huginn's adapter as another susceptible projection.
 Its selective correction passes the two minimal residual replays.
-Its independent200/400-request qualification is still running.
+Its independent200/400-request qualification passes all repeat and B comparisons.
+Final valid-prefix byte, source-seed-preserving order and batch1–16 probes also pass.
+Huginn Native/HF triage remains5/8. Internal parity does not establish original-model equivalence.
 
 See [the model-specific qualification](looped_pd_b_numerical_correctness.md).
 

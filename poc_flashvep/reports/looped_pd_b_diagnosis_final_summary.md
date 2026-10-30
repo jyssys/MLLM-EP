@@ -1,8 +1,8 @@
 # Numerical correctness and B performance diagnosis
 
-Status: IN_PROGRESS_HUGINN_ADAPTER_QUALIFICATION.
-This checkpoint does not declare Huginn repaired.
-The active correctness expansion must finish before the final repair decision.
+Status: COMPLETE_MATCHED_RUNTIME_CORRECTNESS_RELEASE.
+Both models pass the documented internal output and state qualification.
+This is not a claim of original-HF equivalence or benchmark answer accuracy.
 
 ## Current model decisions
 
@@ -10,7 +10,7 @@ The active correctness expansion must finish before the final repair decision.
 |---|---|---|---|---|---|
 | Ouro R4 | Down256 plus small-row RMSNorm | Old and independent400-request seeds each pass400/400 for repeat and B comparisons | Eight-prompt triage8/8 only | NOT_MEASURED | FINITE_INTERNAL_QUALIFICATION_PASS |
 | Huginn R32 | Down256 plus small-row RMSNorm | New200 seed fails199/200. Closed-loop400 repeat fails393/400 | Eight-prompt triage5/8 | NOT_MEASURED | NO_GO_CORRECTNESS for this candidate |
-| Huginn R32 | Above plus adapter256 | Two residual histories pass batch1/2/4/8. Small PD triplet passes8/8 | PENDING separate check | NOT_MEASURED | Expanded200/400 gates RUNNING |
+| Huginn R32 | Above plus adapter256 | Two200 and two400 cohorts pass repeat and B comparisons completely. Final byte/order checks pass | Eight-prompt triage5/8 only | NOT_MEASURED | FINITE_INTERNAL_QUALIFICATION_PASS |
 
 Both models remain mandatory targets.
 No RCC-PD, A/C mechanism or native-vLLM Loop PP implementation started.
@@ -53,10 +53,10 @@ The actual copy timeline differs from cumulative host transfer observations.
 Heavy profiles remain separate from clean latency.
 No measured HBM bandwidth or fully isolated contention attribution is available.
 
-## Active expanded Huginn acceptance
+## Completed expanded Huginn acceptance
 
 The minimal adapter correction passes both newly isolated failure histories.
-The next tests run independently on four physical pairs:
+The tests ran independently on four physical pairs:
 
 | Physical GPUs | Requests | Arrival rule | Seed | Purpose |
 |---|---:|---|---:|---|
@@ -69,7 +69,22 @@ Each cohort runs PD_G1, a new PD_G1 repeat, then B.
 Each cohort stops before B if the baseline repeat fails.
 Full-R32 work counts must also pass.
 These concurrent runs measure correctness, not isolated performance.
-The controller restores only owned burners when a pair finishes.
+Every cohort passes its repeat, B and full-depth accounting gates.
+The controller restored only owned burners when each pair finished.
+
+Final Huginn release checks additionally pass4/4 valid KV/hidden transfers in each PD_G1 and B arm.
+Reversed admission with capacity3 passes8/8 output agreement in both arms.
+The new geometry replay passes all inspected tensors and prefix hashes at batch1/2/3/4/8/16.
+The installed RLT and imported reference remain unchanged.
+
+The source addition for Huginn does not change Ouro's selected Down modules or Down/normalization function bodies.
+Twelve archived Ouro qualification starts pass the CPU AST/module-selection equivalence check.
+That source check is not a newly measured400-request rerun.
+`configs/final_runtime_hashes.json` records the operator hashes and exact scope.
+
+The baseline is ready for new matched-runtime experiments with strict per-mechanism qualification.
+The user supplied a separate RCC-PD specification after this work.
+No RCC-PD GPU result is included in this report.
 
 ## Reports and raw evidence
 
@@ -87,4 +102,6 @@ The branch is `flashvep/looped-pd-b-numerical-diagnosis`.
 The baseline is `fea20edef840ed357ee0493c2f0dd69668c66c1f`.
 The unrelated staged-index SHA256 remains `4fff05df83173f2604af9b8486619d286ca9ff11f53dfd62bb57c6a38b815a18` at the recorded preservation check.
 All1637 locked original source files remain unchanged at that check.
-The final publication will update the adapter-gate decision without changing frozen failures.
+Frozen failures and prior negative performance evidence remain unchanged.
+The final source commit is the published tip of this diagnosis branch at handoff.
+The subsequent RCC prerequisite manifest must record its resolved immutable SHA.

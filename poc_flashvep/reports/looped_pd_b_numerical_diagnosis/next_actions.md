@@ -1,5 +1,31 @@
 # Resume instructions
 
+## Final original-task release
+
+The numerical task is complete within its documented matched-runtime scope.
+Ouro passes its tested200/400 repeat and B comparisons.
+Huginn `down_norm_adapter` passes both200 and both400 repeat/B cohorts.
+Final new-variant KV/hidden bytes, source-preserving order and batch1–16 geometry checks pass.
+Read `state/final_release_checks.json` and `configs/final_runtime_hashes.json`.
+Do not restart optional B campaigns or canceled controllers.
+The new RCC-PD task must pin the final diagnosis commit and independently qualify its own mixed execution.
+HF fidelity remains8/8 Ouro and5/8 Huginn on small triage only. Answer accuracy is unmeasured.
+
+## Historical scope change: prepare for RCC-PD
+
+The user does not require additional B experiments after baseline parity qualification.
+The wait-only adapter postcheck and CPU postprocess controllers were stopped safely.
+Their states record `NOT_RUN_USER_SCOPE_CHANGE`.
+The existing finite GPU cohorts were not interrupted. Their qualification controller can finish and restore owned burners.
+Do not restart the canceled follow-up controllers automatically.
+Read the user's new RCC-PD specification before any RCC-PD implementation.
+No RCC-PD implementation is authorized by the proposal discussion alone.
+
+Ouro's tested200/400 internal gates pass.
+Huginn adapter-corrected PD_G1 repeats pass both200 and both400 cohorts.
+The independent200-request Huginn B comparison also passes.
+Original-HF equivalence and benchmark answer accuracy remain separate, unproven gates.
+
 The current task is numerical debugging and B transfer diagnosis.
 Do not restart an old serving-capacity campaign.
 Do not modify `ref_loopserve`, the installed RLT source, or frozen B reports.

@@ -129,6 +129,18 @@ def main():
                 seed_exact=sum(a[i]['seed']==b[i]['seed'] for i in ids),input_exact=sum(a[i]['input_ids']==b[i]['input_ids'] for i in ids),
                 output_exact=sum(a[i]['output_ids']==b[i]['output_ids'] for i in ids),
                 evidence='LIVE_MEASURED_DIFFERENT_ADMISSION_ORDER',capacity=3))
+    adapter_reference='huginn_down_norm_adapter_qual_N8_seed2026103001_PD_G1_0'
+    a=rows(ROOT/'raw'/adapter_reference)
+    for method,index in [('PD_G1',0),('B',1)]:
+        name=f'huginn_adapter_order8_capacity3_{method}_{index}'
+        b={r['source_sample_id']:r for r in rows(ROOT/'raw'/name).values()}
+        ids=sorted(a.keys()&b.keys())
+        if ids:
+            order.append(dict(model='huginn',variant='down_norm_adapter',method=method,run=name,N=len(ids),
+                baseline=adapter_reference,seed_exact=sum(a[i]['seed']==b[i]['seed'] for i in ids),
+                input_exact=sum(a[i]['input_ids']==b[i]['input_ids'] for i in ids),
+                output_exact=sum(a[i]['output_ids']==b[i]['output_ids'] for i in ids),
+                evidence='LIVE_MEASURED_DIFFERENT_ADMISSION_ORDER',capacity=3))
     for folder in sorted((ROOT/'raw').glob('teacher_*')):
         path=folder/'result.json'
         if not path.exists():continue

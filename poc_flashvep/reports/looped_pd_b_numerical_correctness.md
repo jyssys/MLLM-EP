@@ -4,7 +4,7 @@
 
 Ouro passes the tested internal parity qualification after a selective numerical correction.
 Huginn's Down-plus-norm candidate fails the independent-seed and closed-loop qualification.
-An additional adapter-specific correction is under independent qualification.
+The adapter-specific correction passes the independent Huginn qualification and final release checks.
 Neither result establishes lossless equivalence to the original HF model.
 No large serving-capacity campaign was started.
 
@@ -251,15 +251,41 @@ Four physical GPU pairs execute these numerical gates independently.
 Their timing is not a clean performance measurement.
 Each cohort compares an independent PD_G1 repeat before comparing B.
 The controller stops that cohort if its baseline repeat fails.
-Final acceptance is PENDING in `state/huginn_adapter_qualification.json`.
+Final acceptance is `FINITE_QUALIFICATION_PASS` in `state/huginn_adapter_qualification.json`.
+
+| Adapter-corrected Huginn cohort | PD_G1 repeat | PD_G1 versus B | Full-R32 real-row accounting |
+|---|---:|---:|---|
+| N8, seed2026103001 | 8/8 | 8/8 | PASS |
+| N200, seed2026103001 | 200/200 | 200/200 | PASS |
+| N200, seed2026109001 | 200/200 | 200/200 | PASS |
+| N400, closed-loop, seed2026109001 | 400/400 | 400/400 | PASS |
+| N400, closed-loop, seed2026109002 | 400/400 | 400/400 | PASS |
+
+Seeds control both arrival generation and request RNG initialization.
+Each paired comparison preserves its seed. Cross-seed output identity is not required or claimed.
+The400-request cases cycle200 distinct source prompts twice.
+
+The final release uses new namespaces after the canceled optional postcheck.
+It verifies4/4 measured prompt-KV and hidden transfers for each PD_G1 and B arm.
+Their four generated sequences also match exactly.
+Reversed admission order with capacity3 preserves source request seeds and8/8 outputs for both arms.
+The additional sample56 geometry replay passes batch1/2/3/4/8/16.
+All inspected tensors, valid-prefix KV hashes and final hidden hashes match across those sizes.
+See `state/final_release_checks.json` and the per-run raw evidence.
+
+The corrected Native/HF eight-prompt Huginn triage remains5/8, with8/8 identical inputs.
+That result does not establish original-model equivalence or answer accuracy.
+The adapter correction changes1/200 sequences relative to the previous Down-plus-norm candidate in the old-seed control.
+That cross-candidate agreement is not a benchmark accuracy score or an equal-work latency comparison.
 
 ## Remaining work and stop condition
 
 The residual Huginn cases received bounded teacher-forced probes in a new namespace.
-The adapter-specific correction requires the expanded acceptance gates above.
+The adapter-specific correction passed the expanded acceptance gates above.
 No global Linear rewrite or large capacity sweep belongs to the current correction.
-An unresolved operator or state difference remains a failure, not an accepted BF16 exception.
-The final summary records the residual-probe outcome and the independent performance decision.
+An unresolved operator or state difference in a new workload remains a failure, not an accepted BF16 exception.
+Both models are ready for new matched-runtime correctness experiments within the documented coverage.
+Each new execution mechanism still requires its own output and state qualification.
 
 See [execution comparison](looped_pd_b_loopserving_comparison.md),
 [raw qualification index](looped_pd_b_numerical_diagnosis/configs/results_index.json),

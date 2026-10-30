@@ -105,6 +105,17 @@ It does not run a serving-capacity search.
 The postcheck waits for full acceptance before its small byte, order and HF-triage probes.
 Do not start another copy of either controller while its recorded process remains alive.
 
+The optional postcheck controllers were canceled at the user's earlier scope change.
+The later RCC prerequisite requires explicit closure of byte and order evidence.
+`release_checks.py` completes that closure in fresh namespaces without overwriting the canceled status.
+
+```bash
+/home/esjung/.venvs/looped-pd-abc/bin/python -m poc_flashvep.looped_pd_b_numerical_diagnosis.release_checks
+```
+
+The recorded terminal status is `INTERNAL_CORRECTNESS_RELEASE_PASS`.
+Do not restart this command on GPUs assigned to a subsequent experiment.
+
 ## Clean transfer comparisons and generic control
 
 `configs/quiet_plan.json` specifies the finite three-start comparison.
