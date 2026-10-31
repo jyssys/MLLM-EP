@@ -30,5 +30,26 @@ class ContractTests(unittest.TestCase):
         cfg=pd_config('ouro','cpu_test_only',count=64)
         self.assertEqual(len(cfg['prompt_ids']),64)
         self.assertEqual(cfg['dataset'],'test64_L3072.json')
+    def test_runtime_hash_scope(self):
+        from .dispatch import runtime_sources
+        names={p.name for p in runtime_sources()}
+        self.assertIn('serving_worker.py',names)
+        self.assertIn('capacity_worker.py',names)
+        self.assertNotIn('additional_analysis.py',names)
+    def test_dispatcher_failure_without_raw_status(self):
+        import tempfile,json
+        from pathlib import Path
+        from .campaign import namespace_state
+        with tempfile.TemporaryDirectory(prefix='bc_failed_start_') as d:
+            path=Path(d);(path/'dispatcher_result.json').write_text(json.dumps(dict(returncode=1)))
+            self.assertEqual(namespace_state(path),'FAILED')
+            self.assertFalse((path/'status.json').exists())
+    def test_prepared_gate_has_no_configuration_IO(self):
+        import ast
+        from .common import SOURCE
+        tree=ast.parse((SOURCE/'serving_worker.py').read_text())
+        gate=next(n for n in ast.walk(tree) if isinstance(n,ast.FunctionDef) and n.name=='ready_cohort')
+        calls=[n for n in ast.walk(gate) if isinstance(n,ast.Call) and isinstance(n.func,ast.Name) and n.func.id=='config']
+        self.assertFalse(calls,'The per-request scheduling gate must not read configuration files')
 
 if __name__=='__main__':unittest.main()

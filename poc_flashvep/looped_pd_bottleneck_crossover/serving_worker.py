@@ -78,6 +78,8 @@ def install():
     def bounded_profile(self,profile_config,*args,**kwargs):
         from dataclasses import replace
         profile_config=replace(profile_config,record_shapes=config().get('profile_record_shapes',profile_config.record_shapes))
+        if config().get('profile_activities'):
+            profile_config=replace(profile_config,activities=tuple(config()['profile_activities']))
         schedule=config().get('profile_schedule')
         if schedule:
             profile_config=replace(profile_config,wait=schedule.get('wait',200),warmup=10,active=schedule.get('active',200),repeat=1)
@@ -87,19 +89,36 @@ def install():
     if config().get('prepare_D_only'):
         from vllm_rlt.pd.connector import PDStageConnector
         can_schedule=PDStageConnector.can_schedule
+        prepared_config=config()
+        marker=ROOT/'raw'/prepared_config['name']/'prepared_D_marker.json'
+        prepared_offsets=prepared_config.get('prepared_D_arrival_offsets')
+        prepared_seed=prepared_config['seed']
         def ready_cohort(self,request):
-            if self.engine.stage_config.role!='decode' or getattr(self,'_bc_D_released',False):return can_schedule(self,request)
-            marker=ROOT/'raw'/config()['name']/'prepared_D_marker.json'
-            if not marker.exists():return can_schedule(self,request)
-            expected=json.loads(marker.read_text())['count']
-            incoming=[t for t in self.transfers.values() if not t.outgoing and not t.cancelled]
-            if len(incoming)!=expected or not all(t.ready for t in incoming):return False
-            self.engine.model_runner.synchronize()
-            assert all(t.request.num_prefilled_tokens==len(t.request.prompt_token_ids) for t in incoming)
-            self._bc_D_released=True
-            write(marker.with_name(f'prepared_D_ready_{os.getpid()}.json'),dict(time=time.monotonic(),count=expected,
-                valid_KV_and_hidden=True,transfer_ids=[t.tid for t in incoming],
-                scope='All incoming NIXL transfers completed and native imports accepted. Device synchronized before timed Decode.'))
+            if self.engine.stage_config.role!='decode':return can_schedule(self,request)
+            if getattr(self,'_bc_D_released',False):
+                if not prepared_offsets:return can_schedule(self,request)
+                index=request.sampling_params.seed-prepared_seed
+                if index in self._bc_D_release_records:return can_schedule(self,request)
+            if not getattr(self,'_bc_D_released',False):
+                if not marker.exists():return can_schedule(self,request)
+                expected=json.loads(marker.read_text())['count']
+                incoming=[t for t in self.transfers.values() if not t.outgoing and not t.cancelled]
+                if len(incoming)!=expected or not all(t.ready for t in incoming):return False
+                self.engine.model_runner.synchronize()
+                assert all(t.request.num_prefilled_tokens==len(t.request.prompt_token_ids) for t in incoming)
+                self._bc_D_released=True;self._bc_D_release_time=time.monotonic()
+                self._bc_D_release_records=set()
+                write(marker.with_name(f'prepared_D_ready_{os.getpid()}.json'),dict(time=self._bc_D_release_time,count=expected,
+                    valid_KV_and_hidden=True,transfer_ids=[t.tid for t in incoming],
+                    scope='All incoming NIXL transfers completed and native imports accepted. Device synchronized before timed Decode.'))
+            if prepared_offsets:
+                index=request.sampling_params.seed-prepared_seed
+                assert 0<=index<len(prepared_offsets),'Unknown prepared-request seed'
+                target=self._bc_D_release_time+prepared_offsets[index]
+                if time.monotonic()<target:return False
+                if index not in self._bc_D_release_records:
+                    self._bc_D_release_records.add(index)
+                    append(marker.with_name('prepared_D_release_events.jsonl'),dict(index=index,scheduled=target,actual=time.monotonic()))
             return can_schedule(self,request)
         PDStageConnector.can_schedule=ready_cohort
 
@@ -158,7 +177,9 @@ def main():
                 preparation_s=actual_release-prepare_start,prepared_D_service_s=finish-actual_release,batch=len(rows),
                 mu_D_finite=len(rows)/(finish-actual_release),
                 native_output_parity=True,reference_run=ref_run,
-                scope='Native PD coordinator, first CODA and full Decode. All P computation and NIXL import excluded. Valid KV/hidden preserved. Native ACK manages source lifetime.',
+                prepared_D_arrival_mode='STAGGERED_DIAGNOSTIC' if cfg.get('prepared_D_arrival_offsets') else 'ALL_READY_TOGETHER',
+                maximum_scheduled_release_delay_s=max(cfg.get('prepared_D_arrival_offsets',[0.])),
+                scope='Native PD coordinator, first CODA and full Decode. All P computation and NIXL import excluded. Staggered diagnostics include deliberate release gaps and are not pure service capacity. Valid KV/hidden preserved. Native ACK manages source lifetime.',
                 evidence='MEASURED_PREPARED_NATIVE_PD_D_ONLY'))
             return rows
         prior.serve=prepared_decode

@@ -14,6 +14,7 @@ def main():
         if cfg['model'] not in ('ouro','huginn'):continue
         window=json.loads((folder/'window.json').read_text());start=window['start'];last=window['last_arrival']
         end=window['end'];capacity=cfg['capacity_planning'];muP=capacity['mu_P'];muD=capacity['mu_D']
+        matching_capacity=not bool(cfg.get('protocol_control'))
         metrics=json.loads((folder/'closed_stats.json').read_text())['metrics']
         metrics=[r for r in metrics if r['request_id'].startswith('r0_')]
         p_live=[];core_wait=[];last_prelude={};first_core={};samples=[]
@@ -48,7 +49,7 @@ def main():
         realized=(cfg['count']-1)/(last-start) if last>start else None
         decode_slack=cfg['model'] in slos and run['request_TPOT_ms_p95']<=.9*slos[cfg['model']]['TPOT_ms']
         growth_evidence=growth>=1. or (max(backlog,default=0)>=3 and percentile(core_wait,.95) is not None and percentile(core_wait,.95)>.1)
-        P_candidate=bool(realized and realized/muP>=.85 and realized/muD<=.85 and growth_evidence and
+        P_candidate=bool(matching_capacity and realized and realized/muP>=.85 and realized/muD<=.85 and growth_evidence and
             kv_fraction<=.1 and slot_fraction<=.1 and D_blocked_share<=.1 and decode_slack)
         # This flag never authorizes a candidate GPU campaign by itself.
         if kv_fraction>.1 and reservation_share>.1:category='D_KV_ADMISSION_LIMITED'
@@ -66,6 +67,8 @@ def main():
             D_KV_refusal_observation_fraction=kv_fraction,D_slot_refusal_observation_fraction=slot_fraction,
             reservation_share_of_summed_request_time=reservation_share,decode_TPOT_SLO_margin_pass=decode_slack,
             sampled_D_credit_wait_share=D_blocked_share,
+            capacity_matches_execution_configuration=matching_capacity,
+            rate_planning_scope='Original C256 rate source retained for an identical-arrival chunk control.' if not matching_capacity else 'Independent service measurements for the declared configuration.',
             category=category,P_candidate=P_candidate,C_GPU_GATE_AUTHORIZED=False,
             scope='Finite diagnostic only. Require selected actual P/D kernel profile and source evidence before Phase C.'))
     save_csv(ROOT/'bottleneck_screening.csv',result)

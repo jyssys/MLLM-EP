@@ -105,6 +105,22 @@ This is structural storage accounting, not measured reclaimed memory or speedup.
 Native NIXL already excludes unused boundary planes from the relevant transfer path.
 The storage difference must not be reported as equivalent wasted network traffic.
 
+The table below derives per-token storage from the measured allocation geometry.
+It is structural accounting, not a measured bandwidth or latency result.
+
+| Model | Effective valid planes | Allocated planes | Valid KV bytes/token | Allocated KV bytes/token |
+|---|---:|---:|---:|---:|
+| Ouro R4 | 96 | 96 | 786,432 | 786,432 |
+| Huginn R32 | 132 | 256 | 2,787,840 | 5,406,720 |
+| Qwen3-1.7B | 28 | 28 | 114,688 | 114,688 |
+
+Ouro uses 16 KV heads with head dimension 128.
+Huginn uses 55 KV heads with head dimension 96.
+Qwen uses eight KV heads with head dimension 128.
+Shared recurrent weights do not imply a shared KV state across recurrent depths.
+Parameter count alone therefore does not predict legal Decode concurrency.
+The table does not isolate recurrence from attention architecture or logical layer count.
+
 A 26,624-block Huginn pool actually loaded and completed valid B4 cohorts.
 Its memory cost and capacity appear separately from the default pool.
 No compact KV layout was implemented in this study.
@@ -135,6 +151,12 @@ Both passed a two-request partial-tail qualification at 3,500 input tokens.
 The checks include output sequences, valid Prompt KV, final hidden state, and full-depth work.
 The initial barrier gates passed eight output and state comparisons per model.
 These are internal runtime results, not original-model accuracy results.
+
+The enlarged Ouro setting additionally passed 24 sequences at 3,500 input tokens and 128 output tokens.
+Its observed and expected PD recurrent row counts both equal 348,192.
+The enlarged Huginn setting passed four sequences at 3,072 input tokens and 128 output tokens.
+Its observed and expected PD row counts both equal 409,472.
+Both qualifications compare Prompt KV and hidden state with native execution.
 
 The first Huginn chunk sweep failed while allocating its second cache pool.
 A local reference retained the previous pool after engine closure.

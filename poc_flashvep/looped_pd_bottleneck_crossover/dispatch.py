@@ -5,6 +5,12 @@ import subprocess
 import zipfile
 from .common import *
 
+def runtime_sources():
+    # Analysis can proceed while a worker starts. GPU execution sources must remain fixed.
+    names=('__init__.py','common.py','capacity_worker.py','serving_worker.py','telemetry.py',
+        'projection_probe.py','ar_worker.py','ar_pd.py','partition_policy.py')
+    return [SOURCE/name for name in names if (SOURCE/name).exists()]+list((REPO/'poc_flashvep/adaptive_loop_token_pd_2gpu').glob('*.py'))
+
 def main():
     p=argparse.ArgumentParser();p.add_argument('names',nargs='+');p.add_argument('--parallel',type=int,default=1)
     p.add_argument('--nonclean',action='store_true');p.add_argument('--keep-quiet',action='store_true');a=p.parse_args();setup()
@@ -49,7 +55,7 @@ def main():
                         for source in (REPO/'poc_flashvep'/package).glob('*.py'):archive.write(source,str(source.relative_to(REPO)))
                     archive.writestr('RLT_private_diff.patch',subprocess.check_output(['git','diff','--binary'],cwd=RLT))
                 env=environment(cfg['gpus']);env.update(ARC_CONFIG=str(path),ARC_RUN=cfg['name'],BC_WORKER='1',ABC_LANE='nonclean_gate' if a.nonclean else 'isolated_service')
-                frozen_sources=list(SOURCE.glob('*.py'))+list((REPO/'poc_flashvep/adaptive_loop_token_pd_2gpu').glob('*.py'))
+                frozen_sources=runtime_sources()
                 env['LTP_SOURCE_HASHES']=json.dumps({str(s):digest(s) for s in frozen_sources})
                 command=[str(PYTHON),'-m','poc_flashvep.looped_pd_bottleneck_crossover.'+cfg['worker'],str(path)]
                 handle=(ROOT/'logs'/f'{cfg["name"]}.log').open('w')

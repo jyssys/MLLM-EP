@@ -48,7 +48,15 @@ def analyze():
             failed_or_missing=cfg['count']-len(rows),arrival_rate=cfg.get('arrival_rate'),rate_factor=cfg.get('rate_factor'),
             elapsed_s=elapsed,completed_requests_per_s=len(rows)/elapsed,output_tokens_per_s=sum(r['output_tokens'] for r in rows)/elapsed,
             coalesced_delivery_events=coalesced,gpus=cfg['gpus'],chunk=cfg.get('chunk'),KV_blocks=cfg.get('kv_blocks'),
+            compute_slots=cfg.get('capacity',32 if cfg['model']=='qwen' else None),
             observation_scope='FINITE_COHORT_ARRIVAL_TO_DRAIN_NOT_PROVEN_SUSTAINABLE_CAPACITY',independent_start=cfg.get('start',0))
+        if cfg['model']=='qwen':
+            for role,label in (('prefill','P'),('decode','D')):
+                path=folder/f'{role}_ready.json'
+                if path.exists():
+                    ready=json.loads(path.read_text());row[label+'_KV_blocks']=ready['KV_blocks']
+                    row[label+'_KV_tensor_bytes']=ready['KV_tensor_bytes']
+                    row['KV_blocks']=ready['KV_blocks'];row['KV_dtype']=ready['KV_dtype']
         if window:
             duration=window['last_arrival']-window['start']
             row['realized_arrival_rate']=(cfg['count']-1)/duration if duration>0 else None

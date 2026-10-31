@@ -73,8 +73,14 @@ def qualification(model,count=32,folder_name=None,native_name=None):
     a=states(native);b=states(folder)
     assert all(a[(r['seed'],r['input_tokens'])]==b[(r['seed'],r['input_tokens'])] for r in rows)
     assert reference['full_depth_rows']==reference['full_depth_rows_observed']
+    before=json.loads((folder/'before_measured.json').read_text())
+    after=json.loads((folder/'after_measured.json').read_text())
+    observed=sum(v['issued_loop_rows']-before[k]['issued_loop_rows'] for k,v in after.items())
+    expected=sum((r['input_tokens']+r['output_tokens']-1)*MODEL_PINS[model][2] for r in rows)
+    assert observed==expected,('PD full-depth work mismatch',observed,expected)
     result=dict(status=f'PASS_{count}_NATIVE_PD_QUALIFICATION',model=model,output_sequences=count,full_KV_hidden_checks=count,
-        work_accounting=reference['full_depth_rows_observed'],scope='Independent finite 32-request transport and output qualification, not original-HF fidelity.',time=time.time())
+        work_accounting=reference['full_depth_rows_observed'],PD_issued_loop_rows=observed,PD_expected_loop_rows=expected,
+        scope='Independent finite 32-request transport and output qualification, not original-HF fidelity.',time=time.time())
     result['scope']=f'Finite {count}-request transport/output qualification at input {rows[0]["input_tokens"]}. Not original-HF fidelity.'
     write(ROOT/'state'/f'{model}_qualification{count}.json',result);return result
 
