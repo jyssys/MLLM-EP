@@ -83,9 +83,12 @@ def figures(rows):
                 data.sort(key=lambda r:ARMS.index(r['arm']))
                 ax.bar([r['arm'] for r in data],[float(r.get('SLO_attainment',0))*100 for r in data])
                 ax.axhline(90,color='black',linestyle='--');ax.set_ylim(0,105)
-                ax.set_ylabel('Joint SLO attainment (%)');ax.set_title(w+' / one primary start')
+                ax.set_ylabel('Joint SLO attainment (%)')
+                condition=(' / N'+str(data[0]['expected_N'])+' / GPUs '+data[0]['GPU_ids']
+                    +'\nNormal arrival intensity '+fmt(data[0].get('rate'),4)+' requests/s') if data else ' / NOT_RUN'
+                ax.set_title(w+condition,fontsize=10)
                 ax.tick_params(axis='x',rotation=60)
-            fig.suptitle(model+' / actual controlled generation / finite cohorts, not stable capacity')
+            fig.suptitle(model+' R'+str(MODEL_PINS[model][2])+' / 2GPU BF16 / no Mixed / controlled generation\nFinite cohorts, not stable capacity')
             fig.savefig(ROOT/'figures'/f'{model}_primary_slo_attainment.png',dpi=160)
             fig.savefig(ROOT/'figures'/f'{model}_primary_slo_attainment.svg');plt.close(fig)
             fig,ax=plt.subplots(figsize=(9,4),layout='constrained')

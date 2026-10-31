@@ -218,3 +218,14 @@ The policy also compares continuation cost with next-token age slack, although t
 This conservative restriction can exclude partitions that a different policy could consider.
 A Full-PD decision does not prove that every legal dynamic partition lacks headroom.
 No threshold or execution rule changed after held-out serving results.
+
+The P-backlog observation includes requests waiting for D reservation.
+It is not a direct Prefill-only GPU queue measurement.
+
+## Source and verification
+
+Measured-data release: `d8a0209a0d5ab205308db798b9f04c6b413ad327`.
+The primary Loop policy used a D continuation for 5/112 Ouro requests and 2/112 Huginn requests.
+All seven cases occurred in W2.
+Every repeated W1 Dynamic trial used full Prefill on P.
+Its timing differences therefore do not demonstrate adaptive recurrent partitioning.

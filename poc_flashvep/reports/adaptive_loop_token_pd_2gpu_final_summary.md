@@ -26,6 +26,7 @@ The runtime uses actual two-GPU P/D ownership changes.
 Token migration transfers full-depth prefix KV before D executes the suffix.
 Loop migration transfers valid depth-specific KV and complete prompt carrier rows.
 Huginn Token migration also transfers unused canonical initialization states.
+
 The online methods select provisional boundaries from observed runtime state.
 They recheck D admission at the export frontier and can finish Prefill on P.
 All subsequent Decode tokens execute full fixed depth on D.
@@ -38,6 +39,7 @@ Both models passed the initial seven-arm 32-request migration qualification.
 There were 192/192 non-reference output and Prompt-state comparisons per model.
 The fixture contains repeated prompt content, not 192 distinct benchmark questions.
 Zero/full endpoints and complete long-prompt Loop/Token migration also passed finite checks.
+
 Huginn's additional normalized Token grid has separate qualification evidence.
 The main serving harness rejects unexplained controlled-output mismatches immediately.
 Rejected cells do not become valid performance results.
@@ -51,6 +53,7 @@ W1 targets 384/448/512 tokens in 25/50/25 percent proportions.
 Huginn's prompt plus output target never exceeds 4,096 tokens.
 The primary SLO combines TTFT and request-average TPOT.
 It is not a request-level maximum-ITL SLO.
+
 The SLO thresholds were frozen from disjoint PD_G1 calibration before candidate serving.
 All failures and missing requests remain in offered-request denominators.
 
@@ -59,14 +62,17 @@ Secondary W1 trials use the predeclared 1.5-rate point and independent server st
 All secondary cells use the separately declared 16-request budget uniformly across target methods and models.
 The mandatory primary matrix keeps its original request counts.
 Base-rate and 1.5-rate trials are not pooled for confidence intervals.
+
 Their cohort sizes and prompt subsets differ. Rate-point figures therefore show markers without an interpolated capacity curve.
 The exact completed start counts appear in the paired comparison table.
 Finite-cohort goodput includes final drain time.
+
 The displayed arrival rate is the normal Poisson intensity. W3 uses five times that intensity during its long-prompt burst.
 The raw metric table also records the realized scheduled rate over the finite arrival span.
 Finite-cohort goodput can exceed the normal intensity without implying sustainable capacity.
 Maximum indefinitely sustainable serving capacity is NOT_ESTABLISHED.
 A passing finite rate grid point is not proof of stationary queue stability.
+
 For reference, 32/32 successes give a Wilson 95% lower bound of 89.28%.
 Even perfect attainment in that cohort does not confirm 90% population attainment.
 Wilson intervals are descriptive binomial intervals. Queue coupling can violate their independence assumption.
@@ -77,6 +83,7 @@ PD_G1 uses native completed-token-chunk streaming.
 Loop and Token methods use acknowledged snapshot handoff.
 Separate full-cut W1 snapshot controls isolate that protocol change where completed.
 Protocol-only gains are not Loop-partitioning gains.
+
 The two axes use matched normalized candidate fractions before token-chunk alignment.
 The online rule is conservative and is not an exhaustive optimizer.
 It does not dynamically select the D-local Cut0 endpoint.
@@ -119,6 +126,7 @@ Raw requests preserve input IDs, output IDs, exit depths, stop reasons, and toke
 Every job preserves configuration, source archives, GPU mapping, and complete logs.
 The uncompressed aggregate remains local. Its complete gzip archive is published instead of an oversized Git object.
 Each individual run also retains its plain request JSONL file.
+
 `commands.jsonl` contains the actual GPU launch commands.
 `controller_commands.jsonl` contains the phase commands.
 Model and source pins are in `configs/initial_contract.json` and `configs/frozen_execution_hashes.json`.
@@ -145,6 +153,7 @@ Use `configure` to clone a completed configuration under a new run name.
 Never reuse a completed or failed raw namespace.
 Replay its recorded worker command and environment only after ownership checks and isolated GPU assignment.
 The original dispatcher deliberately refuses new jobs after this campaign deadline.
+
 Do not reset that deadline to extend this campaign.
 A future authorized reproduction needs a separate time budget.
 
@@ -185,6 +194,7 @@ Changing workload also changes prompt and output lengths. It does not isolate qu
 Q1: The table above records workload-dependent calibration choices. The full main cut map is not measured.
 
 Q2 and Q3: The following ratios compare actual online Loop decisions with selected Static and Token baselines.
+
 | Model | Workload | Baseline | p95 E2E speedup | SLO-goodput ratio |
 | --- | --- | --- | --- | --- |
 | ouro | W1 | Loop_Static | 0.8848 | 1.0030 |
@@ -246,3 +256,121 @@ It is structural accounting from observed reservations, not GPU kernel-time attr
 Every cut still reserves D KV for full-depth Decode. Moving Prefill work does not remove this reservation requirement.
 Ouro and Huginn also differ in width, recurrent structure, boundary state, and supported async execution.
 This experiment does not isolate one of these differences as the sole measured cause.
+
+## Closeout verification
+
+The mandatory matrix uses the original 32/24/32/24 request counts for W1/W2/W3/W4.
+The campaign did not use the reduced primary matrix.
+All 56 primary cells passed their output and recurrent-work checks.
+
+| Evidence group | Completed server starts | Measured requests | Generated output tokens |
+| --- | --- | --- | --- |
+| Primary W1–W4 | 56/56 | 1,568/1,568 | 589,568 |
+| Additional W1/W3 trials | 40/40 | 640/640 | 276,480 |
+| Full-cut protocol controls | 2/2 | 64/64 | 28,672 |
+| Total clean serving | 98/98 | 2,272/2,272 | 894,720 |
+
+Warm-up requests, migration qualification, static calibration, and heavy profiling do not enter these clean-serving totals.
+The independent closeout audit checked 1,920 non-reference output sequences against their matched native reference.
+The audit also checked the compressed aggregate against its uncompressed SHA256.
+All 98 clean runs have matching frozen execution hashes and exact fixed-depth work counts.
+
+The separate profiler campaign completed six jobs and twelve rank traces.
+Its captured windows contain profiler overhead and CUDA Graph observation limits.
+They do not supply exclusive clean attention, FFN, or DMA times.
+Those clean metrics remain NOT_MEASURED.
+
+All fourteen CPU contract and reporting tests passed.
+A list-valued sequence manifest caused the first automatic publication failure.
+A CPU regression test reproduced that failure before the manifest type check was added.
+The original failure and its correction remain in `state/publication_failures.jsonl`.
+No GPU experiment was rerun to fix this reporting error.
+
+The audit preserved 117,913 unrelated Git index entries and every protected inherited source file.
+It also checked the unchanged private RLT diff.
+All eight approved burners were active after GPU measurements ended.
+`state/final_validation.json` records the exact audit time, GPU processes, and verification results.
+
+## Frozen SLO values
+
+These thresholds preceded held-out candidate serving.
+The rate column gives the normal Poisson intensity, not W3's finite-trace average arrival rate.
+W3 applies a fivefold intensity during its long-prompt burst.
+
+| Model/workload | TTFT threshold ms | Request-average TPOT threshold ms | Primary normal arrival intensity req/s |
+| --- | --- | --- | --- |
+| Ouro W1 | 25367.61 | 40.49 | 0.21180 |
+| Ouro W2 | 25177.29 | 46.30 | 0.33262 |
+| Ouro W3 | 20149.41 | 39.54 | 0.27556 |
+| Ouro W4 | 29015.65 | 48.86 | 0.27277 |
+| Huginn W1 | 97201.79 | 177.75 | 0.05267 |
+| Huginn W2 | 105888.91 | 176.71 | 0.07942 |
+| Huginn W3 | 84671.47 | 186.48 | 0.06281 |
+| Huginn W4 | 93164.65 | 177.47 | 0.07969 |
+
+The JSON retains unrounded values and calibration evidence.
+The eight-request saturated calibration includes queueing.
+These thresholds do not represent a separately established production service target.
+
+## Observed bottlenecks and policy limits
+
+The next table describes the primary Loop_Dynamic runs.
+NVML columns use sampled GPU utilization.
+Host columns divide exclusive host intervals by summed request E2E time.
+They are not GPU execution or exclusive DMA percentages.
+
+| Model | Workload | Mean P NVML % | Mean D NVML % | Reservation queue host % | P queue+compute host % | Exposed handoff host % | Generation host % | Other host intervals % |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Ouro | W1 | 5.34 | 91.16 | 0.00 | 7.48 | 0.32 | 87.89 | 4.31 |
+| Ouro | W2 | 13.37 | 71.02 | 0.02 | 29.02 | 2.36 | 61.68 | 6.92 |
+| Ouro | W3 | 6.44 | 90.88 | 17.66 | 6.14 | 0.37 | 36.63 | 39.19 |
+| Ouro | W4 | 3.93 | 93.63 | 0.00 | 3.15 | 0.12 | 83.42 | 13.31 |
+| Huginn | W1 | 4.33 | 74.62 | 8.47 | 2.94 | 0.27 | 86.99 | 1.33 |
+| Huginn | W2 | 10.89 | 67.31 | 54.59 | 5.13 | 0.38 | 39.51 | 0.38 |
+| Huginn | W3 | 5.02 | 72.77 | 60.14 | 1.60 | 0.07 | 38.15 | 0.04 |
+| Huginn | W4 | 3.45 | 73.64 | 4.83 | 1.39 | 0.11 | 79.63 | 14.04 |
+
+Other host intervals include harness delivery, notifications, D admission, and first-token processing.
+The full component CSV preserves every category and unrounded percentage.
+Rounded table rows can differ from 100% by 0.01 percentage point.
+These request-time shares are not an Amdahl bound for cohort speedup.
+Changing admission or transfer timing can change later queueing.
+
+The observations show low sampled P utilization and larger sampled D utilization in these runs.
+Huginn's W2/W3 reservation queues account for 54.59%/60.14% of summed request E2E.
+The common runtime reserves full-depth D KV before P execution starts.
+DP has two colocated Decode-capable replicas. PD has one dedicated D worker.
+The identical two-GPU budget therefore does not provide identical aggregate Decode admission capacity.
+
+These observations support a D-resource limitation under the tested configuration.
+They do not isolate one GPU kernel or one reservation parameter as the sole cause.
+Per-worker KV pools and four compute slots were common configuration choices, not globally optimal tuning results.
+The P-backlog heuristic also includes requests waiting for reservation.
+It is not a direct Prefill-only GPU queue measurement.
+
+Actual primary Loop continuation occurred in 5/112 Ouro requests and 2/112 Huginn requests.
+All seven continuations occurred in W2.
+Every repeated W1 Dynamic trial used full Prefill on P.
+Small positive timing differences in those trials cannot establish an adaptive partitioning mechanism.
+
+The implemented cost coefficient includes calibration queueing.
+Its token-age constraint is stricter than the primary request-average TPOT criterion in some states.
+This conservative policy limits the tested action choices.
+The results do not establish a global upper bound for better dynamic policies.
+
+The measured evidence does not justify a GO decision for Loop-Dynamic over strong two-GPU baselines.
+The model-level decision remains CONDITIONAL because stable-capacity evidence and broader online-policy coverage are insufficient.
+This is not a claim of positive adaptive headroom.
+Natural-EOS serving, original-HF equivalence, and downstream accuracy remain unmeasured in this campaign.
+Layer Split and pooled 4/8GPU serving remain outside its declared scope.
+
+## Published source and evidence
+
+Measured-data release: `d8a0209a0d5ab205308db798b9f04c6b413ad327`.
+The first verified remote tip was `2841e53e876652fc7f9995d911ec550383b0c839`.
+Later closeout documentation commits preserve that measured-data release.
+`publication_verification.json` records the remote confirmation.
+The final delivery identifies the final documentation tip separately.
+
+Run `python -m poc_flashvep.adaptive_loop_token_pd_2gpu.closeout_validation` for the CPU evidence audit.
+This command does not start new GPU measurements.

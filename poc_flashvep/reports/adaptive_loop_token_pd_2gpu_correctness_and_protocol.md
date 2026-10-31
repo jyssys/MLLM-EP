@@ -191,3 +191,10 @@ The table has one independent start per protocol. It does not establish a confid
 | huginn | COMPLETE | 32 | 32 | 37659.22 | 22970.29 | 131.50 | 117.17 | 1.26 |
 
 The CSV also retains total payloads, NIXL completion counts, and goodput. These are measured protocol effects, not recurrence-split effects.
+
+## Source and verification
+
+Measured-data release: `d8a0209a0d5ab205308db798b9f04c6b413ad327`.
+The final CPU audit checked 1,920 non-reference clean-serving output sequences.
+All matched the corresponding native sequence exactly.
+This result does not establish original-HF equivalence or downstream accuracy.

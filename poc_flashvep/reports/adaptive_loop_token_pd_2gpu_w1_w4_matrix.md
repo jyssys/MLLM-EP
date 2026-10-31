@@ -116,3 +116,9 @@ The paired table separates each repeated 1.5-rate W1 comparison.
 | huginn | DP | 3 | -25.85 | -35.38 | -15.46 |
 | huginn | Loop_Static | 3 | 0.22 | -0.41 | 1.11 |
 | huginn | Token_Dynamic | 3 | 4.45 | 1.55 | 9.68 |
+
+## Source and verification
+
+Measured-data release: `d8a0209a0d5ab205308db798b9f04c6b413ad327`.
+The closeout audit checks all 98 clean server starts against preserved output, work, and source evidence.
+See `adaptive_loop_token_pd_2gpu/state/final_validation.json` for the audit results.
