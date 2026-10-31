@@ -1,0 +1,67 @@
+Attention implementation: {'backend': 'flash_attn', 'generation': 4, 'package': 'flash-attn-4', 'version': '4.0.0b30'}
+Attention implementation: {'backend': 'flash_attn', 'generation': 4, 'package': 'flash-attn-4', 'version': '4.0.0b30'}
+2026-10-31 02:45:33 NIXL INFO    _api.py:407 Backend UCX was instantiated
+2026-10-31 02:45:33 NIXL INFO    _api.py:285 Initialized NIXL agent: 7b29d1e8f53a47228c8a87dd9996c93f-decode-1
+2026-10-31 02:45:33 NIXL INFO    _api.py:407 Backend UCX was instantiated
+2026-10-31 02:45:33 NIXL INFO    _api.py:285 Initialized NIXL agent: 7b29d1e8f53a47228c8a87dd9996c93f-prefill-0
+/home/esjung/.venvs/ouro-chunk-loop-prefill/lib/python3.14/site-packages/nvidia_cutlass_dsl/dsl_packages/cutlass/base_dsl/dsl.py:2300: UserWarning: Argument aux_data (position 17) cannot be converted to a JitArgument for function 'cutlass___call___flash_attncuteflash_fwd_sm90FlashAttentionForwardSm90_object_at__Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_None_01020'. Its type `<class 'flash_attn.cute.utils.AuxData'>` is not supported. If the value is known at compile time, annotate it: `aux_data: Constexpr`. Otherwise, implement the `JitArgument` or `DynamicExpression` protocol for type `<class 'flash_attn.cute.utils.AuxData'>`, or register a custom argument adapter.
+  exe_args, func_types, adapted_args = self.generate_mlir_function_types(
+/home/esjung/.venvs/ouro-chunk-loop-prefill/lib/python3.14/site-packages/nvidia_cutlass_dsl/dsl_packages/cutlass/base_dsl/dsl.py:2300: UserWarning: Argument aux_data (position 17) cannot be converted to a JitArgument for function 'cutlass___call___flash_attncuteflash_fwd_sm90FlashAttentionForwardSm90_object_at__Tensorgmemoi64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i641_None_01020620726'. Its type `<class 'flash_attn.cute.utils.AuxData'>` is not supported. If the value is known at compile time, annotate it: `aux_data: Constexpr`. Otherwise, implement the `JitArgument` or `DynamicExpression` protocol for type `<class 'flash_attn.cute.utils.AuxData'>`, or register a custom argument adapter.
+  exe_args, func_types, adapted_args = self.generate_mlir_function_types(
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/adaptive_loop_token_pd_2gpu/worker.py", line 107, in <module>
+    if __name__=='__main__':main()
+                            ~~~~^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/adaptive_loop_token_pd_2gpu/worker.py", line 105, in main
+    sys.argv=flags;base.main()
+                   ~~~~~~~~~^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_abc/worker.py", line 221, in main
+    try:run(args)
+        ~~~^^^^^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_abc/worker.py", line 166, in run
+    if args.warmup:serve(engine,inputs[:min(args.concurrency,len(inputs))],args,-1,warmup=True)
+                   ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/adaptive_loop_token_pd_2gpu/worker.py", line 38, in serve
+    for output in engine.step():
+                  ~~~~~~~~~~~^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/pd/engine.py", line 433, in step
+    self._poll()
+    ~~~~~~~~~~^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/pd/engine.py", line 176, in _poll
+    for message in peer.client.poll():
+                   ~~~~~~~~~~~~~~~~^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/llm_engine.py", line 118, in poll
+    message = self._receive()
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/llm_engine.py", line 141, in _receive
+    raise error(f"stage worker failed:\n{self.failure}")
+RuntimeError: stage worker failed:
+Traceback (most recent call last):
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/worker.py", line 226, in worker_main
+    owner.run()
+    ~~~~~~~~~^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/worker.py", line 186, in run
+    self.connector.progress()
+    ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/pd/connector.py", line 423, in progress
+    if not self.engine.accept_import(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        transfer.request,
+        ^^^^^^^^^^^^^^^^^
+        self.hidden[transfer.slot],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        cached_tokens=transfer.cached_tokens,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ):
+    ^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/adaptive_loop_token_pd_2gpu/connector.py", line 130, in accept_cut
+    if k==n:return self.original_accept(request,hidden[:self.engine.model.config.hidden_size],cached_tokens=0)
+                   ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/stage_engine.py", line 642, in accept_import
+    self.cache_manager.mark_imported_prefix(request.request_id, count, start=cached_tokens)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/core/kv_cache_manager.py", line 387, in mark_imported_prefix
+    raise RuntimeError("KV prefix was already initialized")
+RuntimeError: KV prefix was already initialized
+

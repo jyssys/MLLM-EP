@@ -1,6 +1,6 @@
 # Two-GPU Loop-versus-Token PD: Correctness and Protocol Contract
 
-Status: FINITE_MIGRATION_GATES_PASS. Serving qualification remains in progress.
+Status: FINITE_MIGRATION_GATES_PASS. Final controlled-serving results follow below.
 Campaign start: 2026-10-30 17:37 UTC, or 2026-10-31 02:37 KST.
 The hard closeout deadline is 2026-10-31 05:37 UTC, or 14:37 KST.
 No long GPU job may start after 04:37 UTC.
@@ -163,5 +163,31 @@ The acceptance tests use actual payload, state, output, and work checks independ
 
 The serving harness checks full controlled output sequences against the matched PD_G1 result.
 An unexplained output mismatch stops that candidate cell and forbids further serving expansion.
-New 384–512-token generation parity remains PENDING until those cells execute.
+Controlled-generation parity is summarized below for the cells that actually completed.
 The finite gates do not establish original-HF equivalence or downstream accuracy.
+
+## Final controlled-serving status
+
+| Model | Accepted candidate cells | Matched controlled outputs | Incomplete/rejected candidate cells | Model verdict |
+| --- | --- | --- | --- | --- |
+| ouro | 24 | 672 | 0 | CONDITIONAL |
+| huginn | 24 | 672 | 0 | CONDITIONAL |
+
+Each accepted candidate sequence matches the same-start PD_G1 reference exactly.
+These counts are request instances, not benchmark accuracy questions.
+Clean serving does not repeat the heavy per-plane byte hashes on every request.
+The finite byte/state gates, actual transfer completions, output checks, and work counters remain separate evidence.
+Original-HF fidelity and downstream accuracy remain NOT_ESTABLISHED.
+
+## Full-cut transport-only controls
+
+Both cases keep all Prefill computation on P. They use the same W1 requests, targets, seed, and GPU pair.
+The native case streams completed chunks. The snapshot case exports a completed full-prompt snapshot.
+The table has one independent start per protocol. It does not establish a confidence interval.
+
+| Model | Status | Full P cut | N | Native TTFT p95 ms | Snapshot TTFT p95 ms | Native TPOT p95 ms | Snapshot TPOT p95 ms | Snapshot p95 E2E speedup |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| ouro | COMPLETE | 4 | 32 | 3449.61 | 3198.94 | 27.98 | 33.34 | 0.97 |
+| huginn | COMPLETE | 32 | 32 | 37659.22 | 22970.29 | 131.50 | 117.17 | 1.26 |
+
+The CSV also retains total payloads, NIXL completion counts, and goodput. These are measured protocol effects, not recurrence-split effects.

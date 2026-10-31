@@ -38,6 +38,12 @@ def metric(cfg,directory):
         protocol='native_chunk_streaming' if cfg['arm']=='PD_G1' else 'snapshot' if cfg['arm'] not in ('DP','DP_Chunked') else 'none')
     status=directory/'status.json'
     result['status']=json.loads(status.read_text())['status'] if status.exists() else 'NOT_RUN'
+    arrivals=cfg.get('arrival_offsets',[])
+    if len(arrivals)>1 and arrivals[-1]>arrivals[0]:
+        result['scheduled_arrival_span_s']=arrivals[-1]-arrivals[0]
+        result['realized_scheduled_arrival_rate_per_s']=(len(arrivals)-1)/(arrivals[-1]-arrivals[0])
+    result['offered_rate_scope']='NORMAL_POISSON_LAMBDA. W3 has an explicit5x long-prompt burst.' if cfg.get('phase') in ('primary','repeat') else 'DIAGNOSTIC_OR_CALIBRATION_SCHEDULE'
+    result['burst_rate_multiplier']=5 if cfg.get('workload')=='W3' and cfg.get('phase') in ('primary','repeat') else 1
     for key in ('ttft_ms','tpot_ms','e2e_ms'):
         values=[r[key] for r in rows]
         if not values:continue
@@ -83,6 +89,10 @@ def metric(cfg,directory):
     result['stability_status']='NOT_ESTABLISHED_FINITE_COHORT'
     result['GPU_kernel_time']='NOT_MEASURED_CLEAN'
     result['pure_DMA_time']='NOT_MEASURED'
+    for field in ('exclusive_prefill_queue_ms','exclusive_decode_queue_ms','online_selector_overhead_ms',
+                  'clean_cuda_kernel_count','clean_recurrent_gpu_ms','clean_attention_gpu_ms',
+                  'clean_ffn_gpu_ms','exact_GPU_idle_fraction'):
+        result[field]='NOT_MEASURED'
     for path in directory.glob('NVML-summary-*.json'):
         summary=json.loads(path.read_text())
         for gpu,value in summary.get('measured_cohort_peak_sampled_HBM_bytes',{}).items():

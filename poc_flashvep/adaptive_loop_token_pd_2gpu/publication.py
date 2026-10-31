@@ -106,6 +106,21 @@ def figures(rows):
 
 def reports():
     rows=read_csv('per_run_metrics.csv');matrix=read_csv('experiment_matrix.csv');pairs=paired(rows);figures(rows)
+    protocols=[]
+    for model in ('ouro','huginn'):
+        native=next((r for r in rows if r['name']==f'primary_{model}_w1_pd_g1_start0' and r['status']=='COMPLETE'),None)
+        snapshot=next((r for r in rows if r['name']==f'protocol_{model}_w1_full_snapshot_start0' and r['status']=='COMPLETE'),None)
+        item=dict(model=model,workload='W1',P_cut=MODEL_PINS[model][2],status='NOT_MEASURED',
+            evidence='ONE_START_TRANSPORT_ONLY_CONTROL. Not a Loop-partitioning speedup.')
+        if native and snapshot:
+            item.update(status='COMPLETE',N=native['completed_N'],GPU_ids=native['GPU_ids'])
+            for prefix,record in (('native',native),('snapshot',snapshot)):
+                for key in ('ttft_ms_p95','tpot_ms_p95','e2e_ms_p95','SLO_goodput_per_s',
+                            'transport_bytes_sent','transport_completed_count'):
+                    item[prefix+'_'+key]=record.get(key,'NOT_MEASURED')
+            item['snapshot_p95_E2E_speedup']=float(native['e2e_ms_p95'])/float(snapshot['e2e_ms_p95'])
+        protocols.append(item)
+    csv_write(ROOT/'protocol_comparisons.csv',protocols)
     comparisons=[]
     for model in ('ouro','huginn'):
         for w in ('W1','W2','W3','W4'):
@@ -217,6 +232,9 @@ Base-rate and 1.5-rate trials are not pooled for confidence intervals.
 Their cohort sizes and prompt subsets differ. Rate-point figures therefore show markers without an interpolated capacity curve.
 The exact completed start counts appear in the paired comparison table.
 Finite-cohort goodput includes final drain time.
+The displayed arrival rate is the normal Poisson intensity. W3 uses five times that intensity during its long-prompt burst.
+The raw metric table also records the realized scheduled rate over the finite arrival span.
+Finite-cohort goodput can exceed the normal intensity without implying sustainable capacity.
 Maximum indefinitely sustainable serving capacity is NOT_ESTABLISHED.
 A passing finite rate grid point is not proof of stationary queue stability.
 For reference, 32/32 successes give a Wilson 95% lower bound of 89.28%.
@@ -262,6 +280,7 @@ Optional profiler results remain separate from clean latency.
 - [Paired start uncertainty](adaptive_loop_token_pd_2gpu/paired_start_comparisons.csv)
 - [Host E2E percentages](adaptive_loop_token_pd_2gpu/e2e_component_shares_aggregate.csv)
 - [Communication payloads](adaptive_loop_token_pd_2gpu/communication_payloads.csv)
+- [Matched full-cut transport controls](adaptive_loop_token_pd_2gpu/protocol_comparisons.csv)
 - [Actual online cuts](adaptive_loop_token_pd_2gpu/online_cut_outcomes.csv)
 - [Frozen SLO calibration](adaptive_loop_token_pd_2gpu/slo_calibration.json)
 - [Complete aggregated requests, lossless gzip](adaptive_loop_token_pd_2gpu/per_request.jsonl.gz)
@@ -326,6 +345,19 @@ A future authorized reproduction needs a separate time budget.
         [('Model','model'),('Workload','workload'),('Baseline','baseline'),('p95 E2E speedup','p95_E2E_speedup'),('SLO-goodput ratio','SLO_goodput_ratio')])
     summary+='\nThese primary ratios have one independent start. The equal-rate repeated table provides separate paired uncertainty.\n'
     summary+='A ratio above one does not by itself establish maximum stable capacity.\n\n'
+    repeated_plans=[]
+    for model in ('ouro','huginn'):
+        for arm in ('Loop_Dynamic','Token_Dynamic'):
+            plans=[r for r in read_csv('online_cut_outcomes.csv') if r['model']==model and r['workload']=='W1'
+                and r['arm']==arm and r['name'].startswith('repeat_')]
+            if plans:repeated_plans.append(dict(model=model,arm=arm,N=len(plans),
+                full_P_count=sum(float(r['actual_D_continuation_fraction'])==0 for r in plans),
+                D_continuation_count=sum(float(r['actual_D_continuation_fraction'])>0 for r in plans)))
+    summary+='The next table checks the actual partitions in the repeated W1 trials.\n\n'
+    summary+=table(repeated_plans,[('Model','model'),('Arm','arm'),('Recorded N','N'),
+        ('Full-Prefill on P','full_P_count'),('D continuations','D_continuation_count')])
+    summary+='\nA timing difference without a different partition plan is not evidence of adaptive cut selection.\n'
+    summary+='If the selected Static cut is also full depth, small timing gains do not demonstrate recurrent work redistribution.\n\n'
     summary+='Q4: Loop and Token arms use the same configured token chunk size. Token Split is not forced to use smaller chunks.\n'
     summary+='Exclusive clean GEMM efficiency attribution is NOT_MEASURED. Optional profiles are separate diagnostic evidence.\n\n'
     summary+='Q5: communication_payloads.csv records actual state payloads and NIXL completion counts.\n'
@@ -376,7 +408,7 @@ A future authorized reproduction needs a separate time budget.
                     for key in ('ttft_ms_p95','tpot_ms_p95','ITL_ms_p95','ITL_ms_p99','e2e_ms_p95'):entry[key]=fmt(r.get(key))
                 shown.append(entry)
             body+=table(shown,[('Arm','arm'),('Status','status'),('Physical GPUs','GPUs'),('Completed/offered','N'),
-                ('Offered req/s','rate'),('Joint SLO %','attainment'),('Goodput req/s','goodput'),
+                ('Normal arrival intensity req/s','rate'),('Joint SLO %','attainment'),('Goodput req/s','goodput'),
                 ('TTFT p95 ms','ttft_ms_p95'),('TPOT p95 ms','tpot_ms_p95'),('ITL p95 ms','ITL_ms_p95'),
                 ('ITL p99 ms','ITL_ms_p99'),('E2E p95 ms','e2e_ms_p95')])+'\n'
     body+='## Full metric and uncertainty tables\n\n'
@@ -410,6 +442,16 @@ A future authorized reproduction needs a separate time budget.
     correctness+='Clean serving does not repeat the heavy per-plane byte hashes on every request.\n'
     correctness+='The finite byte/state gates, actual transfer completions, output checks, and work counters remain separate evidence.\n'
     correctness+='Original-HF fidelity and downstream accuracy remain NOT_ESTABLISHED.\n'
+    correctness+='\n## Full-cut transport-only controls\n\n'
+    correctness+='Both cases keep all Prefill computation on P. They use the same W1 requests, targets, seed, and GPU pair.\n'
+    correctness+='The native case streams completed chunks. The snapshot case exports a completed full-prompt snapshot.\n'
+    correctness+='The table has one independent start per protocol. It does not establish a confidence interval.\n\n'
+    correctness+=table([{k:fmt(v) if k not in ('N','P_cut') and (isinstance(v,float) or (isinstance(v,str) and number(v) is not None)) else v for k,v in r.items()} for r in protocols],
+        [('Model','model'),('Status','status'),('Full P cut','P_cut'),('N','N'),
+         ('Native TTFT p95 ms','native_ttft_ms_p95'),('Snapshot TTFT p95 ms','snapshot_ttft_ms_p95'),
+         ('Native TPOT p95 ms','native_tpot_ms_p95'),('Snapshot TPOT p95 ms','snapshot_tpot_ms_p95'),
+         ('Snapshot p95 E2E speedup','snapshot_p95_E2E_speedup')])
+    correctness+='\nThe CSV also retains total payloads, NIXL completion counts, and goodput. These are measured protocol effects, not recurrence-split effects.\n'
     patch_report(correctness_path.name,correctness)
     policy_path=REPO/'poc_flashvep/reports/adaptive_loop_token_pd_2gpu_online_policy_and_slo.md'
     policy=policy_path.read_text().split('\n## Final measured outcomes')[0]
@@ -471,6 +513,7 @@ def publish():
     from .gate import lines
     for path in (ROOT/'configs').glob('*.json'):
         cfg=json.loads(path.read_text())
+        if not isinstance(cfg,dict):continue
         if cfg.get('phase') not in ('primary','repeat','protocol_control') or cfg.get('arm')=='PD_G1':continue
         folder=ROOT/'raw'/cfg['name'];status=folder/'status.json'
         if not status.exists() or json.loads(status.read_text())['status']!='COMPLETE':continue

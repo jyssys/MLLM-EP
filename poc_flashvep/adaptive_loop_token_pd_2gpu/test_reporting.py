@@ -3,9 +3,21 @@ import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
-from .publication import fmt,table,paired,patch_report,reports
+from .publication import fmt,table,paired,patch_report,reports,publish
 
 class Reporting(unittest.TestCase):
+    def test_publication_skips_list_manifest_before_analysis(self):
+        from types import SimpleNamespace
+        class AnalysisReached(Exception):pass
+        def command(args,**kwargs):
+            if args[-1]=='poc_flashvep.adaptive_loop_token_pd_2gpu.analyze':raise AnalysisReached
+            return SimpleNamespace(returncode=0)
+        with tempfile.TemporaryDirectory(prefix='pd_publication_manifest_test_') as temp:
+            root=Path(temp);(root/'configs').mkdir();(root/'logs').mkdir();(root/'state').mkdir()
+            from .common import write
+            write(root/'configs/primary_sequence.json',['primary_ouro_w1_pd_g1_start0.json'])
+            with patch('poc_flashvep.adaptive_loop_token_pd_2gpu.publication.ROOT',root),patch('poc_flashvep.adaptive_loop_token_pd_2gpu.publication.subprocess.run',side_effect=command):
+                with self.assertRaises(AnalysisReached):publish()
     def test_wilson_stays_within_probability_bounds(self):
         from .analyze import wilson
         for n in (16,24,32):

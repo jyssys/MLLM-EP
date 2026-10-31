@@ -1,0 +1,59 @@
+Attention implementation: {'backend': 'flash_attn', 'generation': 4, 'package': 'flash-attn-4', 'version': '4.0.0b30'}
+Attention implementation: {'backend': 'flash_attn', 'generation': 4, 'package': 'flash-attn-4', 'version': '4.0.0b30'}
+2026-10-31 02:49:22 NIXL INFO    _api.py:407 Backend UCX was instantiated
+2026-10-31 02:49:22 NIXL INFO    _api.py:285 Initialized NIXL agent: 508f76a1a0ed4fd188bdf00d91567004-decode-1
+2026-10-31 02:49:23 NIXL INFO    _api.py:407 Backend UCX was instantiated
+2026-10-31 02:49:23 NIXL INFO    _api.py:285 Initialized NIXL agent: 508f76a1a0ed4fd188bdf00d91567004-prefill-0
+/home/esjung/.venvs/ouro-chunk-loop-prefill/lib/python3.14/site-packages/nvidia_cutlass_dsl/dsl_packages/cutlass/base_dsl/dsl.py:2300: UserWarning: Argument aux_data (position 17) cannot be converted to a JitArgument for function 'cutlass___call___flash_attncuteflash_fwd_sm90FlashAttentionForwardSm90_object_at__Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_None_01020'. Its type `<class 'flash_attn.cute.utils.AuxData'>` is not supported. If the value is known at compile time, annotate it: `aux_data: Constexpr`. Otherwise, implement the `JitArgument` or `DynamicExpression` protocol for type `<class 'flash_attn.cute.utils.AuxData'>`, or register a custom argument adapter.
+  exe_args, func_types, adapted_args = self.generate_mlir_function_types(
+/home/esjung/.venvs/ouro-chunk-loop-prefill/lib/python3.14/site-packages/nvidia_cutlass_dsl/dsl_packages/cutlass/base_dsl/dsl.py:2300: UserWarning: Argument aux_data (position 17) cannot be converted to a JitArgument for function 'cutlass___call___flash_attncuteflash_fwd_sm90FlashAttentionForwardSm90_object_at__Tensorgmemoi64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i641_None_01020620726'. Its type `<class 'flash_attn.cute.utils.AuxData'>` is not supported. If the value is known at compile time, annotate it: `aux_data: Constexpr`. Otherwise, implement the `JitArgument` or `DynamicExpression` protocol for type `<class 'flash_attn.cute.utils.AuxData'>`, or register a custom argument adapter.
+  exe_args, func_types, adapted_args = self.generate_mlir_function_types(
+/home/esjung/.venvs/ouro-chunk-loop-prefill/lib/python3.14/site-packages/nvidia_cutlass_dsl/dsl_packages/cutlass/base_dsl/dsl.py:2300: UserWarning: Argument aux_data (position 17) cannot be converted to a JitArgument for function 'cutlass___call___flash_attncuteflash_fwd_sm90FlashAttentionForwardSm90_object_at__Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_None_01020'. Its type `<class 'flash_attn.cute.utils.AuxData'>` is not supported. If the value is known at compile time, annotate it: `aux_data: Constexpr`. Otherwise, implement the `JitArgument` or `DynamicExpression` protocol for type `<class 'flash_attn.cute.utils.AuxData'>`, or register a custom argument adapter.
+  exe_args, func_types, adapted_args = self.generate_mlir_function_types(
+/home/esjung/.venvs/ouro-chunk-loop-prefill/lib/python3.14/site-packages/nvidia_cutlass_dsl/dsl_packages/cutlass/base_dsl/dsl.py:2300: UserWarning: Argument aux_data (position 17) cannot be converted to a JitArgument for function 'cutlass___call___flash_attncuteflash_fwd_sm90FlashAttentionForwardSm90_object_at__Tensorgmemoi64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i641_None_01020620726'. Its type `<class 'flash_attn.cute.utils.AuxData'>` is not supported. If the value is known at compile time, annotate it: `aux_data: Constexpr`. Otherwise, implement the `JitArgument` or `DynamicExpression` protocol for type `<class 'flash_attn.cute.utils.AuxData'>`, or register a custom argument adapter.
+  exe_args, func_types, adapted_args = self.generate_mlir_function_types(
+DONE gate8_huginn_token_dynamic_v1 0 2 13257.72
+DONE gate8_huginn_token_dynamic_v1 1 2 15139.17
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/adaptive_loop_token_pd_2gpu/worker.py", line 123, in <module>
+    if __name__=='__main__':main()
+                            ~~~~^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/adaptive_loop_token_pd_2gpu/worker.py", line 121, in main
+    sys.argv=flags;base.main()
+                   ~~~~~~~~~^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_abc/worker.py", line 221, in main
+    try:run(args)
+        ~~~^^^^^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_abc/worker.py", line 183, in run
+    for repeat in range(args.repeats):serve(engine,inputs,args,repeat)
+                                      ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/adaptive_loop_token_pd_2gpu/worker.py", line 38, in serve
+    for output in engine.step():
+                  ~~~~~~~~~~~^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/pd/engine.py", line 433, in step
+    self._poll()
+    ~~~~~~~~~~^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/pd/engine.py", line 176, in _poll
+    for message in peer.client.poll():
+                   ~~~~~~~~~~~~~~~~^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/llm_engine.py", line 118, in poll
+    message = self._receive()
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/llm_engine.py", line 141, in _receive
+    raise error(f"stage worker failed:\n{self.failure}")
+RuntimeError: stage worker failed:
+Traceback (most recent call last):
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/worker.py", line 226, in worker_main
+    owner.run()
+    ~~~~~~~~~^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/worker.py", line 190, in run
+    for output in self.engine.step():
+                  ~~~~~~~~~~~~~~~~^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/stage_engine.py", line 458, in step
+    return self._step()
+           ~~~~~~~~~~^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/stage_engine.py", line 496, in _step
+    raise RuntimeError("scheduler made no progress")
+RuntimeError: scheduler made no progress
+
