@@ -2,11 +2,13 @@
 
 ## Scope and evidence
 
+Status: FINAL_FINITE_CHARACTERIZATION.
+
 This report covers Phase A of the bottleneck crossover study.
 Phase B and the conditional Phase C have separate reports.
 The study uses real checkpoints and valid KV states.
 All generation uses fixed depth and BF16.
-The output lengths are controlled with EOS ignored.
+The benchmark controls output lengths and ignores EOS.
 These results do not describe natural output-length distributions.
 
 The main evidence directory is [looped_pd_bottleneck_crossover](looped_pd_bottleneck_crossover/).
@@ -69,6 +71,8 @@ This finite check does not establish original-HF equivalence or downstream accur
 The sweep shows a substantial generic tuning effect.
 A method must not claim this effect as a recurrent partitioning gain.
 Phase B therefore includes native PD controls with C2048.
+The sweep does not include whole-prompt C3500/4096 PD Serving.
+Full P-side ownership must not be confused with atomic, unchunked Prefill.
 
 ## Decode capacity and engine concurrency
 
@@ -96,7 +100,7 @@ Their SLO and actual queue behavior require Phase B validation.
 Ouro's default pool reserves 25,769,803,776 bytes.
 Huginn's default pool reserves 49,828,331,520 bytes.
 The actual reservation capacity depends on context, depth, and compute slots.
-See `KV_geometry_accounting.csv` for each measured geometry.
+See `kv_geometry_accounting.csv` for each measured geometry.
 
 Huginn allocates 256 layer-depth storage planes.
 Its semantically used recurrent and boundary planes total 132.
@@ -132,7 +136,7 @@ Ouro B2 Prefill medians were 2.2165 s OFF and 2.2248 s ON.
 Huginn B2 medians were 4.7393 s OFF and 4.7631 s ON.
 These are within-start observations, not a population overhead bound.
 
-CUDA forward spans include launch gaps within a forward call.
+CUDA forward spans include gaps between kernel submissions within a forward call.
 They are not exclusive kernel-busy measurements.
 CUPTI profiles are stored separately from clean Serving latency.
 Heavy tracing substantially increases observed phase duration.
@@ -175,3 +179,9 @@ The capacity map can identify candidate pressure regimes.
 It cannot prove a Prefill bottleneck from a ratio alone.
 Phase B must check real queues, Decode KV credit, SLO margin, and clean GPU activity.
 Only a verified Prefill-compute-limited regime can authorize Phase C.
+
+The final Phase B review did not establish such a regime beyond generic tuning and admission effects.
+It therefore left Phase C unrun.
+This does not establish a structural impossibility for Looped models.
+Exact 4K/100, longer Ouro contexts, and a faithful Qwen3-8B DuetServe control were not measured.
+See the [final report](looped_pd_prefill_decode_bottleneck_final_summary.md) for all completion counts and decisions.

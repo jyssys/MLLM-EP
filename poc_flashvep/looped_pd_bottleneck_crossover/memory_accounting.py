@@ -12,7 +12,7 @@ def main():
         for p in paths:
             g=json.loads(p.read_text());pool=g['KV_blocks']
             if pool in seen:continue
-            seen.add(pool);layers=g['layers'];R=g['storage_depths'];block=16
+            seen.add(pool);layers=g['layers'];R=g['storage_depths'];block=g.get('block_size',16)
             recurrent=len(g.get('recurrent_kv_layers',list(range(layers))))
             valid_planes=recurrent*R+(layers-recurrent)
             dense_planes=layers*R;fraction=valid_planes/dense_planes
@@ -20,7 +20,7 @@ def main():
                 tokens=length+cap-1;blocks=math.ceil(tokens/block)*R
                 reserved=blocks*g['KV_block_bytes'];minimum=reserved*fraction
                 rows.append(dict(model=model,cell=cell,input_tokens=length,output_tokens=cap,
-                    physical_layers=layers,recurrent_layers=recurrent,depth=R,
+                    physical_layers=layers,recurrent_layers=recurrent,depth=R,block_size=block,
                     allocated_layer_depth_planes=dense_planes,semantically_used_layer_depth_planes=valid_planes,
                     unused_boundary_depth_plane_fraction=1-fraction,pool_blocks=pool,pool_bytes=g['KV_bytes'],
                     actual_full_reservation_bytes_per_request=reserved,
@@ -32,7 +32,8 @@ def main():
                     evidence='STRUCTURAL_ACCOUNTING_FROM_MEASURED_ALLOCATION_GEOMETRY',
                     scope='Compaction is NOT_IMPLEMENTED. This is not measured extra capacity or serving speedup. Native transfer already skips unused boundary-depth planes.',
                     source=str(p.relative_to(ROOT))))
-    save_csv(ROOT/'KV_geometry_accounting.csv',rows)
+    save_csv(ROOT/'kv_geometry_accounting.csv',rows)
+    if not (ROOT/'KV_geometry_accounting.csv').exists():save_csv(ROOT/'KV_geometry_accounting.csv',rows)
     print('KV_GEOMETRY_ROWS',len(rows))
 
 if __name__=='__main__':main()

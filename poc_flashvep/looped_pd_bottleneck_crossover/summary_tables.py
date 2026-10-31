@@ -36,6 +36,8 @@ def capacity():
     groups=collections.defaultdict(list);raw=[];blocked=[]
     for folder in (ROOT/'raw').iterdir():
         if not folder.name.startswith('phase_a_'):continue
+        status_path=folder/'status.json'
+        run_status=json.loads(status_path.read_text()).get('status') if status_path.exists() else 'NO_STATUS'
         for r in records(folder/'cohorts.jsonl'):
             if r.get('status')=='BLOCKED_KV_CAPACITY':blocked.append(dict(run=folder.name,**r));continue
             if r.get('job',{}).get('profile'):continue
@@ -43,6 +45,7 @@ def capacity():
             batch=r['batch'];chunk=r.get('chunk','native_full_prefill');pool=r.get('KV_blocks','native_vLLM')
             p=r['prefill_plus_first_token_service_s'];d=r['decode_rest_service_s']
             row=dict(run=folder.name,model=model,cell=job.get('cell',''),input_tokens=length,output_tokens=job['cap'],batch=batch,
+                run_status=run_status,eligible_primary_capacity=run_status=='COMPLETE',
                 chunk=chunk,KV_blocks=pool,repeat=r['repeat'],prefill_service_s=p,decode_rest_service_s=d,
                 mu_P_finite=batch/p,mu_D_post_first_finite=batch/d,capacity_ratio=d/p,
                 mu_P_native_boundary_finite=batch/r['prefill_host_service_s'] if 'prefill_host_service_s' in r else 'NOT_MEASURED',
@@ -54,7 +57,9 @@ def capacity():
             if job['cap']==1:
                 for field in ('mu_D_post_first_finite','capacity_ratio','mu_D_native_boundary_finite','capacity_ratio_native_boundary'):
                     row[field]='NOT_APPLICABLE_PREFILL_ONLY'
-            raw.append(row);groups[(model,job.get('cell',''),length,job['cap'],batch,chunk,pool,r['evidence'])].append(row)
+            raw.append(row)
+            if row['eligible_primary_capacity']:
+                groups[(model,job.get('cell',''),length,job['cap'],batch,chunk,pool,r['evidence'])].append(row)
     summary=[]
     for key,rows in groups.items():
         model,cell,length,cap,batch,chunk,pool,evidence=key

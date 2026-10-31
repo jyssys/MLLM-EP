@@ -1,0 +1,21 @@
+{
+  "time": 1793437099.9328215,
+  "failed_run": "phase_a_huginn_chunk_start0",
+  "failure_operation": "Allocation of second engine value cache before any new-chunk forward pass",
+  "ranked_hypotheses": [
+    "Local cache variable retains the old 49.8 GB pool",
+    "Old CUDA Graph references retain the pool",
+    "The single configuration exceeds GPU HBM"
+  ],
+  "minimal_change": "Release engine, cache and barrier references before garbage collection. Keep engine=None if construction fails.",
+  "regression_run": "phase_a_huginn_chunk_retry_start0",
+  "status": "GPU_REGRESSION_PASS",
+  "model_or_private_runtime_changed": false,
+  "before_new_pool_allocated_bytes": [
+    7276698112,
+    7410915840,
+    7142480384
+  ],
+  "root_cause": "A local cache reference retained the previous KV pool. Removing all group-local references prevents overlapping 49.8 GB allocations.",
+  "private_model_or_runtime_modified": false
+}

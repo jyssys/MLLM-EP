@@ -99,7 +99,22 @@ def analyze():
                 scope='Process lifetime includes warm-up. CPU spans are nested, not additive.'))
         for r in rows:
             rid=f'r{r.get("run",0)}_q{r["sample_id"]}';m=metrics.get(rid)
-            if not m:continue
+            if not m:
+                # DP and native AR do not expose the RLT PD phase clock.
+                # Preserve their measured intervals without inventing GPU phases.
+                last=r['arrival'];end=r['finish'];den=end-last
+                boundaries=[]
+                if r.get('admission') is not None:boundaries.append(('harness_delivery',r['admission']))
+                boundaries.extend([('arrival_or_admission_to_first_token_unpartitioned',r['first_token']),
+                    ('generation_observed',end)])
+                for label,value in boundaries:
+                    boundary_time=max(last,min(end,value));duration=boundary_time-last;last=boundary_time
+                    shares.append(dict(name=folder.name,model=cfg['model'],arm=row['arm'],cell=cfg.get('workload'),
+                        phase=cfg.get('phase'),eligible_for_serving_comparison=row['eligible_for_serving_comparison'],
+                        run=r.get('run',0),sample_id=r['sample_id'],component=label,component_ms=duration*1000,
+                        request_E2E_ms=den*1000,share_percent=100*duration/den,
+                        evidence='MEASURED_HOST_INTERVALS_FINE_GPU_QUEUE_AND_TRANSFER_PARTITION_NOT_AVAILABLE'))
+                continue
             created=m['created_monotonic'];t=m['timings'];end=r['finish'];last=r['arrival'];den=end-last
             first_submit=gpu_first.get(m['transfer_id'])
             boundary=[('harness_delivery',r['admission']),('KV_or_slot_admission_wait',created+t.get('admitted',0)),
@@ -113,6 +128,7 @@ def analyze():
             for label,value in boundary:
                 boundary_time=max(last,min(end,value));duration=boundary_time-last;last=boundary_time
                 shares.append(dict(name=folder.name,model=cfg['model'],arm=cfg.get('arm'),cell=cfg.get('workload'),
+                    phase=cfg.get('phase'),eligible_for_serving_comparison=row['eligible_for_serving_comparison'],
                     run=r.get('run',0),sample_id=r['sample_id'],component=label,component_ms=duration*1000,request_E2E_ms=den*1000,
                     share_percent=100*duration/den,evidence='MEASURED_HOST_EXCLUSIVE_INTERVALS_NOT_GPU_KERNEL_OR_DMA_SHARES'))
         observations=records(folder/'admission_reasons.jsonl');counts=collections.Counter();samples=0
@@ -128,6 +144,7 @@ def analyze():
     grouped={}
     for r in shares:
         key=r['name'],r['component'];g=grouped.setdefault(key,dict(name=r['name'],model=r['model'],arm=r['arm'],cell=r['cell'],component=r['component'],
+            phase=r['phase'],eligible_for_serving_comparison=r['eligible_for_serving_comparison'],
             component_ms=0.,summed_request_E2E_ms=0.,requests=0,evidence='HOST_REQUEST_TIME_SHARES_NOT_COHORT_CRITICAL_PATH'))
         g['component_ms']+=r['component_ms'];g['summed_request_E2E_ms']+=r['request_E2E_ms'];g['requests']+=1
     for g in grouped.values():g['share_percent']=100*g['component_ms']/g['summed_request_E2E_ms']

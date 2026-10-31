@@ -1,0 +1,43 @@
+Attention implementation: {'backend': 'flash_attn', 'generation': 4, 'package': 'flash-attn-4', 'version': '4.0.0b30'}
+/home/esjung/.venvs/ouro-chunk-loop-prefill/lib/python3.14/site-packages/nvidia_cutlass_dsl/dsl_packages/cutlass/base_dsl/dsl.py:2300: UserWarning: Argument aux_data (position 17) cannot be converted to a JitArgument for function 'cutlass___call___flash_attncuteflash_fwd_sm90FlashAttentionForwardSm90_object_at__Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_None_01020'. Its type `<class 'flash_attn.cute.utils.AuxData'>` is not supported. If the value is known at compile time, annotate it: `aux_data: Constexpr`. Otherwise, implement the `JitArgument` or `DynamicExpression` protocol for type `<class 'flash_attn.cute.utils.AuxData'>`, or register a custom argument adapter.
+  exe_args, func_types, adapted_args = self.generate_mlir_function_types(
+/home/esjung/.venvs/ouro-chunk-loop-prefill/lib/python3.14/site-packages/nvidia_cutlass_dsl/dsl_packages/cutlass/base_dsl/dsl.py:2300: UserWarning: Argument aux_data (position 17) cannot be converted to a JitArgument for function 'cutlass___call___flash_attncuteflash_fwd_sm90FlashAttentionForwardSm90_object_at__Tensorgmemoi64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i641_None_01020620726'. Its type `<class 'flash_attn.cute.utils.AuxData'>` is not supported. If the value is known at compile time, annotate it: `aux_data: Constexpr`. Otherwise, implement the `JitArgument` or `DynamicExpression` protocol for type `<class 'flash_attn.cute.utils.AuxData'>`, or register a custom argument adapter.
+  exe_args, func_types, adapted_args = self.generate_mlir_function_types(
+COHORT_COMPLETE phase_a_huginn_chunk_start0 g0_j0 0
+COHORT_COMPLETE phase_a_huginn_chunk_start0 g0_j0 1
+COHORT_COMPLETE phase_a_huginn_chunk_start0 g0_j0 2
+COHORT_COMPLETE phase_a_huginn_chunk_start0 g0_j1 0
+COHORT_COMPLETE phase_a_huginn_chunk_start0 g0_j1 1
+COHORT_COMPLETE phase_a_huginn_chunk_start0 g0_j1 2
+Attention implementation: {'backend': 'flash_attn', 'generation': 4, 'package': 'flash-attn-4', 'version': '4.0.0b30'}
+Traceback (most recent call last):
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_bottleneck_crossover/capacity_worker.py", line 127, in main
+    barrier=LocalBarrier();engine=StageEngine(model,connector=barrier,**conf)
+                                  ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/stage_engine.py", line 182, in __init__
+    self.cache_manager = KVCacheManager(
+                         ~~~~~~~~~~~~~~^
+        num_layers=config.num_hidden_layers,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<13 lines>...
+        recurrent_layers=getattr(model, "recurrent_kv_layers", None),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/core/kv_cache_manager.py", line 145, in __init__
+    self.value_cache = torch.empty_like(self.key_cache)
+                       ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 23.20 GiB. GPU 0 has a total capacity of 79.19 GiB of which 2.02 GiB is free. Including non-PyTorch memory, this process has 77.16 GiB memory in use. Of the allocated memory 76.39 GiB is allocated by PyTorch, and 42.40 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_bottleneck_crossover/capacity_worker.py", line 190, in <module>
+    if __name__=='__main__':main()
+                            ~~~~^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_bottleneck_crossover/capacity_worker.py", line 187, in main
+    if engine is not None:engine.close()
+       ^^^^^^
+UnboundLocalError: cannot access local variable 'engine' where it is not associated with a value

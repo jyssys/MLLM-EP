@@ -13,12 +13,21 @@ def stage(cfg,role,address):
     import torch
     from vllm import LLM,SamplingParams
     from vllm.distributed.kv_transfer.kv_connector.v1.nixl.base_worker import NixlBaseConnectorWorker
-    native_stats=[];get_stats=NixlBaseConnectorWorker.get_kv_connector_stats
+    native_stats=[];native_done=[];get_stats=NixlBaseConnectorWorker.get_kv_connector_stats
     def collect_stats(self):
         value=get_stats(self)
         if value is not None:native_stats.append(dict(time=time.monotonic(),data={k:list(v) for k,v in value.data.items()}))
         return value
     NixlBaseConnectorWorker.get_kv_connector_stats=collect_stats
+    pop_done=NixlBaseConnectorWorker._pop_done_transfers
+    def observe_done(self,transfers):
+        done=pop_done(self,transfers)
+        if done:
+            native_done.append(dict(time=time.monotonic(),request_ids=sorted(done),
+                pending_stats={k:list(v) for k,v in self.xfer_stats.data.items()},
+                evidence='STOCK_NIXL_COMPLETED_TRANSFER_OBSERVATION_NOT_A_SIMULATION'))
+        return done
+    NixlBaseConnectorWorker._pop_done_transfers=observe_done
     torch.set_num_threads(1)
     channel=Client(address,family='AF_UNIX')
     checkpoint=json.loads((ROOT/'configs/dense_ar_checkpoint.json').read_text())['path']
@@ -56,6 +65,7 @@ def stage(cfg,role,address):
                     count=len(value.token_ids),finished=out.finished,
                     output_ids=list(value.token_ids) if out.finished else None,
                     finish_reason=value.finish_reason,
+                    reported_cached_prompt_tokens=getattr(out,'num_cached_tokens',None) if out.finished else None,
                     kv_params=out.kv_transfer_params if out.finished else None))
             if end-last_sample>.5:
                 last_sample=end
@@ -65,8 +75,15 @@ def stage(cfg,role,address):
                         KV_usage=sched.kv_cache_manager.usage))
             if not engine.has_unfinished_requests():time.sleep(.0005)
     finally:
+        # The offline LLM API can suppress periodic metric collection.
+        # Drain the stock connector after request timing, without changing transfer behavior.
+        from vllm.distributed.kv_transfer import get_kv_transfer_group,has_kv_transfer_group
+        final_stats=None
+        if has_kv_transfer_group():
+            value=get_kv_transfer_group().get_kv_connector_stats()
+            if value is not None:final_stats={k:list(v) for k,v in value.data.items()}
         write(ROOT/'raw'/cfg['name']/f'ar_native_{role}.json',dict(steps=steps,queue_samples=snapshots,
-            role=role,NIXL_stats_intervals=native_stats,
+            role=role,NIXL_stats_intervals=native_stats,NIXL_final_stats=final_stats,NIXL_done_events=native_done,
             scope='Native engine host spans and returned NIXL telemetry. Transfer durations are not exclusive E2E components.'))
         shutdown=getattr(engine.engine_core,'shutdown',None)
         if shutdown:shutdown()
@@ -150,6 +167,7 @@ def coordinator(cfg):
                             ttft_ms=1000*(first[rid]-arrivals[rid]),tpot_ms=1000*(finish-first[rid])/max(1,count-1),
                             e2e_ms=1000*(finish-arrivals[rid]),output_tokens=count,token_events=events[rid],
                             finish_reason=message['finish_reason'],warmup=False,
+                            D_reported_cached_prompt_tokens=message.get('reported_cached_prompt_tokens'),
                             evidence='MEASURED_NATIVE_VLLM_NIXL_PD',engine_difference='Native vLLM AR. Not RLT.',
                             transport='Native NIXL pull',P_computes_first_sample_but_D_resamples=True)
                         record['timing_scope']='Serial admission to coordinator delivery.' if cfg.get('calibration_serial') else 'Scheduled open-loop arrival to coordinator delivery.'

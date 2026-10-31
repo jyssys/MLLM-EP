@@ -191,8 +191,35 @@ def independent_starts():
     save_csv(ROOT/'independent_start_summary.csv',out)
 
 
+def alignment():
+    rows=[]
+    for path in (ROOT/'raw').glob('diagnostic_*_prepared_*/D_only_window.json'):
+        folder=path.parent;cfg=json.loads((ROOT/'configs'/(folder.name+'.json')).read_text())
+        status=folder/'status.json'
+        if not status.exists() or json.loads(status.read_text())['status']!='COMPLETE':continue
+        request_rows=[r for r in records(folder/'requests.jsonl') if not r['warmup']]
+        d=json.loads(path.read_text());host=[json.loads(p.read_text()) for p in folder.glob('host_execution_*.json')]
+        counts=next(h for h in host if h['role']=='decode')['counts']
+        row=dict(name=folder.name,model=cfg['model'],cell=cfg['workload'],requests=len(request_rows),
+            input_tokens=request_rows[0]['input_tokens'],output_cap=cfg['request_caps'][0],compute_slots=cfg['capacity'],
+            KV_blocks=cfg['kv_blocks'],D_observation_s=d['prepared_D_service_s'],
+            maximum_scheduled_release_delay_s=d.get('maximum_scheduled_release_delay_s',0.),
+            native_output_parity=d['native_output_parity'],variant=cfg.get('alignment_variant','V1_EXCLUDED'),
+            eligible_for_alignment_attribution=folder.name.endswith('_v2'),
+            waiting_gate_CPU_s='NOT_MEASURED_SEPARATELY',physical_GEMM_rows='SEE_GRAPH_AND_PROJECTION_GEOMETRY_NOT_ACTIVE_ROW_COUNT',
+            row_counter_scope='Process lifetime includes warm-up. TPOT excludes warm-up.',
+            evidence='MEASURED_PREPARED_DECODE_DIAGNOSTIC_NOT_A_SERVING_SPEEDUP')
+        for phase in ('prelude','recurrent','coda'):
+            calls=counts.get('phase_'+phase,0);active=counts.get('rows_phase_'+phase,0)
+            row[phase+'_submissions']=calls;row[phase+'_active_rows']=active
+            row[phase+'_mean_active_rows']=active/calls if calls else None
+        for q in (.5,.95,.99):row['request_TPOT_ms_p'+str(int(q*100))]=percentile([r['tpot_ms'] for r in request_rows],q)
+        rows.append(row)
+    save_csv(ROOT/'prepared_decode_alignment_diagnostic.csv',rows)
+
+
 def main():
-    experiment_matrix();instrumentation();sensitivity();validate_shares();output_parity();depth_work();independent_starts()
+    experiment_matrix();instrumentation();sensitivity();validate_shares();output_parity();depth_work();independent_starts();alignment()
     print('ADDITIONAL_ANALYSIS_COMPLETE')
 
 

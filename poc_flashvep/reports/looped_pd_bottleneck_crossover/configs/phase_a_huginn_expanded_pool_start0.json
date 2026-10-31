@@ -1,0 +1,66 @@
+{
+  "name": "phase_a_huginn_expanded_pool_start0",
+  "model": "huginn",
+  "arm": "PD_G1",
+  "depth": 32,
+  "cut": 32,
+  "state_capacity_tokens": 4096,
+  "capacity": 8,
+  "slots": 8,
+  "chunk": 256,
+  "graphs": true,
+  "wavefront": true,
+  "asynchronous": false,
+  "kv_blocks": 18432,
+  "seed": 2026103107,
+  "gpus": [
+    4
+  ],
+  "phase": "KV_capacity_ablation",
+  "timeout": 1800,
+  "barrier": true,
+  "verify_native": true,
+  "state_probe": false,
+  "groups": [
+    {
+      "chunk": 256,
+      "kv_blocks": 26624,
+      "jobs": [
+        {
+          "cell": "G2",
+          "dataset": "test_L3072.json",
+          "batch": 2,
+          "cap": 128,
+          "repeats": 3,
+          "instrument": true
+        },
+        {
+          "cell": "G2",
+          "dataset": "test_L3072.json",
+          "batch": 4,
+          "cap": 128,
+          "repeats": 3,
+          "instrument": true
+        },
+        {
+          "cell": "C1",
+          "dataset": "test_L1536.json",
+          "batch": 2,
+          "cap": 448,
+          "repeats": 3,
+          "instrument": true
+        },
+        {
+          "cell": "C1",
+          "dataset": "test_L1536.json",
+          "batch": 4,
+          "cap": 448,
+          "repeats": 3,
+          "instrument": true
+        }
+      ]
+    }
+  ],
+  "worker": "capacity_worker",
+  "estimated_seconds": 1800
+}

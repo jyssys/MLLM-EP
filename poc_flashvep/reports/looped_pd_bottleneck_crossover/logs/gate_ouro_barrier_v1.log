@@ -1,0 +1,28 @@
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_bottleneck_crossover/capacity_worker.py", line 148, in <module>
+    if __name__=='__main__':main()
+                            ~~~~^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_bottleneck_crossover/capacity_worker.py", line 100, in main
+    model=AutoModelForCausalLM.from_pretrained(MODEL_PINS[cfg['model']][0],device='cuda:0',dtype=torch.bfloat16)
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_b_numerical_diagnosis/patches.py", line 18, in load
+    model=original(*args,**kwargs)
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/models/__init__.py", line 178, in from_pretrained
+    source, resolved_revision, config = prepare_model(
+                                        ~~~~~~~~~~~~~^
+        path_or_repo, revision=revision, model_config=model_config
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/models/config.py", line 70, in prepare_model
+    model, revision, values = resolve_model_config(model, revision=revision)
+                              ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/models/__init__.py", line 76, in resolve_model_config
+    _confirm_download(source)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/models/__init__.py", line 55, in _confirm_download
+    raise RuntimeError(
+    ...<2 lines>...
+    )
+RuntimeError: Download requires approval for 'ByteDance/Ouro-1.4B'. Run interactively and enter y/yes, or provide a local checkpoint.

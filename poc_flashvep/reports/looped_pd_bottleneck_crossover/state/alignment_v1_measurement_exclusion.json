@@ -1,0 +1,18 @@
+{
+  "time": 1793448172.716768,
+  "excluded_from_alignment_performance_comparison": [
+    "diagnostic_ouro_prepared_together_smoke_v1",
+    "diagnostic_ouro_prepared_staggered_smoke_v1",
+    "diagnostic_huginn_prepared_together_smoke_v1",
+    "diagnostic_huginn_prepared_staggered_smoke_v1"
+  ],
+  "reason": "The diagnostic callback read configuration files repeatedly. The V1 outputs remain valid correctness evidence, but performance attribution is confounded.",
+  "hypotheses": [
+    "Configuration file IO inside the scheduling callback",
+    "Intended release staggering changes batch packing",
+    "Independent runtime variation"
+  ],
+  "red_command": "python -m unittest poc_flashvep.looped_pd_bottleneck_crossover.test_contracts.ContractTests.test_prepared_gate_has_no_configuration_IO -v",
+  "red_result": "FAIL: three configuration-read call sites exist inside the callback",
+  "scope": "Primary Serving runs do not install this prepare_D_only callback and are not affected."
+}

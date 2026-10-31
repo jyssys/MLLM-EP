@@ -74,6 +74,10 @@ Run commands from `/home/esjung/MLLM-EP-github`.
 /home/esjung/.venvs/looped-pd-abc/bin/python -m poc_flashvep.looped_pd_bottleneck_crossover.summary_tables
 /home/esjung/.venvs/looped-pd-abc/bin/python -m poc_flashvep.looped_pd_bottleneck_crossover.classify
 /home/esjung/.venvs/looped-pd-abc/bin/python -m poc_flashvep.looped_pd_bottleneck_crossover.profile_summary
+/home/esjung/.venvs/looped-pd-abc/bin/python -m poc_flashvep.looped_pd_bottleneck_crossover.additional_analysis
+/home/esjung/.venvs/looped-pd-abc/bin/python -m poc_flashvep.looped_pd_bottleneck_crossover.final_tables
+/home/esjung/.venvs/looped-pd-abc/bin/python -m poc_flashvep.looped_pd_bottleneck_crossover.figures
+/home/esjung/.venvs/looped-pd-abc/bin/python -m poc_flashvep.looped_pd_bottleneck_crossover.closeout
 ```
 
 The queue skips completed namespaces.
@@ -86,6 +90,13 @@ Resuming the queue does not reset the twelve-hour boundary.
 The calibration and configuration generators intentionally reject existing output files.
 Do not rerun them to overwrite frozen settings.
 Use existing generated configurations for reproduction.
+
+The original campaign command resumes its existing queue.
+It does not create a new twelve-hour budget.
+After the original deadline, it is not a fresh GPU reproduction command.
+A later GPU campaign needs a new authorized budget and immutable namespaces.
+The recorded `commands.jsonl` remains the exact historical command ledger.
+CPU analysis commands can reproduce the published tables without another GPU campaign.
 
 ## Output interpretation
 
@@ -102,6 +113,22 @@ Do not add nested CPU spans or overlapping device durations.
 A zero return code alone is not a correctness qualification.
 Read the associated gate result and raw comparison evidence.
 
+The final request analysis is published as `per_request_analysis.json.gz`.
+The uncompressed local copy remains intact but is not included in Git.
+The compression audit records both SHA256 values and checks the decompressed bytes.
+Original per-run request JSONL remains independently available.
+
+`completed_screen_tables.md` contains all 24 model/cell screens.
+`completed_rate_sweep_tables.md` contains all fourteen focused rate runs.
+`independent_start_intervals.md` contains four settings with three starts each.
+`host_e2e_component_table.md` contains the complete measured host percentages for the paired G2 controls.
+`state/final_phase_decisions.json` records the reviewed gate decision.
+The earlier provisional gate remains available for the audit history.
+
+Full-Prefill PD is not synonymous with an unchunked Prompt.
+The measured native PD screens use C256 and the tuned controls use C2048.
+The whole-prompt atomic PD control remains unmeasured.
+
 ## Resource restoration
 
 ```bash
@@ -113,3 +140,5 @@ Restore burners only after all clean GPU measurements end.
 The resource helper checks ownership and active GPU processes.
 It must not terminate unrelated jobs.
 The final report must distinguish a requested restore from verified running burners.
+The final audit records actual GPU applications, their owners, and their parent burner commands.
+No additional GPU experiment runs during documentation and publication.
