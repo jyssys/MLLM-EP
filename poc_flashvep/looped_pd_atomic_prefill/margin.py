@@ -10,11 +10,14 @@ def configurations():
     candidates=classify();runs={r['name']:r for r in serving()};output=[];selection={}
     for model in MODEL_PINS:
         eligible=[r for r in candidates if r['model']==model and runs[r['name']]['phase']=='final_repeat' and
-            r['chunk']==r['length'] and r['screen_P_candidate'] and r['P_near_strongest_finite_service_rate']]
+            r['screen_P_candidate'] and r['P_near_strongest_finite_service_rate']]
         if not eligible:
             selection[model]=dict(status='NOT_RUN_NO_QUALIFIED_P_PRESSURE_SCREEN');continue
         selected=max(eligible,key=lambda r:r['actual_P_completion_rate']);source=runs[selected['name']]
-        cfg=json.loads((ROOT/'configs'/(selected['name']+'.json')).read_text());count=32 if model=='qwen8' else 8 if model=='ouro' else 3
+        cfg=json.loads((ROOT/'configs'/(selected['name']+'.json')).read_text())
+        references=json.loads((ROOT/'configs/capacity_references.json').read_text())
+        legal_batch=references[model+'_L'+str(cfg['length'])]['D'][str(cfg['cap'])]['source']['batch']
+        count=min(32 if model=='qwen8' else 8 if model=='ouro' else 3,legal_batch)
         rate=1.2*selected['actual_P_completion_rate'];cfg=copy.deepcopy(cfg)
         cfg.update(name=f'diagnostic_{model}_staggered_D_reserve_v1',phase='D_margin_diagnostic',count=count,
             request_caps=[cfg['cap']]*count,prompt_ids=cfg['prompt_ids'][:count],arrival_offsets=[0.]*count,

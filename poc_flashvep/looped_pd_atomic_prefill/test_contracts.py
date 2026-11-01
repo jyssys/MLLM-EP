@@ -75,7 +75,7 @@ class ContractTests(unittest.TestCase):
         for rate in (.5,2.5,10.):
             for start in range(3):
                 count=final_count(rate,start)
-                rng=random.Random(20261101+start)
+                rng=random.Random(20261111+start)
                 duration=sum(rng.expovariate(rate) for _ in range(count-1))
                 self.assertGreaterEqual(count,128)
                 self.assertGreaterEqual(.7*duration,30.)

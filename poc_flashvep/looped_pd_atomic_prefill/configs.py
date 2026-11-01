@@ -8,20 +8,21 @@ from .common import *
 def finish(cfg,count=None,rate=None,split='test',start=0):
     if count is not None:cfg['count']=count
     n=cfg['count'];m=cfg['model'];length=cfg['length']
-    source=ROOT/'data'/f'{split}_{m}_L{length}.json';rows=json.loads(source.read_text())
+    pool=cfg.get('dataset_pool',f'{split}_{m}_L{length}.json')
+    assert Path(pool).name==pool,'Dataset pool must be an explicit local basename'
+    source=ROOT/'data'/pool;rows=json.loads(source.read_text());pool_records=len(rows)
     assert rows,'No legal data for this input length'
     if n>len(rows):
-        expanded=ROOT/'data'/f'{split}_{m}_L{length}_cyclic_n{n}.json'
+        expanded=ROOT/'data'/(source.stem+f'_cyclic_n{n}.json')
         values=[dict(rows[i%len(rows)],source_pool_index=i%len(rows),offered_index=i) for i in range(n)]
         if expanded.exists():assert json.loads(expanded.read_text())==values
         else:write(expanded,values)
         source=expanded;rows=values
     cfg['dataset']=source.name;cfg['prompt_ids']=[r['prompt_id'] for r in rows[:n]]
     cfg['request_caps']=[cfg['cap']]*n
-    cfg['data_scope']=dict(original_pool_records=len(json.loads((ROOT/'data'/f'{split}_{m}_L{length}.json').read_text())),
-        offered_count=n,explicit_cyclic_reuse=n>len(json.loads((ROOT/'data'/f'{split}_{m}_L{length}.json').read_text())))
+    cfg['data_scope']=dict(original_pool_records=pool_records,offered_count=n,explicit_cyclic_reuse=n>pool_records)
     cfg['atomic_prompt']=cfg['chunk']>=length
-    cfg['independent_start']=start;cfg['arrival_seed']=20261101+start
+    cfg['independent_start']=start;cfg['arrival_seed']=cfg.get('arrival_seed_base',20261101)+start
     if rate is not None:
         cfg['arrival_rate']=rate;rng=random.Random(cfg['arrival_seed']);offsets=[0.]
         for _ in range(n-1):offsets.append(offsets[-1]+rng.expovariate(rate))

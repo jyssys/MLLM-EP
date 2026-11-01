@@ -137,11 +137,14 @@ def serving_one(cfg):
         total_tokens_per_s=sum(r['input_tokens']+r['output_tokens'] for r in requests)/elapsed,
         coalesced_delivery_events=bundles,gpus=cfg['gpus'],ar_batch_invariant=cfg.get('ar_batch_invariant',False),
         native_transport_limits=cfg.get('native_transport_limits',{}),
+        D_token_budget=cfg.get('D_token_budget',cfg['token_budget']),D_KV_blocks=cfg.get('D_kv_blocks',cfg['kv_blocks']) if cfg['model']!='qwen8' else 'NATIVE_AUTO_ALLOCATION',
         transport_control=('NOT_APPLICABLE_COLOCATED' if cfg['arm'].startswith('DP') else
             'INFLIGHT_'+str(cfg.get('native_transport_limits',{}).get('max_inflight_bytes',256*1024**2)) if cfg['model']!='qwen8' else 'NATIVE_AR_NIXL'),
         timing_scope='Finite arrival-to-drain observation. Not established sustainable capacity.',
         eligible_clean=status(name)=='COMPLETE' and len(requests)==cfg['count'] and window is not None and cfg['phase'] in ('qps_pilot','final_repeat','paper_budget_control') and not any(cfg.get(k) for k in ('state_probe','verify_transfer','nsys')),
         actual_P_kernel_busy='NOT_MEASURED',actual_D_kernel_busy='NOT_MEASURED')
+    if cfg.get('D_token_budget') or cfg.get('D_kv_blocks'):
+        row['transport_control']+='_DB'+str(cfg.get('D_token_budget',cfg['token_budget']))+'_KV'+str(cfg.get('D_kv_blocks',cfg['kv_blocks']))
     row['timing_isolation_clean']=row['eligible_clean']
     row['GPU_role_mapping']=dict(P_column='replica0',D_column='replica1') if cfg['arm'].startswith('DP') else dict(P_column='prefill',D_column='decode')
     from .live_audit import blocked

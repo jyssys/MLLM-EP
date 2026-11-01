@@ -9,7 +9,7 @@ PERFORMANCE_PHASES={'qps_pilot','final_repeat','profile_control','paper_budget_c
 def blocker_key(cfg):
     if cfg['arm'].startswith('DP'):
         return '|'.join(map(str,(cfg['model'],cfg['arm'],cfg['length'],cfg['cap'],cfg['chunk'])))
-    return cfg['model']
+    return cfg['model']+'|L'+str(cfg['length'])
 
 
 def blocked(model,cfg=None):
@@ -19,6 +19,8 @@ def blocked(model,cfg=None):
 
 
 def verify(cfg):
+    from .h_workspace_controls import advance
+    advance()
     if cfg.get('phase') not in PERFORMANCE_PHASES:return
     if status(cfg['name'])=='FAILED' and not cfg.get('nsys'):
         path=ROOT/'raw'/cfg['name']/'status.json';detail=json.loads(path.read_text()) if path.exists() else {}

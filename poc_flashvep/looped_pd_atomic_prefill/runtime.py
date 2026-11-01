@@ -32,6 +32,11 @@ def install():
         if 'prefill_scheduler_config' in kwargs:
             kwargs['prefill_scheduler_config']=replace(kwargs['prefill_scheduler_config'],max_num_seqs=cfg['P_slots'])
             kwargs['decode_scheduler_config']=replace(kwargs['decode_scheduler_config'],max_num_seqs=cfg['D_slots'])
+            if cfg.get('D_token_budget'):
+                kwargs['decode_scheduler_config']=replace(kwargs['decode_scheduler_config'],
+                    max_num_batched_tokens=cfg['D_token_budget'],prefill_chunk_size=cfg['D_token_budget'])
+        if cfg.get('D_kv_blocks') and 'decode_cache_config' in kwargs:
+            kwargs['decode_cache_config']=replace(kwargs['decode_cache_config'],num_blocks=cfg['D_kv_blocks'])
         if cfg.get('native_transport_limits'):
             # Existing supported PDConfig fields only. No new transport,
             # ownership rule, tensor approximation, or scheduler is added.

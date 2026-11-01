@@ -2,6 +2,7 @@
 import sqlite3
 import subprocess
 import collections
+import bisect
 from .common import *
 from .evidence import status
 from .analyze import save_csv
@@ -48,6 +49,41 @@ def parse(folder,cfg):
     compatibility=duration<=0
     if compatibility:left=marker['start'];right=marker['end']
     roles=pid_roles(folder,cfg);kernels=collections.defaultdict(list);names=collections.Counter();events=[];unmapped=0
+    forward=collections.defaultdict(list)
+    for r in conn.execute('SELECT * FROM NVTX_EVENTS WHERE end IS NOT NULL'):
+        text=label(r)
+        if not text.startswith('APD_FORWARD|'):continue
+        raw=r['globalTid'] if 'globalTid' in r.keys() else None
+        pid=(raw>>24)&0xffffff if raw is not None else None
+        if pid in roles and marker['start']<=r['start']<marker['end']:
+            forward[pid].append(dict(start=r['start'],end=r['end'],label=text,kernels=[]))
+    for pid in forward:forward[pid].sort(key=lambda r:r['start'])
+    starts={pid:[r['start'] for r in values] for pid,values in forward.items()};launches={}
+    for table in ('CUPTI_ACTIVITY_KIND_RUNTIME','CUPTI_ACTIVITY_KIND_DRIVER'):
+        if table not in tables or not {'globalTid','correlationId','start'}<=set(schema[table]):continue
+        for r in conn.execute('SELECT * FROM "'+table+'" WHERE start>=? AND start<=?',(marker['start'],marker['end'])):
+            pid=(r['globalTid']>>24)&0xffffff
+            if pid in forward:launches[(pid,r['correlationId'])]=r['start']
+    attributed=collections.Counter();unattributed=collections.Counter()
+    for r in conn.execute('SELECT * FROM CUPTI_ACTIVITY_KIND_KERNEL WHERE start>=? AND start<=?',(marker['start'],marker['end'])):
+        raw=r['globalPid'];pid=raw if raw in roles else (raw>>24)&0xffffff
+        if pid not in roles:continue
+        timestamp=launches.get((pid,r['correlationId']));index=bisect.bisect_right(starts.get(pid,[]),timestamp)-1 if timestamp is not None else -1
+        if index>=0 and timestamp<forward[pid][index]['end']:
+            forward[pid][index]['kernels'].append((r['start'],r['end']));attributed[roles[pid][0]]+=1
+        else:unattributed[roles[pid][0]]+=1
+    batch_rows=[]
+    for pid,values in forward.items():
+        for value in values:
+            tokens=value['label'].split('|');activity=value['kernels'];complete=bool(activity) and all(b<=marker['end'] for a,b in activity)
+            batch_rows.append(dict(role=roles[pid][0],physical_GPU=roles[pid][1],operation=tokens[1],
+                logical_rows=int(tokens[2].split('=')[1]),loop_count=int(tokens[3].split('=')[1]),
+                host_submit_ms=(value['end']-value['start'])/1e6,recorded_kernels=len(activity),
+                recorded_kernel_union_ms=union(activity)/1e6 if activity else None,
+                recorded_GPU_span_ms=(max(b for a,b in activity)-min(a for a,b in activity))/1e6 if activity else None,
+                complete_inside_measured_window=complete,
+                scope='Actual CUDA-launch correlation to one ModelRunner submission. Logical rows are not fixed-tile Down GEMM rows. Missing graph internals cannot become zero compute.'))
+    save_csv('profiles/'+cfg['name']+'_actual_batch_gpu_time.csv',batch_rows)
     for r in conn.execute('SELECT * FROM CUPTI_ACTIVITY_KIND_KERNEL WHERE end>? AND start<?',(left,right)):
         raw=r['globalPid'] if 'globalPid' in r.keys() else None
         pid=raw if raw in roles else (raw>>24)&0xffffff if raw is not None else None
@@ -77,8 +113,34 @@ def parse(folder,cfg):
                 'Union of recorded CUDA kernels. Not SM occupancy. Unrecorded DMA is not GPU idleness.'))
     save_csv('profiles/'+cfg['name']+'_kernel_names.csv',[dict(role=k[0],physical_GPU=k[1],kernel=k[2],invocations=v) for k,v in names.items()])
     save_csv('profiles/'+cfg['name']+'_kernel_intervals.csv',events)
+    APIs=collections.defaultdict(list);API_intervals=collections.defaultdict(list)
+    table='CUPTI_ACTIVITY_KIND_RUNTIME'
+    if table in tables and {'start','end','globalTid','nameId'}<=set(schema[table]):
+        for r in conn.execute('SELECT * FROM "'+table+'" WHERE end>? AND start<?',(left,right)):
+            pid=(r['globalTid']>>24)&0xffffff
+            if pid not in roles:continue
+            role,gpu=roles[pid];interval=(max(left,r['start']),min(right,r['end']))
+            APIs[(role,gpu,strings.get(r['nameId'],'UNKNOWN_API'))].append(interval)
+            API_intervals[role].append(interval)
+    save_csv('profiles/'+cfg['name']+'_host_cuda_apis.csv',[dict(role=k[0],physical_GPU=k[1],API=k[2],calls=len(v),
+        cumulative_host_ms=sum(b-a for a,b in v)/1e6,
+        scope='Profiled host CUDA API durations. Helper threads and device work can overlap. Not additive E2E components.') for k,v in APIs.items()])
+    copies=[];table='CUPTI_ACTIVITY_KIND_MEMCPY'
+    if table in tables and {'start','end','globalPid'}<=set(schema[table]):
+        for r in conn.execute('SELECT * FROM "'+table+'" WHERE end>? AND start<?',(left,right)):
+            raw=r['globalPid'];pid=raw if raw in roles else (raw>>24)&0xffffff
+            if pid not in roles:continue
+            role,gpu=roles[pid]
+            copies.append(dict(owner_role=role,owner_physical_GPU=gpu,start_s=(max(left,r['start'])-marker['start'])/1e9,
+                end_s=(min(right,r['end'])-marker['start'])/1e9,bytes=r['bytes'] if 'bytes' in r.keys() else None,
+                raw_copy_kind=r['copyKind'] if 'copyKind' in r.keys() else None,
+                scope='Recorded CUDA copy activity only. This table does not prove that every NIXL/UCX DMA operation is visible.'))
+    save_csv('profiles/'+cfg['name']+'_recorded_cuda_copies.csv',copies)
     output=dict(name=cfg['name'],status='MEASURED_TOOL_COMPATIBILITY' if compatibility else 'MEASURED_PROFILED_CUDA_ACTIVITY',central_arrival_window_s=.7*duration,
         phase_marker_ns=[marker['start'],marker['end']],devices=summary,unmapped_kernel_events=unmapped,
+        host_CUDA_API_interval_union_fraction={role:union(v)/(right-left) for role,v in API_intervals.items()} if right>left else {},
+        recorded_CUDA_copy_events=len(copies),recorded_CUDA_copy_bytes=sum(r['bytes'] or 0 for r in copies),
+        attributed_forward_kernel_events=dict(attributed),unattributed_forward_kernel_events=dict(unattributed),
         process_ID_scope='Nsight globalPid contains a host tag. Linux PID is bits 24-47 and is checked against measured worker PIDs.',
         source='Actual Nsight/CUPTI kernel intervals, never inferred from host duration.')
     clean_name=cfg.get('profile_clean_reference')

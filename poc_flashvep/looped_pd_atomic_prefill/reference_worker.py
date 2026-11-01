@@ -24,7 +24,17 @@ def main():
         data=json.loads((ROOT/'data'/cfg['dataset']).read_text())[:cfg['count']]
         tokens=[r['input_ids'][cfg['model']] for r in data];recorder=telemetry.Recorder(enabled=False)
         cohort(engine,tokens[:2],2,cfg['seed']-10000,'warm',barrier,recorder,use_barrier=False)
-        result=cohort(engine,tokens,cfg['cap'],cfg['seed'],'reference',barrier,recorder,use_barrier=False)
+        limit=cfg.get('reference_batch_limit',len(tokens))
+        if limit>=len(tokens):result=cohort(engine,tokens,cfg['cap'],cfg['seed'],'reference',barrier,recorder,use_barrier=False)
+        else:
+            result=dict(outputs={},input_ids=tokens,full_depth_rows=0,full_depth_rows_observed=0,subcohort_batches=[])
+            for offset in range(0,len(tokens),limit):
+                part=tokens[offset:offset+limit]
+                value=cohort(engine,part,cfg['cap'],cfg['seed']+offset,'reference_part'+str(offset),barrier,recorder,use_barrier=False)
+                result['outputs'].update({'reference_q'+str(offset+int(k.rsplit('_q',1)[1])):v for k,v in value['outputs'].items()})
+                result['full_depth_rows']+=value['full_depth_rows'];result['full_depth_rows_observed']+=value['full_depth_rows_observed']
+                result['subcohort_batches'].append(len(part))
+            result['scope']='Eight genuine requests in legal subcohorts. No synthetic state or B8 allocation is required.'
         append(folder/'references.jsonl',dict(job=dict(batch=cfg['count'],cap=cfg['cap'],dataset=cfg['dataset']),**result))
         write(folder/'status.json',dict(status='COMPLETE',time=time.time()))
     except BaseException as error:

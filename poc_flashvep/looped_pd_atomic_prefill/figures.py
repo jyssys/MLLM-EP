@@ -34,6 +34,7 @@ def main():
                 lo=[b[0] if b[0] is not None else v for b,v in zip(bounds,y)];hi=[b[1] if b[1] is not None else v for b,v in zip(bounds,y)]
                 name=('Colocated DP2 Mixed' if arm=='DP_Mixed' else 'Colocated DP2' if arm.startswith('DP') else 'Static PD')+(' Full' if chunk==length else ' C'+str(chunk))
                 if transport.startswith('INFLIGHT_'):name+=' wire='+str(int(transport.split('_')[1])//(1024**2))+'MiB'
+                if '_DB' in transport:name+=' '+transport[transport.index('_DB')+1:]
                 ax.plot(x,y,'o--' if phase=='qps_pilot' else 'o-',label=name);ax.fill_between(x,lo,hi,alpha=.15);plotted=True
             if not plotted:plt.close(fig);continue
             ax.set_xlabel('Offered target QPS');ax.set_ylabel(label);ax.grid(alpha=.25);ax.legend(fontsize=8)
@@ -82,7 +83,7 @@ def main():
             ax.text(.01,.78,'Recorded kernels only. Graph internals may be absent. No idle inference.',transform=ax.transAxes,fontsize=7)
         axes[-1].set_xlabel('Seconds from measured-window start')
         if picked:axes[-1].set_xlim(central,max(r['finish']-zero for r in picked))
-        fig.tight_layout();path=figures/(cfg['model']+'_e_actual_request_timeline.png');fig.savefig(path,dpi=170);plt.close(fig)
+        fig.tight_layout();path=figures/(cfg['name']+'_e_actual_request_timeline.png');fig.savefig(path,dpi=170);plt.close(fig)
         manifest.append(dict(file=path.name,source=cfg['name'],evidence='MEASURED_PROFILE_AND_HOST_PHASES',scope='No fabricated device idle. Host envelopes and recorded device intervals are separate.'))
     write(figures/'figure_manifest.json',manifest);print('FIGURES',len(manifest));return manifest
 
