@@ -69,6 +69,10 @@ class ContractTests(unittest.TestCase):
         self.assertFalse(llm_options(c,'prefill')['async_scheduling'])
         c['ar_async_scheduling']=True
         self.assertTrue(llm_options(c,'prefill')['async_scheduling'])
+    def test_colocated_control_preserves_actual_scheduler_geometry(self):
+        from .colocated_controls import controls
+        cfg=base('huginn','cpu_only',3500,32,wavefront=False,token_budget=2048,kv_blocks=28288,scheduler_mode='mixed',native_mixed=True)
+        self.assertEqual(controls(cfg),dict(wavefront=False,token_budget=2048,kv_blocks=28288,scheduler_mode='mixed',native_mixed=True))
     def test_final_cohort_has_thirty_seconds_in_its_central_window(self):
         from .search import final_count
         import random

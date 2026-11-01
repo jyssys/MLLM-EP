@@ -145,6 +145,8 @@ def serving_one(cfg):
         actual_P_kernel_busy='NOT_MEASURED',actual_D_kernel_busy='NOT_MEASURED')
     if cfg.get('D_token_budget') or cfg.get('D_kv_blocks'):
         row['transport_control']+='_DB'+str(cfg.get('D_token_budget',cfg['token_budget']))+'_KV'+str(cfg.get('D_kv_blocks',cfg['kv_blocks']))
+    if cfg['arm'].startswith('DP'):
+        row['transport_control']+='_B'+str(cfg['token_budget'])+'_KV'+str(cfg['kv_blocks'])+'_W'+str(int(cfg.get('wavefront',False)))
     row['timing_isolation_clean']=row['eligible_clean']
     row['GPU_role_mapping']=dict(P_column='replica0',D_column='replica1') if cfg['arm'].startswith('DP') else dict(P_column='prefill',D_column='decode')
     from .live_audit import blocked

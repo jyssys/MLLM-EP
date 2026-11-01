@@ -32,8 +32,12 @@ def start_capacity():
         c=configured_base('ouro',name,16384,100,phase='independent_capacity',worker=worker,capacity_mode=mode,gpus=[0],timeout=1200)
         c=finish(c,8);c['jobs']=[dict(batch=b,cap=1 if mode=='P_ONLY' else 100,repeats=3) for b in ((1,2,4,5,8) if mode=='PREPARED_D' else (1,2,4,8))]
         new.append(c)
+    control=configured_base('ouro','qual_ouro_optional16k_d128_kv25088_v1',16384,8,phase='long_correctness',
+        gpus=[4,5],D_token_budget=128,D_kv_blocks=25088,verify_transfer=True,timeout=1200)
+    new.append(finish(control,8))
     for chunk in (256,1024,2048,4096):
-        c=configured_base('ouro',f'qual_ouro_optional16k_chunk{chunk}_v1',16384,8,chunk=chunk,chunk_label=str(chunk),phase='chunk_correctness',gpus=[2,3],timeout=1200)
+        c=configured_base('ouro',f'qual_ouro_optional16k_chunk{chunk}_v1',16384,8,chunk=chunk,chunk_label=str(chunk),phase='chunk_correctness',gpus=[2,3],
+            D_token_budget=128,D_kv_blocks=25088,timeout=1200)
         new.append(finish(c,8))
     return enqueue(new,'OPTIONAL16K_CAPACITY')
 
@@ -47,6 +51,13 @@ def calibration():
         if result['passed']:result['work']=full_work(name);result['passed'] &= result['work']['passed']
         entries[str(chunk)]=result
     write(ROOT/'state/optional16k_chunk_gates.json',entries)
+    control='qual_ouro_optional16k_d128_kv25088_v1'
+    result=compare(CANDIDATE,control) if status(control)=='COMPLETE' else dict(passed=False,status=status(control))
+    if result['passed']:
+        from .evidence import transfer
+        result.update(work=full_work(control),transfer=transfer(control))
+        result['passed'] &= result['work']['passed'] and result['transfer']['passed']
+    write(ROOT/'state/optional16k_D_workspace_gate.json',result)
     plan=ROOT/'state/optional16k_chunk_capacity_plan.json'
     if not plan.exists():
         from .search import configured_base
@@ -64,6 +75,7 @@ def calibration():
     if not cell or not cell['D']:return False
     data=json.loads((ROOT/'data/calibration_ouro_L16384_extension_v1.json').read_text())
     c=serving_config(cell,'calibration_ouro_l16384_optional_v1',100,16384,'calibration',8)
+    if result['passed']:c.update(D_token_budget=128,D_kv_blocks=25088)
     c.update(dataset='calibration_ouro_L16384_extension_v1.json',prompt_ids=[r['prompt_id'] for r in data],calibration_serial=True,
         calibration_scope='Eight disjoint optional 16K sources. The original seven-source file remains unchanged. No held-out 16K Serving result precedes this calibration.')
     return enqueue([c],'OPTIONAL16K_CALIBRATION')
@@ -86,9 +98,17 @@ def pilots():
             existing_thresholds_unchanged=True,reason='New optional context calibrated before its held-out Serving.'))
     cell=json.loads((ROOT/'configs/capacity_references.json').read_text())[key]
     mu=min(max(c['mu_P'] for c in cell['chunks'].values()),cell['D']['100']['mu_D']);new=[]
+    gate=json.loads((ROOT/'state/optional16k_D_workspace_gate.json').read_text())
+    controls=dict(D_token_budget=128,D_kv_blocks=25088) if gate['passed'] else {}
     for chunk in dict.fromkeys([16384,cell['tuned_chunk']]):
         label='full' if chunk==16384 else str(chunk)
         for factor in (.25,.5,.75,1.,1.25,1.5,2.):
             c=serving_config(cell,f'pilot_ouro_l16384_o100_c{label}_f{str(factor).replace(".","p")}_optional_v1',100,chunk,'qps_pilot',24,rate=mu*factor)
-            c.update(reference_capacity=mu,rate_factor=factor,optional_context=True);new.append(c)
+            c.update(controls,reference_capacity=mu,rate_factor=factor,optional_context=True);new.append(c)
+    if controls:
+        for factor in (.5,1.,1.5):
+            c=serving_config(cell,f'pilot_ouro_l16384_o100_cfull_original_D_f{str(factor).replace(".","p")}_optional_v1',100,16384,'qps_pilot',24,rate=mu*factor)
+            c.update(reference_capacity=mu,rate_factor=factor,optional_context=True,
+                control_scope='Original oversized D workspace control. Separate from the qualified compact-D search.')
+            new.append(c)
     return enqueue(new,'OPTIONAL16K_QPS')

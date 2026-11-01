@@ -8,19 +8,25 @@ PERFORMANCE_PHASES={'qps_pilot','final_repeat','profile_control','paper_budget_c
 
 def blocker_key(cfg):
     if cfg['arm'].startswith('DP'):
-        return '|'.join(map(str,(cfg['model'],cfg['arm'],cfg['length'],cfg['cap'],cfg['chunk'])))
+        return '|'.join(map(str,(cfg['model'],cfg['arm'],cfg['length'],cfg['cap'],cfg['chunk'],
+            cfg['token_budget'],cfg['kv_blocks'],cfg.get('wavefront',False))))
     return cfg['model']+'|L'+str(cfg['length'])
 
 
 def blocked(model,cfg=None):
     p=ROOT/'state/online_correctness_blockers.json'
     values=json.loads(p.read_text()) if p.exists() else {}
-    return values.get(model) or (values.get(blocker_key(cfg)) if cfg is not None else None)
+    legacy='|'.join(map(str,(cfg['model'],cfg['arm'],cfg['length'],cfg['cap'],cfg['chunk']))) if cfg is not None and cfg['arm'].startswith('DP') else None
+    return values.get(model) or values.get(legacy) or (values.get(blocker_key(cfg)) if cfg is not None else None)
 
 
 def verify(cfg):
     from .h_workspace_controls import advance
-    advance()
+    try:advance()
+    except Exception as error:
+        import traceback
+        append(ROOT/'state/control_generation_errors.jsonl',dict(time=time.time(),error=repr(error),traceback=traceback.format_exc(),
+            scope='Optional control generation failed. Do not claim its gate passed. Existing qualified jobs can continue.'))
     if cfg.get('phase') not in PERFORMANCE_PHASES:return
     if status(cfg['name'])=='FAILED' and not cfg.get('nsys'):
         path=ROOT/'raw'/cfg['name']/'status.json';detail=json.loads(path.read_text()) if path.exists() else {}

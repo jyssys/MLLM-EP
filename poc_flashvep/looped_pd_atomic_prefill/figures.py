@@ -38,7 +38,7 @@ def main():
                 ax.plot(x,y,'o--' if phase=='qps_pilot' else 'o-',label=name);ax.fill_between(x,lo,hi,alpha=.15);plotted=True
             if not plotted:plt.close(fig);continue
             ax.set_xlabel('Offered target QPS');ax.set_ylabel(label);ax.grid(alpha=.25);ax.legend(fontsize=8)
-            qualification='NUMERICAL GATE FAILED; diagnostic timings only' if any(r['fidelity_gate_blocked'] for r in group) else 'N24 smoke only' if phase=='qps_pilot' else 'Finite measured cohorts; no infinite-capacity claim'
+            qualification='NUMERICAL GATE FAILED; diagnostic timings only' if any(r['fidelity_gate_blocked'] for r in group) else f'Exploratory cohorts: N{min(r["offered"] for r in group)}–N{max(r["offered"] for r in group)}' if phase=='qps_pilot' else 'Finite measured cohorts; no infinite-capacity claim'
             ax.set_title(f'{model}: input {length}, output {cap}\n'+qualification,fontsize=10)
             fig.tight_layout();path=figures/(prefix+'_'+suffix+'.png');fig.savefig(path,dpi=170);plt.close(fig)
             manifest.append(dict(file=path.name,metric=metric,cell=key,source_runs=[r['name'] for r in group],

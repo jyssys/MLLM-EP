@@ -345,6 +345,33 @@ Wire-credit changes are separate transport controls. They are not evidence of a 
 An isolated model-free NIXL benchmark separates transport capability from Serving polling and scheduling.
 Its measured host completion is not pure GPU DMA or model E2E speedup.
 
+### Bounded memory and baseline controls before final confirmation
+
+The inherited harness assigns the P token budget to the Decode-only worker.
+The native runner allocates row-dependent work buffers from that budget.
+Test the supported D budget of 128 as a separate generic memory control.
+Keep the fixed recurrent graph geometry, numerical fixes, BF16, and full depth unchanged.
+Qualify larger legal D pools before timing them.
+Use 25,088 blocks for the Ouro control and 28,288 blocks for Huginn at 3500/32.
+The latter supports a fourth reservation but leaves little activation memory.
+Record actual memory and admission credit. Do not assume that four active requests fit every execution geometry.
+
+The optional Ouro 16K cell requires its own D-workspace output and valid-state byte gate.
+Its calibration precedes its held-out rate search.
+Keep an original-workspace control at the same length.
+Do not change existing primary SLO thresholds.
+
+At Huginn 3500/32 and Ouro 16384/100, qualify colocated controls before selecting a final baseline.
+Compare separate-phase Full, separate-phase C1024, native Mixed C256, and compact native Mixed C256.
+The compact control uses existing non-wavefront scheduling and a smaller legal token budget.
+This is bounded generic tuning, not a new scheduling method.
+All variants require exact output and full-depth checks.
+Native Mixed must retain actual batch-composition evidence.
+Failed memory or output gates exclude only the affected setting.
+For Huginn 3500/32, also qualify a 1-GiB native wire-credit control for Full and C2048.
+The fragment limit remains 64 MiB.
+Independent final confirmation uses new arrival seeds that did not select these tuning settings.
+
 Produce QPS versus TTFT p95, TPOT/ITL, total/output throughput, and P/D utilization plots.
 Use the same workload within a rate curve.
 Plot different input/output cells as separate series.

@@ -4,6 +4,8 @@ from .analyze import serving,save_csv
 
 
 def main():
+    from .native_capacity_controls import analyze as native_D_service
+    native_references=native_D_service()
     runs=serving();profile_path=ROOT/'profile_activity.json';profiles=json.loads(profile_path.read_text()) if profile_path.exists() else []
     mapped={r['clean_reference']:r for r in profiles if r.get('clean_reference') and r.get('eligible_profile_transfer_to_clean')}
     selected_path=ROOT/'configs/capacity_references.json';refs=json.loads(selected_path.read_text()) if selected_path.exists() else {}
@@ -14,6 +16,9 @@ def main():
         cell=refs.get(r['model']+'_L'+str(r['length']))
         if not cell or str(r['output_cap']) not in cell['D']:continue
         muP=max(v['mu_P'] for v in cell['chunks'].values());muD=cell['D'][str(r['output_cap'])]['mu_D'];matched_muD=None
+        native=next((s for s in native_references if s['model']==r['model'] and s['length']==r['length'] and
+            s['output_cap']==r['output_cap'] and s['D_token_budget']==r['D_token_budget'] and s['D_kv_blocks']==r['D_KV_blocks'] and s['independent_starts']>=3),None)
+        if native:muD=native['finite_requests_per_s_mean']
         observed_batch=r.get('D_recurrent_batch_requests_mean',r.get('D_running_mean'))
         matched_D=None
         if observed_batch is not None:
@@ -48,6 +53,8 @@ def main():
         output.append(dict(name=r['name'],model=r['model'],length=r['length'],output_cap=r['output_cap'],chunk=r['chunk'],
             category=category,screen_P_candidate=all(checks[k] for k in ('P_backlog_growth','D_finite_service_reserve','D_credit_clear','D_TPOT_margin_pass')),
             **checks,muP_finite=muP,muD_finite=muD,actual_P_completion_rate=p_rate,P_queue_slope=slope,P_queue_half_growth=growth,
+            muD_reference_scope='Actual native PD, matching D budget and KV pool, three independent prepared-D starts.' if native else 'Local prepared-D optimistic screen. Staggered native validation is still required.',
+            muD_reference_sources=native['source_runs'] if native else cell['D'][str(r['output_cap'])]['source'],
             P_profiled_kernel_busy_fraction=p_busy,D_profiled_kernel_busy_fraction=d_busy,
             D_observed_recurrent_batch_mean=observed_batch,D_reference_matched_batch=matched_D['batch'] if matched_D else None,
             D_finite_rate_at_observed_or_lower_batch=matched_muD,

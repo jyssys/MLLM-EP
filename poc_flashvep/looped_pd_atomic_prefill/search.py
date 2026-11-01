@@ -376,7 +376,9 @@ def finalist_configs():
         if colocated:
             nearest=min(abs(r['target_QPS']-center) for r in colocated)
             best=max((r for r in colocated if abs(r['target_QPS']-center)==nearest),key=lambda r:(r['SLO_goodput'],-r['E2E_ms_p95']))
-            dp_choice=dict(arm=best['arm'],chunk=best['chunk'],worker='native_mixed_worker' if best['arm']=='DP_Mixed' else 'rlt_worker',source=best['name'])
+            from .colocated_controls import controls
+            source=json.loads((ROOT/'configs'/(best['name']+'.json')).read_text())
+            dp_choice=dict(arm=best['arm'],chunk=best['chunk'],worker=source['worker'],source=best['name'],runtime_controls=controls(source))
         choices[model]=dict(smoke=chosen['name'],length=cell['length'],cap=cap,rates=rates,
             P_pressure_screen_found=p_screen,
             native_transport_limits=transport_limits,
@@ -397,7 +399,8 @@ def finalist_configs():
                     if arm=='PD_G1':c.update(runtime_controls)
                     if dp_choice and arm==dp_choice['arm']:
                         c['worker']=dp_choice['worker']
-                        if arm=='DP_Mixed':c.update(scheduler_mode='mixed',wavefront=True,atomic_prompt=False,native_mixed=True)
+                        c.update(dp_choice['runtime_controls'])
+                        if arm=='DP_Mixed':c.update(atomic_prompt=False)
                     c['gpus']=[2*start,2*start+1];c.update(rate_index=ri,selection_smoke=chosen['name'])
                     new.append(c)
         # Actual CUDA activity and overhead use an identical final-start cohort.
@@ -446,7 +449,8 @@ def finalist_configs():
             if arm=='PD_G1':c.update(choice.get('native_runtime_controls',{}))
             if label=='colocated':
                 c['worker']=dp['worker']
-                if arm=='DP_Mixed':c.update(scheduler_mode='mixed',wavefront=True,atomic_prompt=False,native_mixed=True)
+                c.update(dp['runtime_controls'])
+                if arm=='DP_Mixed':c.update(atomic_prompt=False)
             c.update(dataset=dataset,prompt_ids=[r['prompt_id'] for r in source],seed=2026110207,
                 qualification_scope='Independent arrival and Sampling seeds. Rows 32-63 when available, otherwise the last 32 distinct optional-pool prompts. N32, full depth, and exact output gates remain unchanged. Earlier byte gates remain separate.')
             qualification.append(c)
@@ -504,6 +508,11 @@ def advance():
         if pilots():return True
         return refinement_or_finalists()
     if state['stage']=='OPTIONAL16K_QPS':return refinement_or_finalists()
+    if state['stage']=='COLOCATED_EXTRA_QUALIFICATION':
+        from .colocated_controls import pilots
+        values=pilots()
+        return enqueue(values,'COLOCATED_EXTRA_QPS') if values else refinement_or_finalists()
+    if state['stage']=='COLOCATED_EXTRA_QPS':return refinement_or_finalists()
     if state['stage']=='FINE_QPS_REFINEMENT':return finalist_configs()
     if state['stage']=='FINAL_QUALIFICATION':return final_qualification()
     if state['stage']=='FINAL_REPEATS_AND_PROFILES':
@@ -527,6 +536,13 @@ def advance():
 
 
 def refinement_or_finalists():
+    marker=ROOT/'state/colocated_extra_plan.json'
+    if not marker.exists():
+        from .colocated_controls import qualification
+        values=qualification()
+        write(marker,dict(time=time.time(),configs=[save_config(c) for c in values],
+            scope='Bounded generic controls for H3500 and optional Ouro16K. Frozen primary SLOs remain unchanged.'))
+        if values:return enqueue(values,'COLOCATED_EXTRA_QUALIFICATION')
     from .refinement import configurations
     values=configurations()
     return enqueue(values,'FINE_QPS_REFINEMENT') if values else finalist_configs()

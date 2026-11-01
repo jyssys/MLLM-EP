@@ -30,6 +30,8 @@ def advance():
     if state['stage']=='QUALIFICATION8':
         if any(status(n) not in ('COMPLETE','FAILED') for n in state['configs']):return
         reference='qual_huginn_reference_l3500_o32_n8_v1';gates={}
+        if status(reference)!='COMPLETE':
+            state.update(stage='BLOCKED_REFERENCE_RUNTIME',reference_status=status(reference));write(STAGE,state);return
         for name in state['configs'][1:]:
             r=compare(reference,name) if status(name)=='COMPLETE' else dict(passed=False,status=status(name))
             if r['passed']:r['work']=full_work(name);r['passed'] &= r['work']['passed']
@@ -48,6 +50,7 @@ def advance():
         for key,gate in state['gates'].items():
             if not gate['passed']:continue
             source=json.loads((ROOT/'configs'/(key+'.json')).read_text());chunk=source['chunk']
+            if chunk!=3500 and status(f'capacity_huginn_l3500_p_chunk{chunk}_control_v1')!='COMPLETE':continue
             label='d128' if source['D_kv_blocks']==24576 else 'd128_kv28288'
             suffix='full' if chunk==3500 else str(chunk)
             for factor in (.5,.75,1.,1.25):

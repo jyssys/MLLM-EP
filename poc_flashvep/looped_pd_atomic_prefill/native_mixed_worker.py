@@ -34,7 +34,7 @@ def install():
         value=configure(model,width,chunk,graphs,asynchronous)
         value['cache_config']=replace(value['cache_config'],num_blocks=cfg['kv_blocks'],enable_prefix_caching=False)
         value['scheduler_config']=replace(value['scheduler_config'],max_num_batched_tokens=cfg['token_budget'],
-            prefill_chunk_size=cfg['chunk'],mode='mixed',wavefront_chunked_prefill=True)
+            prefill_chunk_size=cfg['chunk'],mode='mixed',wavefront_chunked_prefill=cfg.get('wavefront',True))
         value['execution_config']=replace(value['execution_config'],cuda_graph_max_batch_size=cfg.get('graph_rows',cfg['capacity']))
         return value
     old.configuration=configuration
@@ -77,7 +77,8 @@ def main():
     flags=['worker','--model',cfg['model'],'--mode','dp','--gpus',','.join(map(str,cfg['gpus'])),
         '--name',cfg['name'],'--requests',str(cfg['count']),'--length','0','--cap',str(cfg['cap']),
         '--chunk',str(cfg['chunk']),'--concurrency',str(cfg['capacity']),'--timeout',str(cfg['timeout']),
-        '--wavefront','--scheduler-mode','mixed','--warmup']
+        '--scheduler-mode','mixed','--warmup']
+    if cfg.get('wavefront',True):flags.append('--wavefront')
     if cfg['graphs']:flags.append('--graphs')
     if cfg['asynchronous']:flags.append('--asynchronous')
     sys.argv=flags;old.main()
