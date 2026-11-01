@@ -1,0 +1,18 @@
+{
+  "time": 1793507653.397001,
+  "original_namespace": "gate_qwen8_native_full_l512_pd_g1_v1",
+  "original_actual_prompt_spans": 0,
+  "original_queue_samples": 2,
+  "status": "GPU_RERUN_REQUIRED",
+  "cause": "Pinned native Scheduler.schedule calls _update_after_schedule before returning and advances num_computed_tokens.",
+  "hypotheses": [
+    "Progress advanced before observer: supported by source and regression.",
+    "Wrong scheduler class: contradicted by two queue samples.",
+    "Requests removed: not required to reproduce the failure."
+  ],
+  "red_test": "python -m unittest poc_flashvep.looped_pd_atomic_prefill.test_contracts.ContractTests.test_native_scheduler_updates_progress_before_return -v",
+  "red_result": "FAIL: [] differs from [(request,0,512,512)]",
+  "green_result": "PASS after using the pre-schedule snapshot.",
+  "original_runs_scope": "Output and NIXL evidence remain valid. Atomic span qualification is not established by the V1 empty trace.",
+  "model_changes": false
+}

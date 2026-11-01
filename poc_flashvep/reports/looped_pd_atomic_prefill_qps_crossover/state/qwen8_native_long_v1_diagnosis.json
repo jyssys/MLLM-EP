@@ -1,0 +1,65 @@
+{
+  "time": 1793508627.918129,
+  "comparison": {
+    "reference": "qual_qwen8_full_l8000_dp2_v1",
+    "candidate": "qual_qwen8_full_l8000_pd_g1_v1",
+    "compared": 8,
+    "candidate_rows": 8,
+    "passed": false,
+    "failures": [
+      {
+        "sample_id": 6,
+        "reference": [
+          11,
+          9625,
+          11,
+          323,
+          29121,
+          13,
+          2379,
+          1033,
+          12224,
+          304,
+          220,
+          16,
+          24,
+          16,
+          16,
+          11
+        ],
+        "candidate": [
+          11,
+          9625,
+          11,
+          323,
+          29121,
+          13,
+          2379,
+          12224,
+          304,
+          220,
+          16,
+          24,
+          16,
+          16,
+          11,
+          714
+        ]
+      }
+    ],
+    "scope": "Internal exact output sequence parity. Not original-HF fidelity or downstream accuracy."
+  },
+  "atomic": {
+    "run": "qual_qwen8_full_l8000_pd_g1_v1",
+    "passed": true,
+    "recorded_prompt_spans": 8,
+    "distinct_requests": 8,
+    "expected_requests": 8,
+    "scope": "Actual scheduled token spans. Atomic does not mean one kernel or one transfer fragment."
+  },
+  "cause": "NOT_ESTABLISHED",
+  "hypothesis": "BF16 batch geometry or imported-KV recomputation boundary. A single output difference does not establish either cause.",
+  "reproduction": "Same default PD repeated before selecting a native supported batch-invariant mode.",
+  "official_local_source": "vllm/envs.py VLLM_BATCH_INVARIANT; layers/linear.py; layers/layernorm.py; v1/attention/backends/flash_attn.py",
+  "workaround_scope": "Native vLLM option, BF16 and weights unchanged. Apply identically to all subsequent AR methods if its gate passes. Existing default evidence remains separate."
+}

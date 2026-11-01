@@ -1,0 +1,38 @@
+"""Stop further model expansion after an unexplained measured output difference."""
+import hashlib
+from .common import *
+from .evidence import rows,status,full_work,atomic
+
+PERFORMANCE_PHASES={'qps_pilot','final_repeat','profile_control','paper_budget_control'}
+
+
+def blocked(model):
+    p=ROOT/'state/online_correctness_blockers.json'
+    return json.loads(p.read_text()).get(model) if p.exists() else None
+
+
+def verify(cfg):
+    if cfg.get('phase') not in PERFORMANCE_PHASES or status(cfg['name'])!='COMPLETE':return
+    path=ROOT/'state/canonical_outputs.json';canonical=json.loads(path.read_text()) if path.exists() else {}
+    failures=[];compared=0;new=0
+    for r in rows(cfg['name']):
+        input_sha=hashlib.sha256(json.dumps(r['input_ids'],separators=(',',':')).encode()).hexdigest()
+        key='|'.join(map(str,(cfg['model'],cfg['model_revision'],cfg.get('ar_batch_invariant',False),r['seed'],input_sha)))
+        previous=canonical.get(key)
+        if previous:
+            compared+=1;n=min(len(previous['output_ids']),len(r['output_ids']))
+            difference=next((i for i in range(n) if previous['output_ids'][i]!=r['output_ids'][i]),None)
+            if difference is not None:failures.append(dict(sample_id=r['sample_id'],reference=previous['name'],
+                candidate=cfg['name'],first_divergent_token=difference,reference_ids=previous['output_ids'],candidate_ids=r['output_ids']))
+        if previous is None or (not failures and len(r['output_ids'])>len(previous['output_ids'])):
+            canonical[key]=dict(name=cfg['name'],output_ids=r['output_ids']);new+=1
+    work=full_work(cfg['name']) if cfg['model']!='qwen8' else dict(passed=True,scope='Native AR, no recurrent work counter.')
+    span=atomic(cfg['name']) if cfg['atomic_prompt'] and cfg['arm'] not in ('DP','DP2','DP_Chunked') else dict(passed=True,scope='No Atomic-P assertion for chunked or colocated controls.')
+    result=dict(time=time.time(),name=cfg['name'],previously_seen_inputs=compared,new_or_extended_references=new,
+        output_failures=failures,work=work,atomic=span,passed=not failures and work['passed'] and span['passed'],
+        scope='Exact observed common output prefix for matched input IDs and seed. Not original-HF fidelity or downstream accuracy.')
+    append(ROOT/'state/live_correctness_audits.jsonl',result)
+    if not result['passed']:
+        p=ROOT/'state/online_correctness_blockers.json';blocks=json.loads(p.read_text()) if p.exists() else {}
+        blocks[cfg['model']]=result;write(p,blocks)
+    else:write(path,canonical)
