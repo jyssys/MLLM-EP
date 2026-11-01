@@ -60,7 +60,7 @@ def main():
                 source_archive_SHA256=digest(folder/'source.zip'),config_SHA256=digest(path),clean=not qualification,
                 isolation='DISJOINT_GPU_QUALIFICATION_NOT_CLEAN_TIMING' if qualification else 'EXCLUSIVE_ALL_GPU_QUIET_LANE'))
             print('START',cfg['name'],child.pid,flush=True);deadline=time.monotonic()+cfg.get('timeout',3600)+900
-            stopped=None;host_sample=0.;failed_since=None
+            stopped=None;stop_reason=None;host_sample=0.;failed_since=None
             while child.poll() is None:
                 if time.monotonic()-host_sample>=1:
                     host_sample=time.monotonic()
@@ -74,10 +74,15 @@ def main():
                     if failed_since is not None and time.monotonic()-failed_since>10:interrupted[0]=True
                 if interrupted[0] or time.monotonic()>deadline:
                     assert os.getsid(child.pid)==child.pid
-                    if stopped is None:os.killpg(child.pid,signal.SIGTERM);stopped=time.monotonic()
+                    if stopped is None:
+                        stop_reason=stop_reason or ('JOB_WATCHDOG' if time.monotonic()>deadline else 'OWNED_SIGNAL_OR_WORKER_FAILURE')
+                        os.killpg(child.pid,signal.SIGTERM);stopped=time.monotonic()
                     elif time.monotonic()-stopped>30:os.killpg(child.pid,signal.SIGKILL)
+                extension=ROOT/'configs/extension_budget_20261102.json'
+                if extension.exists() and time.time()>=json.loads(extension.read_text())['GPU_stop_epoch']:
+                    interrupted[0]=True;stop_reason='USER_11H_DEADLINE'
                 time.sleep(.5)
-            write(folder/'dispatcher_result.json',dict(time=time.time(),pid=child.pid,returncode=child.returncode,watchdog_or_signal=stopped is not None))
+            write(folder/'dispatcher_result.json',dict(time=time.time(),pid=child.pid,returncode=child.returncode,watchdog_or_signal=stopped is not None,stop_reason=stop_reason))
             print('END',cfg['name'],child.returncode,flush=True)
             assert child.returncode==0,'Job failed. Preserve its complete log.'
             status=folder/'status.json'

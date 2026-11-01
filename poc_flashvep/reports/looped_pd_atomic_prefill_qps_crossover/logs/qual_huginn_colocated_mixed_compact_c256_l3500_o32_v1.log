@@ -1,0 +1,107 @@
+<frozen runpy>:130: RuntimeWarning: 'poc_flashvep.looped_pd_atomic_prefill.native_mixed_worker' found in sys.modules after import of package 'poc_flashvep.looped_pd_atomic_prefill', but prior to execution of 'poc_flashvep.looped_pd_atomic_prefill.native_mixed_worker'; this may result in unpredictable behaviour
+<frozen runpy>:130: RuntimeWarning: 'poc_flashvep.looped_pd_atomic_prefill.native_mixed_worker' found in sys.modules after import of package 'poc_flashvep.looped_pd_atomic_prefill', but prior to execution of 'poc_flashvep.looped_pd_atomic_prefill.native_mixed_worker'; this may result in unpredictable behaviour
+<frozen runpy>:130: RuntimeWarning: 'poc_flashvep.looped_pd_atomic_prefill.native_mixed_worker' found in sys.modules after import of package 'poc_flashvep.looped_pd_atomic_prefill', but prior to execution of 'poc_flashvep.looped_pd_atomic_prefill.native_mixed_worker'; this may result in unpredictable behaviour
+Attention implementation: {'backend': 'flash_attn', 'generation': 4, 'package': 'flash-attn-4', 'version': '4.0.0b30'}
+Attention implementation: {'backend': 'flash_attn', 'generation': 4, 'package': 'flash-attn-4', 'version': '4.0.0b30'}
+/home/esjung/.venvs/ouro-chunk-loop-prefill/lib/python3.14/site-packages/nvidia_cutlass_dsl/dsl_packages/cutlass/base_dsl/dsl.py:2300: UserWarning: Argument aux_data (position 17) cannot be converted to a JitArgument for function 'cutlass___call___flash_attncuteflash_fwd_sm90FlashAttentionForwardSm90_object_at__Tensorgmemoi64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i641_None_01020620726'. Its type `<class 'flash_attn.cute.utils.AuxData'>` is not supported. If the value is known at compile time, annotate it: `aux_data: Constexpr`. Otherwise, implement the `JitArgument` or `DynamicExpression` protocol for type `<class 'flash_attn.cute.utils.AuxData'>`, or register a custom argument adapter.
+  exe_args, func_types, adapted_args = self.generate_mlir_function_types(
+/home/esjung/.venvs/ouro-chunk-loop-prefill/lib/python3.14/site-packages/nvidia_cutlass_dsl/dsl_packages/cutlass/base_dsl/dsl.py:2300: UserWarning: Argument aux_data (position 17) cannot be converted to a JitArgument for function 'cutlass___call___flash_attncuteflash_fwd_sm90FlashAttentionForwardSm90_object_at__Tensorgmemoi64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i641_None_01020620726'. Its type `<class 'flash_attn.cute.utils.AuxData'>` is not supported. If the value is known at compile time, annotate it: `aux_data: Constexpr`. Otherwise, implement the `JitArgument` or `DynamicExpression` protocol for type `<class 'flash_attn.cute.utils.AuxData'>`, or register a custom argument adapter.
+  exe_args, func_types, adapted_args = self.generate_mlir_function_types(
+/home/esjung/.venvs/ouro-chunk-loop-prefill/lib/python3.14/site-packages/nvidia_cutlass_dsl/dsl_packages/cutlass/base_dsl/dsl.py:2300: UserWarning: Argument aux_data (position 17) cannot be converted to a JitArgument for function 'cutlass___call___flash_attncuteflash_fwd_sm90FlashAttentionForwardSm90_object_at__Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_None_01020'. Its type `<class 'flash_attn.cute.utils.AuxData'>` is not supported. If the value is known at compile time, annotate it: `aux_data: Constexpr`. Otherwise, implement the `JitArgument` or `DynamicExpression` protocol for type `<class 'flash_attn.cute.utils.AuxData'>`, or register a custom argument adapter.
+  exe_args, func_types, adapted_args = self.generate_mlir_function_types(
+/home/esjung/.venvs/ouro-chunk-loop-prefill/lib/python3.14/site-packages/nvidia_cutlass_dsl/dsl_packages/cutlass/base_dsl/dsl.py:2300: UserWarning: Argument aux_data (position 17) cannot be converted to a JitArgument for function 'cutlass___call___flash_attncuteflash_fwd_sm90FlashAttentionForwardSm90_object_at__Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_None_01020'. Its type `<class 'flash_attn.cute.utils.AuxData'>` is not supported. If the value is known at compile time, annotate it: `aux_data: Constexpr`. Otherwise, implement the `JitArgument` or `DynamicExpression` protocol for type `<class 'flash_attn.cute.utils.AuxData'>`, or register a custom argument adapter.
+  exe_args, func_types, adapted_args = self.generate_mlir_function_types(
+DONE qual_huginn_colocated_mixed_compact_c256_l3500_o32_v1 0 2 10399.74
+DONE qual_huginn_colocated_mixed_compact_c256_l3500_o32_v1 1 2 10781.97
+Process vllm-rlt-colocated-0:
+Traceback (most recent call last):
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_abc/worker.py", line 183, in run
+    for repeat in range(args.repeats):serve(engine,inputs,args,repeat)
+                                      ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_atomic_prefill/rlt_worker.py", line 31, in serve
+    for output in engine.step():
+                  ~~~~~~~~~~~^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_abc/replicas.py", line 23, in step
+    c.poll();out.extend(c.outputs);c.outputs.clear()
+    ~~~~~~^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/llm_engine.py", line 118, in poll
+    message = self._receive()
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/llm_engine.py", line 141, in _receive
+    raise error(f"stage worker failed:\n{self.failure}")
+RuntimeError: stage worker failed:
+Traceback (most recent call last):
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/worker.py", line 226, in worker_main
+    owner.run()
+    ~~~~~~~~~^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/worker.py", line 190, in run
+    for output in self.engine.step():
+                  ~~~~~~~~~~~~~~~~^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/stage_engine.py", line 458, in step
+    return self._step()
+           ~~~~~~~~~~^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/stage_engine.py", line 499, in _step
+    ticket = self.executor.submit(batch)
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/worker/executor.py", line 110, in submit
+    return self.runner.submit(scheduled_batch, batch=batch)
+           ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_atomic_prefill/native_mixed_worker.py", line 59, in observed
+    return submit(self,scheduled_batch,batch=batch)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/utils/_contextlib.py", line 124, in decorate_context
+    return func(*args, **kwargs)
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/worker/model_runner.py", line 1258, in submit
+    result = self._execute(scheduled_batch, prepared)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/utils/_contextlib.py", line 124, in decorate_context
+    return func(*args, **kwargs)
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/worker/model_runner.py", line 1128, in _execute
+    return self._execute_batch(prepared.batch, prepared)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/worker/model_runner.py", line 1137, in _execute_batch
+    result = self.runtime.forward(forward)
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/worker/executor.py", line 193, in forward
+    hidden = self.model.prelude_prepared(
+        batch.tokens[: len(batch.prelude_coda_kv_metadata.position_ids)],
+    ...<2 lines>...
+        generators=batch.generators,
+    )
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/models/huginn.py", line 259, in prelude_prepared
+    hidden = block(hidden, freqs, batch, cache)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/nn/modules/module.py", line 1779, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/nn/modules/module.py", line 1790, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/models/huginn.py", line 197, in forward
+    hidden = self.norm_2(self.attn(self.norm_1(hidden), freqs, batch, cache) + hidden)
+                         ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/nn/modules/module.py", line 1779, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/nn/modules/module.py", line 1790, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/models/huginn.py", line 169, in forward
+    q, k = torch.stack((real, imag), dim=-1).flatten(-2).to(hidden.dtype).unbind(0)
+           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 12.00 MiB. GPU 0 has a total capacity of 79.19 GiB of which 4.50 MiB is free. Including non-PyTorch memory, this process has 79.18 GiB memory in use. Of the allocated memory 78.37 GiB is allocated by PyTorch, with 43.85 MiB allocated in private pools (e.g., CUDA Graphs), and 72.80 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf)
+
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_atomic_prefill/native_mixed_worker.py", line 87, in <module>
+    if __name__=='__main__':main()
+                            ~~~~^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_atomic_prefill/native_mixed_worker.py", line 84, in main
+    sys.argv=flags;old.main()
+                   ~~~~~~~~^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_abc/worker.py", line 221, in main
+    try:run(args)
+        ~~~^^^^^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_abc/worker.py", line 195, in run
+    engine.close()
+    ~~~~~~~~~~~~^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_abc/replicas.py", line 28, in close
+    for i,c in enumerate(self.clients):c.close();self.worker_metrics[str(i)]=c.final_stats
+                                                                             ^^^^^^^^^^^^^
+AttributeError: 'StageClient' object has no attribute 'final_stats'

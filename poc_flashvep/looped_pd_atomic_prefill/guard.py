@@ -33,8 +33,8 @@ def main():
             dispatchers=dispatchers,completed_server_starts=complete,failed_server_starts=failed,
             incomplete_namespaces=incomplete,automatic_controller_restarts=retries)
         write(ROOT/'budget.json',state)
-        terminal=stage.get('stage') in ('GPU_SEARCH_COMPLETE_ANALYSIS_PENDING','FINAL_COMPLETE') or time.time()>=START_EPOCH+86400
-        if not terminal and not controllers and not dispatchers and not incomplete and retries<3:
+        terminal=stage.get('stage') in ('GPU_SEARCH_COMPLETE_ANALYSIS_PENDING','FINAL_COMPLETE','STOPPED_USER_11H_DEADLINE') or time.time()>=START_EPOCH+86400
+        if not terminal and not controllers and not dispatchers and not incomplete and not processes('extension_manager') and retries<3:
             with (ROOT/'logs/campaign_guard_resume.log').open('a') as log:
                 child=subprocess.Popen([str(PYTHON),'-m','poc_flashvep.looped_pd_atomic_prefill.campaign'],cwd=REPO,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
             retries+=1;append(ROOT/'state/controller_reloads.jsonl',dict(time=time.time(),new_controller=child.pid,

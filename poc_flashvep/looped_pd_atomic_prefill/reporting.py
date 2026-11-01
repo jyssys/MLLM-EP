@@ -63,7 +63,7 @@ def model_decisions(runs,classifications,blocks):
 
 def main():
     stage=read('state/search_stage.json',{}).get('stage','NOT_AVAILABLE')
-    assert stage in ('GPU_SEARCH_COMPLETE_ANALYSIS_PENDING','FINAL_COMPLETE','STOPPED_OPERATIONAL_24H_CHECKPOINT'),'Do not compile a final report while GPU search is active'
+    assert stage in ('GPU_SEARCH_COMPLETE_ANALYSIS_PENDING','FINAL_COMPLETE','STOPPED_OPERATIONAL_24H_CHECKPOINT','STOPPED_USER_11H_DEADLINE'),'Do not compile a final report while GPU search is active'
     from .analyze import serving,capacity
     from .matrix import main as matrix
     from .classify import main as classify
@@ -80,6 +80,8 @@ def main():
     intro=f'Compiled at {now.isoformat()}. Elapsed time: {elapsed:.3f} hours.\n\n'
     version=f'Branch: `{BRANCH}`.\n\nCompilation source commit: `{source}`.\n\nEach measured run records its own source archive, source commit, and configuration hash.\nThe final publication commit can differ from the measurement commit.\nUse `git log -1 --format=%H` on this branch to obtain the publication SHA.\n'
     paths='Evidence root: `looped_pd_atomic_prefill_qps_crossover/`.\n\n'
+    from .extension_reporting import section as extension_section
+    extension_text=extension_section() if (ROOT/'configs/extension_budget_20261102.json').exists() else ''
     limitations=('All main generation is controlled with `ignore_eos=True`.\n'
         'Internal exact token parity does not establish original-HF fidelity or downstream answer accuracy.\n'
         'No Dynamic A, model-depth reduction, approximation, quantization, or training runs in this study.\n'
@@ -129,7 +131,7 @@ def main():
         else:ar_rows.append([label,None,None,False,a,b])
     correctness+=table(['Setting','Exact sequences','Compared','Pass','Reference','Candidate'],ar_rows)
     correctness+='The default short 8000/16 native-PD starts matched 8/8.\nThat finite result did not predict longer-output reproducibility.\nThe default native DP2 repeat also failed at 7/8 without NIXL.\n'
-    correctness+='The first divergent internal operation and logit margin remain NOT_MEASURED.\nToken differences alone do not prove BF16 rounding or KV corruption.\nThe failed AR family does not support a qualified DuetServe reproduction.\n'
+    correctness+='The first globally divergent internal operation remains unidentified in the original failing execution.\nToken differences alone do not prove BF16 rounding or KV corruption.\nThe failed original AR family does not support a qualified DuetServe reproduction.\nNew execution-family gates appear in the extension section below.\n'
     correctness+='\n## Independent final gates\n\n'
     fq=read('state/final_qualification.json',{})
     correctness+=table(['Model','Full repeat compared','Full repeat passed','Tuned parity','Colocated parity'],[
@@ -138,7 +140,7 @@ def main():
     correctness+='\n## Complete gate and failure records\n\n'
     correctness+='See `state/live_correctness_audits.jsonl`, `state/online_correctness_blockers.json`, and `configuration_matrix.csv`.\n'
     correctness+='Workspace, wire-credit, chunk, Native Mixed, and optional-context gates have separate JSON records in `state/`.\nFailed runs retain their complete logs and source archives.\n'
-    correctness+='\n'+limitations
+    correctness+='\n'+extension_text+'\n'+limitations
     report('looped_pd_atomic_prefill_correctness.md',correctness)
 
     refs=read('configs/capacity_references.json',{})
@@ -211,8 +213,8 @@ def main():
     summary+='\nThe strict TRUE label requires three independently confirmed starts at the same cell and rate.\nA negative tested-grid result is not proof that recurrent models cannot become Prefill-heavy.\nA correctness blocker is not a negative bottleneck result.\n'
     summary+='\n## Answers to the research questions\n\n'
     summary+='### Q1. Qwen3-8B and the DuetServe regime\n\n'
-    summary+='The requested 8000/200 native-PD family failed exact output reproducibility across arrival rates.\nThe official asynchronous diagnostic also failed.\nTherefore this study does not establish a qualified AR reproduction or disprove the paper\'s regime.\n'
-    summary+='The two observed default target rates are about 1.1433 and 2.2866 requests/s.\nThey do not test the paper\'s high-load region above approximately 4 requests/s.\n'
+    summary+='The original 8000/200 native-PD family failed exact output reproducibility across arrival rates.\nThe original official-async diagnostic also failed.\nThe extension tested separate native execution families instead of treating those failures as resolved.\nUse the final per-family equality and QPS tables below.\n'
+    summary+='The original default target rates were about 1.1433 and 2.2866 requests/s.\nA newly qualified family uses its own measured reference rates and frozen calibration.\nIts costs cannot be pooled with the failed default family.\n'
     summary+='[DuetServe Figure 2](https://pages.cs.wisc.edu/~markhill/papers/icml2026_DuetServe.pdf) uses Qwen3-8B, two H100 GPUs, and 8000/200 tokens.\nIts aggregated budget is 8192 tokens, and its PD backend is Dynamo.\nOur native vLLM/NIXL backend and latency-SLO protocol differ.\nNo engine difference is attributed solely to recurrence.\n'
     summary+='\n### Q2–Q3. Ouro and Huginn\n\n'
     summary+='Use the model verdict table and per-run gate table above.\nOuro supports qualified internal 8K and 16K Prompt execution.\nHuginn stays within 4096 total tokens and tests outputs as short as 32.\n'
@@ -232,6 +234,7 @@ def main():
     else:
         summary+='No repeated strict TRUE cell qualifies a new Dynamic-A performance claim in this completed evidence.\nDo not start a large Dynamic-A campaign from independent capacity ratios alone.\nPrioritize the documented correctness, admission, or runtime limitations before another policy study.\n'
     summary+='No Dynamic A or new offload mechanism is implemented here.\n'
+    summary+='\n'+extension_text
     summary+='\n## Completion and limitations\n\n'+status_table+'\n'+limitations
     summary+='All unsuccessful and unrun settings remain in `configuration_matrix.csv` and `requested_search_grid.csv`.\nRaw request/token evidence, source archives, and full failure logs remain preserved.\n'
     summary+='SM occupancy, full D graph-internal kernel breakdown, original-HF fidelity, and downstream accuracy remain NOT_MEASURED.\n'

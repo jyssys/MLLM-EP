@@ -2,11 +2,15 @@
 import hashlib
 from .common import *
 from .evidence import rows,status,full_work,atomic
+from .families import execution_family
 
 PERFORMANCE_PHASES={'qps_pilot','final_repeat','profile_control','paper_budget_control'}
 
 
 def blocker_key(cfg):
+    if cfg.get('ar_execution_family'):return cfg['model']+'|'+cfg['ar_execution_family']+'|L'+str(cfg['length'])
+    if cfg.get('execution_control_family'):return cfg['model']+'|L'+str(cfg['length'])+'|'+cfg['execution_control_family']
+    if cfg.get('extension'):return cfg['model']+'|L'+str(cfg['length'])+'|'+execution_family(cfg)
     if cfg['arm'].startswith('DP'):
         return '|'.join(map(str,(cfg['model'],cfg['arm'],cfg['length'],cfg['cap'],cfg['chunk'],
             cfg['token_budget'],cfg['kv_blocks'],cfg.get('wavefront',False))))
@@ -16,6 +20,7 @@ def blocker_key(cfg):
 def blocked(model,cfg=None):
     p=ROOT/'state/online_correctness_blockers.json'
     values=json.loads(p.read_text()) if p.exists() else {}
+    if cfg is not None and cfg.get('ar_execution_family'):return values.get(blocker_key(cfg))
     legacy='|'.join(map(str,(cfg['model'],cfg['arm'],cfg['length'],cfg['cap'],cfg['chunk']))) if cfg is not None and cfg['arm'].startswith('DP') else None
     return values.get(model) or values.get(legacy) or (values.get(blocker_key(cfg)) if cfg is not None else None)
 
@@ -29,6 +34,11 @@ def verify(cfg):
             scope='Optional control generation failed. Do not claim its gate passed. Existing qualified jobs can continue.'))
     if cfg.get('phase') not in PERFORMANCE_PHASES:return
     if status(cfg['name'])=='FAILED' and not cfg.get('nsys'):
+        dispatcher=ROOT/'raw'/cfg['name']/'dispatcher_result.json'
+        if dispatcher.exists() and json.loads(dispatcher.read_text()).get('stop_reason')=='USER_11H_DEADLINE':
+            append(ROOT/'state/deadline_truncated_runs.jsonl',dict(time=time.time(),name=cfg['name'],
+                scope='Budget truncation. Do not invalidate earlier complete runs or diagnose a numerical failure from this cancellation.'))
+            return
         path=ROOT/'raw'/cfg['name']/'status.json';detail=json.loads(path.read_text()) if path.exists() else {}
         p=ROOT/'state/online_correctness_blockers.json';blocks=json.loads(p.read_text()) if p.exists() else {}
         blocks[blocker_key(cfg)]=dict(time=time.time(),name=cfg['name'],classification='RUNTIME_FAILURE_REQUIRES_TRIAGE',
@@ -40,6 +50,7 @@ def verify(cfg):
     for r in rows(cfg['name']):
         input_sha=hashlib.sha256(json.dumps(r['input_ids'],separators=(',',':')).encode()).hexdigest()
         family=('AR_COLOCATED' if cfg['arm']=='DP2' else 'AR_NATIVE_PD') if cfg['model']=='qwen8' else 'QUALIFIED_RLT'
+        if cfg.get('ar_execution_family'):family='AR_RECOVERY_'+cfg['ar_execution_family']
         context_geometry=cfg['length']+cfg['cap'] if cfg['model']=='qwen8' else cfg['context_limit']
         key='|'.join(map(str,(cfg['model'],cfg['model_revision'],cfg.get('ar_batch_invariant',False),family,context_geometry,r['seed'],input_sha)))
         previous=canonical.get(key)

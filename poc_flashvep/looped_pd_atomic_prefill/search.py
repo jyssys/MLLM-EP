@@ -16,14 +16,18 @@ def configured_base(model,*args,**kwargs):
     if model=='huginn':
         value.update(kv_blocks=24576,token_budget=value['length']*2,
             memory_control='Huginn full-Prompt OOM control: common smaller KV pool and two-Prompt aggregate budget for all methods.')
-    if model=='qwen8':value['ar_batch_invariant']=False
+    if model=='qwen8':value.setdefault('ar_batch_invariant',False)
     return value
 
 
 def enqueue(configurations,stage):
     names=[save_config(c) for c in configurations]
     path=ROOT/'configs/study_plan.json';plan=json.loads(path.read_text())
-    write(path,dict(configs=list(dict.fromkeys(plan['configs']+names))))
+    import fcntl
+    with (ROOT/'state/study_plan.lock').open('a+') as lease:
+        fcntl.flock(lease,fcntl.LOCK_EX)
+        plan=json.loads(path.read_text())
+        write(path,dict(configs=list(dict.fromkeys(plan['configs']+names))))
     write(STATE,dict(time=time.time(),stage=stage,generated=names))
     append(ROOT/'state/search_transitions.jsonl',dict(time=time.time(),stage=stage,configs=names))
     print('SEARCH_STAGE',stage,len(names),flush=True)
@@ -203,7 +207,7 @@ def capacity_configs(gates):
 
 def references():
     from .analyze import capacity
-    measurements=capacity();selected={}
+    measurements=[r for r in capacity() if r.get('execution_family','ORIGINAL')=='ORIGINAL'];selected={}
     for model,gate in allowed().items():
         if not gate['passed']:continue
         optional=ROOT/'state/optional16k_gate.json'
@@ -488,6 +492,9 @@ def final_qualification():
 
 def advance():
     state=json.loads(STATE.read_text()) if STATE.exists() else dict(stage='SHORT_GATES')
+    if state['stage']=='EXTENSION_WORK':
+        write(STATE,dict(time=time.time(),stage='GPU_SEARCH_COMPLETE_ANALYSIS_PENDING',reason='Current extension queue drained. The extension manager owns later stages.'))
+        return False
     if state['stage']=='SHORT_GATES':return short_gates()
     if state['stage']=='LONG_QUALIFICATION':return long_gates()
     if state['stage']=='CHUNK_QUALIFICATION':return chunk_gates()

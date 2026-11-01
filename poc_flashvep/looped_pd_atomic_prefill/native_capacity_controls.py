@@ -3,6 +3,7 @@ import argparse
 import statistics
 from .common import *
 from .evidence import records,rows,status,full_work
+from .families import execution_family
 
 
 def plan():
@@ -38,17 +39,19 @@ def analyze():
         parity=len(values)==cfg['count'] and all(r['output_ids']==reference[r['sample_id']]['output_ids'] for r in values)
         work=full_work(name);duration=window['end']-window['start']
         value=dict(name=name,model=cfg['model'],length=cfg['length'],output_cap=cfg['cap'],batch=cfg['count'],
+            execution_family=execution_family(cfg),asynchronous=cfg['asynchronous'],graph_rows=cfg.get('graph_rows',cfg['capacity']),
             D_token_budget=cfg['D_token_budget'],D_kv_blocks=cfg['D_kv_blocks'],gpus=cfg['gpus'],independent_start=cfg['independent_start'],
             prepared_D_native_service_s=duration,finite_requests_per_s=len(values)/duration,exact_output_parity=parity,
             full_depth_work_pass=work['passed'],passed=parity and work['passed'],
             evidence='MEASURED_NATIVE_PREPARED_D_WITH_FIRST_CODA',scope='Finite all-ready native PD D service. P preparation and transfer precede the timer. Not staggered online capacity.')
         samples.append(value)
         if value['passed']:
-            key=(cfg['model'],cfg['length'],cfg['cap'],cfg['count'],cfg['D_token_budget'],cfg['D_kv_blocks']);groups.setdefault(key,[]).append(value)
+            key=(cfg['model'],cfg['length'],cfg['cap'],cfg['count'],cfg['D_token_budget'],cfg['D_kv_blocks'],execution_family(cfg));groups.setdefault(key,[]).append(value)
     summary=[]
     for key,values in groups.items():
         rates=[v['finite_requests_per_s'] for v in values];low,high=bootstrap(rates)
         summary.append(dict(model=key[0],length=key[1],output_cap=key[2],batch=key[3],D_token_budget=key[4],D_kv_blocks=key[5],
+            execution_family=key[6],asynchronous=values[0]['asynchronous'],graph_rows=values[0]['graph_rows'],
             independent_starts=len(values),finite_requests_per_s_mean=statistics.mean(rates),bootstrap95_low=low,bootstrap95_high=high,
             source_runs=[v['name'] for v in values],evidence='MEASURED_FINITE_NATIVE_D_SERVICE',
             scope='Native coordinator and same small D workspace. Includes first Coda. N3 starts remain a small inferential sample. All-ready is not online capacity.'))

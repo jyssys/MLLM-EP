@@ -2,6 +2,7 @@
 import argparse
 import subprocess
 import importlib
+import fcntl
 from .common import *
 
 
@@ -18,10 +19,17 @@ def terminal(name):
 
 def main():
     p=argparse.ArgumentParser();p.add_argument('--max-hours',type=float,default=24.);p.add_argument('--wait-pid',type=int,action='append',default=[]);a=p.parse_args();setup()
+    controller_lease=(ROOT/'state/controller.lock').open('a+')
+    fcntl.flock(controller_lease,fcntl.LOCK_EX|fcntl.LOCK_NB)
     while any((Path('/proc')/str(pid)).exists() for pid in a.wait_pid):time.sleep(2)
     plan=ROOT/'configs/study_plan.json';controller=ROOT/'state/controller.json'
     if not plan.exists():write(plan,json.loads((ROOT/'configs/initial_gate_plan.json').read_text()))
     while time.time()<START_EPOCH+a.max_hours*3600:
+        extension=ROOT/'configs/extension_budget_20261102.json'
+        if extension.exists() and time.time()>=json.loads(extension.read_text())['new_GPU_job_cutoff_epoch']:
+            write(ROOT/'state/search_stage.json',dict(time=time.time(),stage='STOPPED_USER_11H_DEADLINE',
+                reason='No new GPU job after 10:00 KST. Preserve time for analysis, restoration, and publication.'))
+            write(controller,dict(time=time.time(),status='STOPPED_USER_11H_DEADLINE'));break
         names=json.loads(plan.read_text())['configs'];pending=[]
         for filename in names:
             cfg=json.loads((ROOT/'configs'/filename).read_text());state=terminal(cfg['name'])

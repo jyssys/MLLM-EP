@@ -11,7 +11,7 @@ def run(filenames,maximum=3):
     needed={gpu for name,cfg in waiting for gpu in cfg['gpus']}
     # Per-GPU supervisors can be stopped without affecting another idle GPU.
     for gpu in sorted(set(range(8))-needed):resources.restore([gpu])
-    active={}
+    active={};restore_time=0.
     while waiting or active:
         for pid,(child,name,cfg) in list(active.items()):
             if child.poll() is not None:
@@ -25,5 +25,8 @@ def run(filenames,maximum=3):
             active[child.pid]=(child,name,cfg);waiting.remove((name,cfg));occupied.update(cfg['gpus'])
             append(ROOT/'state/parallel_qualification.jsonl',dict(time=time.time(),event='started',pid=child.pid,name=name,gpus=cfg['gpus'],
                 scope='Correctness evidence only. Concurrent shared-host activity is not clean latency.'))
+        if time.monotonic()-restore_time>10:
+            restore_time=time.monotonic()
+            for gpu in sorted(set(range(8))-occupied):resources.restore([gpu])
         write(ROOT/'state/parallel_qualification_active.json',dict(time=time.time(),active=[dict(pid=pid,name=name,gpus=cfg['gpus']) for pid,(child,name,cfg) in active.items()],waiting=len(waiting)))
         time.sleep(1)

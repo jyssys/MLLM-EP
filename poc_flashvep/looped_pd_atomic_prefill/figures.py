@@ -16,12 +16,12 @@ def main():
         (r['timing_isolation_clean'] and r['fidelity_gate_blocked'] and r['model']=='qwen8')]
     figures=ROOT/'figures';figures.mkdir(exist_ok=True);manifest=[]
     groups=collections.defaultdict(list)
-    for r in runs:groups[(r['model'],r['length'],r['output_cap'],r['phase'])].append(r)
+    for r in runs:groups[(r['model'],r['length'],r['output_cap'],r['phase'],r.get('execution_family','ORIGINAL'))].append(r)
     charts=[('a_qps_ttft','TTFT_ms_p95','Request TTFT p95 (ms)'),('b_qps_tpot','request_TPOT_ms_p95','Request-average TPOT p95 (ms)'),
         ('c_qps_total_throughput','total_tokens_per_s','Finite-cohort total tokens/s'),('c_qps_output_throughput','output_tokens_per_s','Finite-cohort output tokens/s'),
         ('slo_attainment','SLO_attainment','Request joint-SLO attainment'),('slo_goodput','SLO_goodput','Finite-cohort SLO goodput (requests/s)')]
     for key,group in groups.items():
-        model,length,cap,phase=key;prefix=f'{model}_l{length}_o{cap}_{phase}'
+        model,length,cap,phase,family=key;prefix=f'{model}_l{length}_o{cap}_{phase}'+('' if family=='ORIGINAL' else '_'+family)
         for suffix,metric,label in charts:
             fig,ax=plt.subplots(figsize=(6.4,4.2));plotted=False
             methods=sorted({(r['arm'],r['chunk'],r['transport_control']) for r in group})
@@ -37,6 +37,7 @@ def main():
                 if '_DB' in transport:name+=' '+transport[transport.index('_DB')+1:]
                 if arm.startswith('DP') and transport.startswith('NOT_APPLICABLE_COLOCATED_'):
                     name+=' '+transport.removeprefix('NOT_APPLICABLE_COLOCATED_')
+                if '_PS' in transport:name+=' P slots='+str(selected[0]['P_slots'])
                 ax.plot(x,y,'o--' if phase=='qps_pilot' else 'o-',label=name);ax.fill_between(x,lo,hi,alpha=.15);plotted=True
             if not plotted:plt.close(fig);continue
             ax.set_xlabel('Offered target QPS');ax.set_ylabel(label);ax.grid(alpha=.25);ax.legend(fontsize=8)

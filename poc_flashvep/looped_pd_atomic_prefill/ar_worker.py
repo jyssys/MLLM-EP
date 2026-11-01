@@ -24,12 +24,15 @@ def llm_options(cfg,role):
         max_num_seqs=slots,max_num_batched_tokens=cfg['token_budget'],enable_prefix_caching=False,
         enable_chunked_prefill=True,async_scheduling=cfg.get('ar_async_scheduling',False),gpu_memory_utilization=cfg.get('gpu_memory_utilization',.80),
         seed=cfg['seed'],compilation_config={'cudagraph_capture_sizes':[n for n in (1,2,4,8,16,32) if n<=slots]})
-    if role=='prefill' and cfg['chunk']<cfg['length']:
+    if role!='decode' and cfg['chunk']<cfg['length']:
         # vLLM 0.26 rejects nondefault Concurrent Partial Prefill options.
         # Keep its supported scheduler and use only the per-request threshold.
         options.update(long_prefill_token_threshold=cfg['chunk'])
     if role in ('prefill','decode'):
         options['kv_transfer_config']=dict(kv_connector='NixlConnector',kv_role='kv_producer' if role=='prefill' else 'kv_consumer')
+    if cfg.get('ar_enforce_eager'):options['enforce_eager']=True
+    if cfg.get('ar_cudagraph_mode'):options['compilation_config']['cudagraph_mode']=cfg['ar_cudagraph_mode']
+    if cfg.get('ar_attention_config'):options['attention_config']=cfg['ar_attention_config']
     return options
 
 
@@ -53,11 +56,12 @@ def stage(cfg,role,address):
     KVCacheManager.allocate_slots=observed_allocate
     schedule=Scheduler.schedule
     def observed_schedule(self,*a,**kw):
-        before={rid:r.num_computed_tokens for rid,r in self.requests.items()} if role=='prefill' else {}
+        observes_prompts=role=='prefill' or role.startswith('replica')
+        before={rid:r.num_computed_tokens for rid,r in self.requests.items()} if observes_prompts else {}
         result=schedule(self,*a,**kw)
-        if role=='prefill':
+        if observes_prompts:
             for rid,start,actual,length in prompt_rows(result,self.requests,before):
-                if cfg['atomic_prompt']:assert start==0 and actual==length,('ATOMIC_AR_PROMPT_SPLIT',rid,start,actual,length)
+                if cfg['atomic_prompt'] and role=='prefill':assert start==0 and actual==length,('ATOMIC_AR_PROMPT_SPLIT',rid,start,actual,length)
                 spans.append(dict(time=time.monotonic(),request_id=rid,start=start,count=actual,prompt_tokens=length,
                     batch_tokens=sum(result.num_scheduled_tokens.values()),scheduled_requests=len(result.num_scheduled_tokens)))
         now=time.monotonic()
@@ -81,12 +85,15 @@ def stage(cfg,role,address):
     NixlBaseConnectorWorker._pop_done_transfers=observe_done
     llm=LLM(**llm_options(cfg,role));engine=llm.llm_engine
     runner=engine.model_executor.driver_worker.worker.model_runner
+    from vllm import envs
     channel.send(dict(kind='ready',role=role,pid=os.getpid(),uuid=str(torch.cuda.get_device_properties(0).uuid),
         unique_model_parameters=sum(p.numel() for p in runner.model.parameters()),weight_bytes=sum(p.numel()*p.element_size() for p in runner.model.parameters()),
         KV_blocks=runner.kv_cache_config.num_blocks,KV_tensor_bytes=sum(t.numel()*t.element_size() for t in runner.kv_caches),
         KV_dtype=str(runner.kv_cache_dtype),engine='Native vLLM 0.26/NIXL',model_revision=MODEL_PINS['qwen8'][1],options=llm_options(cfg,role),
-        VLLM_BATCH_INVARIANT=cfg.get('ar_batch_invariant',False)))
-    running=True
+        VLLM_BATCH_INVARIANT=cfg.get('ar_batch_invariant',False),effective_VLLM_BATCH_INVARIANT=envs.VLLM_BATCH_INVARIANT,
+        effective_BF16_reduced_precision_reduction=torch.backends.cuda.matmul.allow_bf16_reduced_precision_reduction,
+        preferred_blas_library=str(torch.backends.cuda.preferred_blas_library())))
+    running=True;profile_marker_open=False
     try:
         while running:
             while channel.poll():
@@ -96,6 +103,10 @@ def stage(cfg,role,address):
                     from vllm.distributed.kv_transfer import get_kv_transfer_group,has_kv_transfer_group
                     if has_kv_transfer_group():get_kv_transfer_group().get_kv_connector_stats()
                     warm_stats.extend(native_stats);native_stats.clear();done_events.clear();allocation_refusals.clear()
+                    if cfg.get('nsys_P_only') and role=='prefill':
+                        torch.cuda.nvtx.range_push('APD_MEASURED_WINDOW');profile_marker_open=True
+                        write(ROOT/'raw'/cfg['name']/'P_profile_anchor.json',dict(time=time.monotonic(),pid=os.getpid(),
+                            scope='Monotonic clock directly after the child NVTX marker. Align this P-only trace with the parent Serving window.'))
                     channel.send(dict(kind='measurement_ready',time=time.monotonic()));continue
                 extra={}
                 if role in ('prefill','decode'):
@@ -114,6 +125,7 @@ def stage(cfg,role,address):
                     cached_prompt_tokens=getattr(result,'num_cached_tokens',None) if result.finished else None))
             if not engine.has_unfinished_requests():time.sleep(.0005)
     finally:
+        if profile_marker_open:torch.cuda.nvtx.range_pop()
         from vllm.distributed.kv_transfer import get_kv_transfer_group,has_kv_transfer_group
         if has_kv_transfer_group():get_kv_transfer_group().get_kv_connector_stats()
         write(ROOT/'raw'/cfg['name']/f'native_{role}_{os.getpid()}.json',dict(role=role,prompt_spans=spans,
@@ -140,8 +152,11 @@ def coordinator(cfg):
             env=environment([gpu])
             with socket.socket() as probe:probe.bind(('127.0.0.1',0));env['APD_SIDE_PORT']=str(probe.getsockname()[1])
             handle=(folder/f'{role}.log').open('w');handles.append(handle)
-            child=subprocess.Popen([str(PYTHON),'-m','poc_flashvep.looped_pd_atomic_prefill.ar_worker',os.environ['ARC_CONFIG'],
-                '--role',role,'--address',address],cwd=REPO,env=env,stdout=handle,stderr=subprocess.STDOUT)
+            command=[str(PYTHON),'-m','poc_flashvep.looped_pd_atomic_prefill.ar_worker',os.environ['ARC_CONFIG'],'--role',role,'--address',address]
+            if cfg.get('nsys_P_only') and role=='prefill':
+                command=['nsys','profile','--trace=cuda,nvtx','--sample=none','--cpuctxsw=none','--cuda-graph-trace=node',
+                    '--force-overwrite=false','--output='+str(folder/'nsys_report')]+command
+            child=subprocess.Popen(command,cwd=REPO,env=env,stdout=handle,stderr=subprocess.STDOUT)
             children.append(child);listener._listener._socket.settimeout(300)
             channel=listener.accept();listener.close();channels[role]=channel
             assert channel.poll(600),'Native Qwen engine startup timeout'

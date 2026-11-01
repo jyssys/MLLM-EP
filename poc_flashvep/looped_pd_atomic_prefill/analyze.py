@@ -5,6 +5,7 @@ import math
 import statistics
 from .common import *
 from .evidence import records,rows,status
+from .families import execution_family
 from ..looped_pd_bottleneck_crossover.analyze_serving import token_intervals
 from ..looped_pd_bottleneck_crossover.summary_tables import percentile,wilson
 
@@ -32,6 +33,7 @@ def capacity():
         for r in records(folder/'cohorts.jsonl'):
             job=r['job'];batch=job['batch'];cap=job['cap'];mode=cfg['capacity_mode']
             row=dict(name=cfg['name'],model=cfg['model'],length=cfg['length'],chunk=cfg['chunk'],chunk_label=cfg['chunk_label'],
+                execution_family=execution_family(cfg),
                 capacity_mode=mode,batch=batch,output_cap=cap,repeat=r.get('repeat'),status=r.get('status','COMPLETE'),
                 capacity_preparation=r.get('capacity_preparation','NATIVE_COHORT_FULL_PREFILL'),
                 run_status=status(cfg['name']),evidence='MEASURED_LOCAL_FINITE_SERVICE',
@@ -52,11 +54,12 @@ def capacity():
     groups=collections.defaultdict(list)
     for r in values:
         if r['status']=='COMPLETE' and r['run_status']=='COMPLETE':
-            groups[(r['model'],r['length'],r['chunk'],r['capacity_mode'],r['batch'],r['output_cap'],r['capacity_preparation'])].append(r)
+            groups[(r['model'],r['length'],r['chunk'],r['capacity_mode'],r['batch'],r['output_cap'],r['capacity_preparation'],r['execution_family'])].append(r)
     summary=[]
     for key,group in groups.items():
-        m,n,c,mode,b,cap,preparation=key;rates=[r['finite_requests_per_s'] for r in group]
+        m,n,c,mode,b,cap,preparation,family=key;rates=[r['finite_requests_per_s'] for r in group]
         summary.append(dict(model=m,length=n,chunk=c,capacity_mode=mode,batch=b,output_cap=cap,
+            execution_family=family,
             capacity_preparation=preparation,
             measured_KV_blocks=group[0].get('measured_KV_blocks'),measured_KV_bytes=group[0].get('measured_KV_bytes'),
             repeats=len(group),finite_requests_per_s_mean=statistics.mean(rates),finite_requests_per_s_p50=statistics.median(rates),
@@ -123,12 +126,15 @@ def serving_one(cfg):
     end=window['end'] if window else max(r['finish'] for r in requests)
     last=window['last_arrival'] if window else max(r['arrival'] for r in requests)
     elapsed=end-begin;arrival_duration=last-begin
-    slopath=ROOT/'configs/frozen_SLO.json';slos=json.loads(slopath.read_text()) if slopath.exists() else {}
+    slopath=ROOT/'configs'/cfg.get('SLO_file','frozen_SLO.json');slos=json.loads(slopath.read_text()) if slopath.exists() else {}
     slo=slos.get(cfg['model']+'_L'+str(cfg['length']))
     itls=[];bundles=0
     for r in requests:
         values,coalesced=token_intervals(r);itls.extend(values);bundles+=coalesced
     row=dict(name=name,model=cfg['model'],length=cfg['length'],output_cap=cfg['cap'],arm=cfg['arm'],
+        execution_family=execution_family(cfg),P_slots=cfg['P_slots'],D_slots=cfg['D_slots'],
+        asynchronous=cfg['asynchronous'],graph_rows=cfg.get('graph_rows',cfg['capacity']),
+        capacity_reference_file=cfg.get('capacity_reference_file','capacity_references.json'),SLO_file=cfg.get('SLO_file','frozen_SLO.json'),
         chunk=cfg['chunk'],chunk_label=cfg['chunk_label'],phase=cfg['phase'],independent_start=cfg.get('independent_start',0),
         status=status(name),offered=cfg['count'],completed=len(requests),failed_or_missing=cfg['count']-len(requests),
         target_QPS=cfg.get('arrival_rate'),realized_QPS=(cfg['count']-1)/arrival_duration if arrival_duration>0 else None,
@@ -141,12 +147,14 @@ def serving_one(cfg):
         transport_control=('NOT_APPLICABLE_COLOCATED' if cfg['arm'].startswith('DP') else
             'INFLIGHT_'+str(cfg.get('native_transport_limits',{}).get('max_inflight_bytes',256*1024**2)) if cfg['model']!='qwen8' else 'NATIVE_AR_NIXL'),
         timing_scope='Finite arrival-to-drain observation. Not established sustainable capacity.',
-        eligible_clean=status(name)=='COMPLETE' and len(requests)==cfg['count'] and window is not None and cfg['phase'] in ('qps_pilot','final_repeat','paper_budget_control') and not any(cfg.get(k) for k in ('state_probe','verify_transfer','nsys')),
+        eligible_clean=status(name)=='COMPLETE' and len(requests)==cfg['count'] and window is not None and cfg['phase'] in ('qps_pilot','final_repeat','paper_budget_control') and not any(cfg.get(k) for k in ('state_probe','verify_transfer','nsys','nsys_P_only')),
         actual_P_kernel_busy='NOT_MEASURED',actual_D_kernel_busy='NOT_MEASURED')
     if cfg.get('D_token_budget') or cfg.get('D_kv_blocks'):
         row['transport_control']+='_DB'+str(cfg.get('D_token_budget',cfg['token_budget']))+'_KV'+str(cfg.get('D_kv_blocks',cfg['kv_blocks']))
     if cfg['arm'].startswith('DP'):
         row['transport_control']+='_B'+str(cfg['token_budget'])+'_KV'+str(cfg['kv_blocks'])+'_W'+str(int(cfg.get('wavefront',False)))
+    if execution_family(cfg)!='ORIGINAL':row['transport_control']+='_EXE_'+execution_family(cfg)
+    if cfg.get('extension'):row['transport_control']+='_PS'+str(cfg['P_slots'])
     row['timing_isolation_clean']=row['eligible_clean']
     row['GPU_role_mapping']=dict(P_column='replica0',D_column='replica1') if cfg['arm'].startswith('DP') else dict(P_column='prefill',D_column='decode')
     from .live_audit import blocked

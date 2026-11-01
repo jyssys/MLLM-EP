@@ -13,18 +13,20 @@ def main():
     for r in runs:
         if r['phase'] not in ('qps_pilot','final_repeat','paper_budget_control') or r['arm'] not in ('PD_G1',):continue
         if not r['eligible_clean']:continue
-        cell=refs.get(r['model']+'_L'+str(r['length']))
+        current_refs=json.loads((ROOT/'configs'/r['capacity_reference_file']).read_text()) if r.get('capacity_reference_file','capacity_references.json')!='capacity_references.json' else refs
+        cell=current_refs.get(r['model']+'_L'+str(r['length']))
         if not cell or str(r['output_cap']) not in cell['D']:continue
         muP=max(v['mu_P'] for v in cell['chunks'].values());muD=cell['D'][str(r['output_cap'])]['mu_D'];matched_muD=None
         native=next((s for s in native_references if s['model']==r['model'] and s['length']==r['length'] and
-            s['output_cap']==r['output_cap'] and s['D_token_budget']==r['D_token_budget'] and s['D_kv_blocks']==r['D_KV_blocks'] and s['independent_starts']>=3),None)
+            s['output_cap']==r['output_cap'] and s['D_token_budget']==r['D_token_budget'] and s['D_kv_blocks']==r['D_KV_blocks'] and
+            s['asynchronous']==r['asynchronous'] and s['graph_rows']==r['graph_rows'] and s['independent_starts']>=3),None)
         if native:muD=native['finite_requests_per_s_mean']
         observed_batch=r.get('D_recurrent_batch_requests_mean',r.get('D_running_mean'))
         matched_D=None
         if observed_batch is not None:
             samples=json.loads((ROOT/'capacity_summary.json').read_text())
             legal=[s for s in samples if s['model']==r['model'] and s['length']==r['length'] and s['output_cap']==r['output_cap'] and
-                s['capacity_mode']=='PREPARED_D' and s['batch']<=observed_batch]
+                s['capacity_mode']=='PREPARED_D' and s['execution_family']==r['execution_family'] and s['batch']<=observed_batch]
             if legal:matched_D=max(legal,key=lambda s:s['batch']);matched_muD=matched_D['finite_requests_per_s_mean']
         rate=r['realized_QPS'];p_rate=r.get('P_completion_rate_central');slope=r.get('P_queue_slope_per_s');growth=r.get('P_queue_half_growth')
         credit=r.get('D_KV_refusal_sample_fraction');slot=r.get('D_slot_refusal_sample_fraction',0. if r['model']=='qwen8' and r.get('D_scheduler_waiting_max')==0 else None)
@@ -63,7 +65,10 @@ def main():
     # Compare the same offered trace. A tiny-C-only effect is not loop headroom.
     byname={r['name']:r for r in runs}
     for r in output:
-        a=byname[r['name']];cell=refs[a['model']+'_L'+str(a['length'])];best=cell['best_chunk']
+        a=byname[r['name']]
+        current_refs=json.loads((ROOT/'configs'/a['capacity_reference_file']).read_text()) if a.get('capacity_reference_file','capacity_references.json')!='capacity_references.json' else refs
+        cell=current_refs[a['model']+'_L'+str(a['length'])]
+        best=cell.get('best_chunk',int(max(cell['chunks'],key=lambda key:cell['chunks'][key]['mu_P'])))
         controls=[b for b in runs if b['model']==a['model'] and b['length']==a['length'] and b['output_cap']==a['output_cap'] and b['phase']==a['phase'] and
             b['arm']==a['arm'] and b['transport_control']==a['transport_control'] and b['independent_start']==a['independent_start'] and b['target_QPS']==a['target_QPS'] and b['chunk']==best]
         if controls and best!=a['chunk']:

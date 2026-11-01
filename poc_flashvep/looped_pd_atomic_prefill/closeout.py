@@ -13,9 +13,13 @@ def run(module,*arguments):
 
 
 def terminal_stage():
+    extension=ROOT/'configs/extension_budget_20261102.json';terminal=ROOT/'state/extension_terminal_20261102.json'
+    if extension.exists() and not terminal.exists():
+        if time.time()<json.loads(extension.read_text())['GPU_stop_epoch']:return None
     p=ROOT/'state/search_stage.json';stage=json.loads(p.read_text()) if p.exists() else {}
     control=ROOT/'state/controller.json';controller=json.loads(control.read_text()) if control.exists() else {}
     if stage.get('stage')=='GPU_SEARCH_COMPLETE_ANALYSIS_PENDING':return stage['stage']
+    if stage.get('stage')=='STOPPED_USER_11H_DEADLINE':return stage['stage']
     if controller.get('status')=='STOPPED_OPERATIONAL_24H_CHECKPOINT' and not processes('campaign'):
         return 'STOPPED_OPERATIONAL_24H_CHECKPOINT'
     return None
@@ -43,9 +47,9 @@ def main():
             if state=='PENDING':pending.append(cfg['name'])
             if state=='INCOMPLETE':incomplete.append(cfg['name'])
         assert not incomplete,('Do not claim completion for an incomplete namespace',incomplete)
-        if stage=='STOPPED_OPERATIONAL_24H_CHECKPOINT':
+        if stage in ('STOPPED_OPERATIONAL_24H_CHECKPOINT','STOPPED_USER_11H_DEADLINE'):
             p=ROOT/'state/skipped_jobs.json';skips=json.loads(p.read_text()) if p.exists() else {}
-            for name in pending:skips[name]=dict(time=time.time(),status='NOT_RUN_OPERATIONAL_24H_CHECKPOINT')
+            for name in pending:skips[name]=dict(time=time.time(),status='NOT_RUN_'+stage)
             write(p,skips);write(ROOT/'state/search_stage.json',dict(time=time.time(),stage=stage,unrun=len(pending)))
         else:assert not pending,('Search stopped with queued jobs',pending)
         write(marker,dict(time=time.time(),pid=os.getpid(),status='CPU_EVIDENCE_REVIEW',stage=stage))

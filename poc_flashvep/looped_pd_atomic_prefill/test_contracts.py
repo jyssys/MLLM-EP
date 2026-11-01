@@ -69,6 +69,16 @@ class ContractTests(unittest.TestCase):
         self.assertFalse(llm_options(c,'prefill')['async_scheduling'])
         c['ar_async_scheduling']=True
         self.assertTrue(llm_options(c,'prefill')['async_scheduling'])
+    def test_ar_eager_is_an_explicit_separate_option(self):
+        from .ar_worker import llm_options
+        cfg=base('qwen8','cpu_only',8000,200)
+        self.assertNotIn('enforce_eager',llm_options(cfg,'prefill'))
+        cfg['ar_enforce_eager']=True
+        self.assertTrue(llm_options(cfg,'prefill')['enforce_eager'])
+    def test_configured_base_does_not_disable_an_explicit_AR_invariance_request(self):
+        from .search import configured_base
+        c=configured_base('qwen8','cpu_only',8000,200,ar_batch_invariant=True)
+        self.assertTrue(c['ar_batch_invariant'])
     def test_colocated_control_preserves_actual_scheduler_geometry(self):
         from .colocated_controls import controls
         cfg=base('huginn','cpu_only',3500,32,wavefront=False,token_budget=2048,kv_blocks=28288,scheduler_mode='mixed',native_mixed=True)
