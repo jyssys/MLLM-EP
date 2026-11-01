@@ -133,3 +133,20 @@ Files above GitHub's size limit require lossless archive handling before publica
 At closeout, restore only verified approved burners on genuinely unused devices.
 Explicitly pass GPU0–7 to the approved resource helper.
 The burner shell script's current default subset is not all eight GPUs.
+
+## Automatic CPU closeout
+
+A separate CPU monitor waits for the GPU search to reach its terminal state.
+It does not submit, stop, or modify GPU jobs.
+It checks that no managed GPU job or incomplete namespace remains.
+It then compiles the actual evidence, tests the code, and restores approved idle burners.
+It commits only owned paths and checks the remote SHA after the normal push.
+An error produces `state/closeout_status.json` with `BLOCKED_CLOSEOUT`.
+Such a record is not successful completion.
+
+```bash
+$PYTHON -m poc_flashvep.looped_pd_atomic_prefill.closeout --wait --push
+```
+
+Do not launch a second monitor while its CPU lease is held.
+The final report compiler refuses to run while GPU search is active.

@@ -35,6 +35,8 @@ def main():
                 name=('Colocated DP2 Mixed' if arm=='DP_Mixed' else 'Colocated DP2' if arm.startswith('DP') else 'Static PD')+(' Full' if chunk==length else ' C'+str(chunk))
                 if transport.startswith('INFLIGHT_'):name+=' wire='+str(int(transport.split('_')[1])//(1024**2))+'MiB'
                 if '_DB' in transport:name+=' '+transport[transport.index('_DB')+1:]
+                if arm.startswith('DP') and transport.startswith('NOT_APPLICABLE_COLOCATED_'):
+                    name+=' '+transport.removeprefix('NOT_APPLICABLE_COLOCATED_')
                 ax.plot(x,y,'o--' if phase=='qps_pilot' else 'o-',label=name);ax.fill_between(x,lo,hi,alpha=.15);plotted=True
             if not plotted:plt.close(fig);continue
             ax.set_xlabel('Offered target QPS');ax.set_ylabel(label);ax.grid(alpha=.25);ax.legend(fontsize=8)

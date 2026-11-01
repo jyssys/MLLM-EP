@@ -370,6 +370,9 @@ Native Mixed must retain actual batch-composition evidence.
 Failed memory or output gates exclude only the affected setting.
 For Huginn 3500/32, also qualify a 1-GiB native wire-credit control for Full and C2048.
 The fragment limit remains 64 MiB.
+For Ouro 8192/32, combine the independently tested compact D pool with 1-GiB and 8-GiB wire credit.
+Test Full and C4096 with a separate byte/output gate for every combination.
+This prevents an untreated interaction between two generic controls from becoming a false architectural conclusion.
 Independent final confirmation uses new arrival seeds that did not select these tuning settings.
 
 Produce QPS versus TTFT p95, TPOT/ITL, total/output throughput, and P/D utilization plots.

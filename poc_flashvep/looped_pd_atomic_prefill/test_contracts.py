@@ -73,6 +73,16 @@ class ContractTests(unittest.TestCase):
         from .colocated_controls import controls
         cfg=base('huginn','cpu_only',3500,32,wavefront=False,token_budget=2048,kv_blocks=28288,scheduler_mode='mixed',native_mixed=True)
         self.assertEqual(controls(cfg),dict(wavefront=False,token_budget=2048,kv_blocks=28288,scheduler_mode='mixed',native_mixed=True))
+    def test_final_TRUE_verdict_needs_three_independent_confirmations(self):
+        from unittest.mock import patch
+        from . import reporting
+        runs=[dict(name='a'+str(i),model='ouro',phase='final_repeat',eligible_clean=True,independent_start=i,transport_control='same',target_QPS=1.) for i in range(3)]
+        checked=[dict(name='a'+str(i),model='ouro',length=8192,output_cap=32,chunk=8192,category='TRUE_PREFILL_HEAVY') for i in range(3)]
+        with patch.object(reporting,'write'):
+            two=reporting.model_decisions(runs[:2],checked[:2],{})
+            three=reporting.model_decisions(runs,checked,{})
+        self.assertFalse(next(r for r in two if r['model']=='ouro')['repeated_TRUE_cells'])
+        self.assertTrue(next(r for r in three if r['model']=='ouro')['repeated_TRUE_cells'])
     def test_final_cohort_has_thirty_seconds_in_its_central_window(self):
         from .search import final_count
         import random

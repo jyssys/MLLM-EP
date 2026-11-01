@@ -43,6 +43,13 @@ def qualification():
                     D_token_budget=128,D_kv_blocks=28288,verify_transfer=True,
                     native_transport_limits=dict(max_inflight_bytes=1024**3))
                 new.append(finish(c,8,rate=.5))
+    for credit in (1024**3,8*1024**3):
+        for chunk in (4096,8192):
+            c=configured_base('ouro',f'qual_ouro_compact_D_credit{credit//1024**3}g_c{chunk}_l8192_o32_v1',8192,32,
+                phase='long_correctness',gpus=[2,3],chunk=chunk,chunk_label='full' if chunk==8192 else str(chunk),
+                D_token_budget=128,D_kv_blocks=25088,verify_transfer=True,
+                native_transport_limits=dict(max_inflight_bytes=credit))
+            new.append(finish(c,8,rate=1.))
     return new
 
 
@@ -87,5 +94,24 @@ def pilots():
                 rate_factor=factor,reference_capacity=mu,
                 control_scope='Supported native NIXL wire-credit control. Separate from token chunking and Loop-specific mechanisms.')
             new.append(c)
+    for credit in (1024**3,8*1024**3):
+        for chunk in (4096,8192):
+            name=f'qual_ouro_compact_D_credit{credit//1024**3}g_c{chunk}_l8192_o32_v1'
+            reference='qual_ouro_d128_kv25088_l8192_o32_v1'
+            result=compare(reference,name) if status(name)==status(reference)=='COMPLETE' else dict(passed=False,status=status(name))
+            if result['passed']:
+                from .evidence import transfer
+                result.update(work=full_work(name),bytes=transfer(name))
+                result['passed'] &= result['work']['passed'] and result['bytes']['passed']
+            gates[name]=result
+            if not result['passed']:continue
+            cell=selected['ouro_L8192'];mu=max(v['mu_P'] for v in cell['chunks'].values())
+            for factor in (.75,1.,1.25):
+                name=f'pilot_ouro_l8192_o32_c{chunk}_credit{credit//1024**3}g_d128_kv25088_f{str(factor).replace(".","p")}_v1'
+                c=serving_config(cell,name,32,chunk,'qps_pilot',24,rate=mu*factor)
+                c.update(D_token_budget=128,D_kv_blocks=25088,native_transport_limits=dict(max_inflight_bytes=credit),
+                    rate_factor=factor,reference_capacity=mu,
+                    control_scope='Combined supported memory and transport controls. Separate from chunk choice and Loop-specific mechanisms. Each combination has its own byte/output gate.')
+                new.append(c)
     write(ROOT/'state/colocated_extra_gates.json',gates)
     return new
