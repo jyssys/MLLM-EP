@@ -22,7 +22,7 @@ def llm_options(cfg,role):
     slots=cfg['P_slots'] if role=='prefill' else cfg['D_slots']
     options=dict(model=str(MODEL_PATHS['qwen8']),dtype='bfloat16',max_model_len=cfg['length']+cfg['cap'],
         max_num_seqs=slots,max_num_batched_tokens=cfg['token_budget'],enable_prefix_caching=False,
-        enable_chunked_prefill=True,async_scheduling=False,gpu_memory_utilization=cfg.get('gpu_memory_utilization',.80),
+        enable_chunked_prefill=True,async_scheduling=cfg.get('ar_async_scheduling',False),gpu_memory_utilization=cfg.get('gpu_memory_utilization',.80),
         seed=cfg['seed'],compilation_config={'cudagraph_capture_sizes':[n for n in (1,2,4,8,16,32) if n<=slots]})
     if role=='prefill' and cfg['chunk']<cfg['length']:
         # vLLM 0.26 rejects nondefault Concurrent Partial Prefill options.

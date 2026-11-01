@@ -6,9 +6,16 @@ from .evidence import rows,status,full_work,atomic
 PERFORMANCE_PHASES={'qps_pilot','final_repeat','profile_control','paper_budget_control'}
 
 
-def blocked(model):
+def blocker_key(cfg):
+    if cfg['arm'].startswith('DP'):
+        return '|'.join(map(str,(cfg['model'],cfg['arm'],cfg['length'],cfg['cap'],cfg['chunk'])))
+    return cfg['model']
+
+
+def blocked(model,cfg=None):
     p=ROOT/'state/online_correctness_blockers.json'
-    return json.loads(p.read_text()).get(model) if p.exists() else None
+    values=json.loads(p.read_text()) if p.exists() else {}
+    return values.get(model) or (values.get(blocker_key(cfg)) if cfg is not None else None)
 
 
 def verify(cfg):
@@ -16,7 +23,7 @@ def verify(cfg):
     if status(cfg['name'])=='FAILED' and not cfg.get('nsys'):
         path=ROOT/'raw'/cfg['name']/'status.json';detail=json.loads(path.read_text()) if path.exists() else {}
         p=ROOT/'state/online_correctness_blockers.json';blocks=json.loads(p.read_text()) if p.exists() else {}
-        blocks[cfg['model']]=dict(time=time.time(),name=cfg['name'],classification='RUNTIME_FAILURE_REQUIRES_TRIAGE',
+        blocks[blocker_key(cfg)]=dict(time=time.time(),name=cfg['name'],classification='RUNTIME_FAILURE_REQUIRES_TRIAGE',
             error=detail.get('error','No valid terminal status'),scope='Stop expansion until diagnosis. This does not establish a numerical bug.')
         write(p,blocks);return
     if status(cfg['name'])!='COMPLETE':return
@@ -43,5 +50,5 @@ def verify(cfg):
     append(ROOT/'state/live_correctness_audits.jsonl',result)
     if not result['passed']:
         p=ROOT/'state/online_correctness_blockers.json';blocks=json.loads(p.read_text()) if p.exists() else {}
-        blocks[cfg['model']]=result;write(p,blocks)
+        blocks[blocker_key(cfg)]=result;write(p,blocks)
     else:write(path,canonical)

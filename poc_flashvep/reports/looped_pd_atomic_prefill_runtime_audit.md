@@ -70,8 +70,16 @@ The failed runs remain in `raw/` with their original logs.
 Native Qwen PD and DP2 initially matched 7/8 sequences at 8K.
 A repeated default PD matched the first default PD in 8/8 sequences.
 These two results do not identify the divergent operation.
-The installed official `VLLM_BATCH_INVARIANT=1` path is under separate qualification.
-Its timing family must not be mixed with default-mode timing.
+The third default native-PD start also matched both earlier starts in 8/8 sequences.
+The official `VLLM_BATCH_INVARIANT=1` control failed its native-PD repeat at 7/8.
+That optional arithmetic mode is not used for capacity or Serving.
+The default native colocated repeat also failed at 7/8.
+The default native-PD family and the failed colocated family remain separate.
+
+All current native AR runs explicitly use `async_scheduling=False`.
+Here, "default arithmetic" means that batch-invariant arithmetic is disabled.
+It does not mean that every option equals the vLLM production default.
+No synchronous-versus-asynchronous AR performance result is currently available.
 
 ## Data and generation
 
@@ -124,6 +132,12 @@ An engine or numerical-mode difference is not a causal recurrence effect.
 The QPS search and final independent-start measurements are not complete.
 No measured sustainable capacity or Dynamic A benefit is claimed.
 No Dynamic A, Loop Split, Token Split, new TP/PP, or training is implemented.
-RLT colocated controls retain the qualified separate-phase policy.
-They do not represent every production Mixed-serving optimization.
-Native AR DP2 retains its supported native mixed/chunked scheduler.
+RLT has separate-phase colocated controls and an existing Native Mixed control.
+The new Native Mixed worker applies the same numerical fixes without the old Dynamic-A Mixed prohibition.
+It uses the original RLT Mixed scheduler and recurrent core.
+Ouro and Huginn each pass eight-request output and full-depth gates at C256 and C1024.
+Actual mixed-core invocation counts are 53/30 for Ouro and 8/4 for Huginn, respectively.
+These are executed qualification counts, not clean efficiency measurements.
+Native Mixed is an existing feature. It is not a new method in this study.
+The future final colocated setting requires another independent 32-request gate.
+Native AR DP2 uses its supported native mixed/chunked scheduler, but its repeat mismatch blocks automatic performance expansion.

@@ -18,10 +18,10 @@ def main():
     for r in runs:groups.setdefault((r['model'],r['length'],r['output_cap'],r['target_QPS']),[]).append(r)
     output=[]
     for cell,group in groups.items():
-        methods=sorted({(r['arm'],r['chunk']) for r in group})
+        methods=sorted({(r['arm'],r['chunk'],r['transport_control']) for r in group})
         for ai,a in enumerate(methods):
             for b in methods[ai+1:]:
-                x={r['independent_start']:r for r in group if (r['arm'],r['chunk'])==a};y={r['independent_start']:r for r in group if (r['arm'],r['chunk'])==b}
+                x={r['independent_start']:r for r in group if (r['arm'],r['chunk'],r['transport_control'])==a};y={r['independent_start']:r for r in group if (r['arm'],r['chunk'],r['transport_control'])==b}
                 starts=sorted(set(x)&set(y))
                 if not starts:continue
                 for metric in ('TTFT_ms_p95','request_TPOT_ms_p95','E2E_ms_p95','requests_per_s','output_tokens_per_s','SLO_goodput'):

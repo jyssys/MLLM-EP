@@ -12,7 +12,7 @@ def main():
         state=skipped.get(cfg['name'],{}).get('status',status(cfg['name']))
         row=dict(name=cfg['name'],model=cfg['model'],length=cfg['length'],output_cap=cfg['cap'],chunk=cfg['chunk'],
             arm=cfg['arm'],phase=cfg['phase'],gpus=cfg['gpus'],P_slots=cfg['P_slots'],D_slots=cfg['D_slots'],
-            token_budget=cfg['token_budget'],KV_blocks=cfg['kv_blocks'],target_QPS=cfg.get('arrival_rate'),
+            token_budget=cfg['token_budget'],KV_blocks=cfg['kv_blocks'] if cfg['model']!='qwen8' else 'NOT_APPLIED_NATIVE_AUTO_ALLOCATION',target_QPS=cfg.get('arrival_rate'),
             count=cfg['count'],recorded_request_rows=len(rows(cfg['name'])),status=state,
             independent_start=cfg.get('independent_start'),configuration=str(p.relative_to(ROOT)))
         actual.append(row)

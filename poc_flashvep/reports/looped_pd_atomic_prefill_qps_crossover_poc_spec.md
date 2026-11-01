@@ -264,8 +264,20 @@ Require request TPOT p95 at most 90% of its frozen limit.
 Report ITL p99 and request-maximum violations separately.
 Require at least 20% measured service reserve against the observed completed P rate.
 Require usable D KV credit, with sampled admission refusal at most 1% for the strict TRUE label.
+For this threshold, a binding D refusal means that D blocks a request while P has a usable slot and KV credit.
+Also report unconditional D refusals, including simultaneous P/D-full samples.
+Do not call a simultaneous full reservation a D-caused stall when P is already compute-busy.
+Confirm the binding cause with actual P idle/service and queue traces.
 Keep already-reserved P state separate from this strict new-admission criterion.
 A condition with high reservation refusals can be diagnostically interesting but cannot silently pass the strict gate.
+
+Do not require D kernel activity below 80%.
+Kernel activity is not SM occupancy or maximum batching capacity.
+Report D service at the observed batch and at larger legal batches separately.
+A larger all-ready D rate is an optimistic screen, not sufficient proof of usable online reserve.
+Before a strict TRUE label, validate staggered D readiness at 1.2 times the observed P completion rate where the native prepared-KV path permits it.
+Report the finite cohort size and its KV limit.
+This diagnostic is not Dynamic A and does not prove that arbitrary Prefill work can meet D SLOs.
 
 Classification precedence is as follows:
 
@@ -303,9 +315,35 @@ Do not call NVML GPU utilization SM occupancy.
 
 Compare 1P1D with two independent colocated replicas at the same two-GPU budget.
 Give DP2 a valid tuned native scheduler.
+The old Dynamic-A wrapper forbids Mixed co-batching.
+Do not inherit that restriction as an intentional weakness of the new colocated control.
+For Ouro/Huginn, qualify a separate native-Mixed worker that applies only the same numerical fixes.
+It uses the existing RLT Mixed policy and original recurrent core.
+It does not use a new scheduler or recurrence migration.
+Test C256 and C1024 with exact output and full-depth gates before performance expansion.
+Keep separate-phase DP2 as another explicit control.
+Native AR DP2 has an unresolved repeat mismatch and is not automatically qualified by a later matching run.
 Where supported, include native Mixed/chunked colocated execution as a strong generic control.
 Record any scheduler difference rather than forcing a deliberately weak DP configuration.
 Native Mixed is existing functionality, not a new contribution.
+
+### Diagnostic extensions after the first smoke results
+
+The primary SLO file was frozen before held-out QPS results.
+No later diagnostic changes that file or the classification thresholds.
+Qwen 8000/200 native-PD outputs differ in 17/24 requests between the first two arrival rates.
+The exact-output gate therefore stops that synchronous family's performance expansion.
+A separate official asynchronous-scheduling repeat tests compatibility without changing BF16 or model weights.
+It is a qualification diagnostic, not an accepted performance result.
+
+The first Ouro 8192/32 smoke runs show large host-observed exposed handoff intervals.
+The existing connector also checks global in-flight wire credit before scheduling Prefill work.
+These facts motivate supported `PDConfig.max_inflight_bytes` controls at 256 MiB, 1 GiB, and 8 GiB.
+The 64-MiB fragment limit and native NIXL protocol remain unchanged.
+Each control requires output, full-depth, and valid-state byte checks before clean timing.
+Wire-credit changes are separate transport controls. They are not evidence of a Loop Split benefit.
+An isolated model-free NIXL benchmark separates transport capability from Serving polling and scheduling.
+Its measured host completion is not pure GPU DMA or model E2E speedup.
 
 Produce QPS versus TTFT p95, TPOT/ITL, total/output throughput, and P/D utilization plots.
 Use the same workload within a rate curve.

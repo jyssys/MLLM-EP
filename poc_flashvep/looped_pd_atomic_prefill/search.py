@@ -216,11 +216,13 @@ def references():
                 chunks[str(chunk)]=dict(mu_P=choice['finite_requests_per_s_mean'],P_slots=min(choice['batch'],4) if model=='qwen8' else choice['batch'],
                     cohort_batch=choice['batch'],source=choice)
             best_chunk=max(chunks,key=lambda k:chunks[k]['mu_P']);d={}
+            nonfull=[k for k in chunks if int(k)!=length]
+            tuned_chunk=int(max(nonfull,key=lambda k:chunks[k]['mu_P'])) if nonfull else int(best_chunk)
             for cap in sorted({o for n,o in GRID[model] if n==length}):
                 samples=[r for r in measurements if r['model']==model and r['length']==length and r['capacity_mode']=='PREPARED_D' and r['output_cap']==cap]
                 if samples:
                     choice=max(samples,key=lambda r:r['finite_requests_per_s_mean']);d[str(cap)]=dict(mu_D=choice['finite_requests_per_s_mean'],source=choice)
-            selected[model+'_L'+str(length)]=dict(model=model,length=length,chunks=chunks,best_chunk=int(best_chunk),D=d,
+            selected[model+'_L'+str(length)]=dict(model=model,length=length,chunks=chunks,best_chunk=int(best_chunk),tuned_chunk=tuned_chunk,D=d,
                 scope='Measured finite independent service rates. All-ready D is not an online capacity certificate.')
     write(ROOT/'configs/capacity_references.json',selected);return selected
 
@@ -236,6 +238,7 @@ def serving_config(cell,name,cap,chunk,phase,count,rate=None,start=0,arm='PD_G1'
 
 
 def calibration_configs():
+    native_mixed_gates()
     selected=references();new=[]
     for key,cell in selected.items():
         if str(cell['length']) not in cell['chunks'] or not cell['D']:continue
@@ -245,6 +248,32 @@ def calibration_configs():
         slots=c['P_slots'];c=finish(c,16,split='calibration');c.update(P_slots=slots,calibration_serial=True)
         new.append(c)
     return enqueue(new,'CALIBRATION')
+
+
+def native_mixed_gates():
+    result={}
+    for model,length in [('ouro',8192),('huginn',3900)]:
+        reference=f'qual_{model}_mixed_reference_l{length}_v1';entries={}
+        for chunk in (256,1024):
+            name=f'qual_{model}_native_mixed_c{chunk}_l{length}_v1'
+            retry=f'qual_{model}_native_mixed_c{chunk}_l{length}_v2'
+            if (ROOT/'configs'/(retry+'.json')).exists():name=retry
+            if status(reference)!=status(name) or status(name)!='COMPLETE':entries[str(chunk)]=dict(passed=False,status=status(name));continue
+            r=compare(reference,name);r['work']=full_work(name)
+            calls=sum(v['submissions'] for p in (ROOT/'raw'/name).glob('native_mixed_execution_*.json')
+                for v in json.loads(p.read_text())['histogram'] if v['mixed'])
+            r.update(actual_mixed_core_calls=calls,scope='Existing native RLT Mixed control. Not a new mechanism.')
+            r['passed'] &= r['work']['passed'] and calls>0;entries[str(chunk)]=r
+        result[model]=entries
+    write(ROOT/'state/native_mixed_gates.json',result);return result
+
+
+def final_count(rate,start):
+    """Use the offered trace itself to ensure a 30-second central window."""
+    rng=random.Random(20261101+start);count=1;last=0.
+    while count<128 or .7*last<30.:
+        last+=rng.expovariate(rate);count+=1
+    return count
 
 
 def freeze_and_pilots():
@@ -258,7 +287,7 @@ def freeze_and_pilots():
         slos[key]=dict(TTFT_ms=2*percentile([r['ttft_ms'] for r in values],.95),TPOT_ms=2*percentile([r['tpot_ms'] for r in values],.95),
             ITL_ms=2*percentile(itls,.99),requests=16,calibration=name,rule='2x independent serial-calibration p95 request latency; 2x token ITL p99.',
             frozen_before_heldout_search=time.time(),not_a_hard_guarantee=True)
-        model=cell['model'];length=cell['length'];chunks=list(dict.fromkeys([length,cell['best_chunk']]))
+        model=cell['model'];length=cell['length'];chunks=list(dict.fromkeys([length,cell['tuned_chunk']]))
         for cap in sorted(map(int,cell['D']),reverse=True):
             mu=min(max(v['mu_P'] for v in cell['chunks'].values()),cell['D'][str(cap)]['mu_D'])
             primary=length==(8000 if model=='qwen8' else 8192 if model=='ouro' else 3900)
@@ -277,7 +306,26 @@ def freeze_and_pilots():
         assert thresholds(frozen)==thresholds(slos),'Do not change a frozen SLO'
         slos=frozen
     else:write(path,slos)
+    mixed_path=ROOT/'state/native_mixed_gates.json';mixed=json.loads(mixed_path.read_text()) if mixed_path.exists() else {}
+    for model,length,cap in [('ouro',8192,200),('ouro',8192,32),('huginn',3900,32)]:
+        key=model+'_L'+str(length);cell=selected.get(key)
+        if key not in slos or not cell or str(cap) not in cell['D']:continue
+        mu=min(max(v['mu_P'] for v in cell['chunks'].values()),cell['D'][str(cap)]['mu_D'])
+        variants=[('DP',c,'rlt_worker') for c in dict.fromkeys([length,cell['tuned_chunk']])]
+        variants += [('DP_Mixed',int(chunk),'native_mixed_worker') for chunk,gate in mixed.get(model,{}).items() if gate['passed']]
+        for arm,chunk,worker in variants:
+            for factor in (.75,1.,1.25):
+                name=f'pilot_{model}_l{length}_o{cap}_{arm.lower()}_c{chunk}_f{str(factor).replace(".","p")}_v1'
+                c=serving_config(cell,name,cap,chunk,'qps_pilot',24,rate=mu*factor,arm=arm)
+                c.update(worker=worker,rate_factor=factor,reference_capacity=mu)
+                if arm=='DP_Mixed':c.update(scheduler_mode='mixed',wavefront=True,atomic_prompt=False,native_mixed=True)
+                new.append(c);matrix.append(dict(name=name,model=model,length=length,cap=cap,chunk=chunk,QPS=mu*factor,count=24,arm=arm,status='PLANNED_BASELINE_TUNING_SMOKE'))
     write(ROOT/'configs/pilot_matrix.json',matrix)
+    # The AR motivation case precedes secondary cells. This order is fixed
+    # before held-out Serving outcomes become available.
+    priority={'qwen8':(8000,200),'ouro':(8192,32),'huginn':(3900,32)}
+    new.sort(key=lambda c:(('qwen8','ouro','huginn').index(c['model']),
+        (c['length'],c['cap'])!=priority[c['model']],c['arm']!='PD_G1'))
     return enqueue(new,'QPS_PILOTS')
 
 
@@ -287,30 +335,57 @@ def finalist_configs():
     for model in ('qwen8','ouro','huginn'):
         from .live_audit import blocked
         if blocked(model):continue
-        pool=[r for r in runs if r['model']==model and r['phase']=='qps_pilot' and r['eligible_clean'] and r['chunk']==r['length']]
+        pool=[r for r in runs if r['model']==model and r['phase']=='qps_pilot' and r['arm']=='PD_G1' and r['eligible_clean'] and r['chunk']==r['length']]
         if not pool:continue
+        primary=8000 if model=='qwen8' else 8192 if model=='ouro' else 3900
+        primary_pool=[r for r in pool if r['length']==primary and (model!='qwen8' or r['output_cap']==200)]
+        if primary_pool:pool=primary_pool
         def score(r):
             cell=selected[model+'_L'+str(r['length'])];muD=cell['D'][str(r['output_cap'])]['mu_D'];muP=max(v['mu_P'] for v in cell['chunks'].values())
             growth=r.get('P_queue_half_growth') or 0.;credit=r.get('D_KV_refusal_sample_fraction')
             credit=credit if isinstance(credit,(float,int)) else 1.
             return (int(r['D_TPOT_margin_pass'] and credit<=.01),muD/muP,min(growth,10.),-abs(r['target_QPS']/muP-1.25))
         chosen=max(pool,key=score);cell=selected[model+'_L'+str(chosen['length'])];cap=chosen['output_cap']
-        center=chosen['target_QPS'];rates=[center*.8,center,center*1.2]
+        chosen_config=json.loads((ROOT/'configs'/(chosen['name']+'.json')).read_text())
+        transport_limits=chosen_config.get('native_transport_limits',{})
+        # A low-rate D-safe screen is not evidence about P saturation. When
+        # no P-pressure screen exists, retain a negative diagnostic around
+        # the strongest measured P rate rather than repeating only low QPS.
+        p_screen=any((r.get('P_queue_half_growth') or 0)>=1. and r['D_TPOT_margin_pass'] and
+            isinstance(r.get('D_KV_refusal_sample_fraction'),(int,float)) and r['D_KV_refusal_sample_fraction']<=.01 for r in pool)
+        center=chosen['target_QPS'] if p_screen else max(v['mu_P'] for v in cell['chunks'].values())
+        rates=[center*.8,center,center*1.2]
+        colocated=[r for r in runs if r['model']==model and r['phase']=='qps_pilot' and r['length']==cell['length'] and r['output_cap']==cap and
+            r['arm'] in ('DP','DP2','DP_Mixed') and r['eligible_clean'] and isinstance(r.get('SLO_goodput'),(int,float))]
+        dp_choice=None
+        if colocated:
+            nearest=min(abs(r['target_QPS']-center) for r in colocated)
+            best=max((r for r in colocated if abs(r['target_QPS']-center)==nearest),key=lambda r:(r['SLO_goodput'],-r['E2E_ms_p95']))
+            dp_choice=dict(arm=best['arm'],chunk=best['chunk'],worker='native_mixed_worker' if best['arm']=='DP_Mixed' else 'rlt_worker',source=best['name'])
         choices[model]=dict(smoke=chosen['name'],length=cell['length'],cap=cap,rates=rates,
-            reason='Lexicographic: Decode SLO and credit, finite D/P reserve ratio, observed admitted-P queue growth, proximity to 1.25x finite P rate.',
+            P_pressure_screen_found=p_screen,
+            native_transport_limits=transport_limits,
+            colocated_choice=dp_choice,reason='Lexicographic: Decode SLO and credit, finite D/P reserve ratio, observed admitted-P queue growth, proximity to 1.25x finite P rate.',
             scope='Exploratory condition selection. The independent final starts validate it; the N24 screen is not final evidence.')
         for start in range(3):
             for ri,rate in enumerate(rates):
-                count=max(128,math.ceil(rate*40)+1)
-                for arm,chunk in [('PD_G1',v) for v in dict.fromkeys([cell['length'],cell['best_chunk']])]+[('DP2' if model=='qwen8' else 'DP',cell['best_chunk'])]:
+                count=final_count(rate,start)
+                variants=[('PD_G1',v) for v in dict.fromkeys([cell['length'],cell['tuned_chunk']])]
+                if dp_choice:variants.append((dp_choice['arm'],dp_choice['chunk']))
+                for arm,chunk in variants:
                     label='full' if chunk==cell['length'] else str(chunk)
                     name=f'final_{model}_l{cell["length"]}_o{cap}_{arm.lower()}_c{label}_r{ri}_s{start}_v1'
                     c=serving_config(cell,name,cap,chunk,'final_repeat',count,rate=rate,start=start,arm=arm)
+                    if arm=='PD_G1' and transport_limits:c['native_transport_limits']=transport_limits
+                    if dp_choice and arm==dp_choice['arm']:
+                        c['worker']=dp_choice['worker']
+                        if arm=='DP_Mixed':c.update(scheduler_mode='mixed',wavefront=True,atomic_prompt=False,native_mixed=True)
                     c['gpus']=[2*start,2*start+1];c.update(rate_index=ri,selection_smoke=chosen['name'])
                     new.append(c)
         # Actual CUDA activity and overhead use an identical final-start cohort.
-        label='full';name=f'profile_{model}_final_center_v1';rate=rates[1];count=max(128,math.ceil(rate*40)+1)
+        label='full';name=f'profile_{model}_final_center_v1';rate=rates[1];count=final_count(rate,0)
         c=serving_config(cell,name,cap,cell['length'],'profile_control',count,rate=rate,start=0)
+        if transport_limits:c['native_transport_limits']=transport_limits
         c.update(nsys=True,nsys_graph_trace='graph',gpus=[0,1],profile_clean_reference=f'final_{model}_l{cell["length"]}_o{cap}_pd_g1_cfull_r1_s0_v1');new.append(c)
     cell=selected.get('qwen8_L8000')
     if cell and '200' in cell['D'] and not blocked('qwen8'):
@@ -320,7 +395,7 @@ def finalist_configs():
             mu=min(single['finite_requests_per_s_mean'],cell['D']['200']['mu_D'])
             for start in range(3):
                 for factor in ((.75,1.,1.25,1.5) if start==0 else (1.25,)):
-                    rate=mu*factor;count=max(128,math.ceil(rate*40)+1)
+                    rate=mu*factor;count=final_count(rate,start)
                     for arm in ('PD_G1','DP2'):
                         name=f'paper_qwen8_l8000_o200_{arm.lower()}_f{str(factor).replace(".","p")}_s{start}_v1'
                         c=serving_config(cell,name,200,8000,'paper_budget_control',count,rate=rate,start=start,arm=arm)
@@ -334,14 +409,19 @@ def finalist_configs():
     for model,choice in choices.items():
         cell=selected[model+'_L'+str(choice['length'])];cap=choice['cap'];rate=choice['rates'][1]
         arms=[('full_reference','PD_G1',cell['length']),('full_repeat','PD_G1',cell['length'])]
-        if cell['best_chunk']!=cell['length']:arms.append(('tuned','PD_G1',cell['best_chunk']))
-        if model!='qwen8':arms.append(('colocated','DP',cell['best_chunk']))
+        if cell['tuned_chunk']!=cell['length']:arms.append(('tuned','PD_G1',cell['tuned_chunk']))
+        dp=choice.get('colocated_choice')
+        if dp:arms.append(('colocated',dp['arm'],dp['chunk']))
         source=json.loads((ROOT/'data'/f'test_{model}_L{cell["length"]}.json').read_text())[32:64]
         assert len(source)==32
         dataset=f'qualification32_{model}_L{cell["length"]}.json';write(ROOT/'data'/dataset,source)
         for label,arm,chunk in arms:
             name=f'qualification32_{model}_{label}_v1'
             c=serving_config(cell,name,cap,chunk,'final_correctness',32,rate=rate,start=101,arm=arm)
+            if arm=='PD_G1' and choice.get('native_transport_limits'):c['native_transport_limits']=choice['native_transport_limits']
+            if label=='colocated':
+                c['worker']=dp['worker']
+                if arm=='DP_Mixed':c.update(scheduler_mode='mixed',wavefront=True,atomic_prompt=False,native_mixed=True)
             c.update(dataset=dataset,prompt_ids=[r['prompt_id'] for r in source],seed=2026110207,
                 qualification_scope='Independent arrival seed and Sampling seed. Prompt pool rows 32-63. Output parity and full-depth checks; no heavy KV hashes in this 32-request gate.')
             qualification.append(c)
@@ -368,7 +448,7 @@ def final_qualification():
         c=json.loads((ROOT/'configs'/filename).read_text());r=verdicts.get(c['model'],{})
         passed=r.get('passed',False)
         if c['phase']=='paper_budget_control':passed=False;reason='NOT_RUN_UNQUALIFIED_PAPER_GEOMETRY'
-        elif c['arm'] in ('DP','DP2'):passed &= r.get('settings',{}).get('colocated',{}).get('passed',False);reason='NOT_RUN_BLOCKED_COLOCATED_CORRECTNESS'
+        elif c['arm'] in ('DP','DP2','DP_Mixed'):passed &= r.get('settings',{}).get('colocated',{}).get('passed',False);reason='NOT_RUN_BLOCKED_COLOCATED_CORRECTNESS'
         elif c['chunk']!=c['length']:passed &= r.get('settings',{}).get('tuned',{}).get('passed',False);reason='NOT_RUN_BLOCKED_TUNED_CORRECTNESS'
         else:reason='NOT_RUN_BLOCKED_FINAL_CORRECTNESS'
         if passed:new.append(c)
@@ -391,6 +471,18 @@ def advance():
     if state['stage']=='FINAL_REPEATS_AND_PROFILES':
         from .analyze import capacity,serving
         capacity();serving()
+        from .profiles import main as profile_analysis
+        profile_analysis()
+        from .margin import configurations
+        diagnostic=configurations()
+        if diagnostic:return enqueue(diagnostic,'D_MARGIN_VALIDATION')
+        write(ROOT/'state/D_margin_validation.json',{})
+        write(STATE,dict(stage='GPU_SEARCH_COMPLETE_ANALYSIS_PENDING',time=time.time()))
+        return False
+    if state['stage']=='D_MARGIN_VALIDATION':
+        from .margin import analyze
+        from .classify import main as classify
+        analyze();classify()
         write(STATE,dict(stage='GPU_SEARCH_COMPLETE_ANALYSIS_PENDING',time=time.time()))
         return False
     return False

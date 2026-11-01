@@ -12,7 +12,8 @@ def main():
     import matplotlib
     matplotlib.use('Agg')
     import matplotlib.pyplot as plt
-    runs=[r for r in serving() if r['eligible_clean']]
+    runs=[r for r in serving() if r['eligible_clean'] or
+        (r['timing_isolation_clean'] and r['fidelity_gate_blocked'] and r['model']=='qwen8')]
     figures=ROOT/'figures';figures.mkdir(exist_ok=True);manifest=[]
     groups=collections.defaultdict(list)
     for r in runs:groups[(r['model'],r['length'],r['output_cap'],r['phase'])].append(r)
@@ -23,30 +24,33 @@ def main():
         model,length,cap,phase=key;prefix=f'{model}_l{length}_o{cap}_{phase}'
         for suffix,metric,label in charts:
             fig,ax=plt.subplots(figsize=(6.4,4.2));plotted=False
-            methods=sorted({(r['arm'],r['chunk']) for r in group})
-            for arm,chunk in methods:
-                selected=[r for r in group if r['arm']==arm and r['chunk']==chunk and isinstance(r.get(metric),(int,float))]
+            methods=sorted({(r['arm'],r['chunk'],r['transport_control']) for r in group})
+            for arm,chunk,transport in methods:
+                selected=[r for r in group if r['arm']==arm and r['chunk']==chunk and r['transport_control']==transport and isinstance(r.get(metric),(int,float))]
                 points=collections.defaultdict(list)
                 for r in selected:points[r['target_QPS']].append(r[metric])
                 if not points:continue
                 x=sorted(points);y=[statistics.mean(points[q]) for q in x];bounds=[bootstrap(points[q]) for q in x]
                 lo=[b[0] if b[0] is not None else v for b,v in zip(bounds,y)];hi=[b[1] if b[1] is not None else v for b,v in zip(bounds,y)]
-                name=('Colocated DP2' if arm in ('DP','DP2') else 'Static PD')+(' Full' if chunk==length else ' C'+str(chunk))
+                name=('Colocated DP2 Mixed' if arm=='DP_Mixed' else 'Colocated DP2' if arm.startswith('DP') else 'Static PD')+(' Full' if chunk==length else ' C'+str(chunk))
+                if transport.startswith('INFLIGHT_'):name+=' wire='+str(int(transport.split('_')[1])//(1024**2))+'MiB'
                 ax.plot(x,y,'o--' if phase=='qps_pilot' else 'o-',label=name);ax.fill_between(x,lo,hi,alpha=.15);plotted=True
             if not plotted:plt.close(fig);continue
             ax.set_xlabel('Offered target QPS');ax.set_ylabel(label);ax.grid(alpha=.25);ax.legend(fontsize=8)
-            ax.set_title(f'{model}: input {length}, output {cap}\n'+('N24 smoke only' if phase=='qps_pilot' else 'Finite measured cohorts; no infinite-capacity claim'),fontsize=10)
+            qualification='NUMERICAL GATE FAILED; diagnostic timings only' if any(r['fidelity_gate_blocked'] for r in group) else 'N24 smoke only' if phase=='qps_pilot' else 'Finite measured cohorts; no infinite-capacity claim'
+            ax.set_title(f'{model}: input {length}, output {cap}\n'+qualification,fontsize=10)
             fig.tight_layout();path=figures/(prefix+'_'+suffix+'.png');fig.savefig(path,dpi=170);plt.close(fig)
             manifest.append(dict(file=path.name,metric=metric,cell=key,source_runs=[r['name'] for r in group],
+                all_settings_numerically_qualified=not any(r['fidelity_gate_blocked'] for r in group),
                 uncertainty='95% bootstrap of independent-start metric means when at least two starts exist. No band otherwise.'))
         fig,ax=plt.subplots(figsize=(6.4,4.2))
         pd=[r for r in group if r['arm']=='PD_G1' and r['chunk']==length]
-        for role in ('P','D'):
+        for role,transport in ((role,transport) for role in ('P','D') for transport in sorted({r['transport_control'] for r in pd})):
             points=collections.defaultdict(list)
             for r in pd:
-                if r.get(role+'_NVML_util_mean') is not None:points[r['target_QPS']].append(r[role+'_NVML_util_mean'])
+                if r['transport_control']==transport and r.get(role+'_NVML_util_mean') is not None:points[r['target_QPS']].append(r[role+'_NVML_util_mean'])
             if points:
-                x=sorted(points);ax.plot(x,[statistics.mean(points[q]) for q in x],'o-',label=role+' NVML activity')
+                x=sorted(points);ax.plot(x,[statistics.mean(points[q]) for q in x],'o-',label=role+' '+transport+' NVML activity')
         if ax.lines:
             ax.set(xlabel='Offered target QPS',ylabel='NVML utilization (%)',ylim=(0,102),title=f'{model}: {length}/{cap}\nNVML activity is not SM occupancy or spare compute')
             ax.legend();ax.grid(alpha=.25);fig.tight_layout();path=figures/(prefix+'_d_nvml_activity.png');fig.savefig(path,dpi=170)

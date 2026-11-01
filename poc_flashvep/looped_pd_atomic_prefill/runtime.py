@@ -32,6 +32,11 @@ def install():
         if 'prefill_scheduler_config' in kwargs:
             kwargs['prefill_scheduler_config']=replace(kwargs['prefill_scheduler_config'],max_num_seqs=cfg['P_slots'])
             kwargs['decode_scheduler_config']=replace(kwargs['decode_scheduler_config'],max_num_seqs=cfg['D_slots'])
+        if cfg.get('native_transport_limits'):
+            # Existing supported PDConfig fields only. No new transport,
+            # ownership rule, tensor approximation, or scheduler is added.
+            from vllm_rlt.pd.config import PDConfig
+            kwargs['pd_config']=replace(kwargs.get('pd_config') or PDConfig(),**cfg['native_transport_limits'])
         return initialize(self,*args,**kwargs)
     PDEngine.__init__=initialize_pd
     from vllm_rlt.worker.model_runner import ModelRunner
@@ -39,6 +44,36 @@ def install():
     from vllm_rlt.request import RequestPhase
     submit=ModelRunner.submit;close=StageEngine.close
     prompt_spans=[];histogram=collections.Counter();time_histogram=collections.Counter();roles={}
+    transport_CPU=collections.Counter();transport_waits=collections.Counter();transport_samples=[]
+    if cfg.get('observe_transport'):
+        from vllm_rlt.pd.transport import NixlConnector
+        from vllm_rlt.pd.connector import PDStageConnector
+        for method in ('submit','poll'):
+            original=getattr(NixlConnector,method)
+            def observed_transport(self,*args,_original=original,_method=method,**kwargs):
+                start=time.perf_counter()
+                try:return _original(self,*args,**kwargs)
+                finally:
+                    transport_CPU[_method+'_host_s']+=time.perf_counter()-start
+                    transport_CPU[_method+'_calls']+=1
+            setattr(NixlConnector,method,observed_transport)
+        available=PDStageConnector.can_schedule;clock=[0.]
+        def observed_available(self,request):
+            result=available(self,request)
+            if self.exports(request) and not result:
+                transfer=self.transfers.get(request.request_id)
+                if transfer is not None:
+                    if transfer.chunks:transport_waits['queued_wire_fragments']+=1
+                    if transfer.last_event is not None and not transfer.last_event.query():transport_waits['producer_event_not_ready']+=1
+                    if self.transport.inflight_bytes>=self.config.max_inflight_bytes:transport_waits['global_wire_credit_full']+=1
+            now=time.monotonic()
+            if now-clock[0]>=.25:
+                clock[0]=now;transport_samples.append(dict(time=now,inflight_bytes=self.transport.inflight_bytes,
+                    max_inflight_bytes=self.config.max_inflight_bytes,pending_handles=len(self.transport.pending),
+                    queued_wire_fragments=sum(len(t.chunks) for t in self.transfers.values()),
+                    blocked_schedule_calls=dict(transport_waits),host_transport=dict(transport_CPU)))
+            return result
+        PDStageConnector.can_schedule=observed_available
     def observed_submit(self,scheduled_batch=None,*,batch):
         now=time.monotonic()
         histogram[(batch.operation.value,batch.num_rows,batch.loop_count,len(batch.spans))]+=1
@@ -65,6 +100,10 @@ def install():
     ModelRunner.submit=observed_submit
     def close_evidence(self):
         self.model_runner.synchronize()
+        if cfg.get('observe_transport'):
+            write(ROOT/'raw'/cfg['name']/f'transport_observation_{os.getpid()}.json',dict(role=self.stage_config.role,
+                host_CPU_observation=dict(transport_CPU),blocked_schedule_calls=dict(transport_waits),samples=transport_samples,
+                scope='Diagnostic host wall spans and scheduling reasons. Includes warm-up. Counters can overlap and are not additive E2E or GPU DMA time.'))
         write(ROOT/'raw'/cfg['name']/f'atomic_spans_{os.getpid()}.json',dict(role=self.stage_config.role,
             physical_visible_device=str(self.model_runner.device),atomic_requested=cfg.get('atomic_prompt'),
             prompt_spans=prompt_spans,

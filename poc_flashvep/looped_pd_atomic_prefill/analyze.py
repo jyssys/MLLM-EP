@@ -25,12 +25,17 @@ def distribution(values,label):
 def capacity():
     values=[]
     for cfgpath in sorted((ROOT/'configs').glob('capacity_*.json')):
-        cfg=json.loads(cfgpath.read_text());folder=ROOT/'raw'/cfg['name']
+        cfg=json.loads(cfgpath.read_text())
+        if not isinstance(cfg,dict) or not cfg.get('name') or not cfg.get('capacity_mode'):continue
+        folder=ROOT/'raw'/cfg['name']
+        geometry=json.loads((folder/'geometry.json').read_text()) if (folder/'geometry.json').exists() else {}
         for r in records(folder/'cohorts.jsonl'):
             job=r['job'];batch=job['batch'];cap=job['cap'];mode=cfg['capacity_mode']
             row=dict(name=cfg['name'],model=cfg['model'],length=cfg['length'],chunk=cfg['chunk'],chunk_label=cfg['chunk_label'],
                 capacity_mode=mode,batch=batch,output_cap=cap,repeat=r.get('repeat'),status=r.get('status','COMPLETE'),
+                capacity_preparation=r.get('capacity_preparation','NATIVE_COHORT_FULL_PREFILL'),
                 run_status=status(cfg['name']),evidence='MEASURED_LOCAL_FINITE_SERVICE',
+                measured_KV_blocks=geometry.get('KV_blocks'),measured_KV_bytes=geometry.get('KV_bytes',geometry.get('KV_tensor_bytes')),
                 scope='Independent finite service cohort. Not measured sustainable open-loop capacity.')
             if row['status']=='COMPLETE':
                 p=r.get('prefill_host_service_s',r.get('P_plus_first_sample_s'))
@@ -47,11 +52,13 @@ def capacity():
     groups=collections.defaultdict(list)
     for r in values:
         if r['status']=='COMPLETE' and r['run_status']=='COMPLETE':
-            groups[(r['model'],r['length'],r['chunk'],r['capacity_mode'],r['batch'],r['output_cap'])].append(r)
+            groups[(r['model'],r['length'],r['chunk'],r['capacity_mode'],r['batch'],r['output_cap'],r['capacity_preparation'])].append(r)
     summary=[]
     for key,group in groups.items():
-        m,n,c,mode,b,cap=key;rates=[r['finite_requests_per_s'] for r in group]
+        m,n,c,mode,b,cap,preparation=key;rates=[r['finite_requests_per_s'] for r in group]
         summary.append(dict(model=m,length=n,chunk=c,capacity_mode=mode,batch=b,output_cap=cap,
+            capacity_preparation=preparation,
+            measured_KV_blocks=group[0].get('measured_KV_blocks'),measured_KV_bytes=group[0].get('measured_KV_bytes'),
             repeats=len(group),finite_requests_per_s_mean=statistics.mean(rates),finite_requests_per_s_p50=statistics.median(rates),
             service_s_mean=statistics.mean(r['service_s'] for r in group),service_boundary=group[0]['service_boundary'],
             GPU= json.loads((ROOT/'configs'/(group[0]['name']+'.json')).read_text())['gpus'],
@@ -69,7 +76,22 @@ def slope(points):
 
 def host_phases(folder,request_rows):
     path=folder/'closed_stats.json'
-    if not path.exists():return [],[]
+    if not path.exists():
+        handoffs={r['request_id']:r for r in records(folder/'native_handoffs.jsonl')};starts={};shares=[]
+        for p in folder.glob('native_prefill_*.json'):
+            for span in json.loads(p.read_text())['prompt_spans']:
+                rid=span['request_id'].split('-',1)[0];starts[rid]=min(starts.get(rid,float('inf')),span['time'])
+        for r in request_rows:
+            rid='q'+str(r['sample_id']);handoff=handoffs.get(rid)
+            if not handoff or rid not in starts:continue
+            begin=r['arrival'];end=r['finish'];last=begin
+            for component,bound in [('delivery',r['admission']),('P_queue_to_first_scheduler_span',starts[rid]),
+                ('P_service_host_with_first_sample',handoff['time']),('handoff_D_queue_import_first_sample_host',r['first_token']),('generation_host',end)]:
+                bound=max(last,min(end,bound));duration=bound-last;last=bound
+                shares.append(dict(name=folder.name,sample_id=r['sample_id'],component=component,component_ms=1000*duration,
+                    E2E_ms=1000*(end-begin),share_percent=100*duration/(end-begin),
+                    evidence='MEASURED_HOST_EXCLUSIVE_REQUEST_INTERVALS_NOT_GPU_KERNEL_SHARES'))
+        return [],shares
     metrics=[r for r in json.loads(path.read_text()).get('metrics',[]) if r['request_id'].startswith('r0_')]
     byid={r['request_id']:r for r in metrics};frontier={};shares=[]
     for p in folder.glob('host_execution_*.json'):
@@ -114,9 +136,16 @@ def serving_one(cfg):
         requests_per_s=len(requests)/elapsed,output_tokens_per_s=sum(r['output_tokens'] for r in requests)/elapsed,
         total_tokens_per_s=sum(r['input_tokens']+r['output_tokens'] for r in requests)/elapsed,
         coalesced_delivery_events=bundles,gpus=cfg['gpus'],ar_batch_invariant=cfg.get('ar_batch_invariant',False),
+        native_transport_limits=cfg.get('native_transport_limits',{}),
+        transport_control=('NOT_APPLICABLE_COLOCATED' if cfg['arm'].startswith('DP') else
+            'INFLIGHT_'+str(cfg.get('native_transport_limits',{}).get('max_inflight_bytes',256*1024**2)) if cfg['model']!='qwen8' else 'NATIVE_AR_NIXL'),
         timing_scope='Finite arrival-to-drain observation. Not established sustainable capacity.',
         eligible_clean=status(name)=='COMPLETE' and len(requests)==cfg['count'] and window is not None and cfg['phase'] in ('qps_pilot','final_repeat','paper_budget_control') and not any(cfg.get(k) for k in ('state_probe','verify_transfer','nsys')),
         actual_P_kernel_busy='NOT_MEASURED',actual_D_kernel_busy='NOT_MEASURED')
+    row['timing_isolation_clean']=row['eligible_clean']
+    row['GPU_role_mapping']=dict(P_column='replica0',D_column='replica1') if cfg['arm'].startswith('DP') else dict(P_column='prefill',D_column='decode')
+    from .live_audit import blocked
+    row['fidelity_gate_blocked']=bool(blocked(cfg['model'],cfg));row['eligible_clean'] &= not row['fidelity_gate_blocked']
     for field,label in [('ttft_ms','TTFT_ms'),('tpot_ms','request_TPOT_ms'),('e2e_ms','E2E_ms')]:
         row.update(distribution((r[field] for r in requests),label))
     row.update(distribution(itls,'token_ITL_ms'));row['token_ITL_ms_max']=max(itls,default=None)
@@ -134,12 +163,13 @@ def serving_one(cfg):
             SLO_goodput=passed/elapsed,TTFT_threshold_ms=slo['TTFT_ms'],TPOT_threshold_ms=slo['TPOT_ms'],ITL_threshold_ms=slo['ITL_ms'],
             D_TPOT_margin_pass=row['request_TPOT_ms_p95']<=.9*slo['TPOT_ms'])
     else:row.update(SLO_goodput='NOT_SCORED_NO_FROZEN_SLO',D_TPOT_margin_pass=False)
-    samples=[r for p in folder.glob('NVML-*.jsonl') for r in records(p) if begin<=r['time']<=last]
+    samples=[r for p in folder.glob('NVML-*.jsonl') for r in records(p) if begin<=r['time']<=end]
     for role,gpu in zip(('P','D'),cfg['gpus']):
         values=[r for r in samples if r['physical_GPU']==gpu]
-        if values:row.update({role+'_NVML_util_mean':statistics.mean(r['sampled_utilization_percent'] for r in values),
+        arrival_values=[r for r in values if r['time']<=last]
+        if values:row.update({role+'_NVML_util_mean':statistics.mean(r['sampled_utilization_percent'] for r in arrival_values) if arrival_values else None,
             role+'_sampled_peak_HBM_bytes':max(r['used_HBM_bytes'] for r in values)})
-    row['NVML_scope']='Averaging-window utilization samples. Not SM occupancy or exclusive kernel busy.'
+    row['NVML_scope']='Utilization mean covers the arrival window. Sampled peak HBM covers arrival through drain. Not SM occupancy or exclusive kernel busy.'
     metrics,shares=host_phases(folder,requests)
     left=begin+.2*arrival_duration;right=begin+.9*arrival_duration
     central=[r for r in records(folder/'admission_reasons.jsonl') if left<=r['time']<=right]
@@ -153,8 +183,12 @@ def serving_one(cfg):
             row['D_recurrent_batch_requests_mean']=sum(r['requests']*r['submissions'] for r in batches)/total
             row['D_recurrent_submission_count']=total
     if central:
-        row['D_KV_refusal_sample_fraction']=sum(any('DECODE_NO_KV_CREDIT' in w['reasons'] for w in r['waiting']) for r in central)/len(central)
-        row['D_slot_refusal_sample_fraction']=sum(any('DECODE_NO_SLOT' in w['reasons'] for w in r['waiting']) for r in central)/len(central)
+        p_reasons=('PREFILL_NO_SLOT','PREFILL_NO_KV_CREDIT')
+        row['D_raw_KV_refusal_sample_fraction']=sum(any('DECODE_NO_KV_CREDIT' in w['reasons'] for w in r['waiting']) for r in central)/len(central)
+        row['D_raw_slot_refusal_sample_fraction']=sum(any('DECODE_NO_SLOT' in w['reasons'] for w in r['waiting']) for r in central)/len(central)
+        row['D_KV_refusal_sample_fraction']=sum(any('DECODE_NO_KV_CREDIT' in w['reasons'] and not any(k in w['reasons'] for k in p_reasons) for w in r['waiting']) for r in central)/len(central)
+        row['D_slot_refusal_sample_fraction']=sum(any('DECODE_NO_SLOT' in w['reasons'] and not any(k in w['reasons'] for k in p_reasons) for w in r['waiting']) for r in central)/len(central)
+        row['D_refusal_scope']='Binding refusal: D blocks while P has a slot and KV credit. Raw simultaneous P/D refusals are reported separately.'
     if metrics:
         firsts={}
         for p in folder.glob('host_execution_*.json'):
@@ -181,12 +215,11 @@ def serving_one(cfg):
             snapshots=[r for r in central if r['time']<=timepoint]
             if snapshots:
                 observed=snapshots[-1]
-                count=sum('PREFILL_NO_SLOT' in w['reasons'] and not any(s in w['reasons'] for s in
-                    ('DECODE_NO_SLOT','DECODE_NO_KV_CREDIT','PREFILL_NO_KV_CREDIT')) for w in observed['waiting'])
+                count=sum('PREFILL_NO_SLOT' in w['reasons'] and 'PREFILL_NO_KV_CREDIT' not in w['reasons'] for w in observed['waiting'])
                 points[index]=(timepoint,value+count)
         row.update(P_queue_slope_per_s=slope(points),P_queue_half_growth=(statistics.mean(v for t,v in points[51:])-statistics.mean(v for t,v in points[:50])) if points else None,
             P_queue_max=max((v for t,v in points),default=None),P_completion_rate_central=sum(left<=t<=right for t in finished)/(right-left) if right>left else None)
-        row['P_queue_scope']='Admitted P wait plus P-slot-only coordinator wait with clear D credit. KV-reservation wait is excluded. Actual kernel saturation is still required.'
+        row['P_queue_scope']='Admitted P wait plus P-slot backlog. Simultaneous D refusals remain explicit. D-only reservation waiting is excluded. P kernel saturation and matched P service are mandatory.'
         a=folder/'before_measured.json';b=folder/'after_measured.json'
         if a.exists() and b.exists():
             before=json.loads(a.read_text());after=json.loads(b.read_text())
@@ -235,6 +268,13 @@ def serving():
         row,requests,shares=serving_one(cfg)
         if row:runs.append(row);share_rows.extend(shares)
     save_csv('serving_runs.csv',runs);write(ROOT/'serving_runs.json',runs);save_csv('e2e_component_shares.csv',share_rows)
+    groups=collections.defaultdict(list)
+    for r in share_rows:groups[(r['name'],r['component'])].append(r)
+    save_csv('e2e_component_shares_summary.csv',[dict(name=k[0],component=k[1],requests=len(v),
+        component_ms_mean=statistics.mean(r['component_ms'] for r in v),
+        mean_request_share_percent=statistics.mean(r['share_percent'] for r in v),
+        duration_weighted_share_percent=100*sum(r['component_ms'] for r in v)/sum(r['E2E_ms'] for r in v),
+        evidence='MEASURED_HOST_EXCLUSIVE_INTERVALS_ONLY',scope='Both share columns sum to 100% within a run. Neither column is an exclusive GPU/DMA component breakdown.') for k,v in groups.items()])
     return runs
 
 

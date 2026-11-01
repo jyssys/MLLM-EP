@@ -17,9 +17,8 @@ def terminal(name):
 
 
 def main():
-    p=argparse.ArgumentParser();p.add_argument('--max-hours',type=float,default=24.);p.add_argument('--wait-pid',type=int);a=p.parse_args();setup()
-    if a.wait_pid:
-        while Path('/proc') .joinpath(str(a.wait_pid)).exists():time.sleep(2)
+    p=argparse.ArgumentParser();p.add_argument('--max-hours',type=float,default=24.);p.add_argument('--wait-pid',type=int,action='append',default=[]);a=p.parse_args();setup()
+    while any((Path('/proc')/str(pid)).exists() for pid in a.wait_pid):time.sleep(2)
     plan=ROOT/'configs/study_plan.json';controller=ROOT/'state/controller.json'
     if not plan.exists():write(plan,json.loads((ROOT/'configs/initial_gate_plan.json').read_text()))
     while time.time()<START_EPOCH+a.max_hours*3600:
@@ -28,13 +27,15 @@ def main():
             cfg=json.loads((ROOT/'configs'/filename).read_text());state=terminal(cfg['name'])
             if state=='PENDING':
                 from .live_audit import blocked,PERFORMANCE_PHASES
-                if cfg.get('phase') in PERFORMANCE_PHASES and blocked(cfg['model']):
+                if cfg.get('phase') in PERFORMANCE_PHASES and blocked(cfg['model'],cfg):
                     p=ROOT/'state/skipped_jobs.json';skip=json.loads(p.read_text()) if p.exists() else {}
                     skip[cfg['name']]=dict(time=time.time(),status='NOT_RUN_BLOCKED_CORRECTNESS',model=cfg['model']);write(p,skip)
                 else:pending.append(filename)
             elif state=='INCOMPLETE':raise RuntimeError('Do not overwrite an incomplete namespace: '+cfg['name'])
         if pending:
-            from .parallel_qualification import run as run_qualification,PHASES
+            from . import parallel_qualification
+            importlib.reload(parallel_qualification)
+            run_qualification=parallel_qualification.run;PHASES=parallel_qualification.PHASES
             first=json.loads((ROOT/'configs'/pending[0]).read_text())
             if first.get('phase') in PHASES:
                 batch=[name for name in pending if json.loads((ROOT/'configs'/name).read_text()).get('phase') in PHASES]

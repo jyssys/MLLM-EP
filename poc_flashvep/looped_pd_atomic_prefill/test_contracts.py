@@ -50,6 +50,45 @@ class ContractTests(unittest.TestCase):
         from .profiles import parse
         value=parse(folder,json.loads((ROOT/'configs'/(name+'.json')).read_text()))
         self.assertTrue(all(r['kernel_count']>0 for r in value['devices']),value)
+    def test_colocated_worker_does_not_require_a_nixl_fingerprint(self):
+        from .native_mixed_worker import worker_mapping
+        mapping=worker_mapping([{'cuda_uuid':UUIDS[2]},{'cuda_uuid':UUIDS[3]}],[2,3])
+        self.assertEqual([r['physical_GPU'] for r in mapping],[2,3])
+    def test_capacity_reader_skips_reference_metadata(self):
+        from unittest.mock import patch
+        from tempfile import TemporaryDirectory
+        from . import analyze
+        with TemporaryDirectory(prefix='atomic_capacity_test_') as folder:
+            root=Path(folder);(root/'configs').mkdir()
+            write(root/'configs/capacity_references.json',{'ouro_L8192':{'mu_P':2.}})
+            with patch.object(analyze,'ROOT',root):
+                self.assertEqual(analyze.capacity(),[])
+    def test_ar_async_is_an_explicit_separate_option(self):
+        from .ar_worker import llm_options
+        c=base('qwen8','cpu_test',8000,200)
+        self.assertFalse(llm_options(c,'prefill')['async_scheduling'])
+        c['ar_async_scheduling']=True
+        self.assertTrue(llm_options(c,'prefill')['async_scheduling'])
+    def test_final_cohort_has_thirty_seconds_in_its_central_window(self):
+        from .search import final_count
+        import random
+        for rate in (.5,2.5,10.):
+            for start in range(3):
+                count=final_count(rate,start)
+                rng=random.Random(20261101+start)
+                duration=sum(rng.expovariate(rate) for _ in range(count-1))
+                self.assertGreaterEqual(count,128)
+                self.assertGreaterEqual(.7*duration,30.)
+    def test_large_evidence_archive_is_lossless(self):
+        from unittest.mock import patch
+        from tempfile import TemporaryDirectory
+        from . import archive
+        with TemporaryDirectory(prefix='atomic_archive_test_') as directory:
+            root=Path(directory);source=root/'sample.bin';source.write_bytes(bytes(range(256))*10)
+            with patch.object(archive,'ROOT',root),patch.object(archive,'MANIFEST',root/'archives/archive_manifest.json'),patch.object(archive,'PART_BYTES',64):
+                archive.create(minimum_bytes=1000)
+                target=root/'restored.bin';archive.restore('sample.bin',target)
+                self.assertEqual(source.read_bytes(),target.read_bytes())
 
 
 if __name__=='__main__':unittest.main()

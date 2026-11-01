@@ -36,10 +36,14 @@ def main():
             for source in (REPO/'poc_flashvep'/package).rglob('*.py'):z.write(source,str(source.relative_to(REPO)))
         z.writestr('RLT_private_diff.patch',subprocess.check_output(['git','diff','--binary'],cwd=RLT))
     env=environment(cfg['gpus']);env.update(ARC_CONFIG=str(path),ARC_RUN=cfg['name'],ABC_LANE='isolated_atomic_pd')
+    if cfg['worker']=='native_mixed_worker':
+        env.pop('ATOMIC_PD_WORKER',None);env['ATOMIC_NATIVE_COLOCATED']='1'
+        env['PYTHONPATH']=str(SOURCE/'native_mixed_bootstrap')+os.pathsep+env['PYTHONPATH']
     runtime_names={'common.py','ar_worker.py','ar_capacity.py'} if cfg['model']=='qwen8' else {'common.py','runtime.py','rlt_worker.py','capacity_worker.py'}
     runtime_names.add(cfg['worker']+'.py')
     if cfg['worker'] in ('capacity_worker','reference_worker'):runtime_names.add('local_metrics.py')
     sources=[p for p in SOURCE.glob('*.py') if p.name in runtime_names]
+    if cfg['worker']=='native_mixed_worker':sources.append(SOURCE/'native_mixed_bootstrap/sitecustomize.py')
     env['ATOMIC_SOURCE_HASHES']=json.dumps({str(p):digest(p) for p in sources})
     command=[str(PYTHON),'-m','poc_flashvep.looped_pd_atomic_prefill.'+cfg['worker'],str(path)]
     if cfg.get('nsys'):
@@ -56,12 +60,18 @@ def main():
                 source_archive_SHA256=digest(folder/'source.zip'),config_SHA256=digest(path),clean=not qualification,
                 isolation='DISJOINT_GPU_QUALIFICATION_NOT_CLEAN_TIMING' if qualification else 'EXCLUSIVE_ALL_GPU_QUIET_LANE'))
             print('START',cfg['name'],child.pid,flush=True);deadline=time.monotonic()+cfg.get('timeout',3600)+900
-            stopped=None;host_sample=0.
+            stopped=None;host_sample=0.;failed_since=None
             while child.poll() is None:
                 if time.monotonic()-host_sample>=1:
                     host_sample=time.monotonic()
                     append(folder/'host_resource_samples.jsonl',dict(time=host_sample,load_average=os.getloadavg(),
                         CPU_pressure=pressure('cpu'),memory_pressure=pressure('memory'),IO_pressure=pressure('io')))
+                worker_status=folder/'status.json'
+                if worker_status.exists():
+                    try:failed=json.loads(worker_status.read_text()).get('status')=='FAILED'
+                    except json.JSONDecodeError:failed=False
+                    if failed and failed_since is None:failed_since=time.monotonic()
+                    if failed_since is not None and time.monotonic()-failed_since>10:interrupted[0]=True
                 if interrupted[0] or time.monotonic()>deadline:
                     assert os.getsid(child.pid)==child.pid
                     if stopped is None:os.killpg(child.pid,signal.SIGTERM);stopped=time.monotonic()

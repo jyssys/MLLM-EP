@@ -73,6 +73,24 @@ Those failed C settings cannot become clean performance baselines.
 A later colocated match does not erase the earlier failed colocated repeat.
 Exact lossless PD-versus-DP2 fidelity remains unproven.
 
+### Longer-output held-out failure
+
+The 8000/200 native-PD smoke runs use 24 requests at each arrival rate.
+The first two target rates are approximately 1.1433 and 2.2866 requests/s.
+Their same-input output comparison matches only 7/24 complete sequences.
+Seventeen requests have a divergent output. The earliest divergent index is 5.
+Both runs still have 24/24 observed Full-Prompt spans.
+Full-Prompt execution alone therefore does not establish numerical output reproducibility.
+The controller blocks further Qwen Serving expansion and preserves both raw runs.
+Their latency records remain diagnostic data, not a qualified same-output comparison.
+
+The official asynchronous native-PD diagnostic also fails its repeat at 8000/200.
+It matches 3/8 complete sequences. The other five sequences diverge.
+The earliest divergent index is 7 in sample 6, with token IDs 12224 and 1033.
+This option does not resolve the exact-output gate.
+The first internal divergent operation remains NOT_MEASURED.
+No BF16, KV corruption, or NIXL-specific cause is established from token IDs alone.
+
 ## Failed compatibility runs
 
 `qual_ouro_local_l8192_v1` failed because its local harness did not enable existing work counters.
@@ -100,6 +118,24 @@ Live final audits compare exact output prefixes within a matched runtime family 
 They also check active full-depth work and actual Atomic spans.
 The Looped runtime family keeps its strict cross-method checks.
 Known AR cross-mode failures remain separate explicit limitations.
+
+## Native Mixed and prepared-Decode controls
+
+| Model | Existing Native Mixed C256 | Existing Native Mixed C1024 | Native prepared-D smoke |
+|---|---|---|---|
+| Ouro R4 | 8/8 exact, full-depth PASS, 53 actual mixed-core calls | 8/8 exact, full-depth PASS, 30 actual mixed-core calls | 2/2 exact, KV/hidden byte checks 2/2, active rows 4152/4152 |
+| Huginn R32 | 8/8 exact, full-depth PASS, 8 actual mixed-core calls | 8/8 exact, full-depth PASS, 4 actual mixed-core calls | 2/2 exact, KV/hidden byte checks 2/2, active rows 33216/33216 |
+
+Evidence type: MEASURED_QUALIFICATION_ONLY.
+The prepared-D smoke uses input 512, output 8, and two legal readiness times.
+It validates the diagnostic harness. It does not establish long-context spare capacity.
+Its original request records include P preparation.
+Its separate `prepared_D_requests.jsonl` excludes that preparation from the D-only timer.
+
+The first C256 Native Mixed observer failed because a colocated worker has no NIXL fingerprint.
+That failure occurred before measured inference.
+The correction records an explicit unavailable fingerprint instead of requiring the absent field.
+The new C256 `v2` namespaces pass. The failed `v1` logs remain unchanged.
 
 ## Scope limits
 

@@ -1,0 +1,23 @@
+<frozen runpy>:130: RuntimeWarning: 'poc_flashvep.looped_pd_atomic_prefill.native_mixed_worker' found in sys.modules after import of package 'poc_flashvep.looped_pd_atomic_prefill', but prior to execution of 'poc_flashvep.looped_pd_atomic_prefill.native_mixed_worker'; this may result in unpredictable behaviour
+<frozen runpy>:130: RuntimeWarning: 'poc_flashvep.looped_pd_atomic_prefill.native_mixed_worker' found in sys.modules after import of package 'poc_flashvep.looped_pd_atomic_prefill', but prior to execution of 'poc_flashvep.looped_pd_atomic_prefill.native_mixed_worker'; this may result in unpredictable behaviour
+<frozen runpy>:130: RuntimeWarning: 'poc_flashvep.looped_pd_atomic_prefill.native_mixed_worker' found in sys.modules after import of package 'poc_flashvep.looped_pd_atomic_prefill', but prior to execution of 'poc_flashvep.looped_pd_atomic_prefill.native_mixed_worker'; this may result in unpredictable behaviour
+Attention implementation: {'backend': 'flash_attn', 'generation': 4, 'package': 'flash-attn-4', 'version': '4.0.0b30'}
+Attention implementation: {'backend': 'flash_attn', 'generation': 4, 'package': 'flash-attn-4', 'version': '4.0.0b30'}
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_atomic_prefill/native_mixed_worker.py", line 80, in <module>
+    if __name__=='__main__':main()
+                            ~~~~^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_atomic_prefill/native_mixed_worker.py", line 77, in main
+    sys.argv=flags;old.main()
+                   ~~~~~~~~^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_abc/worker.py", line 221, in main
+    try:run(args)
+        ~~~^^^^^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_abc/worker.py", line 127, in run
+    engine=ReplicaPool(MODELS[args.model],range(len(args.gpus.split(','))),cfg)
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_atomic_prefill/native_mixed_worker.py", line 39, in replicas
+    mapping.append(dict(replica=index,physical_GPU=gpu,cuda_uuid=actual,fingerprint=client.info['fingerprint']))
+                                                                                    ~~~~~~~~~~~^^^^^^^^^^^^^^^
+KeyError: 'fingerprint'

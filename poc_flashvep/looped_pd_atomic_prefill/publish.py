@@ -24,6 +24,11 @@ def main():
     else:
         files.extend(p for p in (ROOT/'state').glob('*.json') if any(v in p.name for v in ('diagnosis','qualification','initial_hardware')))
     files=sorted({str(p.relative_to(REPO)) for p in files if '__pycache__' not in p.parts})
+    from .archive import verified_originals
+    archived=verified_originals()
+    files=[f for f in files if REPO/f not in archived]
+    if archived:
+        files=sorted(set(files)|{str(p.relative_to(REPO)) for p in (ROOT/'archives').iterdir() if p.is_file()})
     oversized=[f for f in files if (REPO/f).stat().st_size>=100_000_000]
     assert not oversized,('Publish lossless compressed evidence before GitHub push; preserve local originals.',oversized)
     with tempfile.TemporaryDirectory(prefix='atomic_pd_publish_') as directory:
