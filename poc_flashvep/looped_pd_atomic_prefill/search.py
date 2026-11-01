@@ -16,7 +16,7 @@ def configured_base(model,*args,**kwargs):
     if model=='huginn':
         value.update(kv_blocks=24576,token_budget=value['length']*2,
             memory_control='Huginn full-Prompt OOM control: common smaller KV pool and two-Prompt aggregate budget for all methods.')
-    if model=='qwen8':value['ar_batch_invariant']=True
+    if model=='qwen8':value['ar_batch_invariant']=False
     return value
 
 
@@ -27,6 +27,9 @@ def enqueue(configurations,stage):
     write(STATE,dict(time=time.time(),stage=stage,generated=names))
     append(ROOT/'state/search_transitions.jsonl',dict(time=time.time(),stage=stage,configs=names))
     print('SEARCH_STAGE',stage,len(names),flush=True)
+    if not names:
+        write(STATE,dict(time=time.time(),stage='GPU_SEARCH_COMPLETE_ANALYSIS_PENDING',empty_stage=stage,
+            reason='No eligible next GPU configuration. This is not a successful regime result.'))
     return bool(names)
 
 
@@ -126,6 +129,40 @@ def chunk_gates():
             entries[str(chunk)]=dict(chunk=chunk,**result)
         qualifications[model]=entries
     write(ROOT/'state/chunk_gates.json',qualifications)
+    new=[]
+    for arm in ('PD_G1','DP2'):
+        c=configured_base('qwen8',f'qual_qwen8_full_l8000_{arm.lower()}_default_recheck_v3',8000,16,arm=arm,phase='long_correctness')
+        new.append(finish(c,8))
+    return enqueue(new,'AR_DEFAULT_RECHECK')
+
+
+def ar_default_recheck():
+    gates=allowed();candidate='qual_qwen8_full_l8000_pd_g1_default_recheck_v3'
+    if status(candidate)=='COMPLETE':
+        result=qualify('qwen8','qual_qwen8_full_l8000_pd_g1_v1',candidate)
+        result['second_reference']=compare('qual_qwen8_full_l8000_pd_g1_repeat_v1',candidate)
+        result['passed'] &= result['second_reference']['passed']
+        result['colocated_output_comparison']=compare('qual_qwen8_full_l8000_dp2_default_recheck_v3',candidate)
+        result['colocated_repeat_comparison']=compare('qual_qwen8_full_l8000_dp2_v1','qual_qwen8_full_l8000_dp2_default_recheck_v3')
+        result.update(ar_batch_invariant=False,cross_mode_lossless_proven=result['colocated_output_comparison']['passed'] and result['colocated_repeat_comparison']['passed'],
+            scope='Three independent default native-PD starts must agree. The failed optional batch-invariant family remains failed and is not used for timing. Colocated fidelity is reported separately.')
+    else:result=dict(passed=False,status=status(candidate),scope='Default native-PD recheck did not complete.')
+    write(ROOT/'state/qwen8_default_recheck.json',result);gates['qwen8']=result;write(ROOT/'state/model_gates.json',gates)
+    if not result['passed']:return enqueue(capacity_configs(gates),'CAPACITY')
+    new=[]
+    for chunk in (256,1024,2048,4096):
+        c=configured_base('qwen8',f'qual_qwen8_atomic_chunk{chunk}_l8000_v1',8000,16,chunk=chunk,chunk_label=str(chunk),phase='chunk_correctness')
+        new.append(finish(c,8))
+    return enqueue(new,'AR_CHUNK_QUALIFICATION')
+
+
+def ar_chunk_gates():
+    gates=allowed();path=ROOT/'state/chunk_gates.json';values=json.loads(path.read_text())
+    ref='qual_qwen8_full_l8000_pd_g1_default_recheck_v3';entries={'8000':dict(passed=True,reference=ref,chunk=8000)}
+    for chunk in (256,1024,2048,4096):
+        name=f'qual_qwen8_atomic_chunk{chunk}_l8000_v1'
+        entries[str(chunk)]=dict(chunk=chunk,**(compare(ref,name) if status(name)=='COMPLETE' else dict(passed=False,status=status(name))))
+    values['qwen8']=entries;write(path,values)
     return enqueue(capacity_configs(gates),'CAPACITY')
 
 
@@ -147,7 +184,6 @@ def capacity_configs(gates):
                 label='full' if chunk==length else str(chunk)
                 c=configured_base(model,f'capacity_{model}_l{length}_p_chunk{label}_v1',length,max(caps),chunk=chunk,chunk_label=label,
                     worker='ar_capacity' if model=='qwen8' else 'capacity_worker',phase='independent_capacity',capacity_mode='P_ONLY')
-                if model=='qwen8':c['ar_batch_invariant']=True
                 c['gpus']=c['gpus'][:1];c=finish(c,8)
                 c['jobs']=[dict(batch=b,cap=1,repeats=3) for b in (1,2,4,8)]
                 # Local slots and source PD slots are explicit in the measured geometry.
@@ -155,7 +191,6 @@ def capacity_configs(gates):
                 new.append(c)
             c=configured_base(model,f'capacity_{model}_l{length}_d_v1',length,max(caps),worker='ar_capacity' if model=='qwen8' else 'capacity_worker',
                 phase='independent_capacity',capacity_mode='PREPARED_D')
-            if model=='qwen8':c['ar_batch_invariant']=True
             c=finish(c,8);c['gpus']=c['gpus'][-1:]
             batches=(1,2,4,8,16) if model=='qwen8' else (1,2,4,8)
             c['jobs']=[dict(batch=b,cap=cap,repeats=3) for cap in caps for b in batches]
@@ -236,7 +271,11 @@ def freeze_and_pilots():
                     c.update(rate_factor=factor,reference_capacity=mu,rate_scope='Finite independent-service reference. N24 is a smoke screen only.')
                     new.append(c);matrix.append(dict(name=name,model=model,length=length,cap=cap,chunk=chunk,QPS=mu*factor,count=24,status='PLANNED_SMOKE_ONLY'))
     path=ROOT/'configs/frozen_SLO.json'
-    if path.exists():assert json.loads(path.read_text())==slos,'Do not change a frozen SLO'
+    if path.exists():
+        frozen=json.loads(path.read_text())
+        def thresholds(values):return {k:{f:r[f] for f in ('TTFT_ms','TPOT_ms','ITL_ms','calibration','requests')} for k,r in values.items()}
+        assert thresholds(frozen)==thresholds(slos),'Do not change a frozen SLO'
+        slos=frozen
     else:write(path,slos)
     write(ROOT/'configs/pilot_matrix.json',matrix)
     return enqueue(new,'QPS_PILOTS')
@@ -272,7 +311,7 @@ def finalist_configs():
         # Actual CUDA activity and overhead use an identical final-start cohort.
         label='full';name=f'profile_{model}_final_center_v1';rate=rates[1];count=max(128,math.ceil(rate*40)+1)
         c=serving_config(cell,name,cap,cell['length'],'profile_control',count,rate=rate,start=0)
-        c.update(nsys=True,gpus=[0,1],profile_clean_reference=f'final_{model}_l{cell["length"]}_o{cap}_pd_g1_cfull_r1_s0_v1');new.append(c)
+        c.update(nsys=True,nsys_graph_trace='graph',gpus=[0,1],profile_clean_reference=f'final_{model}_l{cell["length"]}_o{cap}_pd_g1_cfull_r1_s0_v1');new.append(c)
     cell=selected.get('qwen8_L8000')
     if cell and '200' in cell['D'] and not blocked('qwen8'):
         single=next((r for r in json.loads((ROOT/'capacity_summary.json').read_text()) if r['model']=='qwen8' and r['length']==8000 and
@@ -290,6 +329,51 @@ def finalist_configs():
                             warning='This geometry control is separate from the tuned multi-request P baseline. It cannot establish tuning-resistant headroom by itself.')
                         new.append(c)
     write(ROOT/'configs/finalist_selection.json',choices)
+    write(ROOT/'configs/deferred_final_plan.json',dict(configs=[save_config(c) for c in new]))
+    qualification=[]
+    for model,choice in choices.items():
+        cell=selected[model+'_L'+str(choice['length'])];cap=choice['cap'];rate=choice['rates'][1]
+        arms=[('full_reference','PD_G1',cell['length']),('full_repeat','PD_G1',cell['length'])]
+        if cell['best_chunk']!=cell['length']:arms.append(('tuned','PD_G1',cell['best_chunk']))
+        if model!='qwen8':arms.append(('colocated','DP',cell['best_chunk']))
+        source=json.loads((ROOT/'data'/f'test_{model}_L{cell["length"]}.json').read_text())[32:64]
+        assert len(source)==32
+        dataset=f'qualification32_{model}_L{cell["length"]}.json';write(ROOT/'data'/dataset,source)
+        for label,arm,chunk in arms:
+            name=f'qualification32_{model}_{label}_v1'
+            c=serving_config(cell,name,cap,chunk,'final_correctness',32,rate=rate,start=101,arm=arm)
+            c.update(dataset=dataset,prompt_ids=[r['prompt_id'] for r in source],seed=2026110207,
+                qualification_scope='Independent arrival seed and Sampling seed. Prompt pool rows 32-63. Output parity and full-depth checks; no heavy KV hashes in this 32-request gate.')
+            qualification.append(c)
+    return enqueue(qualification,'FINAL_QUALIFICATION')
+
+
+def final_qualification():
+    deferred=json.loads((ROOT/'configs/deferred_final_plan.json').read_text())['configs'];choices=json.loads((ROOT/'configs/finalist_selection.json').read_text())
+    verdicts={};new=[];skip_path=ROOT/'state/skipped_jobs.json';skipped=json.loads(skip_path.read_text()) if skip_path.exists() else {}
+    for model,choice in choices.items():
+        ref=f'qualification32_{model}_full_reference_v1';repeat=f'qualification32_{model}_full_repeat_v1'
+        result=compare(ref,repeat) if status(ref)==status(repeat)=='COMPLETE' else dict(passed=False,reference_status=status(ref),repeat_status=status(repeat))
+        if result['passed']:
+            result['atomic']=atomic(ref);result['passed'] &= result['atomic']['passed']
+            if model!='qwen8':result['work']=full_work(ref);result['passed'] &= result['work']['passed']
+        result['settings']={}
+        for label in ('tuned','colocated'):
+            name=f'qualification32_{model}_{label}_v1'
+            r=compare(ref,name) if status(name)=='COMPLETE' else dict(passed=False,status=status(name))
+            if r['passed'] and model!='qwen8':r['work']=full_work(name);r['passed'] &= r['work']['passed']
+            result['settings'][label]=r
+        verdicts[model]=result
+    for filename in deferred:
+        c=json.loads((ROOT/'configs'/filename).read_text());r=verdicts.get(c['model'],{})
+        passed=r.get('passed',False)
+        if c['phase']=='paper_budget_control':passed=False;reason='NOT_RUN_UNQUALIFIED_PAPER_GEOMETRY'
+        elif c['arm'] in ('DP','DP2'):passed &= r.get('settings',{}).get('colocated',{}).get('passed',False);reason='NOT_RUN_BLOCKED_COLOCATED_CORRECTNESS'
+        elif c['chunk']!=c['length']:passed &= r.get('settings',{}).get('tuned',{}).get('passed',False);reason='NOT_RUN_BLOCKED_TUNED_CORRECTNESS'
+        else:reason='NOT_RUN_BLOCKED_FINAL_CORRECTNESS'
+        if passed:new.append(c)
+        else:skipped[c['name']]=dict(time=time.time(),status=reason,model=c['model'])
+    write(ROOT/'state/final_qualification.json',verdicts);write(skip_path,skipped)
     return enqueue(new,'FINAL_REPEATS_AND_PROFILES')
 
 
@@ -298,9 +382,12 @@ def advance():
     if state['stage']=='SHORT_GATES':return short_gates()
     if state['stage']=='LONG_QUALIFICATION':return long_gates()
     if state['stage']=='CHUNK_QUALIFICATION':return chunk_gates()
+    if state['stage']=='AR_DEFAULT_RECHECK':return ar_default_recheck()
+    if state['stage']=='AR_CHUNK_QUALIFICATION':return ar_chunk_gates()
     if state['stage']=='CAPACITY':return calibration_configs()
     if state['stage']=='CALIBRATION':return freeze_and_pilots()
     if state['stage']=='QPS_PILOTS':return finalist_configs()
+    if state['stage']=='FINAL_QUALIFICATION':return final_qualification()
     if state['stage']=='FINAL_REPEATS_AND_PROFILES':
         from .analyze import capacity,serving
         capacity();serving()

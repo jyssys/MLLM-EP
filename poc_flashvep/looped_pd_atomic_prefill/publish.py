@@ -12,7 +12,7 @@ def git(*args,env=None):return subprocess.check_output(['git',*args],cwd=REPO,en
 def main():
     p=argparse.ArgumentParser();p.add_argument('--push',action='store_true');p.add_argument('--final',action='store_true');a=p.parse_args()
     preserve();assert git('branch','--show-current')==BRANCH
-    files=list(SOURCE.rglob('*.py'))+[SPEC]+[REPO/'poc_flashvep/reports'/n for n in REPORTS if (REPO/'poc_flashvep/reports'/n).exists()]
+    files=list(SOURCE.rglob('*.py'))+[SOURCE/'.gitignore',SPEC]+[REPO/'poc_flashvep/reports'/n for n in REPORTS if (REPO/'poc_flashvep/reports'/n).exists()]
     files.extend((ROOT/'data').glob('*.json'));files.extend((ROOT/'configs').glob('*.json'))
     for folder in (ROOT/'raw').iterdir():
         if not folder.is_dir() or not (folder/'dispatcher_result.json').exists():continue
@@ -41,7 +41,7 @@ def main():
         git('push','-u','origin',BRANCH)
         remote=git('ls-remote','origin','refs/heads/'+BRANCH).split()[0]
         assert remote==head;result.update(push='VERIFIED',remote_SHA=remote)
-    write(ROOT/'state/publish_'+('final' if a.final else 'checkpoint')+'.json',result);print(json.dumps(result))
+    write(ROOT/'state'/('publish_'+('final' if a.final else 'checkpoint')+'.json'),result);print(json.dumps(result))
 
 
 if __name__=='__main__':main()

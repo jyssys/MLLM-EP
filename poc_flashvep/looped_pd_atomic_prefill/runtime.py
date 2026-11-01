@@ -38,10 +38,11 @@ def install():
     from vllm_rlt.engine.stage_engine import StageEngine
     from vllm_rlt.request import RequestPhase
     submit=ModelRunner.submit;close=StageEngine.close
-    prompt_spans=[];histogram=collections.Counter();roles={}
+    prompt_spans=[];histogram=collections.Counter();time_histogram=collections.Counter();roles={}
     def observed_submit(self,scheduled_batch=None,*,batch):
         now=time.monotonic()
         histogram[(batch.operation.value,batch.num_rows,batch.loop_count,len(batch.spans))]+=1
+        time_histogram[(int(now*2)/2,batch.operation.value,batch.num_rows,batch.loop_count,len(batch.spans))]+=1
         for index,span in enumerate(batch.spans):
             request=span.request
             phase=scheduled_batch.phase_for(scheduled_batch.requests[index]) if scheduled_batch is not None else request.phase
@@ -68,6 +69,7 @@ def install():
             physical_visible_device=str(self.model_runner.device),atomic_requested=cfg.get('atomic_prompt'),
             prompt_spans=prompt_spans,
             execution_histogram=[dict(operation=k[0],logical_rows=k[1],loop_count=k[2],requests=k[3],submissions=v) for k,v in histogram.items()],
+            time_histogram=[dict(time=k[0],operation=k[1],logical_rows=k[2],loop_count=k[3],requests=k[4],submissions=v) for k,v in time_histogram.items()],
             scope='Actual ExecutionBatch before ModelRunner submission. Logical rows are not padded GEMM rows. Includes warm-up.'))
         return close(self)
     StageEngine.close=close_evidence

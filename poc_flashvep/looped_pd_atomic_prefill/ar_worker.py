@@ -43,7 +43,7 @@ def stage(cfg,role,address):
     from vllm.v1.core.kv_cache_manager import KVCacheManager
     from vllm.distributed.kv_transfer.kv_connector.v1.nixl.base_worker import NixlBaseConnectorWorker
     torch.set_num_threads(1);channel=Client(address,family='AF_UNIX')
-    spans=[];samples=[];step_spans=[];native_stats=[];done_events=[];allocation_refusals=[];clock=[0.]
+    spans=[];samples=[];step_spans=[];native_stats=[];warm_stats=[];done_events=[];allocation_refusals=[];clock=[0.]
     allocate=KVCacheManager.allocate_slots
     def observed_allocate(self,request,*a,**kw):
         value=allocate(self,request,*a,**kw)
@@ -63,7 +63,8 @@ def stage(cfg,role,address):
         now=time.monotonic()
         if now-clock[0]>=.25:
             clock[0]=now;samples.append(dict(time=now,waiting=len(self.waiting),running=len(self.running),KV_usage=self.kv_cache_manager.usage,
-                KV_free_blocks=self.kv_cache_manager.block_pool.get_num_free_blocks()))
+                KV_free_blocks=self.kv_cache_manager.block_pool.get_num_free_blocks(),max_running_requests=self.max_num_running_reqs,
+                waiting_statuses=dict(collections.Counter(str(r.status) for r in self.waiting))))
         return result
     Scheduler.schedule=observed_schedule
     get_stats=NixlBaseConnectorWorker.get_kv_connector_stats
@@ -91,6 +92,11 @@ def stage(cfg,role,address):
             while channel.poll():
                 command=channel.recv()
                 if command['kind']=='stop':running=False;break
+                if command['kind']=='measurement_begin':
+                    from vllm.distributed.kv_transfer import get_kv_transfer_group,has_kv_transfer_group
+                    if has_kv_transfer_group():get_kv_transfer_group().get_kv_connector_stats()
+                    warm_stats.extend(native_stats);native_stats.clear();done_events.clear();allocation_refusals.clear()
+                    channel.send(dict(kind='measurement_ready',time=time.monotonic()));continue
                 extra={}
                 if role in ('prefill','decode'):
                     extra['extra_args']=dict(kv_transfer_params=dict(do_remote_decode=True,do_remote_prefill=False) if role=='prefill' else command['kv_params'])
@@ -112,7 +118,7 @@ def stage(cfg,role,address):
         if has_kv_transfer_group():get_kv_transfer_group().get_kv_connector_stats()
         write(ROOT/'raw'/cfg['name']/f'native_{role}_{os.getpid()}.json',dict(role=role,prompt_spans=spans,
             queue_samples=samples,host_step_spans=step_spans,NIXL_stats_intervals=native_stats,NIXL_done_events=done_events,
-            KV_allocation_refusals=allocation_refusals,
+            KV_allocation_refusals=allocation_refusals,warmup_NIXL_stats_intervals=warm_stats,NIXL_measured_boundary_flushed=True,
             scope='Process lifetime includes warm-up. Engine host steps are not GPU kernel durations.'))
         shutdown=getattr(engine.engine_core,'shutdown',None)
         if shutdown:shutdown()
@@ -160,6 +166,10 @@ def coordinator(cfg):
                         else:assert message['count']==2;done=True
                 assert time.monotonic()<deadline,'Native Qwen warm-up watchdog'
                 time.sleep(.0002)
+        for channel in channels.values():channel.send(dict(kind='measurement_begin'))
+        for channel in channels.values():
+            assert channel.poll(30),'Native measurement-boundary acknowledgement timeout'
+            assert channel.recv()['kind']=='measurement_ready'
         first={};events={};completed={};arrivals={};states={};admissions={};i=0
         serial=cfg.get('calibration_serial',False);start=time.monotonic();observation=start
         if cfg.get('nsys'):

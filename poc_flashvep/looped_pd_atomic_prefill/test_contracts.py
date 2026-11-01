@@ -44,6 +44,12 @@ class ContractTests(unittest.TestCase):
         with patch.dict(os.environ,{},clear=True):
             prepare({'name':'cpu_test'})
             self.assertEqual(os.environ['ABC_RUN_DIR'],str(ROOT/'raw/cpu_test'))
+    def test_zero_arrival_span_profile_uses_the_tool_window(self):
+        name='profile_tool_smoke_ouro_l512_v1';folder=ROOT/'raw'/name
+        if not (folder/'nsys_report.sqlite').exists():self.skipTest('Recorded GPU profiler fixture is not present')
+        from .profiles import parse
+        value=parse(folder,json.loads((ROOT/'configs'/(name+'.json')).read_text()))
+        self.assertTrue(all(r['kernel_count']>0 for r in value['devices']),value)
 
 
 if __name__=='__main__':unittest.main()

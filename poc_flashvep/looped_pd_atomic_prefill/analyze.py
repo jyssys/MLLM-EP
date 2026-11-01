@@ -143,6 +143,15 @@ def serving_one(cfg):
     metrics,shares=host_phases(folder,requests)
     left=begin+.2*arrival_duration;right=begin+.9*arrival_duration
     central=[r for r in records(folder/'admission_reasons.jsonl') if left<=r['time']<=right]
+    for p in folder.glob('atomic_spans_*.json'):
+        d=json.loads(p.read_text())
+        if d['role']!='decode':continue
+        batches=[r for r in d.get('time_histogram',[]) if left<=r['time']<=right and r['operation']=='recurrent']
+        if batches:
+            total=sum(r['submissions'] for r in batches)
+            row['D_recurrent_batch_rows_mean']=sum(r['logical_rows']*r['submissions'] for r in batches)/total
+            row['D_recurrent_batch_requests_mean']=sum(r['requests']*r['submissions'] for r in batches)/total
+            row['D_recurrent_submission_count']=total
     if central:
         row['D_KV_refusal_sample_fraction']=sum(any('DECODE_NO_KV_CREDIT' in w['reasons'] for w in r['waiting']) for r in central)/len(central)
         row['D_slot_refusal_sample_fraction']=sum(any('DECODE_NO_SLOT' in w['reasons'] for w in r['waiting']) for r in central)/len(central)
@@ -152,6 +161,13 @@ def serving_one(cfg):
             host=json.loads(p.read_text())
             if host['role']=='prefill':
                 firsts.update({r['request_id']:r['time'] for r in host['frontiers'] if r['event']=='P_FIRST_SUBMISSION'})
+            if host['role']=='decode':
+                points=[]
+                for s in host['queue_samples']:
+                    if not left<=s['time']<=right:continue
+                    count=sum(v for k,v in s['queued'].items() if any(word in k.lower() for word in ('recurrent','coda','prelude')))
+                    points.append((s['time'],count))
+                if points:row['D_ready_queue_slope_per_s']=slope(points)
         intervals=[];finished=[]
         for m in metrics:
             t=m['timings'];created=m['created_monotonic'];entry=created+t.get('prefill_started',t.get('admitted',0))
@@ -159,9 +175,18 @@ def serving_one(cfg):
             if first is not None:intervals.append((entry,first))
             if done is not None:finished.append(done)
         points=[(left+(right-left)*i/100,sum(a<=left+(right-left)*i/100<b for a,b in intervals)) for i in range(101)] if right>left else []
+        # P-slot waiting is part of the P backlog only while D credit is clear.
+        # Never relabel D-reservation waiting as P compute waiting.
+        for index,(timepoint,value) in enumerate(points):
+            snapshots=[r for r in central if r['time']<=timepoint]
+            if snapshots:
+                observed=snapshots[-1]
+                count=sum('PREFILL_NO_SLOT' in w['reasons'] and not any(s in w['reasons'] for s in
+                    ('DECODE_NO_SLOT','DECODE_NO_KV_CREDIT','PREFILL_NO_KV_CREDIT')) for w in observed['waiting'])
+                points[index]=(timepoint,value+count)
         row.update(P_queue_slope_per_s=slope(points),P_queue_half_growth=(statistics.mean(v for t,v in points[51:])-statistics.mean(v for t,v in points[:50])) if points else None,
             P_queue_max=max((v for t,v in points),default=None),P_completion_rate_central=sum(left<=t<=right for t in finished)/(right-left) if right>left else None)
-        row['P_queue_scope']='Admitted P request waiting to its first actual submission. KV reservation waiting is excluded.'
+        row['P_queue_scope']='Admitted P wait plus P-slot-only coordinator wait with clear D credit. KV-reservation wait is excluded. Actual kernel saturation is still required.'
         a=folder/'before_measured.json';b=folder/'after_measured.json'
         if a.exists() and b.exists():
             before=json.loads(a.read_text());after=json.loads(b.read_text())
@@ -185,6 +210,20 @@ def serving_one(cfg):
                     row['D_KV_allocation_refusals']=len(refusals)
                     row['D_KV_refusal_sample_fraction']=sum(any(t['time']<=r['time']<t['time']+.25 for r in refusals) for t in points)/len(points)
                 else:row['D_KV_refusal_sample_fraction']='NOT_MEASURED_NATIVE_NO_REFUSAL_CALLBACK'
+                if all('waiting_statuses' in r for r in points):
+                    row['D_slot_refusal_sample_fraction']=sum(r['running']>=r['max_running_requests'] and any('REMOTE' not in k and v>0 for k,v in r['waiting_statuses'].items()) for r in points)/len(points)
+                    ready=[(r['time'],sum(v for k,v in r['waiting_statuses'].items() if 'REMOTE' not in k)) for r in points]
+                    row['D_ready_queue_slope_per_s']=slope(ready)
+        handoffs=records(folder/'native_handoffs.jsonl')
+        row['P_completion_rate_central']=sum(left<=r['time']<=right for r in handoffs)/(right-left) if right>left else None
+        for p in folder.glob('native_decode_*.json'):
+            d=json.loads(p.read_text())
+            if not d.get('NIXL_measured_boundary_flushed'):continue
+            measurements=[r['data'] for r in d['NIXL_stats_intervals']]
+            for field,label in [('bytes_transferred','KV_received_bytes'),('num_descriptors','NIXL_descriptors'),
+                ('transfer_duration','NIXL_telemetry_cumulative_transfer_s'),('post_duration','NIXL_telemetry_cumulative_post_s')]:
+                row[label]=sum(sum(r.get(field,[])) for r in measurements)
+            row['NIXL_telemetry_scope']='Native completion telemetry after an explicit warm-up flush. Cumulative overlapping transfer time is not exclusive E2E or pure GPU DMA.'
     return row,requests,shares
 
 

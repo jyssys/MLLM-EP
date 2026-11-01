@@ -146,6 +146,14 @@ This implements the requested Native-PD and Atomic-versus-Chunked checks.
 It does not convert the failed colocated parity test into a pass.
 No lossless PD-versus-DP speedup or original-model fidelity claim is allowed.
 
+The optional Qwen batch-invariant family subsequently failed its native-PD repeat at 7/8.
+Do not run its capacity or QPS campaign.
+The original default native-PD family has two matching 8/8 starts.
+Require a third default start to match both before allowing its chunk gates.
+Use default mode only if that recheck and each candidate chunk gate pass.
+Keep every failed optional-mode run and its first mismatch.
+This does not establish a batch-invariant-mode fix or a cause for its failure.
+
 Separate actual D Decode occupancy from KV already reserved for unfinished P work.
 A reservation for a waiting P request is not an active Decode request.
 Report both quantities and the refusal reasons.
@@ -322,6 +330,14 @@ Do not begin Dynamic A even if an eligible regime appears.
 Recommend a later static Loop/Token offloading gate instead.
 
 Each job has a bounded watchdog and a durable terminal record.
+The new session starts at 2026-11-01 04:03:08 UTC, or 13:03:08 KST.
+An unattended controller uses a 24-hour operational checkpoint from that new start.
+This is not the expired 12-hour limit of the previous study.
+At that checkpoint, stop new GPU jobs and separate unfinished cells from measured results.
+Do not claim completion because a checkpoint or model gate stopped the queue.
+The progress guard records elapsed time, terminal runs, live processes, and incomplete namespaces.
+It may resume a stopped controller only when all previous namespaces are terminal.
+It never overwrites an incomplete or failed run.
 Pilot costs determine the later matrix and runtime estimate.
 No old campaign start time or expired deadline carries into this new study.
 Record any operational time cap before it truncates the search.

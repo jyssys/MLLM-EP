@@ -2,11 +2,15 @@
 import subprocess
 from .common import *
 
-PHASES={'correctness','long_correctness','chunk_correctness'}
+PHASES={'correctness','long_correctness','chunk_correctness','final_correctness'}
 
 
 def run(filenames,maximum=3):
     waiting=[(name,json.loads((ROOT/'configs'/name).read_text())) for name in filenames]
+    from .resources import inherited as resources
+    needed={gpu for name,cfg in waiting for gpu in cfg['gpus']}
+    # Per-GPU supervisors can be stopped without affecting another idle GPU.
+    for gpu in sorted(set(range(8))-needed):resources.restore([gpu])
     active={}
     while waiting or active:
         for pid,(child,name,cfg) in list(active.items()):
