@@ -33,8 +33,21 @@ def compiled_controls():
 
 
 def advance():
+    import importlib
+    from . import ar_compiled_recovery
+    importlib.reload(ar_compiled_recovery);ar_compiled_recovery.advance()
     compiled_controls()
     state=json.loads(PATH.read_text()) if PATH.exists() else dict(stage='WAIT_TRUE_BI_EAGER24')
+    compiled_path=ROOT/'state/ar_compiled_recovery_20261102.json'
+    compiled=json.loads(compiled_path.read_text()) if compiled_path.exists() else {}
+    if compiled.get('gates',{}).get('repeat',{}).get('passed') and compiled.get('gates',{}).get('dp2',{}).get('passed') and state['stage'] in ('CAPACITY_AND_CALIBRATION','QPS_PILOTS'):
+        from .campaign import terminal as observed
+        path=ROOT/'state/skipped_jobs.json';skips=json.loads(path.read_text()) if path.exists() else {}
+        for name in state.get('costs',[])+state.get('pilots',[]):
+            if observed(name)=='PENDING':skips[name]=dict(time=time.time(),status='NOT_RUN_SUPERSEDED_AR_EXECUTION_FAMILY',
+                reason='The compiled graph-NONE control passed both N32 PD repeat and PD/DP equality. Preserve Eager failures and prioritize the qualified comparable control within the user deadline.')
+        write(path,skips);state.update(stage='SUPERSEDED_BY_QUALIFIED_COMPILED_CONTROL',time=time.time());write(PATH,state)
+        return state
     if state['stage']=='WAIT_TRUE_BI_EAGER24':
         a='ext_qwen_bi_eager_pd_qualification24_s0_v2';b='ext_qwen_bi_eager_pd_qualification24_s1_v2'
         if not terminal([a,b]):return state

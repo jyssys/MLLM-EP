@@ -1,147 +1,267 @@
-# Atomic Prefill PD: Correctness Evidence
+# Atomic Prefill PD: Final Correctness Evidence
 
-Status: qualification checkpoint, not final lossless-model certification.
-All results below come from executed GPU runs.
-Performance and sustainable capacity are separate questions.
+Compiled at 2026-11-02T01:28:43.086700+00:00. Elapsed time: 21.426 hours.
 
-## Long-context Looped gates
+Branch: `flashvep/looped-pd-atomic-prefill-qps-crossover`.
 
-| Model | Input/output | Full-Prompt spans | Local-reference output parity | Valid KV and final hidden byte identity | Active recurrent rows, expected/observed | Result |
-|---|---:|---:|---:|---:|---:|---|
-| Ouro R4 | 8192/16 | 8/8 | 8/8 | 8/8 | 262624/262624 | FINITE_GATE_PASS |
-| Huginn R32 | 3900/16 | 8/8 | 8/8 | 8/8 | 1002240/1002240 | FINITE_GATE_PASS |
+Compilation source commit: `147c4dc48215dd82cc85f77b044ff27325ea84fc`.
 
-Evidence type: MEASURED_HEAVY_CORRECTNESS.
-Each row uses eight unique test prompts.
-These probes include large device-to-host hashes.
-Their latency is not clean Serving latency.
+Each measured run records its own source archive, source commit, and configuration hash.
+The final publication commit can differ from the measurement commit.
+Use `git log -1 --format=%H` on this branch to obtain the publication SHA.
 
-Ouro uses `qual_ouro_full_l8192_v1` and `qual_ouro_local_l8192_v2`.
-Huginn uses `qual_huginn_full_l3900_v3` and `qual_huginn_local_l3900_v3`.
-The state records distinguish valid recurrent KV from unused storage planes.
-Huginn's final Prompt Coda KV is not valid before that Coda executes.
-The comparison preserves that validity boundary.
+Actual analysis-tree SHA256: `a392ed79e603c437d00c3575d39166f104f681e2144fe757f6ef0524e7bc5c18`.
 
-The work check counts active recurrent rows.
-It does not count padded GEMM rows as real model tokens.
-The numerical fixes retain fixed 256-row Down tiles.
-Huginn also retains its qualified adapter geometry.
+The compilation HEAD can precede uncommitted analysis changes.
+See `state/analysis_source_manifest.json` for the exact file hashes.
 
-## Token-chunk controls
 
-| Model | Input | Candidate C | Output parity against Atomic Full-Prompt | Full-depth accounting |
-|---|---:|---|---|---|
-| Ouro R4 | 8192 | 256, 1024, 2048, 4096 | 8/8 for each C | PASS for each C |
-| Huginn R32 | 3900 | 256, 1024, 2048 | 8/8 for each C | PASS for each C |
+| Model | Input | Sequences | Exact output | Valid KV/hidden bytes | Expected rows | Observed rows | Gate | Evidence |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| ouro | 8192 | 8 | True | True | 262624 | 262624 | True | state/model_gates.json |
+| huginn | 3900 | 8 | True | True | 1002240 | 1002240 | True | state/model_gates.json |
+| ouro | 16384 | 8 | True | True | 524512 | 524512 | True | state/optional16k_gate.json |
 
-Evidence type: MEASURED_OUTPUT_AND_WORK_COUNTERS.
-C4096 and Full-Prompt are the same effective chunk at Huginn input 3900.
-They are not two independent mechanisms.
-The older staged-G1 C2048 control also matches the new Full-Prompt output in 8/8 requests for both models.
-That comparison does not establish equal scheduling overhead.
 
-## Native AR evidence
+The eight-request byte probes are heavy correctness measurements.
+Their elapsed time is not clean Serving latency.
+Work counters count active recurrent rows, not padded physical GEMM rows.
 
-Qwen3-8B loads the exact pinned 8.19073536B-parameter checkpoint.
-Each PD worker holds 16,381,470,720 bytes of BF16 parameters.
-Native NIXL produces actual remote KV descriptors and transfer telemetry.
-No TP, trace replay, or smaller model replaces the requested AR model.
+## Native AR failures
 
-| AR setting | Comparison | Exact sequences | Interpretation |
-|---|---|---:|---|
-| Default native PD, 8000/16 | First start vs first repeat | 8/8 | Finite within-PD repeat pass |
-| Default native PD, 8000/16 | Third start vs both earlier starts | 8/8 against each | Three matching starts on the same eight prompts |
-| Default native PD vs first default DP2 | Matching prompts and seed | 7/8 | Failed cross-mode equality |
-| Optional native batch-invariant PD vs DP2 | Matching prompts and seed | 7/8 | Native flag does not establish equality |
-| Optional batch-invariant PD repeat | Matching native-PD configuration | 7/8 | Do not expand this optional mode |
-| Default DP2 repeat | Earlier and later colocated starts | 7/8 | Colocated nondeterminism also occurs without NIXL |
 
-The first recorded divergent case is sample 6.
-Its differing continuation includes token ID 1033 in one run.
-The optional-mode native-PD repeats first differ at output index 7.
-Raw input IDs, seeds, output IDs, model revision, and source archives remain in each namespace.
+| Setting | Exact sequences | Compared | Pass | Reference | Candidate |
+| --- | --- | --- | --- | --- | --- |
+| Default PD 8000/200, different arrival rates | 7 | 24 | False | pilot_qwen8_l8000_o200_cfull_f0p25_v1 | pilot_qwen8_l8000_o200_cfull_f0p5_v1 |
+| Official async PD 8000/200 repeat | 3 | 8 | False | diagnostic_qwen8_async_pd_l8000_o200_first_v1 | diagnostic_qwen8_async_pd_l8000_o200_repeat_v1 |
 
-The no-NIXL counterexample shows that NIXL is not necessary for every observed AR mismatch.
-It does not prove the cause of the native-PD optional-mode mismatch.
-No internal first-divergent tensor or logit margin has been measured.
-Do not describe BF16 rounding as an established diagnosis.
+The default short 8000/16 native-PD starts matched 8/8.
+That finite result did not predict longer-output reproducibility.
+The default native DP2 repeat also failed at 7/8 without NIXL.
 
-The original default native-PD family can proceed only with matching candidate-chunk gates.
-Default C256 and C1024 match 8/8 at 8000/16.
-Default C2048 and C4096 each fail on sample 6.
-Those failed C settings cannot become clean performance baselines.
-A later colocated match does not erase the earlier failed colocated repeat.
-Exact lossless PD-versus-DP2 fidelity remains unproven.
+The first globally divergent internal operation remains unidentified in the original failing execution.
+Token differences alone do not prove BF16 rounding or KV corruption.
+The failed original AR family does not support a qualified DuetServe reproduction.
 
-### Longer-output held-out failure
+New execution-family gates appear in the extension section below.
 
-The 8000/200 native-PD smoke runs use 24 requests at each arrival rate.
-The first two target rates are approximately 1.1433 and 2.2866 requests/s.
-Their same-input output comparison matches only 7/24 complete sequences.
-Seventeen requests have a divergent output. The earliest divergent index is 5.
-Both runs still have 24/24 observed Full-Prompt spans.
-Full-Prompt execution alone therefore does not establish numerical output reproducibility.
-The controller blocks further Qwen Serving expansion and preserves both raw runs.
-Their latency records remain diagnostic data, not a qualified same-output comparison.
+## Independent final gates
 
-The official asynchronous native-PD diagnostic also fails its repeat at 8000/200.
-It matches 3/8 complete sequences. The other five sequences diverge.
-The earliest divergent index is 7 in sample 6, with token IDs 12224 and 1033.
-This option does not resolve the exact-output gate.
-The first internal divergent operation remains NOT_MEASURED.
-No BF16, KV corruption, or NIXL-specific cause is established from token IDs alone.
 
-## Failed compatibility runs
+| Model | Full repeat compared | Full repeat passed | Tuned parity | Colocated parity |
+| --- | --- | --- | --- | --- |
+| ouro | 32 | True | True | True |
+| huginn | 32 | True | True | True |
 
-`qual_ouro_local_l8192_v1` failed because its local harness did not enable existing work counters.
-The missing field was `issued_loop_rows`.
-The correction sets `ABC_RUN_DIR` before engine construction.
-It does not change a model operation or an acceptance threshold.
-The fresh `v2` namespace passes the local reference check.
+The final qualification uses 32 requests, another arrival seed, and another sampling seed.
+It uses new Prompt rows where the source pool permits them.
+Earlier byte checks remain separate evidence.
 
-The first Huginn 3900-token attempts failed with CUDA OOM.
-The retry reduces the common KV pool from 26,624 to 24,576 blocks.
-It also limits the aggregate P token budget to 7,800.
-The new P/D reserved KV is 66,437,775,360 bytes per GPU.
-Observed qualification peaks are 76,377,750,528 bytes on P and 74,789,390,336 bytes on D.
-These are memory-compatibility measurements, not clean latency gains.
+A missing or failed gate never becomes a performance pass.
 
-## Required later checks
+## Complete gate and failure records
 
-The controller must run an independent 32-request gate before a long final candidate campaign.
-That gate uses another arrival seed, another sampling seed, and Prompt pool rows 32–63.
-Full-Prompt native PD must repeat exactly.
-Each tuned or colocated candidate must match its eligible reference.
-Failed settings remain blocked.
+See `state/live_correctness_audits.jsonl`, `state/online_correctness_blockers.json`, and `configuration_matrix.csv`.
+Workspace, wire-credit, chunk, Native Mixed, and optional-context gates have separate JSON records in `state/`.
+Failed runs retain their complete logs and source archives.
 
-Live final audits compare exact output prefixes within a matched runtime family and context geometry.
-They also check active full-depth work and actual Atomic spans.
-The Looped runtime family keeps its strict cross-method checks.
-Known AR cross-mode failures remain separate explicit limitations.
+## User extension: final deadline 2026-11-02 11:00 KST
 
-## Native Mixed and prepared-Decode controls
+Ouro and Huginn discovery had priority. The user also requested AR reproducibility work.
+No new GPU job starts after 10:05 KST. Active owned measurements stop by 10:15 KST.
+At 09:47 KST, the start cutoff moved five minutes later. The earlier budget file remains preserved.
 
-| Model | Existing Native Mixed C256 | Existing Native Mixed C1024 | Native prepared-D smoke |
-|---|---|---|---|
-| Ouro R4 | 8/8 exact, full-depth PASS, 53 actual mixed-core calls | 8/8 exact, full-depth PASS, 30 actual mixed-core calls | 2/2 exact, KV/hidden byte checks 2/2, active rows 4152/4152 |
-| Huginn R32 | 8/8 exact, full-depth PASS, 8 actual mixed-core calls | 8/8 exact, full-depth PASS, 4 actual mixed-core calls | 2/2 exact, KV/hidden byte checks 2/2, active rows 33216/33216 |
+The GPU stop, final deadline, correctness gates, and frozen SLOs did not change.
+The remaining time is reserved for evidence review, publication, and resource restoration.
+The original SLOs and bottleneck gates remain unchanged.
 
-Evidence type: MEASURED_QUALIFICATION_ONLY.
-The prepared-D smoke uses input 512, output 8, and two legal readiness times.
-It validates the diagnostic harness. It does not establish long-context spare capacity.
-Its original request records include P preparation.
-Its separate `prepared_D_requests.jsonl` excludes that preparation from the D-only timer.
+The new native AR execution family has a separate calibration file.
+Its thresholds do not replace the failed default-family thresholds.
 
-The first C256 Native Mixed observer failed because a colocated worker has no NIXL fingerprint.
-That failure occurred before measured inference.
-The correction records an explicit unavailable fingerprint instead of requiring the absent field.
-The new C256 `v2` namespaces pass. The failed `v1` logs remain unchanged.
+### AR reproduction by actual execution setting
 
-## Scope limits
 
-Original-HF fidelity: NOT_MEASURED in this PoC.
-Downstream answer accuracy: NOT_MEASURED in this PoC.
-Natural-EOS generation quality: NOT_MEASURED in this PoC.
-An eight-request gate is not a universal lossless proof.
-All main outputs are controlled-cap greedy generation with EOS ignored.
-Final qualification and Serving results must be read with their actual request counts and failure status.
+| Setting | Exact sequences | N | Pass | Evidence |
+| --- | --- | --- | --- | --- |
+| Default PD, changed QPS | 7 | 24 | False | MEASURED_NATIVE_GPU_OUTPUT |
+| Default arithmetic, Eager PD | 9 | 24 | False | MEASURED_NATIVE_GPU_OUTPUT |
+| True BI + Eager PD, changed QPS | 24 | 24 | True | MEASURED_NATIVE_GPU_OUTPUT |
+| True BI + Eager, independent N32 repeat | 32 | 32 | True | MEASURED_NATIVE_GPU_OUTPUT |
+| True BI + Eager, C1024 | 32 | 32 | True | MEASURED_NATIVE_GPU_OUTPUT |
+| True BI + Eager, C4096 | 32 | 32 | True | MEASURED_NATIVE_GPU_OUTPUT |
+| True BI + Eager, PD versus DP2 | 15 | 32 | False | MEASURED_NATIVE_GPU_OUTPUT |
+| True BI + Eager, DP2 repeat | 21 | 32 | False | MEASURED_NATIVE_GPU_OUTPUT |
+| BI compiled, graph NONE, PD repeat | 32 | 32 | True | MEASURED_NATIVE_GPU_OUTPUT |
+| BI compiled, graph NONE, PD versus DP2 | 32 | 32 | True | MEASURED_NATIVE_GPU_OUTPUT |
+| BI compiled, graph NONE, DP2 repeat | 32 | 32 | True | MEASURED_NATIVE_GPU_OUTPUT |
+| BI compiled, graph NONE, C4096 | 32 | 32 | True | MEASURED_NATIVE_GPU_OUTPUT |
+| BI compiled, P4 startup recheck, Full | NOT_MEASURED | 32 | False | NOT_COMPARABLE_INPUT_OR_SEED |
+| BI compiled, P4 startup recheck, C4096 | NOT_MEASURED | 32 | False | NOT_COMPARABLE_INPUT_OR_SEED |
+| BI compiled, P4 corrected-input recheck, Full | 32 | 32 | True | MEASURED_NATIVE_GPU_OUTPUT |
+| BI compiled, P4 corrected-input recheck, C4096 | 32 | 32 | True | MEASURED_NATIVE_GPU_OUTPUT |
+| BI compiled, P4 corrected-input recheck, DP2 | 32 | 32 | True | MEASURED_NATIVE_GPU_OUTPUT |
+| BI compiled, P4 corrected-input recheck, DP2 repeat | 32 | 32 | True | MEASURED_NATIVE_GPU_OUTPUT |
+
+These tests establish only the stated internal sequence comparisons.
+An N32 PD pass does not prove DP2 parity, original-HF equivalence, or downstream accuracy.
+Later performance runs also have an exact common-input audit. A new divergence blocks that execution family.
+
+The first compiled QPS pilot failed during P-worker startup, before any request completed.
+The child log reports a CUDA illegal-memory-access error during native kernel warm-up.
+The capacity selector reduced engine request capacity from the qualified four to one.
+
+A finite optimal batch size does not certify a smaller engine request capacity.
+The new P4 checks restore the earlier qualified request capacity. They do not modify native warm-up or model arithmetic.
+The exact failing GPU operation remains unlocalized. One startup failure does not establish that P1 alone caused it.
+
+The failed namespace and the earlier family blocker remain preserved. P4 performance uses a separate family label.
+The earlier independent finite-service references remain diagnostic references, not measured P4 sustainable capacity.
+The v2 rechecks selected the default test pool, not the earlier qualification subset.
+
+All 32 input rows differed. Those original-reference comparisons cannot diagnose numerical failure.
+Corrected v3 checks explicitly select the earlier dataset pool. The invalid comparisons remain preserved.
+
+The bounded AR search defines 9 coarse screens across three methods and three rate factors.
+Completed coarse screens: 9/9.
+The immutable exploratory plan retains 21 configurations across all seven requested factors.
+
+Confirmation takes priority after the coarse grid. Unstarted extra factors and DP2 final repeats remain explicit budget omissions.
+
+The first extension BI-labelled v1 trials actually used `ar_batch_invariant=False`.
+The configuration constructor overwrote the explicit request. A regression test detected this bug.
+The constructor now preserves an explicit flag. New v2 namespaces record the effective native flag.
+
+The incorrectly labelled v1 data remain preserved. They cannot prove that BI failed.
+Earlier genuine BI failures also remain preserved. This correction does not erase those failures.
+See `state/ar_extension_BI_configuration_correction.json` for the affected configurations.
+
+### Numerical probes and their limits
+
+Evidence type: MEASURED_OPERATOR_MICROBENCHMARK and MEASURED_COLD_PREFIX_PROBE.
+The probes use the actual Qwen checkpoint and captured operands. They do not use a proxy model.
+Default arithmetic changes some tested O/Down outputs when only GEMM row geometry changes.
+
+True BI v2 produces exact selected projection rows in the tested M=1/2/3/4/8/16/32/256 cases.
+This is an operator result, not proof of complete incremental-Decode invariance.
+The cold common-prefix probe selects the same final target rows in all tested batch orders.
+
+Its two leading BF16 logits are both 33.75. The recorded margin is zero.
+That probe does not reproduce the incremental-Decode divergence.
+The first globally divergent operation remains NOT_AVAILABLE unless a later targeted trace identifies it.
+
+### Qualified Looped runtime controls
+
+
+| Model | Family | Input | Stage | N8 state/output gate | Tuned chunk gate | Reference file |
+| --- | --- | --- | --- | --- | --- | --- |
+| huginn | async_g8 | 3500 | UNSUPPORTED_OR_IGNORED_ASYNC_REQUEST | True | NOT_MEASURED | NOT_MEASURED |
+| huginn | sync_g4 | 3500 | PILOTS_COMPLETE | True | True | capacity_references_huginn_sync_g4_extension.json |
+| huginn | async_g4 | 3500 | UNSUPPORTED_OR_IGNORED_ASYNC_REQUEST | True | NOT_MEASURED | NOT_MEASURED |
+| ouro | P8_B32768_K17408 | 8192 | PILOTS_COMPLETE | True | True | capacity_references_ouro_p8_b32768_k17408_extension.json |
+| ouro | P8_B65536_K17408 | 8192 | PILOTS_COMPLETE | True | True | capacity_references_ouro_p8_b65536_k17408_extension.json |
+| ouro | P2_L16384_O32 | 16384 | PILOTS_COMPLETE | True | True | capacity_references_ouro_p2_l16384_o32_extension.json |
+| huginn | async_l3900_g4 | 3900 | UNSUPPORTED_OR_IGNORED_ASYNC_REQUEST | True | True | NOT_MEASURED |
+| huginn | sync_l3900_g4 | 3900 | PILOTS_COMPLETE | True | True | capacity_references_huginn_sync_l3900_g4_extension.json |
+
+The pinned Huginn engine supports Sync execution only. Graph-row limits of four and eight remain supported controls.
+The requested Async path was not active in the earlier successful native-PD trials.
+The inherited launcher forwards the Async flag only for Ouro. Direct Huginn Async construction fails its native guard.
+
+The correction preserves those actual Sync measurements and retires unstarted unsupported or redundant jobs.
+Explicit Sync v2 namespaces provide the corrected comparisons. No engine guard is removed.
+New `effective_execution_*.json` files record the actual StageEngine flags before measurement.
+
+Earlier effective Sync attribution is SOURCE_AUDIT, not a recorded startup flag.
+The fixed-depth model and numerical projection fixes remain unchanged.
+Ouro also tests larger P budgets and a smaller legal source KV pool.
+
+A graph-row limit is not a claim that every physical GEMM has that row count.
+Ouro 16384/32 is a prospectively declared extension cell. The earlier 16384/100 cell remains preserved.
+Independent service references remain specific to the execution family. Their costs are not pooled.
+
+The native connector allocates transfer slots separately from compute slots.
+P transfer slots equal P compute slots plus `max_draining_requests`, which defaults to eight.
+D transfer slots also include `max_receiving_requests`, which defaults to 32.
+
+Therefore a finite optimal P batch is not the same variable as the native transfer-slot count.
+KV reservations can bind before either slot limit. The report keeps those refusals separate.
+The source-credit controls compare fewer draining slots at unchanged compute slots and wire credit.
+
+A slower P configuration cannot pass by creating a queue. It must retain near-reference P service and actual P kernel saturation.
+
+Huginn D4 uses an explicit preparation-only ACK control.
+Each valid import can release its source allocation before the full D cohort is ready.
+The existing D barrier still blocks all Decode until every import is valid.
+
+This separates the three-context source pool from the legal four-context D pool.
+Its finite D timing is not a measured Serving speedup.
+
+### Native wire-credit controls after workspace qualification
+
+
+| Model | Stage | Exact state/output gates | Pilot runs |
+| --- | --- | --- | --- |
+| ouro | PILOTS_COMPLETE | {"ext_wire_ouro_credit1g_qualification8_v1":true,"ext_wire_ouro_credit8g_qualification8_v1":true} | 8 |
+| huginn | PILOTS_COMPLETE | {"ext_wire_huginn_credit1g_qualification8_sync_v2":true,"ext_wire_huginn_credit8g_qualification8_sync_v2":true} | 8 |
+
+These controls change only supported native credit limits. They do not create a new transport protocol.
+The 64-MiB fragment limit, payload values, and model computation remain unchanged.
+
+### Independent confirmation and deadline limits
+
+
+| Model | Stage | Selected pilot | Repeat N32 gate | Chunk N32 gate | Planned final runs |
+| --- | --- | --- | --- | --- | --- |
+| huginn | CONFIRMATION_COMPLETE | ext_huginn_p1_drain0_credit8g_c2048_f1p15_pilot24_sync_v2 | True | True | 18 |
+| ouro | CONFIRMATION_COMPLETE | ext_ouro_l16384_p2_drain1_credit32g_c16384_f1p25_pilot24_v1 | True | True | 18 |
+| qwen8 | FINAL_RUNS | ext_pilot_qwen8_bi_compiled_none_pd_g1_c4096_f1p0_p4_v2 | True | True | 27 |
+
+All screened candidates remain in the selection JSON files. The selected N24 run is exploratory.
+Ouro also profiles its best N24 candidate at each extension input length before final selection.
+Only an exact matched profile within the original 5% overhead limit can guide that selection.
+
+Those exploratory profiles do not replace the N32 or N128 gates.
+Ouro and Huginn each completed three center-rate clean starts for both selected chunk settings.
+Extra heavy traces can be omitted after their clean P-service prerequisite fails.
+
+The queue retains one root-cause trace per chunk, attempted traces, and every service-qualified profile.
+The omitted namespaces remain NOT_RUN_FAILED_STRONG_P_SERVICE_PREREQUISITE in the ledger.
+A final TRUE verdict still requires three independent starts, actual P kernels, and finite native D-margin validation.
+
+If P compute does not qualify, one small native staggered-D test can still answer the separate D-reserve question.
+Its purpose is D_RESERVE_ONLY_WITHOUT_QUALIFIED_P_COMPUTE. A pass does not establish a Prefill-heavy regime.
+A queued final run or an independent capacity ratio cannot satisfy this gate.
+
+Missing or deadline-truncated conditions remain NOT_MEASURED or NOT_RUN_USER_11H_DEADLINE.
+At the final budget review, 53 unstarted optional Looped tail jobs were omitted.
+Every unstarted tail job used the same priority rule. No active GPU experiment stopped for this budget change.
+
+The ledger marks them NOT_RUN_EXTENSION_PRIORITY_TIME_BUDGET. Their immutable configurations remain preserved.
+
+### Profiler failures and their scope
+
+
+| Profile run | Model | Completed responses | Offered requests | Stop reason | Return code | Evidence |
+| --- | --- | --- | --- | --- | --- | --- |
+| ext_profile_huginn_l3500_c2048_r1_s1_v1 | huginn | 80 | 128 | PROFILE_NO_RESPONSE_PROGRESS_180S | -9 | raw/ext_profile_huginn_l3500_c2048_r1_s1_v1/profile_watchdog.json |
+| ext_profile_huginn_l3500_cfull_r1_s2_v1 | huginn | 14 | 128 | PROFILE_NO_RESPONSE_PROGRESS_180S | 143 | raw/ext_profile_huginn_l3500_cfull_r1_s2_v1/profile_watchdog.json |
+| ext_profile_ouro_l16384_cfull_r1_s1_v1 | ouro | 30 | 128 | PROFILED_RUN_NO_PROGRESS_WITH_IDLE_GPUS | 143 | raw/ext_profile_ouro_l16384_cfull_r1_s1_v1/manual_no_progress_stop.json |
+| ext_profile_qwen8_l8000_c4096_r1_s1_v1 | qwen8 | 33 | 160 | PROFILE_NO_RESPONSE_PROGRESS_180S | -15 | raw/ext_profile_qwen8_l8000_c4096_r1_s1_v1/profile_watchdog.json |
+
+These runs stopped after response progress ceased or after a bounded profiler limit.
+The registered owned child sessions stopped. Other users' processes remained unchanged.
+Partial responses and profiler files remain preserved. They do not establish complete-run throughput or kernel saturation.
+
+Their matched clean runs remain separate evidence. A profiler-associated stall does not identify its root cause.
+The failed Nsight runs do not prove a CUDA, NIXL, or model error.
+After the near-deadline AR stall, 4 unstarted AR profiles were omitted.
+
+Every clean start and attempted trace remains preserved. This omission cannot support a three-profile TRUE claim.
+The CPU process observer also failed once during a /proc exit race. The observer now handles that race.
+Its regression test passed. That observer failure did not stop the GPU campaign.
+
+All main generation is controlled with `ignore_eos=True`.
+Internal exact token parity does not establish original-HF fidelity or downstream answer accuracy.
+No Dynamic A, model-depth reduction, approximation, quantization, or training runs in this study.
+
+Finite-cohort throughput is not infinite-horizon sustainable capacity.

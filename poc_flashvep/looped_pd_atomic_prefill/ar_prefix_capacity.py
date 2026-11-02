@@ -7,13 +7,15 @@ from .common import *
 
 
 def main():
-    cfg=config();os.environ['VLLM_ENABLE_V1_MULTIPROCESSING']='0';os.environ['VLLM_BATCH_INVARIANT']='0'
+    from .families import ar_environment
+    cfg=config();os.environ.update(ar_environment(cfg))
     hashes=json.loads(os.environ.get('ATOMIC_SOURCE_HASHES','{}'))
     for path,expected in hashes.items():assert digest(path)==expected,'Source changed before prefix-capacity startup'
     folder=ROOT/'raw'/cfg['name'];write(folder/'status.json',dict(status='RUNNING',pid=os.getpid(),time=time.time()))
     write(folder/'loaded_source.json',dict(time=time.time(),pid=os.getpid(),hashes=hashes,CUDA_VISIBLE_DEVICES=os.environ.get('CUDA_VISIBLE_DEVICES')))
     import torch
     from vllm import LLM,SamplingParams
+    from vllm import envs
     from vllm.v1.core.kv_cache_manager import KVCacheManager
     from .ar_worker import llm_options
     from ..looped_pd_abc.nvml_watch import GPUWatch
@@ -30,6 +32,8 @@ def main():
             weight_bytes=sum(p.numel()*p.element_size() for p in runner.model.parameters()),KV_blocks=runner.kv_cache_config.num_blocks,
             KV_tensor_bytes=sum(t.numel()*t.element_size() for t in runner.kv_caches),options=options,block_size=block,
             cuda_uuid=str(torch.cuda.get_device_properties(0).uuid),physical_GPU=cfg['gpus'][0],model_revision=cfg['model_revision'],
+            effective_VLLM_BATCH_INVARIANT=envs.VLLM_BATCH_INVARIANT,
+            effective_BF16_reduced_precision_reduction=torch.backends.cuda.matmul.allow_bf16_reduced_precision_reduction,
             scope='Official prefix-cache preparation only in this D-only control. Main Serving still disables prefix caching. Timed D excludes suffix recomputation and first sampling.'))
         data=json.loads((ROOT/'data'/cfg['dataset']).read_text())
         def prepare(job,tag):

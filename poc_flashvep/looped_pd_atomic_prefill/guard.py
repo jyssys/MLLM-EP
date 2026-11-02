@@ -11,7 +11,7 @@ def processes(suffix):
             words=(p/'cmdline').read_bytes().split(b'\0')
             module=('poc_flashvep.looped_pd_atomic_prefill.'+suffix).encode()
             if p.stat().st_uid==os.getuid() and b'-m' in words and module in words:found.append(int(p.name))
-        except (FileNotFoundError,PermissionError):pass
+        except (FileNotFoundError,PermissionError,ProcessLookupError):pass
     return found
 
 

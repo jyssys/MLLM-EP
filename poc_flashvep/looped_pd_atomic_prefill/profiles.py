@@ -28,6 +28,12 @@ def pid_roles(folder,cfg):
 
 
 def parse(folder,cfg):
+    configuration_SHA256=digest(ROOT/'configs'/(cfg['name']+'.json'))
+    cached=folder/'profile_activity_analysis.json'
+    if cached.exists():
+        value=json.loads(cached.read_text())
+        if value.get('parser_revision')==3 and value.get('configuration_SHA256')==configuration_SHA256 and value.get('status') in ('MEASURED_TOOL_COMPATIBILITY','MEASURED_PROFILED_CUDA_ACTIVITY'):
+            return value
     report=folder/'nsys_report.nsys-rep';database=folder/'nsys_report.sqlite'
     if not report.exists():return dict(name=cfg['name'],status='NOT_AVAILABLE',reason='No completed Nsight report')
     if not database.exists():
@@ -158,6 +164,7 @@ def parse(folder,cfg):
             overhead_scope='Single matched arrival-to-drain comparison. It is not an independent-start confidence interval.',
             eligible_profile_transfer_to_clean=abs(a/b-1)<=.05 and unmapped==0 and summary[0]['kernel_count']>0 and parity['passed'])
     else:output['eligible_profile_transfer_to_clean']=False
+    output.update(parser_revision=3,configuration_SHA256=configuration_SHA256)
     write(folder/'profile_activity_analysis.json',output);return output
 
 
@@ -165,7 +172,7 @@ def main():
     output=[]
     for p in (ROOT/'configs').glob('*.json'):
         cfg=json.loads(p.read_text())
-        if not isinstance(cfg,dict) or not (cfg.get('nsys') or cfg.get('nsys_P_only')) or status(cfg['name'])!='COMPLETE':continue
+        if not isinstance(cfg,dict) or cfg.get('P_duty_diagnostic') or not (cfg.get('nsys') or cfg.get('nsys_P_only')) or status(cfg['name'])!='COMPLETE':continue
         try:output.append(parse(ROOT/'raw'/cfg['name'],cfg))
         except Exception as error:output.append(dict(name=cfg['name'],status='BLOCKED_PROFILE_ANALYSIS',error=repr(error)))
     write(ROOT/'profile_activity.json',output);print('PROFILE_ANALYSES',len(output));return output

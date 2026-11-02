@@ -2,6 +2,7 @@
 import collections
 import csv
 import datetime
+import hashlib
 import statistics
 import subprocess
 from .common import *
@@ -23,18 +24,35 @@ def cell(value):
 def table(headers,values):
     lines=['| '+' | '.join(headers)+' |','| '+' | '.join('---' for _ in headers)+' |']
     lines += ['| '+' | '.join(cell(v) for v in row)+' |' for row in values]
-    return '\n'.join(lines)+'\n'
+    return '\n'+'\n'.join(lines)+'\n\n'
+
+
+def prose_blocks(text):
+    """Separate new prose blocks without changing literals or measurements."""
+    output=[];fenced=False;prose_lines=0
+    for line in text.splitlines():
+        if line.lstrip().startswith('```'):
+            fenced=not fenced;prose_lines=0
+        elif not fenced:
+            if not line.strip() or line.lstrip().startswith(('#','|','- ')):
+                prose_lines=0
+            else:
+                if prose_lines>=3:output.append('');prose_lines=0
+                prose_lines+=1
+        output.append(line)
+    return '\n'.join(output).rstrip()+'\n'
 
 
 def report(name,text):
     p=REPO/'poc_flashvep/reports'/name
-    p.write_text(text.rstrip()+'\n')
+    p.write_text(prose_blocks(text))
 
 
 def model_decisions(runs,classifications,blocks):
     result=[]
     for model in MODEL_PINS:
         observed=[r for r in runs if r['model']==model and r['phase']=='final_repeat' and r['eligible_clean']]
+        qualified_pilots=[r for r in runs if r['model']==model and r['phase']=='qps_pilot' and r['eligible_clean']]
         checked=[r for r in classifications if r['model']==model]
         groups=collections.defaultdict(list)
         runmap={r['name']:r for r in runs}
@@ -49,13 +67,21 @@ def model_decisions(runs,classifications,blocks):
             if len(starts)>=3:repeated.append(key)
         affected=[v for k,v in blocks.items() if k==model or k.startswith(model+'|')]
         blocked=bool(affected)
+        checked_final=[r for r in checked if runmap[r['name']]['phase']=='final_repeat']
         if repeated:verdict='TRUE_PREFILL_HEAVY_FINITE_REPEATED'
-        elif blocked and not observed:
+        elif any(r['category']=='TRUE_PREFILL_HEAVY' for r in checked):verdict='CONDITIONAL_PREFILL_HEAVY_NOT_REPEATED'
+        elif blocked and not observed and not qualified_pilots:
             verdict='BLOCKED_RUNTIME' if all(v.get('classification')=='RUNTIME_FAILURE_REQUIRES_TRIAGE' for v in affected) else 'BLOCKED_CORRECTNESS'
         elif observed:verdict='NO_CONFIRMED_PREFILL_HEAVY_ON_TESTED_GRID'
         else:verdict='NOT_RUN_FINAL_CONFIRMATION'
         result.append(dict(model=model,verdict=verdict,qualified_final_runs=len(observed),
+            qualified_pilot_runs=len(qualified_pilots),blocked_family_records=len(affected),
             checked_PD_runs=len(checked),observed_categories=dict(collections.Counter(r['category'] for r in checked)),
+            independent_final_PD_runs=len(checked_final),
+            final_runs_with_P_backlog_and_D_margin=sum(r.get('screen_P_candidate',False) and r.get('final_cohort_size_and_duration',False) for r in checked_final),
+            final_runs_near_strongest_P_service=sum(r.get('P_near_strongest_finite_service_rate',False) for r in checked_final),
+            final_runs_with_qualified_P_kernel_80pct=sum(r.get('actual_P_and_D_kernel_condition',False) for r in checked_final),
+            final_runs_with_valid_P_kernel_measurement=sum(r.get('P_profiled_kernel_busy_fraction') is not None for r in checked_final),
             repeated_TRUE_cells=repeated,scope='Finite measured search. No structural impossibility, infinite-horizon capacity, or Dynamic-A speedup is established.'))
     write(ROOT/'final_model_decisions.json',result)
     return result
@@ -73,12 +99,17 @@ def main():
     finals=[r for r in runs if r['phase']=='final_repeat']
     now=datetime.datetime.now(datetime.timezone.utc);elapsed=(time.time()-START_EPOCH)/3600
     source=subprocess.check_output(['git','rev-parse','HEAD'],cwd=REPO,text=True).strip()
+    source_files=[dict(path=str(p.relative_to(REPO)),SHA256=digest(p)) for p in sorted(SOURCE.rglob('*.py'))]
+    analysis_source_SHA256=hashlib.sha256(json.dumps(source_files,sort_keys=True,separators=(',',':')).encode()).hexdigest()
+    write(ROOT/'state/analysis_source_manifest.json',dict(SHA256=analysis_source_SHA256,files=source_files,
+        scope='Actual owned Python analysis tree at compilation. Git HEAD alone does not identify uncommitted source changes.'))
     counts=collections.Counter(r['status'] for r in actual)
     write(ROOT/'state/report_compilation.json',dict(time=time.time(),elapsed_hours=elapsed,branch=BRANCH,
-        compilation_source_commit=source,search_stage=stage,configuration_status_counts=dict(counts),
+        compilation_source_commit=source,analysis_source_SHA256=analysis_source_SHA256,search_stage=stage,configuration_status_counts=dict(counts),
         evidence_scope='Completed raw measurements and explicitly labeled structural accounting. No inferred results fill missing cells.'))
     intro=f'Compiled at {now.isoformat()}. Elapsed time: {elapsed:.3f} hours.\n\n'
     version=f'Branch: `{BRANCH}`.\n\nCompilation source commit: `{source}`.\n\nEach measured run records its own source archive, source commit, and configuration hash.\nThe final publication commit can differ from the measurement commit.\nUse `git log -1 --format=%H` on this branch to obtain the publication SHA.\n'
+    version+=f'\nActual analysis-tree SHA256: `{analysis_source_SHA256}`.\n\nThe compilation HEAD can precede uncommitted analysis changes.\nSee `state/analysis_source_manifest.json` for the exact file hashes.\n'
     paths='Evidence root: `looped_pd_atomic_prefill_qps_crossover/`.\n\n'
     from .extension_reporting import section as extension_section
     extension_text=extension_section() if (ROOT/'configs/extension_budget_20261102.json').exists() else ''
@@ -105,7 +136,9 @@ def main():
     runtime+='\n## GPU and data provenance\n\n'
     hardware=read('state/initial_hardware.json',{})
     runtime+='```text\n'+hardware.get('GPUs','NOT_AVAILABLE').strip()+'\n```\n\n'
-    runtime+='```text\n'+hardware.get('topology','NOT_AVAILABLE').strip()+'\n```\n\n'
+    displayed_topology='\n'.join(line.rstrip() for line in hardware.get('topology','NOT_AVAILABLE').strip().splitlines())
+    runtime+='```text\n'+displayed_topology+'\n```\n\n'
+    runtime+='The displayed topology omits trailing whitespace only. The original output remains in `state/initial_hardware.json`.\n\n'
     runtime+='Correctness can use disjoint pairs concurrently.\nClean service, calibration, and QPS measurements use one exclusive quiet lane.\nApproved burners are absent from that lane.\nUnrelated processes are not signaled.\n'
     runtime+='The common pool contains 184 public sources: 28 ShareGPT and 156 LongBench.\nThe split contains 24 calibration and 160 test sources.\nExact model-tokenizer prefixes define input lengths.\n'
     runtime+='Optional 16K uses its own smaller test pool and an eight-source calibration extension.\nCyclic offered cohorts explicitly record repeated source use.\nThese data are neither original Azure prompts nor a natural output-length distribution.\n'
@@ -156,14 +189,50 @@ def main():
         for v in refs.values() for c,r in v['D'].items()])
     capacity_text+='RLT P timing excludes first Coda sampling.\nRLT prepared D includes first Coda sampling.\nNative AR P includes first sampling.\nIts prepared D excludes preparation and first sampling.\nThese boundaries are not additive E2E components.\n'
     capacity_text+='\n## Actual native prepared D\n\n'
-    capacity_text+=table(['Model','Input/output','Batch','D budget','D KV blocks','Independent starts','Requests/s','95% CI'],[
-        [v['model'],f'{v["length"]}/{v["output_cap"]}',v['batch'],v['D_token_budget'],v['D_kv_blocks'],v['independent_starts'],v['finite_requests_per_s_mean'],
+    capacity_text+=table(['Model','Input/output','Execution family','Effective async','Graph rows','Batch','D budget','D KV blocks','Independent starts','Requests/s','95% CI'],[
+        [v['model'],f'{v["length"]}/{v["output_cap"]}',v['execution_family'],v['asynchronous'],v['graph_rows'],v['batch'],v['D_token_budget'],v['D_kv_blocks'],v['independent_starts'],v['finite_requests_per_s_mean'],
             [v['bootstrap95_low'],v['bootstrap95_high']]] for v in native])
     capacity_text+='These timers start after actual native NIXL import and valid-state synchronization.\nThey include first Coda and the native coordinator.\nThree starts remain a small inferential sample.\nAll-ready native service is still not sustainable online capacity.\n'
+    duty=read('p_duty_summary.json',[])
+    capacity_text+='\n## Actual P-only device activity\n\n'
+    capacity_text+=table(['Model','Input','Batch','Within-start repeats','Clean P service mean ms','Profiled P kernel fraction mean','Matched profile pairs within 5%'],[
+        [v['model'],v.get('length'),v['batch'],v['within_start_repeats'],v['clean_host_service_ms_mean'],v['recorded_kernel_fraction_mean'],v['matched_profile_pairs_within_5_percent']] for v in duty])
+    capacity_text+='These local P cohorts have no D reservation or NIXL progress dependency.\n'
+    capacity_text+='The table separates synchronized host service from recorded CUDA kernel activity.\n'
+    capacity_text+='A non-kernel gap is not automatically CPU time or GPU idle.\n'
+    capacity_text+='This diagnostic does not prove a universal P compute ceiling or native Serving capacity.\n'
+    capacity_text+='See `p_duty_windows.csv` for individual exact-output and overhead checks.\n'
+    reservations=read('native_D_reservation_accounting.json',[])
+    selected_reservations=[]
+    for value in reservations:
+        if value['phase']!='final_repeat':continue
+        setting=json.loads((ROOT/'configs'/(value['name']+'.json')).read_text())
+        if setting.get('independent_start')==0 and setting.get('rate_index')==1:selected_reservations.append(value)
+    capacity_text+='\n## Reserved KV versus active Decode requests\n\n'
+    capacity_text+=table(['Run','Mean reserved D contexts','Mean pending D contexts','Mean active D contexts','Pending share of reserved context-time'],[
+        [v['name'],v['reserved_D_contexts_mean'],v['pending_D_contexts_mean'],v['active_D_contexts_mean'],
+            v['pending_fraction_of_reserved_context_time']] for v in selected_reservations])
+    capacity_text+='These counts use native coordinator timestamps in the central arrival window.\n'
+    capacity_text+='A pending reservation holds D KV before D activation.\n'
+    capacity_text+='The pending interval can include P computation, transfer, and D admission.\n'
+    capacity_text+='Reserved context-time equals pending context-time plus active context-time.\n'
+    capacity_text+='These counts are not simultaneous GEMM rows, kernel busy time, or proof of GPU idle.\n'
+    capacity_text+='See `native_D_reservation_accounting.csv` for every completed native PD pilot and final run.\n'
     capacity_text+='\n## KV accounting\n\n'
     capacity_text+=table(['Model','Baseline KV bytes/GPU','Blocks','Allocated planes','Valid Attention planes'],[
         ['Ouro R4',70866960384,22528,96,96],['Huginn R32',66437775360,24576,256,132]])
     capacity_text+='Evidence type: MEASURED_ALLOCATION plus STRUCTURAL_ACCOUNTING.\nHuginn has 124 unused storage planes, or 48.4375% of the uniform allocation.\nThis is not a measured speedup from compact KV storage.\nActual native transfer uses valid state, not every reserved storage plane.\n'
+    densities=read('model_kv_density_accounting.json',[])
+    capacity_text+=table(['Model','Physical Attention layers','Valid logical planes','Allocated logical planes','KV heads','Head dimension','Full-valid bytes/token','Uniform reserved bytes/token','Valid density / Qwen'],[
+        [v['model'],v['physical_attention_layers'],v['valid_logical_attention_planes'],v['uniform_allocated_logical_planes'],v['KV_heads'],
+            v['head_dim'],v['fully_valid_KV_bytes_per_token'],v['uniform_reserved_KV_bytes_per_token'],v['valid_KV_density_relative_to_Qwen']] for v in densities])
+    capacity_text+='These equations use the pinned checkpoint configuration and observed runtime layout.\n'
+    capacity_text+='They count K and V at BF16. They exclude block padding, metadata, temporary buffers, and incomplete valid frontiers.\n'
+    capacity_text+='The Qwen checkpoint has 36 Attention layers and eight KV heads.\n'
+    capacity_text+='Ouro has 96 logical Attention planes and 16 KV heads.\n'
+    capacity_text+='Huginn has 132 valid logical planes and 55 KV heads. Its uniform runtime reserves 256 planes.\n'
+    capacity_text+='Both recurrent depth and KV-head width change this comparison. Neither factor is isolated here.\n'
+    capacity_text+='See `model_kv_density_accounting.csv` and `kv_pool_allocation_identity.csv` for equations and allocation checks.\n'
     capacity_text+=table(['Model/input','Measured bytes/request','Fragment completions/request'],[
         ['Ouro/8192',6442455040,97],['Huginn/3900',10872554880,163],['Huginn/3500',9757418880,146]])
     capacity_text+='The fourth Huginn 3500/32 reservation requires 28,288 blocks.\nThe larger measured KV pool occupies 76,472,647,680 bytes.\nIts D128 memory probe peaks at 83,746,289,664 allocated bytes.\nThis tight allocation does not guarantee arbitrary Prefill-continuation workspace.\n'
@@ -183,13 +252,31 @@ def main():
         [r['name'],f'{r["length"]}/{r["output_cap"]}',f'{r["arm"]}/{r["chunk"]}',r['eligible_clean'],r['target_QPS'],f'{r["offered"]}/{r["completed"]}',
             r['TTFT_ms_p95'],r['request_TPOT_ms_p95'],r['token_ITL_ms_p99'],r['E2E_ms_p95'],r.get('SLO_attainment'),r.get('SLO_goodput')] for r in finals])
     search+='All mean/p50/p95/p99 values remain in `serving_runs.csv`.\nThat file separates target, realized, and completed rates.\nIt includes all offered requests in the SLO denominator.\nTimeouts and missing requests cannot increase goodput.\n'
+    search+='An unfinished run can retain completed-subset latency diagnostics.\n'
+    search+='Without a complete measured window, its throughput and goodput remain NOT_MEASURED.\n'
     search+='\n## P/D evidence\n\n'
     chosen={r['name'] for r in finals}
-    search+=table(['Run','Class','P rate','P finite reference','P kernel busy','D finite reserve','D credit clear','D TPOT margin','Staggered D pass'],[
+    search+=table(['Run','Class','P rate','P finite reference','P kernel busy','D finite reserve','Binding D KV refusal fraction','Raw D KV refusal fraction','D credit clear','D TPOT margin','Staggered D pass'],[
         [r['name'],r['category'],r['actual_P_completion_rate'],r['muP_finite'],r['P_profiled_kernel_busy_fraction'],
-            r['D_finite_service_reserve'],r['D_credit_clear'],r['D_TPOT_margin_pass'],r['D_staggered_service_validation']]
+            r['D_finite_service_reserve'],r['D_binding_KV_refusal_sample_fraction'],r['D_raw_KV_refusal_sample_fraction'],r['D_credit_clear'],r['D_TPOT_margin_pass'],r['D_staggered_service_validation']]
         for r in classifications if r['name'] in chosen])
     search+='The complete per-run gate table is `bottleneck_classification.csv`.\nP saturation requires actual kernel activity, service proximity, and growing ready backlog.\nD reserve requires compute, KV credit, readiness, and frozen SLO margin.\nNVML activity alone proves neither saturation nor spare compute.\n'
+    search+='\n## Observed host submission and scheduling\n\n'
+    cpu_rows=[]
+    for value in finals:
+        setting=json.loads((ROOT/'configs'/(value['name']+'.json')).read_text())
+        if setting.get('independent_start')!=0 or setting.get('rate_index')!=1 or value['model']=='qwen8' or value['arm']!='PD_G1':continue
+        cpu_rows.append([value['name'],value.get('P_observed_submissions_including_warmup'),
+            value.get('P_host_submit_s_including_warmup'),value.get('P_host_process_CPU_during_submit_s_including_warmup'),
+            value.get('D_observed_schedule_calls_including_warmup'),value.get('D_host_scheduler_s_including_warmup')])
+    search+=table(['Run','P ModelRunner submissions','P submission host wall s','P process CPU s during submission spans','D schedule calls','D scheduler host wall s'],cpu_rows)
+    search+='These counters include warm-up. They are not measured-request-only totals.\n'
+    search+='A ModelRunner submission can contain many GPU kernels.\n'
+    search+='Process CPU spans include all process threads, including background transport work.\n'
+    search+='CPU seconds can exceed wall seconds. Host submission spans can overlap GPU computation.\n'
+    search+='These counters do not identify an exclusive CPU fraction or prove a specific CPU critical path.\n'
+    search+='The raw `host_execution_*.json` files preserve every source counter.\n'
+    search+='Explicit transport observers remain diagnostics, not clean Serving timings.\n'
     search+='\n## Profiling and transport\n\n'
     profiles=read('profile_activity.json',[])
     search+=table(['Profile','Matched clean run','Wall overhead fraction','Eligible transfer to clean','P recorded kernel fraction','D graph-active fraction'],[
@@ -204,6 +291,8 @@ def main():
     search+='`slo_sensitivity.csv` contains secondary threshold sensitivity only.\nThose scores do not change the frozen primary decision.\n'
     search+='`figures/figure_manifest.json` maps each plot to actual runs.\nThe timeline separates measured host envelopes from recorded device intervals.\nBlank unrecorded intervals do not become measured GPU idle.\n'
     search+='`e2e_component_shares.csv` and `e2e_component_shares_summary.csv` report exclusive host interval percentages.\nTheir components sum to 100% per request or run.\nThey are not dispatch/GEMM/DMA critical-path percentages.\nOverlapping kernels and communication cannot be summed into exclusive E2E shares.\n'
+    search+='The exclusive host decomposition clamps asynchronous event boundaries to the preceding boundary.\n'
+    search+='Raw coordinator timestamps remain unchanged in each run.\n'
     report('looped_pd_atomic_prefill_qps_search.md',search)
 
     summary='# Atomic Prefill PD: Final Crossover Summary\n\n'+intro+version+'\n'
@@ -211,6 +300,49 @@ def main():
     summary+=table(['Model','Verdict','Qualified final runs','Classified PD runs','Observed categories'],[
         [r['model'],r['verdict'],r['qualified_final_runs'],r['checked_PD_runs'],r['observed_categories']] for r in decisions])
     summary+='\nThe strict TRUE label requires three independently confirmed starts at the same cell and rate.\nA negative tested-grid result is not proof that recurrent models cannot become Prefill-heavy.\nA correctness blocker is not a negative bottleneck result.\n'
+    summary+='\n## Separate P service pressure from P compute saturation\n\n'
+    summary+=table(['Model','Final qualified PD runs','P backlog plus D SLO/KV/finite-rate margin','Near strongest P service','Valid matched P-kernel measurements','P kernel at least 80%'],[
+        [r['model'],r['independent_final_PD_runs'],r['final_runs_with_P_backlog_and_D_margin'],
+            r['final_runs_near_strongest_P_service'],r['final_runs_with_valid_P_kernel_measurement'],r['final_runs_with_qualified_P_kernel_80pct']] for r in decisions])
+    summary+='These counts can differ. A P service queue does not establish GPU compute saturation.\n'
+    summary+='The D margin column is a screen. It does not replace the separate native staggered-D validation.\n'
+    summary+='A missing matched profile is NOT_MEASURED, not a measured low-busy result.\n'
+    confirmations=read('state/extension_confirmation_20261102.json',{})
+    selected_gate_rows=[]
+    for value in classifications:
+        choice=confirmations.get(value['model'],{}).get('choice',{}).get('run',{})
+        setting=json.loads((ROOT/'configs'/(value['name']+'.json')).read_text())
+        if setting.get('phase')!='final_repeat' or setting.get('rate_index')!=1 or value['chunk']!=choice.get('chunk'):continue
+        busy=value.get('P_profiled_kernel_busy_fraction')
+        selected_gate_rows.append([value['model'],f'{value["length"]}/{value["output_cap"]}',value['chunk'],setting.get('independent_start'),
+            value['P_backlog_growth'],value['P_near_strongest_finite_service_rate'],100*busy if busy is not None else None,
+            value['D_credit_clear'],value['D_TPOT_margin_pass'],value['D_staggered_service_validation'],value['category']])
+    summary+='\n### Joint conditions in each selected independent start\n\n'
+    summary+=table(['Model','Input/output','C','Start','P backlog grows','Near strongest P service','Valid P kernel busy (%)',
+        'D credit clear','D TPOT margin','Matched finite D test','Class'],selected_gate_rows)
+    summary+='Every online P/D condition must hold in the same Serving start.\n'
+    summary+='The separate D diagnostic must also match its configuration and stress rate.\n'
+    summary+='The table must not combine different starts into one positive result.\n'
+    summary+='The Qwen start-zero profile records 93.6353% P kernel busy within the matched overhead limit.\n'
+    summary+='That clean start fails the P-backlog and D-TPOT-margin conditions. It does not establish TRUE_PREFILL_HEAVY.\n'
+    summary+='Another Qwen start passes the P-service and D-margin screens, but its matched P profile is unavailable.\n'
+    summary+='These separate observations do not establish simultaneous P saturation and safe D reserve.\n'
+    representative=[];classified={r['name']:r for r in classifications}
+    for value in finals:
+        setting=json.loads((ROOT/'configs'/(value['name']+'.json')).read_text())
+        if setting.get('independent_start')!=0 or setting.get('rate_index')!=1:continue
+        checked=classified.get(value['name'],{})
+        representative.append([value['model'],value['execution_family'],f'{value["length"]}/{value["output_cap"]}',
+            f'{value["arm"]}/C{value["chunk"]}',value['offered'],value['realized_QPS'],
+            value['TTFT_ms_p95'],value['request_TPOT_ms_p95'],value['token_ITL_ms_p99'],
+            value.get('SLO_attainment'),value.get('SLO_goodput'),checked.get('category','COLOCATED_CONTROL')])
+    summary+='\n## Measured center-rate examples\n\n'
+    summary+=table(['Model','Execution family','Input/output','Arm/C','Offered N','Realized QPS','TTFT p95 ms','Request TPOT p95 ms',
+        'Token ITL p99 ms','SLO attainment','SLO goodput req/s','Classification'],representative)
+    summary+='Each row is independent start zero at its declared center rate.\n'
+    summary+='These are individual-run percentiles, not pooled percentiles or averages across starts.\n'
+    summary+='The complete table retains every start in `serving_runs.csv`.\n'
+    summary+='Paired server-start uncertainty appears in `paired_start_comparisons.csv`.\n'
     summary+='\n## Answers to the research questions\n\n'
     summary+='### Q1. Qwen3-8B and the DuetServe regime\n\n'
     summary+='The original 8000/200 native-PD family failed exact output reproducibility across arrival rates.\nThe original official-async diagnostic also failed.\nThe extension tested separate native execution families instead of treating those failures as resolved.\nUse the final per-family equality and QPS tables below.\n'
@@ -222,12 +354,29 @@ def main():
     summary+='\n### Q4. Atomic versus tuned chunked PD\n\n'
     summary+='Atomic means one actual `[0,L)` Prompt span with full recurrent depth.\nIt does not mean one kernel or one transfer fragment.\nThe strongest finite C and the best measured Serving C are separate selections.\n'
     summary+='Wire credit, D workspace, KV pool, and Native Mixed geometry remain explicit controls.\nTheir effects cannot be attributed to the token-chunk label.\nSee the paired final table and `paired_start_comparisons.csv` for actual same-arrival comparisons.\n'
+    summary+='The qualified RLT fixes still use 256-row tiles for selected Down projections.\n'
+    summary+='A larger logical Prompt chunk does not enlarge those individual GEMMs.\n'
+    summary+='Other projections and Attention can still respond to the token batch size.\n'
+    summary+='This execution detail prevents a model-only interpretation of the chunk comparison.\n'
     summary+='\n### Q5–Q6. First saturation and usable D margin\n\n'
     summary+='`bottleneck_classification.csv` preserves every failed and passed prerequisite.\nA high TTFT or a busy P GPU is not sufficient.\nThe decisive evidence includes ready backlog, actual P service, P kernels, D credit, and Decode SLOs.\n'
     summary+='The finite prepared-D stress tests appear in `D_margin_summary.json` when eligible.\nA missing test is NOT_MEASURED, not a reserve pass.\nEven a passing resident-KV probe does not certify arbitrary Prefill-continuation admission.\n'
+    diagnostics=read('D_margin_summary.json',[])
+    summary+=table(['Model','Evidence','Requests','Staggered ready rate req/s','Request TPOT p95 ms','0.9 x frozen TPOT limit ms',
+        'Exact output parity','Valid KV byte-check requests','Diagnostic passed'],[
+        [v['model'],v['evidence'],v['count'],v['diagnostic_ready_rate'],v['request_TPOT_p95_ms'],v['TPOT_margin_limit_ms'],
+            v['exact_output_parity'],v.get('valid_KV_hidden_byte_checks',{}).get('valid_KV_hidden_byte_checks') if v.get('valid_KV_hidden_byte_checks') else None,
+            v['passed']] for v in diagnostics])
+    summary+='The Looped tests import actual native NIXL state before the timer. Each test uses four resident requests.\n'
+    summary+='The Qwen test uses 32 requests with official resident-prefix preparation. It is not a native-NIXL-import test.\n'
+    summary+='These are finite D-reserve measurements, not online sustainable capacity or safe Prefill-offload admission.\n'
     summary+='\n### Q7. Architectural versus runtime causes\n\n'
     summary+='Causal attribution remains INCONCLUSIVE.\nThe engines, kernels, numerical geometry, memory layouts, and admission rules differ.\n'
     summary+='Huginn\'s unused uniform KV planes are a measured allocation issue.\nP-sized D workspaces and wire-credit limits are generic runtime controls.\nNone of these facts proves that recurrence itself prevents Prefill-heavy Serving.\n'
+    summary+='The pinned configurations also differ in logical Attention depth and KV-head width.\n'
+    summary+='Full-valid token accounting gives 147,456 bytes for Qwen, 786,432 for Ouro, and 2,787,840 for Huginn.\n'
+    summary+='Huginn\'s uniform layout reserves 5,406,720 bytes per token.\n'
+    summary+='These are structural storage counts, not measured latency ratios or isolated recurrence effects.\n'
     summary+='\n### Q8. Is Dynamic A justified?\n\n'
     if any(r['repeated_TRUE_cells'] for r in decisions):
         summary+='A repeated finite Prefill-heavy cell supports a later bounded static offload experiment.\nIt does not yet prove that Loop Split beats Token Split, DP2, or an optimized static baseline.\n'
@@ -240,6 +389,14 @@ def main():
     summary+='SM occupancy, full D graph-internal kernel breakdown, original-HF fidelity, and downstream accuracy remain NOT_MEASURED.\n'
     summary+='\n## Files and reproduction\n\n'
     summary+='See `looped_pd_atomic_prefill_reproduce.md` for commands and publication checks.\nThe evidence root contains all raw CSV/JSONL, source archives, configuration hashes, figures, and failure logs.\n'
+    selected_figures=[
+        ('Qualified AR exploratory TTFT grid, N24 per point','qwen8_l8000_o200_qps_pilot_BI_COMPILED_NO_GRAPH_P4_a_qps_ttft.png'),
+        ('Ouro 16K/32 finite final TTFT results','ouro_l16384_o32_final_repeat_P2_L16384_O32_BOUNDED_DRAIN_a_qps_ttft.png'),
+        ('Huginn 3500/32 finite final TTFT results','huginn_l3500_o32_final_repeat_HUGINN_SOURCE_DRAIN_CONTROL_SYNC_a_qps_ttft.png'),
+        ('Measured AR request timeline and P-only kernel intervals','ext_profile_qwen8_l8000_c4096_r1_s0_v1_e_actual_request_timeline.png')]
+    summary+='\nSelected figures:\n\n'
+    for title,filename in selected_figures:
+        if (ROOT/'figures'/filename).exists():summary+=f'- [{title}](looped_pd_atomic_prefill_qps_crossover/figures/{filename})\n'
     report('looped_pd_atomic_prefill_qps_crossover_final_summary.md',summary)
 
     reproduce='# Atomic Prefill PD: Final Reproduction Commands\n\n'+intro+version+'\n'
@@ -251,7 +408,7 @@ def main():
     reproduce+='```bash\n$PYTHON -m poc_flashvep.looped_pd_atomic_prefill.campaign\n```\n\n'
     reproduce+='A justified retry needs a new namespace.\nDo not replace Prompt IDs, calibration thresholds, or arrival offsets in an old configuration.\n'
     reproduce+='\n## CPU-only analysis\n\n```bash\n'
-    for module in ('analyze','matrix','profiles','classify','uncertainty','sensitivity','figures','reporting'):
+    for module in ('analyze','matrix','profiles','native_capacity_controls','margin','classify','uncertainty','sensitivity','figures','reservation_accounting','architecture_accounting','reporting'):
         reproduce+='$PYTHON -m poc_flashvep.looped_pd_atomic_prefill.'+module+'\n'
     reproduce+='```\n\n'
     reproduce+='CPU analysis cannot turn a configuration into an executed GPU result.\nProfile overhead must pass its matched control before activity transfers to clean timing.\n'

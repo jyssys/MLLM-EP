@@ -5,11 +5,13 @@ from .common import *
 def main():
     cfg=config();folder=ROOT/'raw'/cfg['name']
     write(folder/'status.json',dict(status='RUNNING',pid=os.getpid(),time=time.time()))
-    os.environ['VLLM_ENABLE_V1_MULTIPROCESSING']='0';os.environ['VLLM_BATCH_INVARIANT']='0'
+    from .families import ar_environment
+    os.environ.update(ar_environment(cfg))
     for path,expected in json.loads(os.environ.get('ATOMIC_SOURCE_HASHES','{}')).items():
         assert digest(path)==expected,'Source changed before prepared Decode startup'
     import torch
     from vllm import LLM,SamplingParams
+    from vllm import envs
     from vllm.v1.core.kv_cache_manager import KVCacheManager
     from .ar_worker import llm_options
     from ..looped_pd_abc.nvml_watch import GPUWatch
@@ -26,6 +28,8 @@ def main():
         write(folder/'geometry.json',dict(options=options,KV_blocks=runner.kv_cache_config.num_blocks,
             KV_tensor_bytes=sum(t.numel()*t.element_size() for t in runner.kv_caches),
             cuda_uuid=str(torch.cuda.get_device_properties(0).uuid),physical_GPU=cfg['gpus'][0],
+            effective_VLLM_BATCH_INVARIANT=envs.VLLM_BATCH_INVARIANT,
+            effective_BF16_reduced_precision_reduction=torch.backends.cuda.matmul.allow_bf16_reduced_precision_reduction,
             scope='Official resident-prefix preparation. Not the main NIXL Serving path. Cached final suffix recomputation remains inside this diagnostic.'))
         # Sequential original-model execution constructs all retained KV.
         for i,row in enumerate(data):

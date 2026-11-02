@@ -5,7 +5,7 @@ import math
 import statistics
 from .common import *
 from .evidence import records,rows,status
-from .families import execution_family
+from .families import execution_family,effective_asynchronous
 from ..looped_pd_bottleneck_crossover.analyze_serving import token_intervals
 from ..looped_pd_bottleneck_crossover.summary_tables import percentile,wilson
 
@@ -21,6 +21,16 @@ def distribution(values,label):
     values=list(values)
     return {label+'_'+name:(statistics.mean(values) if name=='mean' else percentile(values,q)) if values else None
         for name,q in [('mean',None),('p50',.5),('p95',.95),('p99',.99)]}
+
+
+def mask_incomplete_rates(row):
+    row['completed_subset_elapsed_s_diagnostic']=row.get('elapsed_s')
+    for field in ('elapsed_s','drain_s','requests_per_s','output_tokens_per_s','total_tokens_per_s','SLO_goodput'):
+        row[field]=None
+    row['latency_population_scope']='Completed subset of an unfinished cohort. Not a complete-run performance result.'
+    row['timing_scope']='NOT_MEASURED_COMPLETE_ARRIVAL_TO_DRAIN_WINDOW'
+    row['NVML_scope']='Partial diagnostic samples only. No complete-cohort activity or idle claim.'
+    row['SLO_attainment_scope']='All offered requests remain in the denominator. Unfinished requests fail. No valid whole-window goodput is reported.'
 
 
 def capacity():
@@ -133,7 +143,8 @@ def serving_one(cfg):
         values,coalesced=token_intervals(r);itls.extend(values);bundles+=coalesced
     row=dict(name=name,model=cfg['model'],length=cfg['length'],output_cap=cfg['cap'],arm=cfg['arm'],
         execution_family=execution_family(cfg),P_slots=cfg['P_slots'],D_slots=cfg['D_slots'],
-        asynchronous=cfg['asynchronous'],graph_rows=cfg.get('graph_rows',cfg['capacity']),
+        asynchronous=effective_asynchronous(cfg),requested_asynchronous=cfg['asynchronous'],graph_rows=cfg.get('graph_rows',cfg['capacity']),
+        execution_flag_scope='SOURCE_AUDIT_HUGINN_SYNC_ONLY' if cfg['model']=='huginn' and cfg['asynchronous'] else 'REQUESTED_AND_SUPPORTED_CONFIGURATION',
         capacity_reference_file=cfg.get('capacity_reference_file','capacity_references.json'),SLO_file=cfg.get('SLO_file','frozen_SLO.json'),
         chunk=cfg['chunk'],chunk_label=cfg['chunk_label'],phase=cfg['phase'],independent_start=cfg.get('independent_start',0),
         status=status(name),offered=cfg['count'],completed=len(requests),failed_or_missing=cfg['count']-len(requests),
@@ -147,15 +158,26 @@ def serving_one(cfg):
         transport_control=('NOT_APPLICABLE_COLOCATED' if cfg['arm'].startswith('DP') else
             'INFLIGHT_'+str(cfg.get('native_transport_limits',{}).get('max_inflight_bytes',256*1024**2)) if cfg['model']!='qwen8' else 'NATIVE_AR_NIXL'),
         timing_scope='Finite arrival-to-drain observation. Not established sustainable capacity.',
-        eligible_clean=status(name)=='COMPLETE' and len(requests)==cfg['count'] and window is not None and cfg['phase'] in ('qps_pilot','final_repeat','paper_budget_control') and not any(cfg.get(k) for k in ('state_probe','verify_transfer','nsys','nsys_P_only')),
+        eligible_clean=status(name)=='COMPLETE' and len(requests)==cfg['count'] and window is not None and cfg['phase'] in ('qps_pilot','final_repeat','paper_budget_control') and not any(cfg.get(k) for k in ('state_probe','verify_transfer','nsys','nsys_P_only','observe_transport')),
         actual_P_kernel_busy='NOT_MEASURED',actual_D_kernel_busy='NOT_MEASURED')
     if cfg.get('D_token_budget') or cfg.get('D_kv_blocks'):
         row['transport_control']+='_DB'+str(cfg.get('D_token_budget',cfg['token_budget']))+'_KV'+str(cfg.get('D_kv_blocks',cfg['kv_blocks']))
+    if not cfg['arm'].startswith('DP') and cfg['model']!='qwen8':
+        limits=cfg.get('native_transport_limits',{})
+        row['transport_control']+='_DRAIN'+str(limits.get('max_draining_requests',8))+'_RECV'+str(limits.get('max_receiving_requests',32))
+        row['transport_control']+='_FRAG'+str(limits.get('transfer_chunk_bytes',64*1024**2))+'_DESC'+str(limits.get('max_transfer_descriptors',256))
     if cfg['arm'].startswith('DP'):
         row['transport_control']+='_B'+str(cfg['token_budget'])+'_KV'+str(cfg['kv_blocks'])+'_W'+str(int(cfg.get('wavefront',False)))
     if execution_family(cfg)!='ORIGINAL':row['transport_control']+='_EXE_'+execution_family(cfg)
     if cfg.get('extension'):row['transport_control']+='_PS'+str(cfg['P_slots'])
     row['timing_isolation_clean']=row['eligible_clean']
+    constructed=[json.loads(p.read_text()) for p in folder.glob('effective_execution_*.json')]
+    stages={v['role']:v for v in constructed}
+    if 'prefill' in stages and 'decode' in stages:
+        row.update(asynchronous=stages['decode']['effective_async_scheduling'],
+            requested_graph_rows=cfg.get('graph_rows',cfg['capacity']),graph_rows=stages['decode']['effective_graph_max_rows'],
+            effective_P_token_budget=stages['prefill']['scheduler_token_budget'],effective_D_token_budget=stages['decode']['scheduler_token_budget'],
+            execution_flag_scope='MEASURED_STAGE_STARTUP_CONFIGURATION')
     row['GPU_role_mapping']=dict(P_column='replica0',D_column='replica1') if cfg['arm'].startswith('DP') else dict(P_column='prefill',D_column='decode')
     from .live_audit import blocked
     row['fidelity_gate_blocked']=bool(blocked(cfg['model'],cfg));row['eligible_clean'] &= not row['fidelity_gate_blocked']
@@ -184,6 +206,13 @@ def serving_one(cfg):
             role+'_sampled_peak_HBM_bytes':max(r['used_HBM_bytes'] for r in values)})
     row['NVML_scope']='Utilization mean covers the arrival window. Sampled peak HBM covers arrival through drain. Not SM occupancy or exclusive kernel busy.'
     metrics,shares=host_phases(folder,requests)
+    for path in folder.glob('host_execution_*.json'):
+        host=json.loads(path.read_text());role={'prefill':'P','decode':'D'}.get(host.get('role'))
+        if role is None:continue
+        for field,value in host.get('CPU',{}).items():row[role+'_host_'+field+'_including_warmup']=value
+        for field in ('schedule_calls','submissions','rows'):
+            if field in host.get('counts',{}):row[role+'_observed_'+field+'_including_warmup']=host['counts'][field]
+    row['host_CPU_counter_scope']='Stage-level host wall spans and whole-process CPU during those spans. Includes warm-up and background threads. Not exclusive request phases or GPU kernel time.'
     left=begin+.2*arrival_duration;right=begin+.9*arrival_duration
     central=[r for r in records(folder/'admission_reasons.jsonl') if left<=r['time']<=right]
     for p in folder.glob('atomic_spans_*.json'):
@@ -270,6 +299,9 @@ def serving_one(cfg):
                 ('transfer_duration','NIXL_telemetry_cumulative_transfer_s'),('post_duration','NIXL_telemetry_cumulative_post_s')]:
                 row[label]=sum(sum(r.get(field,[])) for r in measurements)
             row['NIXL_telemetry_scope']='Native completion telemetry after an explicit warm-up flush. Cumulative overlapping transfer time is not exclusive E2E or pure GPU DMA.'
+    if window is None and row['status']!='COMPLETE':
+        mask_incomplete_rates(row)
+        row['arrival_window_s']=(last_sent-first_sent) if offers and all('actual_send_start' in r for r in offers) else None
     return row,requests,shares
 
 

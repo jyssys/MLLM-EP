@@ -1,121 +1,190 @@
-# Atomic Prefill PD: Independent Service Measurements
+# Atomic Prefill PD: Final Independent Capacity
 
-Status: measured capacity checkpoint. The online crossover search is still in progress.
+Compiled at 2026-11-02T01:28:43.086700+00:00. Elapsed time: 21.426 hours.
+
+Branch: `flashvep/looped-pd-atomic-prefill-qps-crossover`.
+
+Compilation source commit: `147c4dc48215dd82cc85f77b044ff27325ea84fc`.
+
+Each measured run records its own source archive, source commit, and configuration hash.
+The final publication commit can differ from the measurement commit.
+Use `git log -1 --format=%H` on this branch to obtain the publication SHA.
+
+Actual analysis-tree SHA256: `a392ed79e603c437d00c3575d39166f104f681e2144fe757f6ef0524e7bc5c18`.
+
+The compilation HEAD can precede uncommitted analysis changes.
+See `state/analysis_source_manifest.json` for the exact file hashes.
+
 Evidence type: MEASURED_FINITE_INDEPENDENT_SERVICE.
-These service rates are not sustainable open-loop capacities.
-They do not establish a Prefill-heavy regime by themselves.
+These synchronized host service boundaries are not pure GPU kernel durations.
+All-ready D cohorts are optimistic relative to staggered online readiness.
 
-## Measurement boundaries
+## P service by chunk
 
-Each reported rate is the mean of three repeated cohorts within one process start.
-An independent-start confidence interval is not available for these capacity samples.
-The complete batch curves remain in `looped_pd_atomic_prefill_qps_crossover/capacity_samples.csv` and `capacity_summary.csv`.
-Those files preserve blocked batches and preparation methods.
 
-RLT P-only timing ends before first Coda sampling.
-RLT D-only timing starts from valid resident KV and includes first Coda sampling.
-The barrier preserves the actual model state and verifies exact output against the unbarriered local runtime.
-It does not fabricate KV or reuse another request's activations.
-Native PD adds transport and cooperative worker progress that the local service timer does not include.
+| Model | Input | C | Selected P slots | Finite requests/s |
+| --- | --- | --- | --- | --- |
+| qwen8 | 3900 | 3900 | 1 | 10.3589 |
+| qwen8 | 8000 | 256 | 4 | 4.0563 |
+| qwen8 | 8000 | 1024 | 2 | 4.2816 |
+| qwen8 | 8000 | 8000 | 1 | 4.5732 |
+| ouro | 4096 | 4096 | 4 | 4.5748 |
+| ouro | 8192 | 256 | 8 | 1.4130 |
+| ouro | 8192 | 1024 | 8 | 2.0999 |
+| ouro | 8192 | 2048 | 4 | 2.0821 |
+| ouro | 8192 | 4096 | 4 | 2.1905 |
+| ouro | 8192 | 8192 | 4 | 2.1331 |
+| ouro | 16384 | 256 | 4 | 0.4864 |
+| ouro | 16384 | 1024 | 4 | 0.8993 |
+| ouro | 16384 | 2048 | 4 | 0.9798 |
+| ouro | 16384 | 4096 | 2 | 0.9676 |
+| ouro | 16384 | 16384 | 1 | 0.9970 |
+| huginn | 3500 | 256 | 3 | 0.8316 |
+| huginn | 3500 | 1024 | 1 | 0.8257 |
+| huginn | 3500 | 2048 | 1 | 0.8473 |
+| huginn | 3500 | 3500 | 1 | 0.8231 |
+| huginn | 3900 | 256 | 2 | 0.6992 |
+| huginn | 3900 | 1024 | 1 | 0.7536 |
+| huginn | 3900 | 2048 | 1 | 0.7556 |
+| huginn | 3900 | 3900 | 1 | 0.7362 |
 
-Native Qwen P timing includes its first sample.
-Native Qwen prepared-D timing excludes preparation, cached-suffix recomputation, and first sampling.
-The native PD path discards the P sample and samples on D from imported KV.
-These boundary differences remain explicit. The P and D rates are not an additive E2E model.
+Each selected P concurrency is the smallest tested batch within 95% of that C setting's best rate.
+The strongest C remains a mandatory tuning control.
 
-## P service references
+## Local prepared D
 
-Units: requests/s. Values are finite within-start means.
-The selected concurrency is the smallest tested batch within 95% of that chunk's best finite rate.
 
-| Model | Input tokens | Full-Prompt rate | Selected P concurrency | Strongest selected C | Strongest selected rate | Best non-Full C available |
-|---|---:|---:|---:|---:|---:|---:|
-| Qwen3-8B | 3900 | 10.3589 | 1 | 3900 | 10.3589 | Not measured separately |
-| Qwen3-8B | 8000 | 4.5732 | 1 | 8000 | 4.5732 | 1024 |
-| Ouro R4 | 4096 | 4.5748 | 4 | 4096 | 4.5748 | Not measured separately |
-| Ouro R4 | 8192 | 2.1331 | 4 | 4096 | 2.1905 | 4096 |
-| Huginn R32 | 3500 | 0.8231 | 1 | 3500 | 0.8231 | Not measured separately |
-| Huginn R32 | 3900 | 0.7362 | 1 | 2048 | 0.7556 | 2048 |
+| Model | Input | Output | D batch | Finite requests/s | Strongest P / D |
+| --- | --- | --- | --- | --- | --- |
+| qwen8 | 3900 | 32 | 16 | 38.0846 | 0.2720 |
+| qwen8 | 3900 | 64 | 16 | 18.2469 | 0.5677 |
+| qwen8 | 3900 | 100 | 16 | 11.6238 | 0.8912 |
+| qwen8 | 8000 | 100 | 32 | 13.4841 | 0.3392 |
+| qwen8 | 8000 | 200 | 32 | 6.6554 | 0.6871 |
+| ouro | 4096 | 64 | 8 | 4.0653 | 1.1253 |
+| ouro | 4096 | 100 | 8 | 2.5845 | 1.7701 |
+| ouro | 8192 | 32 | 8 | 6.4635 | 0.3389 |
+| ouro | 8192 | 64 | 8 | 3.1815 | 0.6885 |
+| ouro | 8192 | 100 | 8 | 2.0276 | 1.0803 |
+| ouro | 8192 | 200 | 8 | 1.0059 | 2.1776 |
+| ouro | 16384 | 100 | 5 | 1.0513 | 0.9483 |
+| huginn | 3500 | 32 | 3 | 0.8864 | 0.9559 |
+| huginn | 3500 | 64 | 3 | 0.4360 | 1.9433 |
+| huginn | 3500 | 100 | 3 | 0.2772 | 3.0561 |
+| huginn | 3900 | 32 | 3 | 0.8664 | 0.8721 |
+| huginn | 3900 | 64 | 3 | 0.4268 | 1.7705 |
+| huginn | 3900 | 100 | 3 | 0.2716 | 2.7824 |
 
-The best isolated P chunk need not be the best Serving chunk.
-The Serving screen therefore tests additional qualified C settings.
-It keeps wire-credit controls separate from token-chunk controls.
+RLT P timing excludes first Coda sampling.
+RLT prepared D includes first Coda sampling.
+Native AR P includes first sampling.
 
-## Prepared D references
+Its prepared D excludes preparation and first sampling.
+These boundaries are not additive E2E components.
 
-Units: requests/s. Each cell is the strongest measured legal finite cohort for that output cap.
-The batch column is essential. A large all-ready batch may not form with staggered online arrivals.
+## Actual native prepared D
 
-| Model | Input tokens | Output cap | D batch | Finite D rate | Strongest P / finite D |
-|---|---:|---:|---:|---:|---:|
-| Qwen3-8B | 3900 | 32 | 16 | 38.0846 | 0.272 |
-| Qwen3-8B | 3900 | 64 | 16 | 18.2469 | 0.568 |
-| Qwen3-8B | 3900 | 100 | 16 | 11.6238 | 0.891 |
-| Qwen3-8B | 8000 | 100 | 32 | 13.4841 | 0.339 |
-| Qwen3-8B | 8000 | 200 | 32 | 6.6554 | 0.687 |
-| Ouro R4 | 4096 | 64 | 8 | 4.0653 | 1.125 |
-| Ouro R4 | 4096 | 100 | 8 | 2.5845 | 1.770 |
-| Ouro R4 | 8192 | 32 | 8 | 6.4635 | 0.339 |
-| Ouro R4 | 8192 | 64 | 8 | 3.1815 | 0.689 |
-| Ouro R4 | 8192 | 100 | 8 | 2.0276 | 1.080 |
-| Ouro R4 | 8192 | 200 | 8 | 1.0059 | 2.178 |
-| Huginn R32 | 3500 | 32 | 3 | 0.8864 | 0.929 |
-| Huginn R32 | 3500 | 64 | 3 | 0.4360 | 1.888 |
-| Huginn R32 | 3500 | 100 | 3 | 0.2772 | 2.969 |
-| Huginn R32 | 3900 | 32 | 3 | 0.8664 | 0.872 |
-| Huginn R32 | 3900 | 64 | 3 | 0.4268 | 1.771 |
-| Huginn R32 | 3900 | 100 | 3 | 0.2716 | 2.782 |
 
-Qwen 8000-token B32 uses the official resident-prefix preparation control.
-Preparation runs sequentially outside the timed D interval.
-Each actual cache hit must retain at least `input_length - block_size` tokens.
-This avoids a large B32 Prefill activation peak in a Decode-capacity experiment.
-Main Serving still disables prefix caching and uses NIXL import.
-The preparation families are not pooled into one average.
+| Model | Input/output | Execution family | Effective async | Graph rows | Batch | D budget | D KV blocks | Independent starts | Requests/s | 95% CI |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| huginn | 3500/32 | sync_g4 | False | 4 | 4 | 128 | 28288 | 3 | 0.9977 | [0.9809755469454421,1.0085054922513141] |
+| ouro | 16384/32 | P2_L16384_O32 | True | 8 | 4 | 128 | 25088 | 3 | 2.2773 | [2.2574822377054202,2.303679747599995] |
+| ouro | 8192/32 | ORIGINAL | True | 8 | 8 | 128 | 25088 | 3 | 4.8017 | [4.5756507319094855,5.052604029863785] |
+| huginn | 3900/32 | sync_l3900_g4 | False | 4 | 3 | 128 | 24576 | 3 | 0.7748 | [0.7661993461172523,0.7805905884970411] |
+| huginn | 3500/32 | sync_g4 | False | 4 | 3 | 128 | 28288 | 3 | 0.7078 | [0.648876169431893,0.7509192510511276] |
+| huginn | 3900/32 | IGNORED_ASYNC_REQUEST_async_l3900_g4 | False | 4 | 3 | 128 | 24576 | 3 | 0.7785 | [0.7721293318734116,0.7834571849515013] |
+| huginn | 3500/32 | IGNORED_ASYNC_REQUEST_async_g4 | False | 4 | 3 | 128 | 28288 | 2 | 0.7727 | [0.7698062232341656,0.7756587030006564] |
+| huginn | 3500/32 | ORIGINAL | False | 8 | 3 | 128 | 28288 | 3 | 0.7539 | [0.7336999663417688,0.7910496826101309] |
+| huginn | 3500/32 | IGNORED_ASYNC_REQUEST_async_g4 | False | 4 | 4 | 128 | 28288 | 1 | 0.9933 | [null,null] |
 
-Huginn B3 is measured, not interpolated between B2 and B4.
-The measured 3900/32 B2 rate is approximately 0.6413 requests/s.
-B3 improves the isolated rate, but three D reservations can leave no room for another P request's reserved D state.
-The finite B3 result therefore does not certify simultaneous P/D operation at that rate.
+These timers start after actual native NIXL import and valid-state synchronization.
+They include first Coda and the native coordinator.
+Three starts remain a small inferential sample.
 
-## KV geometry and memory limits
+All-ready native service is still not sustainable online capacity.
+
+## Actual P-only device activity
+
+
+| Model | Input | Batch | Within-start repeats | Clean P service mean ms | Profiled P kernel fraction mean | Matched profile pairs within 5% |
+| --- | --- | --- | --- | --- | --- | --- |
+| huginn | 3500 | 1 | 3 | 1247.5405 | 0.8198 | 3 |
+| huginn | 3500 | 2 | 3 | 2499.4806 | 0.7842 | 3 |
+| huginn | 3500 | 3 | 3 | 3680.9474 | 0.8141 | 3 |
+| ouro | 8192 | 1 | 3 | 501.8168 | 0.6627 | 0 |
+| ouro | 8192 | 4 | 3 | 1884.5464 | 0.7597 | 3 |
+| ouro | 8192 | 8 | 3 | 3681.1340 | 0.7783 | 3 |
+| ouro | 16384 | 1 | 3 | 1014.4710 | 0.7990 | 3 |
+| ouro | 16384 | 2 | 3 | 2056.4719 | 0.7765 | 3 |
+| ouro | 16384 | 4 | 3 | 4080.6032 | 0.7791 | 3 |
+
+These local P cohorts have no D reservation or NIXL progress dependency.
+The table separates synchronized host service from recorded CUDA kernel activity.
+A non-kernel gap is not automatically CPU time or GPU idle.
+
+This diagnostic does not prove a universal P compute ceiling or native Serving capacity.
+See `p_duty_windows.csv` for individual exact-output and overhead checks.
+
+## Reserved KV versus active Decode requests
+
+
+| Run | Mean reserved D contexts | Mean pending D contexts | Mean active D contexts | Pending share of reserved context-time |
+| --- | --- | --- | --- | --- |
+| ext_final_huginn_l3500_c2048_r1_s0_v1 | 2.8549 | 0.9984 | 1.8565 | 0.3497 |
+| ext_final_huginn_l3500_cfull_r1_s0_v1 | 3.9118 | 0.9965 | 2.9153 | 0.2547 |
+| ext_final_ouro_l16384_c4096_r1_s0_v1 | 3.8644 | 2.9088 | 0.9556 | 0.7527 |
+| ext_final_ouro_l16384_cfull_r1_s0_v1 | 3.7129 | 2.9970 | 0.7159 | 0.8072 |
+| final_ouro_l8192_o32_pd_g1_c4096_r1_s0_v1 | 11.2438 | 10.0937 | 1.1501 | 0.8977 |
+| final_ouro_l8192_o32_pd_g1_cfull_r1_s0_v1 | 11.5175 | 9.2875 | 2.2300 | 0.8064 |
+
+These counts use native coordinator timestamps in the central arrival window.
+A pending reservation holds D KV before D activation.
+The pending interval can include P computation, transfer, and D admission.
+
+Reserved context-time equals pending context-time plus active context-time.
+These counts are not simultaneous GEMM rows, kernel busy time, or proof of GPU idle.
+See `native_D_reservation_accounting.csv` for every completed native PD pilot and final run.
+
+## KV accounting
+
+
+| Model | Baseline KV bytes/GPU | Blocks | Allocated planes | Valid Attention planes |
+| --- | --- | --- | --- | --- |
+| Ouro R4 | 70866960384 | 22528 | 96 | 96 |
+| Huginn R32 | 66437775360 | 24576 | 256 | 132 |
 
 Evidence type: MEASURED_ALLOCATION plus STRUCTURAL_ACCOUNTING.
+Huginn has 124 unused storage planes, or 48.4375% of the uniform allocation.
+This is not a measured speedup from compact KV storage.
 
-| Model | Actual KV pool bytes per GPU | Pool blocks | Physical layers per storage depth | Storage depths | KV heads | Head dimension |
-|---|---:|---:|---:|---:|---:|---:|
-| Ouro R4 | 70,866,960,384 | 22528 | 24 | 4 | 16 | 128 |
-| Huginn R32 | 66,437,775,360 | 24576 | 8 | 32 | 55 | 96 |
+Actual native transfer uses valid state, not every reserved storage plane.
 
-Huginn allocates 256 physical-layer/depth storage planes.
-Its valid full-depth model structure uses 132 logical Attention layers.
-The difference is 124 planes, or 48.4375% of the uniform allocation.
-The allocated geometry corresponds to 5,406,720 KV bytes per token before block rounding.
-The valid 132-layer geometry corresponds to 2,787,840 bytes per token.
-These are storage calculations, not measured speedups from compaction.
-This PoC does not implement compact KV storage.
+| Model | Physical Attention layers | Valid logical planes | Allocated logical planes | KV heads | Head dimension | Full-valid bytes/token | Uniform reserved bytes/token | Valid density / Qwen |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| ouro | 24 | 96 | 96 | 16 | 128 | 786432 | 786432 | 5.3333 |
+| huginn | 8 | 132 | 256 | 55 | 96 | 2787840 | 5406720 | 18.9062 |
+| qwen8 | 36 | 36 | 36 | 8 | 128 | 147456 | 147456 | 1.0000 |
 
-Actual native handoff payload is separate from reserved HBM.
-Measured 16-request calibration totals give the following payload per request.
+These equations use the pinned checkpoint configuration and observed runtime layout.
+They count K and V at BF16. They exclude block padding, metadata, temporary buffers, and incomplete valid frontiers.
+The Qwen checkpoint has 36 Attention layers and eight KV heads.
 
-| Model/input | Measured payload bytes/request | Measured fragment completions/request |
-|---|---:|---:|
-| Ouro 8192 | 6,442,455,040 | 97 |
-| Huginn 3900 | 10,872,554,880 | 163 |
-| Huginn 3500 | 9,757,418,880 | 146 |
+Ouro has 96 logical Attention planes and 16 KV heads.
+Huginn has 132 valid logical planes and 55 KV heads. Its uniform runtime reserves 256 planes.
+Both recurrent depth and KV-head width change this comparison. Neither factor is isolated here.
 
-Those payloads include the actual valid transfer state and hidden state.
-Do not equate reserved invalid storage planes with transferred valid bytes.
-The heavy byte checks compare valid KV and final hidden state, not uninitialized storage.
+See `model_kv_density_accounting.csv` and `kv_pool_allocation_identity.csv` for equations and allocation checks.
 
-## Interpretation limits
+| Model/input | Measured bytes/request | Fragment completions/request |
+| --- | --- | --- |
+| Ouro/8192 | 6442455040 | 97 |
+| Huginn/3900 | 10872554880 | 163 |
+| Huginn/3500 | 9757418880 | 146 |
 
-Ouro 8192/32 and 8192/64 are promising independent-rate candidates.
-That statement is not a measured online bottleneck classification.
-Huginn's 32-token D-only rate is closer to P service than its 100-token rate.
-KV reservation coupling can still prevent the larger D batch from forming online.
-Qwen's longer-output exact parity fails across arrival rates.
-Its finite service samples remain executed measurements, but they do not qualify its blocked Serving comparison.
+The fourth Huginn 3500/32 reservation requires 28,288 blocks.
+The larger measured KV pool occupies 76,472,647,680 bytes.
+Its D128 memory probe peaks at 83,746,289,664 allocated bytes.
 
-Actual P queue growth, P kernel activity, D readiness, KV credit, and frozen Decode SLOs remain necessary.
-The final report will separate those online results from the independent references above.
+This tight allocation does not guarantee arbitrary Prefill-continuation workspace.
+
+All batches and blocked memory cases remain in `capacity_samples.csv` and `capacity_summary.csv`.

@@ -17,9 +17,10 @@ def main():
         cell=current_refs.get(r['model']+'_L'+str(r['length']))
         if not cell or str(r['output_cap']) not in cell['D']:continue
         muP=max(v['mu_P'] for v in cell['chunks'].values());muD=cell['D'][str(r['output_cap'])]['mu_D'];matched_muD=None
-        native=next((s for s in native_references if s['model']==r['model'] and s['length']==r['length'] and
+        legal_native=[s for s in native_references if s['model']==r['model'] and s['length']==r['length'] and
             s['output_cap']==r['output_cap'] and s['D_token_budget']==r['D_token_budget'] and s['D_kv_blocks']==r['D_KV_blocks'] and
-            s['asynchronous']==r['asynchronous'] and s['graph_rows']==r['graph_rows'] and s['independent_starts']>=3),None)
+            s['asynchronous']==r['asynchronous'] and s['graph_rows']==r['graph_rows'] and s['independent_starts']>=3]
+        native=max(legal_native,key=lambda s:s['finite_requests_per_s_mean']) if legal_native else None
         if native:muD=native['finite_requests_per_s_mean']
         observed_batch=r.get('D_recurrent_batch_requests_mean',r.get('D_running_mean'))
         matched_D=None
@@ -57,6 +58,9 @@ def main():
             **checks,muP_finite=muP,muD_finite=muD,actual_P_completion_rate=p_rate,P_queue_slope=slope,P_queue_half_growth=growth,
             muD_reference_scope='Actual native PD, matching D budget and KV pool, three independent prepared-D starts.' if native else 'Local prepared-D optimistic screen. Staggered native validation is still required.',
             muD_reference_sources=native['source_runs'] if native else cell['D'][str(r['output_cap'])]['source'],
+            D_binding_KV_refusal_sample_fraction=credit,D_raw_KV_refusal_sample_fraction=r.get('D_raw_KV_refusal_sample_fraction'),
+            D_binding_slot_refusal_sample_fraction=slot,D_raw_slot_refusal_sample_fraction=r.get('D_raw_slot_refusal_sample_fraction'),
+            D_credit_scope='Binding refusals and raw simultaneous refusals are distinct. A binding-clear flag alone does not prove free memory for an arbitrary continuation.',
             P_profiled_kernel_busy_fraction=p_busy,D_profiled_kernel_busy_fraction=d_busy,
             D_observed_recurrent_batch_mean=observed_batch,D_reference_matched_batch=matched_D['batch'] if matched_D else None,
             D_finite_rate_at_observed_or_lower_batch=matched_muD,

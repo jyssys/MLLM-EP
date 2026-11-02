@@ -1,0 +1,84 @@
+[
+  {
+    "model": "huginn",
+    "source": "ext_final_huginn_l3500_c2048_r1_s1_v1",
+    "diagnostic": "ext_d_margin_huginn_c2048_v1",
+    "passed": true,
+    "count": 4,
+    "selection_purpose": "D_RESERVE_ONLY_WITHOUT_QUALIFIED_P_COMPUTE",
+    "diagnostic_ready_rate": 0.8701439765930429,
+    "exact_output_parity": true,
+    "request_TPOT_p95_ms": 127.68399437829372,
+    "TPOT_margin_limit_ms": 173.5576229169965,
+    "release_lag_p95_ms": 2.5774423964321613,
+    "ready_to_first_token_p95_ms": 83.69016130454837,
+    "full_work": {
+      "run": "ext_d_margin_huginn_c2048_v1",
+      "expected": 451968,
+      "observed": 451968,
+      "passed": true,
+      "scope": "Active recurrent rows, not padded physical GEMM work."
+    },
+    "valid_KV_hidden_byte_checks": {
+      "run": "ext_d_margin_huginn_c2048_v1",
+      "expected_requests": 4,
+      "valid_KV_hidden_byte_checks": 4,
+      "passed": true
+    },
+    "prepared_release_P_on_each_import": true,
+    "evidence": "MEASURED_NATIVE_PREPARED_STAGGERED_D",
+    "execution_family": "HUGINN_SOURCE_DRAIN_CONTROL_SYNC",
+    "scope": "Actual native NIXL import precedes the timer. Finite resident-KV stress at 1.2x observed P completion. This is not online sustainable capacity or a Prefill-offload safety guarantee."
+  },
+  {
+    "model": "ouro",
+    "source": "ext_final_ouro_l16384_cfull_r1_s2_v1",
+    "diagnostic": "ext_d_margin_ouro_c16384_v1",
+    "passed": true,
+    "count": 4,
+    "selection_purpose": "D_RESERVE_ONLY_WITHOUT_QUALIFIED_P_COMPUTE",
+    "diagnostic_ready_rate": 0.8720361206960897,
+    "exact_output_parity": true,
+    "request_TPOT_p95_ms": 44.46530779523234,
+    "TPOT_margin_limit_ms": 81.58644401722334,
+    "release_lag_p95_ms": 19.93239843286574,
+    "ready_to_first_token_p95_ms": 31.257900595664978,
+    "full_work": {
+      "run": "ext_d_margin_ouro_c16384_v1",
+      "expected": 262640,
+      "observed": 262640,
+      "passed": true,
+      "scope": "Active recurrent rows, not padded physical GEMM work."
+    },
+    "valid_KV_hidden_byte_checks": {
+      "run": "ext_d_margin_ouro_c16384_v1",
+      "expected_requests": 4,
+      "valid_KV_hidden_byte_checks": 4,
+      "passed": true
+    },
+    "prepared_release_P_on_each_import": true,
+    "evidence": "MEASURED_NATIVE_PREPARED_STAGGERED_D",
+    "execution_family": "P2_L16384_O32_BOUNDED_DRAIN",
+    "scope": "Actual native NIXL import precedes the timer. Finite resident-KV stress at 1.2x observed P completion. This is not online sustainable capacity or a Prefill-offload safety guarantee."
+  },
+  {
+    "model": "qwen8",
+    "source": "ext_final_qwen8_l8000_c4096_r1_s2_v1",
+    "diagnostic": "ext_d_margin_qwen8_c4096_v1",
+    "passed": true,
+    "count": 32,
+    "selection_purpose": "D_RESERVE_ONLY_WITHOUT_QUALIFIED_P_COMPUTE",
+    "diagnostic_ready_rate": 3.966452976478338,
+    "exact_output_parity": true,
+    "request_TPOT_p95_ms": 31.722064562675413,
+    "TPOT_margin_limit_ms": 44.88502209070115,
+    "release_lag_p95_ms": 27.36231335438788,
+    "ready_to_first_token_p95_ms": 68.34898381493986,
+    "full_work": null,
+    "valid_KV_hidden_byte_checks": null,
+    "prepared_release_P_on_each_import": false,
+    "evidence": "MEASURED_PREFIX_PREPARED_STAGGERED_D",
+    "execution_family": "BI_COMPILED_NO_GRAPH_P4",
+    "scope": "Official resident-prefix D preparation. Not native NIXL import. Finite resident-KV stress at 1.2x observed P completion. This is not online sustainable capacity or a Prefill-offload safety guarantee."
+  }
+]

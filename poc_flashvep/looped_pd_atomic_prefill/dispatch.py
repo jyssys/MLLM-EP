@@ -13,10 +13,18 @@ def pressure(name):
     except OSError:return 'NOT_AVAILABLE'
 
 
+def profile_stalled(cfg, worker_state, seconds_without_response):
+    return bool((cfg.get('nsys') or cfg.get('nsys_P_only')) and worker_state!='COMPLETE' and
+        seconds_without_response is not None and seconds_without_response>180)
+
+
 def main():
     p=argparse.ArgumentParser();p.add_argument('name');p.add_argument('--keep-quiet',action='store_true');a=p.parse_args()
     setup();path=ROOT/'configs'/a.name;cfg=json.loads(path.read_text())
     qualification=cfg.get('phase') in ('correctness','long_correctness','chunk_correctness','final_correctness')
+    if not qualification:
+        from .families import validate_runtime_family
+        validate_runtime_family(cfg)
     lease=(ROOT/'state/gpu_lease.lock').open('a+');fcntl.flock(lease,fcntl.LOCK_SH if qualification else fcntl.LOCK_EX)
     from .bootstrap import preserve
     preserve();folder=ROOT/'raw'/cfg['name']
@@ -40,6 +48,7 @@ def main():
         env.pop('ATOMIC_PD_WORKER',None);env['ATOMIC_NATIVE_COLOCATED']='1'
         env['PYTHONPATH']=str(SOURCE/'native_mixed_bootstrap')+os.pathsep+env['PYTHONPATH']
     runtime_names={'common.py','ar_worker.py','ar_capacity.py'} if cfg['model']=='qwen8' else {'common.py','runtime.py','rlt_worker.py','capacity_worker.py'}
+    if cfg['model']=='qwen8':runtime_names.add('families.py')
     runtime_names.add(cfg['worker']+'.py')
     if cfg['worker'] in ('capacity_worker','reference_worker'):runtime_names.add('local_metrics.py')
     sources=[p for p in SOURCE.glob('*.py') if p.name in runtime_names]
@@ -59,19 +68,44 @@ def main():
                 repo_HEAD=subprocess.check_output(['git','rev-parse','HEAD'],cwd=REPO,text=True).strip(),
                 source_archive_SHA256=digest(folder/'source.zip'),config_SHA256=digest(path),clean=not qualification,
                 isolation='DISJOINT_GPU_QUALIFICATION_NOT_CLEAN_TIMING' if qualification else 'EXCLUSIVE_ALL_GPU_QUIET_LANE'))
-            print('START',cfg['name'],child.pid,flush=True);deadline=time.monotonic()+cfg.get('timeout',3600)+900
-            stopped=None;stop_reason=None;host_sample=0.;failed_since=None
+            print('START',cfg['name'],child.pid,flush=True);started=time.monotonic()
+            profiled=bool(cfg.get('nsys') or cfg.get('nsys_P_only'))
+            deadline=started+min(cfg.get('timeout',3600)+900,1200) if profiled else started+cfg.get('timeout',3600)+900
+            stopped=None;stop_reason=None;host_sample=0.;failed_since=None;complete_since=None
+            progress_signature=None;last_progress=None
             while child.poll() is None:
                 if time.monotonic()-host_sample>=1:
                     host_sample=time.monotonic()
                     append(folder/'host_resource_samples.jsonl',dict(time=host_sample,load_average=os.getloadavg(),
                         CPU_pressure=pressure('cpu'),memory_pressure=pressure('memory'),IO_pressure=pressure('io')))
                 worker_status=folder/'status.json'
+                worker_state=None
                 if worker_status.exists():
-                    try:failed=json.loads(worker_status.read_text()).get('status')=='FAILED'
-                    except json.JSONDecodeError:failed=False
+                    try:worker_state=json.loads(worker_status.read_text()).get('status')
+                    except json.JSONDecodeError:pass
+                    failed=worker_state=='FAILED'
                     if failed and failed_since is None:failed_since=time.monotonic()
                     if failed_since is not None and time.monotonic()-failed_since>10:interrupted[0]=True
+                if profiled:
+                    signature=[]
+                    for filename in ('requests.jsonl','cohorts.jsonl'):
+                        progress=folder/filename
+                        if progress.exists():
+                            metadata=progress.stat()
+                            if metadata.st_size:signature.append((filename,metadata.st_size,metadata.st_mtime_ns))
+                    if signature and signature!=progress_signature:progress_signature=signature;last_progress=time.monotonic()
+                    reason=None
+                    if profile_stalled(cfg,worker_state,time.monotonic()-last_progress if last_progress is not None else None):
+                        reason='PROFILE_NO_RESPONSE_PROGRESS_180S'
+                    if last_progress is None and time.monotonic()-started>600:reason='PROFILE_NO_INITIAL_RESPONSE_600S'
+                    if worker_state=='COMPLETE':
+                        if complete_since is None:complete_since=time.monotonic()
+                        if time.monotonic()-complete_since>300:reason='PROFILE_FINALIZER_NO_EXIT_300S'
+                    if reason and stop_reason is None:
+                        stop_reason=reason;interrupted[0]=True
+                        write(folder/'profile_watchdog.json',dict(time=time.time(),reason=reason,worker_state=worker_state,
+                            response_file_signature=progress_signature,
+                            scope='Bounded profiler watchdog. Stop only the registered owned child session. Preserve partial evidence. No complete-run latency or CUDA-activity claim.'))
                 if interrupted[0] or time.monotonic()>deadline:
                     assert os.getsid(child.pid)==child.pid
                     if stopped is None:

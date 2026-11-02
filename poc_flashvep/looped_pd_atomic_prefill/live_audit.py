@@ -1,7 +1,10 @@
 """Stop further model expansion after an unexplained measured output difference."""
 import hashlib
+import importlib
 from .common import *
 from .evidence import rows,status,full_work,atomic
+from . import families
+importlib.reload(families)
 from .families import execution_family
 
 PERFORMANCE_PHASES={'qps_pilot','final_repeat','profile_control','paper_budget_control'}
@@ -26,6 +29,14 @@ def blocked(model,cfg=None):
 
 
 def verify(cfg):
+    from . import profile_prerequisite_gate
+    import importlib
+    importlib.reload(profile_prerequisite_gate)
+    try:profile_prerequisite_gate.advance()
+    except Exception as error:
+        import traceback
+        append(ROOT/'state/profile_prerequisite_gate_errors.jsonl',dict(time=time.time(),error=repr(error),traceback=traceback.format_exc(),
+            scope='CPU gate error. Preserve evidence and continue required output/work audits. Do not infer a performance pass.'))
     from .h_workspace_controls import advance
     try:advance()
     except Exception as error:
@@ -33,7 +44,7 @@ def verify(cfg):
         append(ROOT/'state/control_generation_errors.jsonl',dict(time=time.time(),error=repr(error),traceback=traceback.format_exc(),
             scope='Optional control generation failed. Do not claim its gate passed. Existing qualified jobs can continue.'))
     if cfg.get('phase') not in PERFORMANCE_PHASES:return
-    if status(cfg['name'])=='FAILED' and not cfg.get('nsys'):
+    if status(cfg['name'])=='FAILED' and not any(cfg.get(k) for k in ('nsys','nsys_P_only')):
         dispatcher=ROOT/'raw'/cfg['name']/'dispatcher_result.json'
         if dispatcher.exists() and json.loads(dispatcher.read_text()).get('stop_reason')=='USER_11H_DEADLINE':
             append(ROOT/'state/deadline_truncated_runs.jsonl',dict(time=time.time(),name=cfg['name'],
@@ -63,9 +74,13 @@ def verify(cfg):
             canonical[key]=dict(name=cfg['name'],output_ids=r['output_ids']);new+=1
     work=full_work(cfg['name']) if cfg['model']!='qwen8' else dict(passed=True,scope='Native AR, no recurrent work counter.')
     span=atomic(cfg['name']) if cfg['atomic_prompt'] and cfg['arm'] not in ('DP','DP2','DP_Chunked') else dict(passed=True,scope='No Atomic-P assertion for chunked or colocated controls.')
+    output_scope=('The named AR recovery family shares canonical output checks across native PD and DP2. '
+        if cfg.get('ar_execution_family') else
+        'Original AR Native-PD and colocated families retain separate canonical outputs because their cross-mode gate failed. ')
     result=dict(time=time.time(),name=cfg['name'],previously_seen_inputs=compared,new_or_extended_references=new,
         output_failures=failures,work=work,atomic=span,passed=not failures and work['passed'] and span['passed'],
-        scope='Exact observed common output prefix for matched input IDs, seed, and native max-context geometry. AR Native-PD and colocated families are separate because their 7/8 cross-mode parity failure is unresolved. Within-cell C, rate, and independent-start comparisons remain exact. Not original-HF fidelity or downstream accuracy.')
+        scope='Exact observed common output prefix for matched input IDs, seed, and native max-context geometry. '+output_scope+
+            'Within-cell C, rate, and independent-start comparisons remain exact. Not original-HF fidelity or downstream accuracy.')
     append(ROOT/'state/live_correctness_audits.jsonl',result)
     if not result['passed']:
         p=ROOT/'state/online_correctness_blockers.json';blocks=json.loads(p.read_text()) if p.exists() else {}

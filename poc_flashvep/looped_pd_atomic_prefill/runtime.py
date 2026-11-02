@@ -47,6 +47,18 @@ def install():
     from vllm_rlt.worker.model_runner import ModelRunner
     from vllm_rlt.engine.stage_engine import StageEngine
     from vllm_rlt.request import RequestPhase
+    initialize_stage=StageEngine.__init__
+    def observe_stage_configuration(self,*args,**kwargs):
+        value=initialize_stage(self,*args,**kwargs)
+        write(ROOT/'raw'/cfg['name']/f'effective_execution_{os.getpid()}.json',dict(pid=os.getpid(),role=self.stage_config.role,
+            requested_asynchronous=cfg.get('asynchronous'),effective_async_scheduling=self.execution_config.async_scheduling,
+            effective_prefill_uva=self.execution_config.prefill_uva,effective_cuda_graphs=self.execution_config.cuda_graphs,
+            effective_graph_max_rows=self.execution_config.cuda_graph_max_batch_size,
+            scheduler_max_sequences=self.scheduler.config.max_num_seqs,
+            scheduler_token_budget=self.scheduler.config.max_num_batched_tokens,KV_blocks=self.cache_manager.num_blocks,
+            scope='Actual StageEngine configuration after native construction. Recorded before measurement, not inferred from the requested flag.'))
+        return value
+    StageEngine.__init__=observe_stage_configuration
     submit=ModelRunner.submit;close=StageEngine.close
     prompt_spans=[];histogram=collections.Counter();time_histogram=collections.Counter();roles={}
     transport_CPU=collections.Counter();transport_waits=collections.Counter();transport_samples=[]

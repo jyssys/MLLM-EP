@@ -7,6 +7,21 @@ from .evidence import status,compare,full_work,transfer
 STATE=ROOT/'state/extension_discovery_20261102.json'
 
 
+def queue_priority(cfg):
+    if cfg.get('P_duty_diagnostic'):return 0
+    if cfg.get('extension') and cfg['model'] in ('ouro','huginn'):
+        if cfg['phase'] in ('independent_capacity','independent_native_D'):return 0
+        if cfg['phase']=='qps_pilot':return 1
+        if cfg['phase']=='final_repeat' and cfg.get('rate_index')!=1:return 4
+        return 2
+    if cfg.get('ar_execution_family','').startswith('BI_COMPILED_NO_GRAPH'):
+        if cfg['phase']=='qps_pilot' and cfg.get('ar_execution_family')=='BI_COMPILED_NO_GRAPH_P4' and cfg.get('rate_factor') not in (.75,1.,1.25):return 5
+        if cfg['phase']=='final_repeat' and cfg['arm']=='DP2':return 5
+        return 5 if cfg['phase']=='final_repeat' and cfg.get('rate_index')!=1 else 3
+    if cfg['model']=='huginn' and cfg['phase']=='final_repeat' and cfg.get('rate_index')==1:return 6
+    return 7
+
+
 def enqueue(values):
     if not values:return
     import fcntl
@@ -20,6 +35,7 @@ def enqueue(values):
             c=json.loads((ROOT/'configs'/filename).read_text())
             target=quality if terminal(c['name'])=='PENDING' and c['phase'] in ('correctness','long_correctness','chunk_correctness','final_correctness') else rest
             target.append(filename)
+        rest.sort(key=lambda filename:queue_priority(json.loads((ROOT/'configs'/filename).read_text())))
         write(path,dict(configs=quality+rest))
 
 

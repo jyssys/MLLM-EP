@@ -37,7 +37,7 @@ def main():
             for c in pending_jobs():skips[c['name']]=dict(time=now,status='NOT_RUN_USER_11H_DEADLINE')
             write(p,skips)
             write(ROOT/'state/extension_terminal_20261102.json',dict(time=now,status='TIME_BUDGET_CLOSEOUT',
-                reason='No new GPU job after 10:00 KST. Active owned jobs have a 10:15 stop. Preserve incomplete questions as unmeasured.'))
+                reason='The configured GPU-start cutoff is reached. Active owned jobs have a 10:15 stop. Preserve incomplete questions as unmeasured.'))
             write(ROOT/'state/search_stage.json',dict(time=now,stage='STOPPED_USER_11H_DEADLINE'))
             break
         try:

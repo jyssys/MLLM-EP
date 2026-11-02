@@ -38,11 +38,13 @@ def atomic(name):
 def compare(a,b):
     x={r['sample_id']:r for r in rows(a)};y={r['sample_id']:r for r in rows(b)}
     failures=[]
+    matched_inputs=sum(i in y and all(r[k]==y[i][k] for k in ('input_ids','seed')) for i,r in x.items())
     for i,r in x.items():
         other=y.get(i)
         if other is None or any(r[k]!=other[k] for k in ('input_ids','output_ids','seed')):
             failures.append(dict(sample_id=i,reference=r.get('output_ids'),candidate=other.get('output_ids') if other else None))
     return dict(reference=a,candidate=b,compared=len(x),candidate_rows=len(y),passed=bool(x) and len(x)==len(y) and not failures,
+        matched_input_seed_rows=matched_inputs,comparison_applicable=bool(x) and len(x)==len(y)==matched_inputs,
         failures=failures,scope='Internal exact output sequence parity. Not original-HF fidelity or downstream accuracy.')
 
 

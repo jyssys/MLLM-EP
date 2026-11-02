@@ -25,16 +25,32 @@ def terminal_stage():
     return None
 
 
+def verify_completed_analysis():
+    manifest=json.loads((ROOT/'state/analysis_source_manifest.json').read_text())
+    expected={r['path']:r['SHA256'] for r in manifest['files']}
+    observed={str(p.relative_to(REPO)):digest(p) for p in SOURCE.rglob('*.py')}
+    assert observed==expected,'Source changed after completed analysis. Regenerate the reports before publication.'
+    reports={name:digest(REPO/'poc_flashvep/reports'/name) for name in REPORTS}
+    assert (ROOT/'final_model_decisions.json').exists()
+    return dict(time=time.time(),status='VERIFIED_COMPLETED_CPU_ANALYSIS',report_SHA256=reports,
+        analysis_source_SHA256=manifest['SHA256'],scope='Resume publication only. No GPU gate or analysis result is bypassed.')
+
+
 def main():
-    parser=argparse.ArgumentParser();parser.add_argument('--wait',action='store_true');parser.add_argument('--push',action='store_true');a=parser.parse_args();setup()
+    parser=argparse.ArgumentParser();parser.add_argument('--wait',action='store_true');parser.add_argument('--push',action='store_true')
+    parser.add_argument('--resume-publication',action='store_true');a=parser.parse_args();setup()
     lease=(ROOT/'state/closeout.lock').open('a+')
     fcntl.flock(lease,fcntl.LOCK_EX|fcntl.LOCK_NB)
     marker=ROOT/'state/closeout_status.json'
     if (ROOT/'state/CLOSED.json').exists():return
+    if a.resume_publication and marker.exists():
+        append(ROOT/'state/closeout_resume_history.jsonl',json.loads(marker.read_text()))
     try:
         while True:
             stage=terminal_stage()
             active=processes('dispatch')+processes('campaign')
+            for module in ('extension_confirmation','extension_candidate_profiles','p_duty'):
+                active+=processes(module)
             if stage and not active:break
             write(marker,dict(time=time.time(),pid=os.getpid(),status='WAITING_FOR_GPU_TERMINAL',search_terminal=stage,managed_processes=active))
             if not a.wait:raise RuntimeError('GPU search has not reached a terminal state. No final claim or publication was made.')
@@ -55,9 +71,13 @@ def main():
         write(marker,dict(time=time.time(),pid=os.getpid(),status='CPU_EVIDENCE_REVIEW',stage=stage))
         run('poc_flashvep.looped_pd_atomic_prefill.bootstrap')
         subprocess.run([str(PYTHON),'-m','unittest','poc_flashvep.looped_pd_atomic_prefill.test_contracts','-q'],cwd=REPO,check=True)
-        for module in ('analyze','matrix','profiles','native_capacity_controls','classify','uncertainty','sensitivity','figures'):
-            run('poc_flashvep.looped_pd_atomic_prefill.'+module,*(['analyze'] if module=='native_capacity_controls' else []))
-        run('poc_flashvep.looped_pd_atomic_prefill.reporting')
+        if a.resume_publication:
+            write(ROOT/'state/publication_resume_verification.json',verify_completed_analysis())
+        else:
+            for module in ('analyze','matrix','profiles','native_capacity_controls','margin','classify','uncertainty','sensitivity','figures','reservation_accounting','architecture_accounting'):
+                run('poc_flashvep.looped_pd_atomic_prefill.'+module,*(['analyze'] if module=='native_capacity_controls' else []))
+            run('poc_flashvep.looped_pd_atomic_prefill.p_duty','analyze')
+            run('poc_flashvep.looped_pd_atomic_prefill.reporting')
         from .resources import inherited as resources
         with (ROOT/'state/gpu_lease.lock').open('a+') as gpu_lease:
             fcntl.flock(gpu_lease,fcntl.LOCK_EX)

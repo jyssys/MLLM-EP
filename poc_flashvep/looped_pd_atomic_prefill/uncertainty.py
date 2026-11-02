@@ -3,7 +3,7 @@ import random
 import statistics
 from .common import *
 from .analyze import serving,save_csv,percentile
-from .evidence import rows
+from .evidence import rows,compare
 
 
 def bootstrap(values,seed=20261101):
@@ -15,14 +15,26 @@ def bootstrap(values,seed=20261101):
 
 def main():
     runs=[r for r in serving() if r['phase']=='final_repeat' and r['eligible_clean']];groups={}
-    for r in runs:groups.setdefault((r['model'],r['length'],r['output_cap'],r['target_QPS']),[]).append(r)
-    output=[]
+    for r in runs:groups.setdefault((r['model'],r['length'],r['output_cap'],r['target_QPS'],r['execution_family'],r['SLO_file']),[]).append(r)
+    output=[];excluded=[]
     for cell,group in groups.items():
         methods=sorted({(r['arm'],r['chunk'],r['transport_control']) for r in group})
         for ai,a in enumerate(methods):
             for b in methods[ai+1:]:
                 x={r['independent_start']:r for r in group if (r['arm'],r['chunk'],r['transport_control'])==a};y={r['independent_start']:r for r in group if (r['arm'],r['chunk'],r['transport_control'])==b}
                 starts=sorted(set(x)&set(y))
+                matched=[]
+                for start in starts:
+                    u=json.loads((ROOT/'configs'/(x[start]['name']+'.json')).read_text())
+                    v=json.loads((ROOT/'configs'/(y[start]['name']+'.json')).read_text())
+                    fields=('count','seed','prompt_ids','request_caps','arrival_offsets')
+                    differences=[k for k in fields if u.get(k)!=v.get(k)]
+                    parity=compare(u['name'],v['name'])['passed'] if not differences else False
+                    if not differences and parity:matched.append(start)
+                    else:excluded.append(dict(method_A=u['name'],method_B=v['name'],start=start,
+                        mismatched_configuration_fields=differences,exact_same_output=parity,
+                        reason='Do not report a paired same-work interval across different arrivals, request cohorts, Sampling seeds, or outputs.'))
+                starts=matched
                 if not starts:continue
                 for metric in ('TTFT_ms_p95','request_TPOT_ms_p95','E2E_ms_p95','requests_per_s','output_tokens_per_s','SLO_goodput'):
                     paired=[(x[s][metric],y[s][metric]) for s in starts if isinstance(x[s].get(metric),(int,float)) and isinstance(y[s].get(metric),(int,float))]
@@ -31,13 +43,15 @@ def main():
                     higher=metric in ('requests_per_s','output_tokens_per_s','SLO_goodput')
                     ratios=[v/u if higher else u/v for u,v in paired if u>0 and v>0];rlo,rhi=bootstrap(ratios)
                     output.append(dict(model=cell[0],length=cell[1],output_cap=cell[2],target_QPS=cell[3],method_A=a,method_B=b,
+                        execution_family=cell[4],SLO_file=cell[5],
                         metric=metric,independent_paired_starts=len(paired),B_minus_A_mean=statistics.mean(difference),
                         paired_bootstrap95_low=lo,paired_bootstrap95_high=hi,
                         B_relative_performance_ratio_mean=statistics.mean(ratios) if ratios else None,
                         ratio_bootstrap95_low=rlo,ratio_bootstrap95_high=rhi,
                         ratio_scope='B/A for throughput and goodput. A/B for latency. Zero-valued pairs have no ratio.',
                         scope='Paired resampling of server starts. N=3 remains a small inferential sample. Do not treat queued requests as independent starts.'))
-    save_csv('paired_start_comparisons.csv',output);print('PAIRED_START_METRICS',len(output));return output
+    save_csv('paired_start_comparisons.csv',output);save_csv('excluded_unpaired_comparisons.csv',excluded)
+    print('PAIRED_START_METRICS',len(output));return output
 
 
 if __name__=='__main__':main()

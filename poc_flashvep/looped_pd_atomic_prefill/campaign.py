@@ -28,7 +28,7 @@ def main():
         extension=ROOT/'configs/extension_budget_20261102.json'
         if extension.exists() and time.time()>=json.loads(extension.read_text())['new_GPU_job_cutoff_epoch']:
             write(ROOT/'state/search_stage.json',dict(time=time.time(),stage='STOPPED_USER_11H_DEADLINE',
-                reason='No new GPU job after 10:00 KST. Preserve time for analysis, restoration, and publication.'))
+                reason='The configured GPU-start cutoff is reached. Preserve time for analysis, restoration, and publication.'))
             write(controller,dict(time=time.time(),status='STOPPED_USER_11H_DEADLINE'));break
         names=json.loads(plan.read_text())['configs'];pending=[]
         for filename in names:

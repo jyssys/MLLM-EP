@@ -15,7 +15,11 @@ def main():
             held.append((destination,fields))
             if len(held)==cfg['count']:
                 for target,payload in held:send(target,'commit',**payload)
-        engine._send=hold
+        # The D can_schedule barrier already blocks all model work until
+        # every native import is ready. Allow earlier imports to acknowledge
+        # and release P storage when the diagnostic explicitly requests it.
+        # This changes preparation only, not the timed D or Serving policy.
+        engine._send=send if cfg.get('prepared_release_P_on_each_import') else hold
         try:result=original(engine,inputs,args,run,False,contract)
         finally:engine._send=send
         ready=list(folder.glob('prepared_D_ready_*.json'));assert len(ready)==1,'Missing unique native valid-KV D barrier'

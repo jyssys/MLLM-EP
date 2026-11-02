@@ -3,7 +3,7 @@ import argparse
 import statistics
 from .common import *
 from .evidence import records,rows,status,full_work
-from .families import execution_family
+from .families import execution_family,effective_asynchronous
 
 
 def plan():
@@ -38,13 +38,18 @@ def analyze():
         reference={r['sample_id']:r for r in rows(cfg['native_capacity_reference'])}
         parity=len(values)==cfg['count'] and all(r['output_ids']==reference[r['sample_id']]['output_ids'] for r in values)
         work=full_work(name);duration=window['end']-window['start']
+        constructed={v['role']:v for v in [json.loads(p.read_text()) for p in folder.glob('effective_execution_*.json')]}
         value=dict(name=name,model=cfg['model'],length=cfg['length'],output_cap=cfg['cap'],batch=cfg['count'],
-            execution_family=execution_family(cfg),asynchronous=cfg['asynchronous'],graph_rows=cfg.get('graph_rows',cfg['capacity']),
+            execution_family=execution_family(cfg),asynchronous=effective_asynchronous(cfg),requested_asynchronous=cfg['asynchronous'],graph_rows=cfg.get('graph_rows',cfg['capacity']),
+            execution_flag_scope='SOURCE_AUDIT_HUGINN_SYNC_ONLY' if cfg['asynchronous'] and cfg['model']=='huginn' else 'REQUESTED_AND_SUPPORTED_CONFIGURATION',
             D_token_budget=cfg['D_token_budget'],D_kv_blocks=cfg['D_kv_blocks'],gpus=cfg['gpus'],independent_start=cfg['independent_start'],
             prepared_D_native_service_s=duration,finite_requests_per_s=len(values)/duration,exact_output_parity=parity,
             full_depth_work_pass=work['passed'],passed=parity and work['passed'],
             evidence='MEASURED_NATIVE_PREPARED_D_WITH_FIRST_CODA',scope='Finite all-ready native PD D service. P preparation and transfer precede the timer. Not staggered online capacity.')
         samples.append(value)
+        if 'decode' in constructed:
+            value.update(asynchronous=constructed['decode']['effective_async_scheduling'],graph_rows=constructed['decode']['effective_graph_max_rows'],
+                execution_flag_scope='MEASURED_STAGE_STARTUP_CONFIGURATION')
         if value['passed']:
             key=(cfg['model'],cfg['length'],cfg['cap'],cfg['count'],cfg['D_token_budget'],cfg['D_kv_blocks'],execution_family(cfg));groups.setdefault(key,[]).append(value)
     summary=[]
