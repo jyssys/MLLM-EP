@@ -1,0 +1,59 @@
+Attention implementation: {'backend': 'flash_attn', 'generation': 4, 'package': 'flash-attn-4', 'version': '4.0.0b30'}
+2026-11-02 18:10:29 NIXL INFO    _api.py:407 Backend UCX was instantiated
+2026-11-02 18:10:29 NIXL INFO    _api.py:285 Initialized NIXL agent: 47eab925456244f387e8d4e50e70d3cd-decode-1
+/home/esjung/.venvs/ouro-chunk-loop-prefill/lib/python3.14/site-packages/nvidia_cutlass_dsl/dsl_packages/cutlass/base_dsl/dsl.py:2300: UserWarning: Argument aux_data (position 17) cannot be converted to a JitArgument for function 'cutlass___call___flash_attncuteflash_fwd_sm90FlashAttentionForwardSm90_object_at__Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_None_01020'. Its type `<class 'flash_attn.cute.utils.AuxData'>` is not supported. If the value is known at compile time, annotate it: `aux_data: Constexpr`. Otherwise, implement the `JitArgument` or `DynamicExpression` protocol for type `<class 'flash_attn.cute.utils.AuxData'>`, or register a custom argument adapter.
+  exe_args, func_types, adapted_args = self.generate_mlir_function_types(
+DONE recovery_huginn_3500_32_prewarmed_profile24_descriptor 0 2 9869.62
+DONE recovery_huginn_3500_32_prewarmed_profile24_descriptor 1 2 11558.75
+DONE recovery_huginn_3500_32_prewarmed_profile24_descriptor 0 32 4989.97
+DONE recovery_huginn_3500_32_prewarmed_profile24_descriptor 1 32 6585.07
+DONE recovery_huginn_3500_32_prewarmed_profile24_descriptor 2 32 6991.64
+DONE recovery_huginn_3500_32_prewarmed_profile24_descriptor 3 32 6219.08
+DONE recovery_huginn_3500_32_prewarmed_profile24_descriptor 4 32 7609.45
+DONE recovery_huginn_3500_32_prewarmed_profile24_descriptor 5 32 9007.18
+DONE recovery_huginn_3500_32_prewarmed_profile24_descriptor 6 32 10214.19
+DONE recovery_huginn_3500_32_prewarmed_profile24_descriptor 7 32 11880.64
+DONE recovery_huginn_3500_32_prewarmed_profile24_descriptor 8 32 12905.6
+DONE recovery_huginn_3500_32_prewarmed_profile24_descriptor 9 32 14365.14
+DONE recovery_huginn_3500_32_prewarmed_profile24_descriptor 10 32 14179.91
+DONE recovery_huginn_3500_32_prewarmed_profile24_descriptor 11 32 15861.17
+DONE recovery_huginn_3500_32_prewarmed_profile24_descriptor 12 32 13306.9
+DONE recovery_huginn_3500_32_prewarmed_profile24_descriptor 13 32 14702.74
+DONE recovery_huginn_3500_32_prewarmed_profile24_descriptor 14 32 15163.13
+DONE recovery_huginn_3500_32_prewarmed_profile24_descriptor 15 32 13373.11
+DONE recovery_huginn_3500_32_prewarmed_profile24_descriptor 16 32 13380.58
+DONE recovery_huginn_3500_32_prewarmed_profile24_descriptor 17 32 12111.78
+DONE recovery_huginn_3500_32_prewarmed_profile24_descriptor 18 32 11517.05
+DONE recovery_huginn_3500_32_prewarmed_profile24_descriptor 19 32 12161.98
+DONE recovery_huginn_3500_32_prewarmed_profile24_descriptor 20 32 12779.79
+DONE recovery_huginn_3500_32_prewarmed_profile24_descriptor 21 32 12815.94
+DONE recovery_huginn_3500_32_prewarmed_profile24_descriptor 22 32 14179.56
+DONE recovery_huginn_3500_32_prewarmed_profile24_descriptor 23 32 14724.88
+[1793610714.732828] [cloud-0n58xq:4037077:0]        cuda_ctx.c:23   UCX  ERROR cuDevicePrimaryCtxGetState(cuda_device, &flags, &active) failed: unrecognized error code 4
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_headroom_recovery/worker.py", line 30, in <module>
+    main()
+    ~~~~^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_headroom_recovery/worker.py", line 26, in main
+    module.main()
+    ~~~~~~~~~~~^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_atomic_prefill/rlt_worker.py", line 78, in main
+    inherited.main()
+    ~~~~~~~~~~~~~~^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/adaptive_loop_token_pd_2gpu/worker.py", line 169, in main
+    sys.argv=flags;base.main()
+                   ~~~~~~~~~^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_abc/worker.py", line 221, in main
+    try:run(args)
+        ~~~^^^^^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_abc/worker.py", line 195, in run
+    engine.close()
+    ~~~~~~~~~~~~^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/pd/engine.py", line 627, in close
+    self._wait(lambda: all(p.client.stopped for p in self.peers.values()), deadline)
+    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/pd/engine.py", line 171, in _wait
+    raise TimeoutError("PD worker startup or shutdown deadline exceeded")
+TimeoutError: PD worker startup or shutdown deadline exceeded
