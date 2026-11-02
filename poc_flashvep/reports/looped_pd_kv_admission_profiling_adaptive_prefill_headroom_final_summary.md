@@ -520,3 +520,27 @@ A new 2560/32 request needs 5,184 blocks, about 13.052 GiB, under the current un
 The smaller hypothetical probe fits its block screen while the next long request does not.
 The sampled refusal frequency is 28/43, not an exclusive E2E waiting fraction or a request failure rate.
 All actual borrowing and continuation-admission claims remain NOT_MEASURED.
+
+## Verified evidence release
+
+The complete evidence release is commit `6c61db070e9b80dd28a1f9e53cd823d91517cbc4`.
+Its branch is `flashvep/looped-pd-kv-profile-headroom-recovery-results`.
+The ordinary push and independent remote SHA query agree.
+The later receipt commit adds publication records without changing measured results.
+The active worktree branch and original staged index remain unchanged.
+
+The release preserves 49 oversized original files through 474 lossless archive parts.
+The archive manifest records original and part SHA256 values.
+The builder decompresses every part and checks its exact original chunk bytes.
+Every original local file remains intact.
+Live burner logs, locks, and redundant incomplete temporary archive packages are not publication evidence.
+The underlying failed-run traces and failure logs remain preserved.
+
+The release includes 18 figures, each with PNG and SVG output.
+It also includes per-request records, host E2E percentages, GPU intervals, memory accounting, and explicit failed/unrun rows.
+The CPU regression suites pass 15 + 2 + 3 tests.
+The 219 recorded full-depth audits contain no failed completed-job work check.
+
+The resource check confirms approved managed burners on all eight GPUs after measured work.
+`state/resource_closeout_verified.json` contains the actual PID, UUID, memory, and utilization snapshot.
+`state/results_publication.json` and `state/results_publication_batches.jsonl` contain the verified release history.
