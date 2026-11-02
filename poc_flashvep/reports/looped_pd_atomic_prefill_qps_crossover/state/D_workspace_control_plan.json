@@ -1,0 +1,8 @@
+{
+  "configs": [
+    "qual_ouro_d128_l8192_o32_v1.json",
+    "qual_ouro_d128_kv25088_l8192_o32_v1.json"
+  ],
+  "reason": "Code audit shows that the inherited harness passes the large P token budget to the decode-only scheduler. ModelRunner preallocates static and asynchronous workspaces from that budget. Test supported D128, then a larger D-only KV pool, without changing active decode slots, Graph8, weights, or recurrent depth.",
+  "memory_scope": "The larger KV pool is only qualified after initialization and byte checks. OOM remains a failed configuration, not an implicit size reduction."
+}
