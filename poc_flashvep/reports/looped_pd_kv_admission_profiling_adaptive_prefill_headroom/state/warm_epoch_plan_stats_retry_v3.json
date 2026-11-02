@@ -1,0 +1,70 @@
+{
+  "created": 1793618500.2171652,
+  "models": [
+    {
+      "model": "ouro",
+      "reference": "primary_ouro_l6144_o64_c6144_gate8",
+      "byte_gate": "warm_epoch_ouro_native_gate2_stats_retry_v3",
+      "output_gate": "warm_epoch_ouro_native_gate8",
+      "controls": [
+        "graph_control_ouro_cold_sync_q2p0_n24",
+        "graph_control_ouro_cold_async_q2p0_n24",
+        "graph_control_ouro_warm_async_q2p0_n24"
+      ],
+      "pilots": [
+        "warm_epoch_ouro_c6144_q1p5_pilot24",
+        "warm_epoch_ouro_c6144_q2p5_pilot24",
+        "warm_epoch_ouro_c6144_q3p0_pilot24",
+        "warm_epoch_ouro_c2048_q1p5_pilot24",
+        "warm_epoch_ouro_c2048_q2p5_pilot24",
+        "warm_epoch_ouro_c2048_q3p0_pilot24"
+      ],
+      "DP_gates": [
+        "warm_aggregated_ouro_c512_gate8",
+        "warm_aggregated_ouro_c2048_gate8"
+      ],
+      "DP_pilots": [
+        "warm_aggregated_ouro_c512_q1p5_pilot24",
+        "warm_aggregated_ouro_c512_q2p5_pilot24",
+        "warm_aggregated_ouro_c512_q3p0_pilot24",
+        "warm_aggregated_ouro_c2048_q1p5_pilot24",
+        "warm_aggregated_ouro_c2048_q2p5_pilot24",
+        "warm_aggregated_ouro_c2048_q3p0_pilot24"
+      ]
+    },
+    {
+      "model": "huginn",
+      "reference": "primary_huginn_l2560_o32_c2560_gate8_readback900_v2",
+      "byte_gate": "warm_epoch_huginn_native_gate2",
+      "output_gate": "warm_epoch_huginn_native_gate8",
+      "controls": [
+        "graph_control_huginn_cold_sync_q1p0_n24",
+        "graph_control_huginn_cold_async_q1p0_n24",
+        "graph_control_huginn_warm_async_q1p0_n24"
+      ],
+      "pilots": [
+        "warm_epoch_huginn_c2560_q0p6_pilot24",
+        "warm_epoch_huginn_c2560_q1p0_pilot24",
+        "warm_epoch_huginn_c2560_q1p2_pilot24",
+        "warm_epoch_huginn_c2048_q0p6_pilot24",
+        "warm_epoch_huginn_c2048_q1p0_pilot24",
+        "warm_epoch_huginn_c2048_q1p2_pilot24"
+      ],
+      "DP_gates": [
+        "warm_aggregated_huginn_c512_gate8",
+        "warm_aggregated_huginn_c2048_gate8"
+      ],
+      "DP_pilots": [
+        "warm_aggregated_huginn_c512_q0p6_pilot24",
+        "warm_aggregated_huginn_c512_q1p0_pilot24",
+        "warm_aggregated_huginn_c512_q1p2_pilot24",
+        "warm_aggregated_huginn_c2048_q0p6_pilot24",
+        "warm_aggregated_huginn_c2048_q1p0_pilot24",
+        "warm_aggregated_huginn_c2048_q1p2_pilot24"
+      ]
+    }
+  ],
+  "scope": "Both PD and Native Mixed DP2 keep the original full-prompt warm-up, then warm supported native graph row geometries with actual fixed-depth requests. Extra short prefixes are startup only. Measured prompts, arrivals, outputs and frozen SLOs do not change. No graph implementation, precision or model weight changes.",
+  "revision_reason": "The original N2 warm-up control failed after valid startup responses because coordinator stats use a different schema from worker counters. Preserve that namespace. The retry uses peer StageWorker stats, not altered model work.",
+  "revised": 1793619606.3053355
+}

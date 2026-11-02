@@ -1,0 +1,44 @@
+{
+  "stage": "GRAPH_LIMIT_CONTROL_COMPLETE_REVIEW_REQUIRED",
+  "results": [
+    {
+      "name": "warm_huginn_graph_limit_Dslots4_gate2",
+      "passed": true
+    },
+    {
+      "name": "warm_huginn_graph_limit_Dslots4_gate8",
+      "passed": true
+    },
+    {
+      "name": "warm_huginn_Dslots4_c2560_q0p6_pilot24",
+      "passed": true
+    },
+    {
+      "name": "warm_huginn_Dslots4_c2560_q1p0_pilot24",
+      "passed": true
+    },
+    {
+      "name": "warm_huginn_Dslots4_c2560_q1p2_pilot24",
+      "passed": true
+    },
+    {
+      "name": "warm_huginn_Dslots4_c2048_q0p6_pilot24",
+      "passed": true
+    },
+    {
+      "name": "warm_huginn_Dslots4_c2048_q1p0_pilot24",
+      "passed": true
+    },
+    {
+      "name": "warm_huginn_Dslots4_c2048_q1p2_pilot24",
+      "passed": true
+    }
+  ],
+  "time": 1793626441.1321187,
+  "hypothesis": "The existing native graph supports <=4 query rows. The previous D-slot limit allows 5-row eager fallbacks. Limiting active D compute to four rows should remove that path without changing precision, depth, or graph implementation.",
+  "alternative_hypotheses": [
+    "KV admission can remain binding even if the tail improves.",
+    "CPU submission or other scheduling variation can retain tails despite removing graph overflow."
+  ],
+  "scope": "Generic supported scheduler tuning. Not a Looped-specific method. Native reservation and ACK checks remain enabled."
+}
