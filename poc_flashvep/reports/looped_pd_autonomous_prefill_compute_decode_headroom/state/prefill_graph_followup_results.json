@@ -1,0 +1,134 @@
+[
+  {
+    "name": "prefill_graph_ouro_eager_independent32",
+    "model": "ouro",
+    "full_work": {
+      "run": "prefill_graph_ouro_eager_independent32",
+      "expected": 528256,
+      "observed": 528256,
+      "passed": true,
+      "scope": "Active recurrent rows, not padded physical GEMM work."
+    },
+    "comparison": null,
+    "passed": true
+  },
+  {
+    "name": "prefill_graph_ouro_graph_independent32",
+    "model": "ouro",
+    "full_work": {
+      "run": "prefill_graph_ouro_graph_independent32",
+      "expected": 528256,
+      "observed": 528256,
+      "passed": true,
+      "scope": "Active recurrent rows, not padded physical GEMM work."
+    },
+    "comparison": {
+      "reference": "prefill_graph_ouro_eager_independent32",
+      "candidate": "prefill_graph_ouro_graph_independent32",
+      "compared": 32,
+      "candidate_rows": 32,
+      "passed": true,
+      "matched_input_seed_rows": 32,
+      "comparison_applicable": true,
+      "failures": [],
+      "scope": "Internal exact output sequence parity. Not original-HF fidelity or downstream accuracy."
+    },
+    "passed": true
+  },
+  {
+    "name": "prefill_graph_ouro_graph_independent32_nsys",
+    "profile": {
+      "name": "prefill_graph_ouro_graph_independent32_nsys",
+      "clean": "prefill_graph_ouro_graph_independent32",
+      "status": "PARSED",
+      "recorded_kernel_invocations": 272352,
+      "window_start_monotonic": 8370762.397184341,
+      "window_end_monotonic": 8370771.264971414,
+      "window_seconds": 8.867787072,
+      "kernel_busy_fraction": 0.629688994634444,
+      "anchor_uncertainty_s": 0.00015612132847309113,
+      "matched_wall_difference_fraction": 0.011906727806790363,
+      "exact_output_parity": true,
+      "eligible_for_matched_clean": true,
+      "evidence": "MEASURED_BOUNDED_SELECTED_STAGE_NSYS",
+      "scope": "Only the selected native worker is instrumented. Kernel union is not SM occupancy. Do not transfer a materially perturbed profile to clean serving."
+    },
+    "gates": {
+      "name": "prefill_graph_ouro_graph_independent32_nsys",
+      "model": "ouro",
+      "length": 4096,
+      "cap": 32,
+      "chunk": 4096,
+      "QPS": 3.0,
+      "offered": 32,
+      "completed": 32,
+      "observation_start": 8370763.743448116,
+      "observation_end": 8370768.455371328,
+      "P_ready_lower_bound_slope_per_s": -0.021032976547233108,
+      "P_ready_lower_bound_half_growth": -0.2,
+      "P_ready_lower_bound_max": 1,
+      "P_owner_queue_available": true,
+      "queue_scope": "Verified owner queue plus compute-phase-qualified D-clear P-slot pressure. Old snapshots cannot prove the unretired-ticket exclusion and are not backfilled. GPU compute, capacity and non-dominant transfer/host gates remain mandatory.",
+      "P_compute_completed_in_interval": 19,
+      "P_completion_rate_in_interval": 4.032323776492424,
+      "strongest_new_finite_P_reference": 4.8883996673276995,
+      "P_fraction_reference": 0.8248760434714497,
+      "P_actual_kernel_busy_central": 0.7024469775186831,
+      "profile_perturbation_qualified": true,
+      "D_existing_requests_with_tokens_in_interval": 21,
+      "D_request_TPOT_p95_ms": 36.28326399672416,
+      "D_token_ITL_p99_central_ms": 38.8909203466028,
+      "D_token_ITL_p99_whole_run_ms": 39.713415736332536,
+      "D_token_ITL_max_whole_run_ms": 120.80885469913483,
+      "frozen_TPOT_margin_ms": 48.3363260853697,
+      "frozen_ITL_limit_ms": 65.08287642151119,
+      "D_min_coordinator_free_blocks": 17864,
+      "structural_64_token_probe_blocks": 16,
+      "D_credit_refusal_sample_fraction": 0.0,
+      "P_compute_gate": false,
+      "D_SLO_gate": true,
+      "D_credit_gate": true,
+      "actual_D_borrowing": "NOT_MEASURED",
+      "same_start_joint_success": false,
+      "classification": "MIXED_OR_INCONCLUSIVE",
+      "evidence": "MEASURED_EVENT_TRACE_ANALYSIS_WITH_EXPLICIT_MISSING_GPU_GATES",
+      "scope": "Central interval is 20% to 90% of the actual arrival span. TPOT covers whole requests active in that interval. No clean/profile or P/D start stitching. No sustained-capacity or borrowing claim."
+    }
+  },
+  {
+    "name": "prefill_graph_huginn_eager_independent32",
+    "model": "huginn",
+    "full_work": {
+      "run": "prefill_graph_huginn_eager_independent32",
+      "expected": 2653184,
+      "observed": 2653184,
+      "passed": true,
+      "scope": "Active recurrent rows, not padded physical GEMM work."
+    },
+    "comparison": null,
+    "passed": true
+  },
+  {
+    "name": "prefill_graph_huginn_graph_independent32",
+    "model": "huginn",
+    "full_work": {
+      "run": "prefill_graph_huginn_graph_independent32",
+      "expected": 2653184,
+      "observed": 2653184,
+      "passed": true,
+      "scope": "Active recurrent rows, not padded physical GEMM work."
+    },
+    "comparison": {
+      "reference": "prefill_graph_huginn_eager_independent32",
+      "candidate": "prefill_graph_huginn_graph_independent32",
+      "compared": 32,
+      "candidate_rows": 32,
+      "passed": true,
+      "matched_input_seed_rows": 32,
+      "comparison_applicable": true,
+      "failures": [],
+      "scope": "Internal exact output sequence parity. Not original-HF fidelity or downstream accuracy."
+    },
+    "passed": true
+  }
+]

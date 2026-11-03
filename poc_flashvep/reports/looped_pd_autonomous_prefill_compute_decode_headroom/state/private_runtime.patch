@@ -1,0 +1,374 @@
+diff --git a/vllm_rlt/core/scheduler.py b/vllm_rlt/core/scheduler.py
+index 62e0cde..9f5e054 100644
+--- a/vllm_rlt/core/scheduler.py
++++ b/vllm_rlt/core/scheduler.py
+@@ -507,7 +507,7 @@ class Scheduler:
+                 # Transfer completion has already made KV and hidden valid.
+                 # Imported and local requests compete in this same admission queue.
+                 self.cache_manager.unpin_transfer(request_id, request_id)
+-                self.enqueue(request, RequestPhase.CODA)
++                self.enqueue(request, getattr(request, "import_resume_phase", RequestPhase.CODA))
+             elif self.cache_manager.has_allocation(
+                 request_id
+             ) and self.cache_manager.has_transfer_lease(request_id):
+diff --git a/vllm_rlt/engine/llm_engine.py b/vllm_rlt/engine/llm_engine.py
+index 8402b24..a1aa2b0 100644
+--- a/vllm_rlt/engine/llm_engine.py
++++ b/vllm_rlt/engine/llm_engine.py
+@@ -157,7 +157,8 @@ class StageClient:
+                     self.generations.pop(generation, None)
+         elif kind == "stopped":
+             self.stopped = True
+-            self.final_stats = dict(requests=0, used_blocks=message["used_blocks"])
++            self.final_stats = {k: v for k, v in message.items() if k != "kind"}
++            self.final_stats["requests"] = 0
+         return message
+ 
+     def submit_control(self, method, *args, session_id=None, **kwargs):
+diff --git a/vllm_rlt/engine/stage_engine.py b/vllm_rlt/engine/stage_engine.py
+index a83d510..5da0ee6 100644
+--- a/vllm_rlt/engine/stage_engine.py
++++ b/vllm_rlt/engine/stage_engine.py
+@@ -1,4 +1,5 @@
+ import logging
++import os
+ from dataclasses import dataclass, replace
+ from typing import TYPE_CHECKING, cast
+ 
+@@ -74,7 +75,7 @@ class StageEngine:
+             scheduler_config, produces_tokens=self.stage_config.produces_tokens
+         )
+         if getattr(model, "requires_boundary_kv", False):
+-            if staged_prefill:
++            if staged_prefill and __import__('os').environ.get('ABC_ALLOW_STAGED_BOUNDARY') != '1':
+                 raise ValueError(
+                     "Huginn does not support staged prefill required by this scheduler"
+                 )
+@@ -201,7 +202,7 @@ class StageEngine:
+             speculative_config,
+             produces_tokens=self.stage_config.produces_tokens,
+             total_ut_steps=config.total_ut_steps,
+-            eos_token_id=config.eos_token_id,
++            eos_token_id=(65505, 65508) if hasattr(config, 'n_embd') and __import__('os').environ.get('ABC_HUGINN_REFERENCE') == '1' else config.eos_token_id,
+             exit_mode=self.exit_config.mode,
+         )
+         self.connector = connector
+@@ -383,8 +384,22 @@ class StageEngine:
+         return request is not None and request.phase != RequestPhase.FINISHED
+ 
+     def stats(self):
++        if not os.environ.get('ABC_RUN_DIR'):
++            return dict(requests=len(self.scheduler.requests), used_blocks=self.cache_manager.num_used_blocks)
+         return dict(
+-            requests=len(self.scheduler.requests), used_blocks=self.cache_manager.num_used_blocks
++            requests=len(self.scheduler.requests), used_blocks=self.cache_manager.num_used_blocks,
++            weight_bytes=sum(p.numel()*p.element_size() for p in self.model.parameters()),
++            derived_weight_pack_bytes=sum(b.numel()*b.element_size() for name,b in self.model.named_buffers() if 'abc_packed_' in name),
++            reserved_kv_bytes=self.cache_manager.key_cache.numel()*self.cache_manager.key_cache.element_size()*2,
++            peak_allocated_bytes=__import__('torch').cuda.max_memory_allocated(self.cache_manager.device)
++                if self.cache_manager.device.type == 'cuda' else 0,
++            issued_loop_rows=getattr(self.model_runner, 'abc_loop_rows', 0),
++            issued_submissions=getattr(self.model_runner, 'abc_submissions', 0),
++            transport_bytes_sent=getattr(getattr(self.connector, 'transport', None), 'bytes_sent', 0),
++            transport_completed_count=getattr(getattr(self.connector, 'transport', None), 'transfers', 0),
++            transport_completion_observation_seconds=getattr(getattr(self.connector, 'transport', None), 'transfer_seconds', 0),
++            append_evidence_IO=__import__('poc_flashvep.looped_pd_abc.common', fromlist=['append_cost']).append_cost()
++                if os.environ.get('ABC_RUN_DIR') else {},
+         )
+ 
+     def has_unfinished_requests(self) -> bool:
+@@ -425,9 +440,11 @@ class StageEngine:
+         return RequestOutput.from_request(self.scheduler.abort(request_id))
+ 
+     def start_profile(self, config, *, scheduled=False, **identity):
++        self.model_runner.abc_profile_annotations = True
+         return self.profiling.start(config, scheduled=scheduled, **identity)
+ 
+     def stop_profile(self):
++        self.model_runner.abc_profile_annotations = False
+         return self.profiling.stop()
+ 
+     def profile_status(self):
+diff --git a/vllm_rlt/engine/worker.py b/vllm_rlt/engine/worker.py
+index 9a2b280..7260a0b 100644
+--- a/vllm_rlt/engine/worker.py
++++ b/vllm_rlt/engine/worker.py
+@@ -77,6 +77,7 @@ class StageWorker:
+             block_size=cache.block_size,
+             depths=cache.storage_depths,
+             max_active_requests=active_limit,
++            cuda_uuid=str(torch.cuda.get_device_properties(device).uuid) if device.type == 'cuda' else None,
+             watermark_blocks=cache.watermark_blocks,
+         )
+         if self.connector is not None:
+@@ -196,7 +197,7 @@ class StageWorker:
+                 time.sleep(0.001)
+         self.engine.close()
+         metrics = self.connector.close() if self.connector is not None else {}
+-        self.send("stopped", used_blocks=self.engine.cache_manager.num_used_blocks, **metrics)
++        self.send("stopped", **self.engine.stats(), **metrics)
+ 
+ 
+ def worker_main(
+diff --git a/vllm_rlt/models/huginn.py b/vllm_rlt/models/huginn.py
+index b7c4c11..7332d12 100644
+--- a/vllm_rlt/models/huginn.py
++++ b/vllm_rlt/models/huginn.py
+@@ -264,13 +264,23 @@ class HuginnForCausalLM(nn.Module):
+             generator = generators[start] if generators is not None else None
+             while end < len(state) and (generators is None or generators[end] is generator):
+                 end += 1
+-            torch.nn.init.trunc_normal_(
+-                state[start:end],
+-                std=self.config.initializer_range,
+-                a=-3 * self.config.initializer_range,
+-                b=3 * self.config.initializer_range,
+-                generator=generator,
+-            )
++            reference = __import__('os').environ.get('ABC_HUGINN_REFERENCE') == '1'
++            source = getattr(self, 'abc_prompt_initial_states', {}).get(id(generator)) if reference else None
++            if source is not None:
++                positions = batch.position_ids[start:end]
++                state[start:end].copy_(source.index_select(0, positions))
++                if bool((positions == len(source)-1).any()):
++                    self.abc_prompt_initial_states.pop(id(generator), None)
++            else:
++                if reference:
++                    state[start:end].normal_(generator=generator)
++                torch.nn.init.trunc_normal_(
++                    state[start:end],
++                    std=self.config.initializer_range,
++                    a=-3 * self.config.initializer_range,
++                    b=3 * self.config.initializer_range,
++                    generator=generator,
++                )
+             start = end
+         state = state * math.sqrt(self.config.n_embd)
+         return torch.cat((state, hidden), dim=-1)
+diff --git a/vllm_rlt/pd/engine.py b/vllm_rlt/pd/engine.py
+index 47f58ad..4d483b8 100644
+--- a/vllm_rlt/pd/engine.py
++++ b/vllm_rlt/pd/engine.py
+@@ -5,6 +5,7 @@ outputs; NIXL moves KV directly between registered worker allocations.
+ """
+ 
+ import time
++import os
+ import uuid
+ from collections import deque
+ from dataclasses import asdict, dataclass, field, replace
+@@ -74,7 +75,7 @@ class PDEngine:
+         model, revision, self.model_config = prepare_model(
+             model, revision=revision, model_config=model_config
+         )
+-        if self.model_config.model_type == "huginn_raven":
++        if self.model_config.model_type == "huginn_raven" and os.environ.get("ABC_ALLOW_BOUNDARY_PD") != "1":
+             raise ValueError("PD does not support Huginn")
+         self.config = pd_config or PDConfig()
+         self.exit_config = exit_config or ExitConfig(
+@@ -188,6 +189,10 @@ class PDEngine:
+         if peer.name not in (w.p, w.d):
+             raise RuntimeError("PD response from wrong worker")
+         now = time.monotonic() - w.created
++        if kind == "loop_progress":
++            w.loop_frontiers = m["frontiers"]
++            w.loop_observed_at = time.monotonic()
++            return
+         if kind == "reserved":
+             w.timings["d_reserved"] = now
+             if w.cancelled:
+@@ -215,7 +220,7 @@ class PDEngine:
+         elif kind == "commit":
+             w.timings["prefill_submitted"] = now
+             if not w.cancelled:
+-                self._send(w.d, "commit", tid=w.tid, count=m["count"])
++                self._send(w.d, "commit", tid=w.tid, count=m["count"], rng_state=m.get("rng_state"), fingerprint=m.get("fingerprint"))
+         elif kind == "received":
+             w.timings["d_received"] = now
+             self._send(w.p, "ack", tid=w.tid)
+@@ -235,6 +240,7 @@ class PDEngine:
+                     self.requests.pop(w.request.request_id, None)
+         elif kind == "released":
+             if peer.role == "prefill" and not w.p_released:
++                peer.last_completed_at = time.monotonic()
+                 w.p_released = True
+                 peer.slots -= 1
+                 peer.reserved_blocks -= w.p_reserved_blocks
+@@ -255,6 +261,10 @@ class PDEngine:
+                     request_id=w.request.request_id,
+                     transfer_id=w.tid,
+                     cancelled=w.cancelled,
++                    created_monotonic=w.created,
++                    prefill_worker=w.p,
++                    decode_worker=w.d,
++                    route_predictions=getattr(w, "abc_route_predictions", {}),
+                     timings=w.timings,
+                 )
+             )
+@@ -352,7 +362,7 @@ class PDEngine:
+                     break
+                 candidates[role] = min(
+                     eligible,
+-                    key=lambda p: (
++                    key=lambda p: self.placement_key(p, w) if hasattr(self, "placement_key") else (
+                         p.reserved_blocks / p.client.info["num_blocks"],
+                         p.slots / p.client.info["transfer_slots"],
+                     ),
+diff --git a/vllm_rlt/pd/transport.py b/vllm_rlt/pd/transport.py
+index fca044a..6bad954 100644
+--- a/vllm_rlt/pd/transport.py
++++ b/vllm_rlt/pd/transport.py
+@@ -1,6 +1,7 @@
+ """NIXL WRITE on registered GPU pools; no tensor payloads on the control channel."""
+ 
+ import json
++import os
+ import time
+ from collections import deque
+ from dataclasses import dataclass
+@@ -100,6 +101,17 @@ class NixlConnector:
+         self.bytes_sent = 0
+         self.transfers = 0
+         self.transfer_seconds = 0.0
++        if os.environ.get("ABC_PROFILE_RANGES") == "1":
++            import torch
++
++            for method in ("submit", "poll"):
++                original = getattr(self, method)
++
++                def profiled(*args, _original=original, _method=method, **kwargs):
++                    with torch.profiler.record_function("ABC_NIXL_" + _method):
++                        return _original(*args, **kwargs)
++
++                setattr(self, method, profiled)
+ 
+     def connect(self, peer):
+         name = self.agent.add_remote_agent(peer["metadata"])
+diff --git a/vllm_rlt/worker/executor.py b/vllm_rlt/worker/executor.py
+index bad146d..4521254 100644
+--- a/vllm_rlt/worker/executor.py
++++ b/vllm_rlt/worker/executor.py
+@@ -101,6 +101,12 @@ class Executor:
+                 raise ValueError("speculative submission requires a configured round controller")
+             return self.speculation.submit(scheduled_batch)
+         batch = build_execution_batch(scheduled_batch, self.runner.model.config.total_ut_steps)
++        if getattr(self.runner, 'abc_profile_annotations', False):
++            ids = ','.join(span.request.request_id for span in batch.spans)
++            depths = ','.join(str(span.depth) for span in batch.spans)
++            label = f'ABC|{batch.operation.value}|requests={ids}|depths={depths}|loops={batch.loop_count}|rows={batch.num_rows}'
++            with torch.profiler.record_function(label):
++                return self.runner.submit(scheduled_batch, batch=batch)
+         return self.runner.submit(scheduled_batch, batch=batch)
+ 
+ 
+diff --git a/vllm_rlt/worker/model_runner.py b/vllm_rlt/worker/model_runner.py
+index ada23d2..8cc1043 100644
+--- a/vllm_rlt/worker/model_runner.py
++++ b/vllm_rlt/worker/model_runner.py
+@@ -387,11 +387,19 @@ class ModelRunner:
+ 
+     def _ensure_request_slot(self, request):
+         if self.async_state is not None:
+-            return self.async_state.reserve_slot(request)
+-        rid = request.request_id
+-        if rid not in self.state_slots:
+-            self.state_slots[rid] = self.free_state_slots.pop()
+-        return self.state_slots[rid]
++            slot = self.async_state.reserve_slot(request)
++        else:
++            rid = request.request_id
++            if rid not in self.state_slots:
++                self.state_slots[rid] = self.free_state_slots.pop()
++            slot = self.state_slots[rid]
++        if hasattr(request, "import_prompt_state"):
++            state = request.import_prompt_state
++            self.prefill_states[slot, :len(state)].copy_(state)
++            # Initial adapter favors a verified dependency over speculative overlap.
++            torch.cuda.current_stream(self.device).synchronize()
++            del request.import_prompt_state
++        return slot
+ 
+     def _prefill_segments(self, batch, buffers):
+         row_start = 0
+@@ -766,7 +774,28 @@ class ModelRunner:
+         return self.input_buffers[dtype].append(values)
+ 
+     def _prepare_generators(self, requests):
+-        return [self.rng.acquire(r.request_id, r.sampling_params, self.device) for r in requests]
++        generators = []
++        for request in requests:
++            generator = self.rng.acquire(request.request_id, request.sampling_params, self.device)
++            if hasattr(self.model.config, 'n_embd') and __import__('os').environ.get('ABC_HUGINN_REFERENCE') == '1':
++                initialized = getattr(self, 'abc_huginn_initialized', set())
++                self.abc_huginn_initialized = initialized
++                if request.num_preluded_tokens == 0 and request.request_id not in initialized:
++                    # Match the official B1 reference before any token chunk split.
++                    # The official implementation draws normals, then overwrites them
++                    # with truncated normals. Both draws advance the request RNG.
++                    parameter = next(self.model.parameters())
++                    state = torch.empty((len(request.prompt_token_ids), self.model.config.n_embd),
++                                        device=self.device, dtype=parameter.dtype)
++                    state.normal_(generator=generator)
++                    std = self.model.config.initializer_range
++                    torch.nn.init.trunc_normal_(state, std=std, a=-3*std, b=3*std, generator=generator)
++                    states = getattr(self.model, 'abc_prompt_initial_states', {})
++                    self.model.abc_prompt_initial_states = states
++                    states[id(generator)] = state
++                    initialized.add(request.request_id)
++            generators.append(generator)
++        return generators
+ 
+     def _prepare_loop_forwards(self, prepared):
+         slot = self.input_buffers[torch.int64].pool.index
+@@ -1007,6 +1036,8 @@ class ModelRunner:
+             if kv_metadata is not None:
+                 kv_metadata = self.metadata.bind(kv_metadata, uploaded)
+         if batch.operation == Operation.PRELUDE:
++            if batch.has_chunks and kv_metadata is not None:
++                requests = [span.request for span in batch.spans for _ in range(span.token_count)]
+             forward = ForwardBatch(
+                 Operation.PRELUDE,
+                 tokens=prepared.token_ids,
+@@ -1105,6 +1136,22 @@ class ModelRunner:
+                 forward = replace(forward, hidden=hidden[entry.hidden_rows])
+             result = self.runtime.forward(forward)
+             hidden = result.hidden
++            if (forward.operation == Operation.RECURRENT and batch.has_chunks
++                    and getattr(self.model, 'requires_boundary_kv', False)):
++                rows, positions, ids = [], [], []
++                offset = 0
++                for span in batch.spans:
++                    if span.depth + batch.loop_count == self.model.config.total_ut_steps:
++                        for local in range(span.token_count):
++                            position = span.token_start + local
++                            if position < len(span.request.prompt_token_ids) - 1:
++                                rows.append(offset + local)
++                                positions.append(position)
++                                ids.append(span.request.request_id)
++                    offset += span.token_count
++                if rows:
++                    boundary = self.cache_manager._prepare_batch(ids, [0]*len(rows), positions, packed_prefill=True)
++                    self.model.coda_prepared(hidden[rows], boundary, self.cache_manager, compute_logits=False)
+             if forward.operation in (Operation.PRELUDE, Operation.RECURRENT):
+                 if entry.outputs is None:
+                     self._store_hidden(batch, hidden, prepared)
+@@ -1181,6 +1228,8 @@ class ModelRunner:
+         unless bounded buffers must be recycled.
+         """
+         split_prefill = batch.has_chunks
++        self.abc_submissions = getattr(self, 'abc_submissions', 0) + 1
++        self.abc_loop_rows = getattr(self, 'abc_loop_rows', 0) + batch.num_rows * batch.loop_count
+         # A fused prelude + loops stays resident on core; chunking does not
+         # change the stream of an otherwise standalone prelude or coda.
+         stream = self.core_stream if batch.loop_count else self.boundary_stream
+@@ -1387,6 +1436,10 @@ class ModelRunner:
+         termination drops the RNG slot while suspension keeps it.
+         """
+         self._free_runner_slot(request_id)
++        generator = self.rng.peek(request_id)
++        if generator is not None:
++            getattr(self.model, 'abc_prompt_initial_states', {}).pop(id(generator), None)
++        getattr(self, 'abc_huginn_initialized', set()).discard(request_id)
+         self.rng.drop(request_id)
+ 
+     def synchronize(self):
