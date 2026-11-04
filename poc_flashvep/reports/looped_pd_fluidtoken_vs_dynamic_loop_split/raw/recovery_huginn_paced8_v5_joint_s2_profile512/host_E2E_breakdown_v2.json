@@ -1,0 +1,39 @@
+{
+  "name": "recovery_huginn_paced8_v5_joint_s2_profile512",
+  "measured_requests": 512,
+  "partitioned_requests": 512,
+  "failures": [],
+  "evidence": "MEASURED_HOST_EVENT_PARTITION",
+  "analysis_contract_version": 2,
+  "summed_request_E2E_seconds": 16602.589131059125,
+  "components": {
+    "admission_wait": {
+      "host_seconds": 14971.837853098288,
+      "aggregate_E2E_percent": 90.17772911750177
+    },
+    "P_dispatch_and_start_wait": {
+      "host_seconds": 2.245143409818411,
+      "aggregate_E2E_percent": 0.013522851117349712
+    },
+    "P_observed_service": {
+      "host_seconds": 564.8061346933246,
+      "aggregate_E2E_percent": 3.401915991745644
+    },
+    "P_completion_to_first_token": {
+      "host_seconds": 49.69125019945204,
+      "aggregate_E2E_percent": 0.2992981986556099
+    },
+    "decode_generation": {
+      "host_seconds": 1014.0087496582419,
+      "aggregate_E2E_percent": 6.107533840979629
+    }
+  },
+  "scope": "Disjoint host intervals within each request. Shares use summed request latency, not server wall time or GPU critical-path time.",
+  "limitations": [
+    "Admission includes P/D resource and KV waiting.",
+    "P observed service includes submission and scheduling gaps.",
+    "P completion to first token includes exposed handoff, D continuation, scheduling, Coda, sampling, and output delivery.",
+    "The activated receipt can follow the first output. It cannot divide the first-token critical path. Version 1 remains as a rejected chronology audit.",
+    "Concurrent requests overlap. These sums are not exclusive server execution components."
+  ]
+}
