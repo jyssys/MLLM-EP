@@ -88,6 +88,12 @@ def main():
                 g['D_min_coordinator_free_blocks'], same['screen']['central_completed_probes']])
     report += table(['Run', 'P union %', 'Service proximity %', 'P queue growth', 'D TPOT p95 ms', 'D ITL p99 ms', 'D free blocks', 'Local probes in interval'],
                     accepted_rows or [['NOT_CONFIRMED'] + ['NOT_MEASURED'] * 7])
+    if ready:
+        refusal = ', '.join(f"start {trial['start']}: {100*trial['same_run']['screen']['gates']['D_credit_refusal_sample_fraction']:.6f}%"
+                            for trial in gate['results'])
+        report += ['', 'D credit-refusal sample fractions were ' + refusal + '.',
+            'All remain below the frozen 50% sample gate. A pass does not mean unrestricted KV admission.',
+            'The sampled refusal fraction is not the fraction of permanently rejected requests.']
     repetition_rows = []
     if ready:
         for trial in gate['results']:
