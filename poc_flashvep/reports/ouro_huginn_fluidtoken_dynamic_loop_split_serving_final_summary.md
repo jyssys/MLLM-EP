@@ -706,6 +706,15 @@ The original staged index and external runtime preservation checks also passed.
 
 ## 14. Reproduction and publication
 
+The source publication commit is `e976cd924bafa5cbcee3b63b6af056b199835e8d`.
+All 63 source blobs in that commit match the final campaign source files.
+The complete evidence snapshot is `c86139c06abbe9a7d04cb1e4a2d3bd4e11403fa8`.
+Its ordinary push passed remote-SHA verification.
+That verified evidence publication completed 9.861371 hours after campaign start.
+The final metadata commit adds this provenance without changing source or GPU evidence.
+See `state/handoff_provenance.json` and `state/evidence_publication_receipt.json` in the evidence directory.
+The final handover reports the subsequent branch HEAD and its remote match.
+
 Run the following CPU checks from the project root:
 
 ```bash
