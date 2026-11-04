@@ -1,0 +1,21 @@
+{
+  "passed": true,
+  "cases": [
+    {
+      "model": "ouro",
+      "full_depth": 4,
+      "proposed_loop_count": 3,
+      "rejected_by_actual_callback": true,
+      "error": "wavefront prefill requires one recurrent depth per scheduling step"
+    },
+    {
+      "model": "huginn",
+      "full_depth": 32,
+      "proposed_loop_count": 31,
+      "rejected_by_actual_callback": true,
+      "error": "wavefront prefill requires one recurrent depth per scheduling step"
+    }
+  ],
+  "scope": "Corrected CPU seam: the actual wavefront callback rejects grouped prompt depths before lifecycle advancement. The earlier single-span helper replay was insufficient. No GPU correctness or speedup claim.",
+  "optional_candidate_status": "BLOCKED_NATIVE_WAVEFRONT_PROGRESS_GUARD"
+}
