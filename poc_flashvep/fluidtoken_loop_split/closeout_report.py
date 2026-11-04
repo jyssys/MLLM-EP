@@ -71,6 +71,10 @@ def main():
         'Ignore-EOS generation is not natural response-length measurement.',
         'Most controls use nominal 1.971 requests/s. The inventory records every changed rate and finite arrival realization.',
         'P uses two slots. D slot and graph variants remain separate configurations.',
+        'The accepted paced configuration uses P/D slots 2/8 and eight-row Decode graphs.',
+        'P/D KV pools contain 16,384/26,752 blocks. P/D token budgets are 4,096/128.',
+        'The local Prefill graph limit is 16 rows. Method qualification instead enables a full-prompt D budget and graph limit.',
+        'Those method settings require separate qualification. Recovery measurements are not silently reused as method latency.',
         'Independent D-local probes use 16 input tokens and full R32 computation. They are not P-to-D continuations.', '',
         '### Accepted repetitions', '']
     accepted_rows = []
