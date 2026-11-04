@@ -1,0 +1,19 @@
+{
+  "hypothesis": "An indivisible full-R32 local prompt can exceed token latency slack despite spare average D capacity.",
+  "intervention": "Use existing staged D Prefill. Admit at most one probe submission after an observed background output step.",
+  "admission": "The all-phase guard permits up to the native four-slot limit. The earlier two-request guard completed only four of twelve probes. Native KV and scheduling guards remain active.",
+  "limitations": "This is scheduling of independent probes, not P-to-D migration or a method speedup. P scheduling remains unchanged.",
+  "gates": "Exact background and local state first. Then unchanged whole-run and same-window gates, three independent starts.",
+  "order": [
+    {
+      "D_slots": 4,
+      "graph_rows": 4,
+      "QPS": 1.971
+    },
+    {
+      "D_slots": 4,
+      "graph_rows": 4,
+      "QPS": 1.85
+    }
+  ]
+}

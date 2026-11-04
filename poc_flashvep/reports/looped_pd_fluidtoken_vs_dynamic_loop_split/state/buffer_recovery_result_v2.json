@@ -1,0 +1,148 @@
+{
+  "selftest_name": "activity_buffer_stress400k_v2",
+  "selftest_complete": true,
+  "selftest": {
+    "evidence": "GPU_INSTRUMENTATION_SELF_TEST_NOT_MODEL_RESULT",
+    "collector_build": {
+      "command": [
+        "g++",
+        "-O2",
+        "-std=c++17",
+        "-shared",
+        "-fPIC",
+        "-pthread",
+        "-I/usr/local/cuda-12.8/targets/x86_64-linux/include",
+        "/home/esjung/MLLM-EP-github/poc_flashvep/fluidtoken_loop_split/kernel_activity.cc",
+        "-L/usr/local/cuda-12.8/targets/x86_64-linux/lib",
+        "-Wl,-rpath,/usr/local/cuda-12.8/targets/x86_64-linux/lib",
+        "-lcupti",
+        "-o",
+        "/home/esjung/MLLM-EP-github/poc_flashvep/reports/looped_pd_fluidtoken_vs_dynamic_loop_split/tools/kernel_activity_a3c67a1292b6a162.so"
+      ],
+      "source_SHA256": "a3c67a1292b6a162e3ed9428105b5f29a5c0ff31af604f177e91df56238ab46c",
+      "library": "/home/esjung/MLLM-EP-github/poc_flashvep/reports/looped_pd_fluidtoken_vs_dynamic_loop_split/tools/kernel_activity_a3c67a1292b6a162.so",
+      "library_SHA256": "f0ee2f0d3b007590ec4f2c35eb682191ae08c2a9a0bf89c5cd73dc452e14d990",
+      "scope": "Prepared profiler alternative. GPU coverage and overhead are not yet validated."
+    },
+    "expected_kernel_invocations": 400000,
+    "recorded_kernel_invocations": 400000,
+    "graph_kernel_invocations": 200000,
+    "dropped": 0,
+    "invalid": 0,
+    "kernel_union_ms": 528.926435,
+    "CUDA_event_enclosure_ms": 2323.43408203125,
+    "output_exact": true,
+    "start_anchor": {
+      "device_clock_ns": 1793720740794870702,
+      "monotonic_s": 8408044.16144772,
+      "host_uncertainty_s": 6.381422281265259e-06
+    },
+    "stop_anchor": {
+      "device_clock_ns": 1793720743118410379,
+      "monotonic_s": 8408046.484986138,
+      "host_uncertainty_s": 9.814277291297913e-06
+    },
+    "passed": true
+  },
+  "name": "recovery_huginn_buffer16_window32_diagnostic512",
+  "complete": true,
+  "profile": {
+    "name": "recovery_huginn_buffer16_window32_diagnostic512",
+    "clean": "recovery_huginn_extended1_clean512",
+    "role": "prefill",
+    "status": "PARSED",
+    "bounded_capture": true,
+    "recorded_kernel_invocations": 530966,
+    "window_start_monotonic": 8408200.301814068,
+    "window_end_monotonic": 8408232.386255862,
+    "window_seconds": 32.084441795,
+    "kernel_busy_fraction": 0.9552074654069885,
+    "anchor_uncertainty_s": 7.06501305103302e-06,
+    "clock_mapping_error_s": 1.560896635055542e-06,
+    "matched_wall_difference_fraction": 0.0004045828934282625,
+    "exact_output_parity": true,
+    "eligible_for_matched_clean": true,
+    "evidence": "MEASURED_ACTIVITY_ONLY_CUPTI_KERNEL_INTERVALS",
+    "scope": "Actual kernel union with zero dropped or invalid records. Not SM occupancy. Same-run aligned gates remain mandatory."
+  },
+  "screen": {
+    "gates": {
+      "name": "recovery_huginn_buffer16_window32_diagnostic512",
+      "model": "huginn",
+      "length": 2048,
+      "cap": 16,
+      "chunk": 2048,
+      "QPS": 1.971,
+      "offered": 512,
+      "completed": 512,
+      "observation_start": 8408200.301814068,
+      "observation_end": 8408232.386255862,
+      "P_ready_lower_bound_slope_per_s": 0.0,
+      "P_ready_lower_bound_half_growth": 0,
+      "P_ready_lower_bound_max": 0,
+      "P_owner_queue_available": true,
+      "queue_scope": "Verified owner queue plus compute-phase-qualified D-clear P-slot pressure. Old snapshots cannot prove the unretired-ticket exclusion and are not backfilled. GPU compute, capacity and non-dominant transfer/host gates remain mandatory.",
+      "P_compute_completed_in_interval": 53,
+      "P_completion_rate_in_interval": 1.6518909800629609,
+      "strongest_new_finite_P_reference": 1.5161342181609425,
+      "P_fraction_reference": 1.0895413877451365,
+      "P_actual_kernel_busy_central": 0.9552074644116337,
+      "profile_perturbation_qualified": true,
+      "D_existing_requests_with_tokens_in_interval": 56,
+      "D_request_TPOT_p95_ms": 123.52778936425844,
+      "D_token_ITL_p99_central_ms": 190.17459116876125,
+      "D_token_ITL_p99_whole_run_ms": 127.61651700362563,
+      "D_token_ITL_max_whole_run_ms": 974.9634638428688,
+      "frozen_TPOT_margin_ms": 167.91435532271862,
+      "frozen_ITL_limit_ms": 192.8212538175284,
+      "D_min_coordinator_free_blocks": 3520,
+      "structural_64_token_probe_blocks": 128,
+      "D_credit_refusal_sample_fraction": 0.015625,
+      "P_compute_gate": false,
+      "D_SLO_gate": true,
+      "D_credit_gate": true,
+      "actual_D_borrowing": "NOT_MEASURED",
+      "same_start_joint_success": false,
+      "classification": "MIXED_OR_INCONCLUSIVE",
+      "evidence": "MEASURED_EVENT_TRACE_ANALYSIS_WITH_EXPLICIT_MISSING_GPU_GATES",
+      "scope": "Central interval is 20% to 90% of the actual arrival span. TPOT covers whole requests active in that interval. No clean/profile or P/D start stitching. No sustained-capacity or borrowing claim."
+    },
+    "queue": {
+      "name": "recovery_huginn_buffer16_window32_diagnostic512",
+      "observation_start": 8408200.301814068,
+      "observation_end": 8408232.386255862,
+      "original_phase_only_P_gate": false,
+      "audited_P_gate": true,
+      "half_growth": 8.671875,
+      "maximum": 39,
+      "slope_per_s": 0.5065923289998358,
+      "samples": 128,
+      "phase_alias_samples": 126,
+      "event_samples": 1171,
+      "native_host_spans": 512,
+      "thresholds": "Unchanged: positive half growth, maximum >=2, kernel union >=80%, service proximity >=85%, qualified capture.",
+      "scope": "Submission-ownership measurement correction. The original phase-only result remains available. No physical SM or bandwidth counter is inferred."
+    },
+    "central_completed_probes": 5,
+    "reference": {
+      "sources": [
+        {
+          "path": "/home/esjung/MLLM-EP-github/poc_flashvep/reports/looped_pd_autonomous_prefill_compute_decode_headroom/raw/capacity_short_huginn_L2048_v2/cohorts.jsonl",
+          "SHA256": "fd841c898f3b8652add8b3867b1ea53c33ad62df33e00417a9b7fde44a0e724a",
+          "requests_per_second": 1.5161342181609425,
+          "scope": "Prior finite matched reference"
+        },
+        {
+          "path": "/home/esjung/MLLM-EP-github/poc_flashvep/reports/looped_pd_fluidtoken_vs_dynamic_loop_split/raw/capacity_recovery_huginn_L2048/cohorts.jsonl",
+          "SHA256": "ec1d3665dcdb509e6b8475122053036104e1df1c6ddce51b5538fce48f0ce3d9",
+          "requests_per_second": 1.5160272500966594,
+          "scope": "Refreshed finite matched reference"
+        }
+      ],
+      "requests_per_second": 1.5161342181609425,
+      "scope": "Strongest recorded matched finite reference. Not sustainable serving capacity."
+    },
+    "status": "SCREEN_ONLY_CORRECTNESS_AND_REPETITIONS_PENDING"
+  },
+  "operational_pass": true
+}

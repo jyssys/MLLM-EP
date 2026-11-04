@@ -1,0 +1,12 @@
+{
+  "hypothesis": "Rare five/six-row Decode submissions exceed the four-row graph limit and can cause eager tail spikes.",
+  "evidence": "Clean start 3 has 341 five-row and 60 six-row recurrent submissions. Its ITL p99 is 263.483 ms.",
+  "controls": [
+    "D slots 8 / graph rows 4",
+    "D slots 4 / graph rows 4",
+    "D slots 8 / graph rows 8"
+  ],
+  "fixed": "Same 2048/16 prompts, arrival seed 2026111603, 1.971 QPS, native transport, KV pool, and probe policy.",
+  "gates": "New exact-state qualification precedes changed geometry. Full-run SLO follows. Same-window GPU gates remain separate.",
+  "reason": "Whole-run tail failures also occur without profiling. Export overhead alone cannot explain them."
+}

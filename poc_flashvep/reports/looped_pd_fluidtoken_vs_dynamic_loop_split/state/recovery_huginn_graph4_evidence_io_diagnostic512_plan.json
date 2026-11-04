@@ -1,0 +1,12 @@
+{
+  "symptom": "The retained clean run has 85 ITL-limit violations. Only nine overlap a Prefill probe. Several requests pause together for about one second.",
+  "hypotheses": [
+    "Python collection or host runtime pauses interrupt submissions or output delivery.",
+    "Memory queries or NIXL progress hold a driver or host thread.",
+    "Long model submissions expose a remaining warmup or execution-geometry path.",
+    "An unobserved system scheduling pause interrupts a worker."
+  ],
+  "unchanged": "Same prompts, arrival trace, slots, graph rows, probes, precision, model, and R32.",
+  "instrumentation": "GC start/stop callbacks and host calls longer than 20 ms. No policy change or GPU synchronization is added.",
+  "interpretation": "Temporal overlap narrows hypotheses but does not prove causation. This is not clean latency evidence."
+}

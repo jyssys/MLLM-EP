@@ -1,0 +1,22 @@
+{
+  "hypothesis": "A full-R32 local request produces a token-latency spike near the frozen p99 limit.",
+  "failed_repeat": "allphase_slots8_audit_replacement_joint_s4_profile512",
+  "measured_ITL_p99_ms": 194.8770748078823,
+  "frozen_ITL_ms": 192.8212538175284,
+  "intervention": "Use the existing staged D scheduler. Submit at most one exact local Prefill stage per observed background output step.",
+  "unchanged": "Keep P execution, BF16, full R32 work, KV ownership, SLO thresholds, and the profiler perturbation gate.",
+  "configuration": {
+    "D_slots": 8,
+    "graph_rows": 8,
+    "nominal_QPS": 1.971,
+    "probe_admission_guard": 8
+  },
+  "admission_note": "Only one independent local probe can be in flight. The native KV guard still applies.",
+  "independent_starts": [
+    4,
+    2,
+    3
+  ],
+  "reason": "Retest the failed seed first. Do not select only passing historical starts.",
+  "limit": "This is a D-local scheduling intervention, not P-to-D migration. Staged execution and pacing are combined."
+}
