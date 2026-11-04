@@ -1,6 +1,6 @@
 # Huginn recovery and FluidToken-style versus Loop Split
 
-Report snapshot: 2026-11-04 09:31:54 KST. Elapsed wall time: 10.220 hours.
+Report snapshot: 2026-11-04 09:36:33 KST. Elapsed wall time: 10.297 hours.
 The 11-hour budget includes diagnosis, GPU work, reports, publication, and resource restoration.
 
 ## Decision
@@ -70,6 +70,10 @@ Independent D-local probes use 16 input tokens and full R32 computation. They ar
 | recovery_huginn_paced8_v5_joint_s4_profile512 | 95.517 | 108.817 | 10.843750 | 123.713 | 131.536 | 1984 | 5 |
 | recovery_huginn_paced8_v5_joint_s2_profile512 | 96.057 | 109.242 | 6.656250 | 141.635 | 157.304 | 1984 | 5 |
 | recovery_huginn_paced8_v5_joint_s3_profile512 | 95.524 | 106.604 | 5.501923 | 123.801 | 132.557 | 1984 | 5 |
+
+D credit-refusal sample fractions were start 4: 3.125000%, start 2: 36.718750%, start 3: 0.775194%.
+All remain below the frozen 50% sample gate. A pass does not mean unrestricted KV admission.
+The sampled refusal fraction is not the fraction of permanently rejected requests.
 
 ### Whole-run checks and probe denominators
 
@@ -332,7 +336,7 @@ The original staged index and external-runtime diff match their initial preserva
 
 ## Verified evidence publication
 
-Published evidence commit: `374a6bf1dd2a677e84dbd490ebb97da463dca1fb`.
-Verified remote SHA at that publication: `374a6bf1dd2a677e84dbd490ebb97da463dca1fb`.
+Published evidence commit: `af3a4ca7d89ff5f5d24621768d1460944cc2135c`.
+Verified remote SHA at that publication: `af3a4ca7d89ff5f5d24621768d1460944cc2135c`.
 A later closeout commit can contain this receipt and the final report. The branch tip identifies that commit.
 The publication record states historical verification. It does not claim a self-referential commit hash.
