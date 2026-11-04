@@ -1,6 +1,6 @@
 # Huginn recovery and FluidToken-style versus Loop Split
 
-Report snapshot: 2026-11-04 09:26:57 KST. Elapsed wall time: 10.137 hours.
+Report snapshot: 2026-11-04 09:31:54 KST. Elapsed wall time: 10.220 hours.
 The 11-hour budget includes diagnosis, GPU work, reports, publication, and resource restoration.
 
 ## Decision
@@ -329,3 +329,10 @@ The final resource check verified approved burner workers on all physical GPUs 0
 No additional experiment uses these devices after the GPU cutoff.
 The original staged index and external-runtime diff match their initial preservation signatures.
 [Resource verification](looped_pd_fluidtoken_vs_dynamic_loop_split/state/resource_restore_verified.json) records the worker PIDs and check time.
+
+## Verified evidence publication
+
+Published evidence commit: `374a6bf1dd2a677e84dbd490ebb97da463dca1fb`.
+Verified remote SHA at that publication: `374a6bf1dd2a677e84dbd490ebb97da463dca1fb`.
+A later closeout commit can contain this receipt and the final report. The branch tip identifies that commit.
+The publication record states historical verification. It does not claim a self-referential commit hash.
