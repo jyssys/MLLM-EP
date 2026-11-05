@@ -1,0 +1,107 @@
+{
+  "name": "d_huginn_zero_heldout_s3_off128",
+  "model": "huginn",
+  "method": "zero",
+  "load": "medium",
+  "count": 128,
+  "independent_start": 3,
+  "markers": false,
+  "complete": true,
+  "passed": true,
+  "work": {
+    "run": "d_huginn_zero_heldout_s3_off128",
+    "expected": 8450048,
+    "observed": 8450048,
+    "passed": true,
+    "scope": "Active recurrent rows, not padded physical GEMM work."
+  },
+  "lifetime": {
+    "passed": true,
+    "compared": 128,
+    "failures": [],
+    "scope": "Recorded native ACK precedes source retirement. Both coordinator credits retire and final native KV allocations are empty. This is not GPU DMA timing or HF fidelity."
+  },
+  "output": {
+    "reference": "d_huginn_native_heldout_s1_off128",
+    "candidate": "d_huginn_zero_heldout_s3_off128",
+    "compared": 128,
+    "candidate_rows": 128,
+    "passed": true,
+    "matched_input_seed_rows": 128,
+    "comparison_applicable": true,
+    "failures": [],
+    "scope": "Internal exact output sequence parity. Not original-HF fidelity or downstream accuracy."
+  },
+  "metrics": {
+    "completed": 128,
+    "offered": 128,
+    "response_span_s": 141.80170391127467,
+    "requests_per_second": 0.9026689840066351,
+    "joint_SLO_goodput": 0.860356375381324,
+    "joint_SLO_attainment": 0.953125,
+    "total_tokens_per_second": 1863.1087829896949,
+    "output_tokens_per_second": 14.442703744106161,
+    "maximum_ITL_ms": 140.81126637756824,
+    "frozen_SLO": {
+      "TTFT_ms": 1963.9920117333531,
+      "TPOT_ms": 186.5715059141318,
+      "ITL_ms": 192.8212538175284,
+      "requests": 16,
+      "calibration": [
+        "short_huginn_C1024_serial16",
+        "short_huginn_C2048_serial16"
+      ],
+      "rule": "Two times serial calibration percentiles. Use the tighter per-metric limit across Atomic and C2048. Freeze before held-out pilot serving.",
+      "frozen_epoch": 1793701394.056462,
+      "calibration_values": [
+        {
+          "name": "short_huginn_C1024_serial16",
+          "TTFT_ms": 1984.9652252160013,
+          "TPOT_ms": 186.5715059141318,
+          "ITL_ms": 192.8212538175284
+        },
+        {
+          "name": "short_huginn_C2048_serial16",
+          "TTFT_ms": 1963.9920117333531,
+          "TPOT_ms": 188.43453507870436,
+          "ITL_ms": 198.30003213137388
+        }
+      ]
+    },
+    "scope": "Clean finite pilot. Host request latencies, not exclusive GPU durations or sustainable capacity.",
+    "TTFT_p50_ms": 988.1169348955154,
+    "TTFT_p95_ms": 1927.5209092535079,
+    "TTFT_p99_ms": 2245.4131346754734,
+    "TPOT_p50_ms": 117.02425703406334,
+    "TPOT_p95_ms": 130.05533727506796,
+    "TPOT_p99_ms": 132.7391757207612,
+    "E2E_p50_ms": 2725.3812085837126,
+    "E2E_p95_ms": 3809.8104894161224,
+    "E2E_p99_ms": 4124.6074243076155,
+    "ITL_p50_ms": 114.26225956529379,
+    "ITL_p95_ms": 132.10047027096152,
+    "ITL_p99_ms": 138.6371318437159,
+    "Decode_SLO_screen": true
+  },
+  "actual_work": {
+    "D_prompt_recurrent_rows": 0,
+    "expected_D_prompt_rows": 0,
+    "completed_offloaded_serving_requests": 0,
+    "counters": {
+      "prefill": {
+        "issued_loop_rows": 8388608,
+        "issued_submissions": 128,
+        "transport_bytes_sent": 730812825600,
+        "transport_completed_count": 11008
+      },
+      "decode": {
+        "issued_loop_rows": 61440,
+        "issued_submissions": 37511,
+        "transport_bytes_sent": 0,
+        "transport_completed_count": 0
+      }
+    },
+    "passed": true,
+    "scope": "Actual P-to-D serving continuation. No independent D-local probes. Rows are not FLOPs. Transfer bytes are payload counters, not control-message or wire-header bytes."
+  }
+}

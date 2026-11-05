@@ -1,0 +1,91 @@
+{
+  "name": "d_ouro_token3840_heldout_s2_off128",
+  "model": "ouro",
+  "method": "token3840",
+  "load": "medium",
+  "count": 128,
+  "independent_start": 2,
+  "markers": false,
+  "complete": true,
+  "passed": true,
+  "work": {
+    "run": "d_ouro_token3840_heldout_s2_off128",
+    "expected": 2113024,
+    "observed": 2113024,
+    "passed": true,
+    "scope": "Active recurrent rows, not padded physical GEMM work."
+  },
+  "lifetime": {
+    "passed": true,
+    "compared": 128,
+    "failures": [],
+    "scope": "Recorded native ACK precedes source retirement. Both coordinator credits retire and final native KV allocations are empty. This is not GPU DMA timing or HF fidelity."
+  },
+  "output": {
+    "reference": "d_ouro_native_heldout_s1_off128",
+    "candidate": "d_ouro_token3840_heldout_s2_off128",
+    "compared": 128,
+    "candidate_rows": 128,
+    "passed": true,
+    "matched_input_seed_rows": 128,
+    "comparison_applicable": true,
+    "failures": [],
+    "scope": "Internal exact output sequence parity. Not original-HF fidelity or downstream accuracy."
+  },
+  "metrics": {
+    "completed": 128,
+    "offered": 128,
+    "response_span_s": 37.870176784694195,
+    "requests_per_second": 3.379968377959438,
+    "joint_SLO_goodput": 3.379968377959438,
+    "joint_SLO_attainment": 1.0,
+    "total_tokens_per_second": 13952.50946421656,
+    "output_tokens_per_second": 108.15898809470201,
+    "maximum_ITL_ms": 73.0159617960453,
+    "frozen_SLO": {
+      "TTFT_ms": 1112.9925646819174,
+      "TPOT_ms": 53.70702898374411,
+      "ITL_ms": 65.08287642151119,
+      "requests": 16,
+      "calibration": "calibration_ouro_l4096_v1",
+      "rule": "2x independent serial-calibration p95 request latency; 2x token ITL p99.",
+      "frozen_before_heldout_search": 1793516537.4520366,
+      "not_a_hard_guarantee": true
+    },
+    "scope": "Clean finite pilot. Host request latencies, not exclusive GPU durations or sustainable capacity.",
+    "TTFT_p50_ms": 339.04492016881704,
+    "TTFT_p95_ms": 581.2037569470702,
+    "TTFT_p99_ms": 633.6805310472846,
+    "TPOT_p50_ms": 38.1901886374239,
+    "TPOT_p95_ms": 43.96559211816037,
+    "TPOT_p99_ms": 44.45417774901275,
+    "E2E_p50_ms": 1518.2480495423079,
+    "E2E_p95_ms": 1870.8154547959564,
+    "E2E_p99_ms": 1985.80029418692,
+    "ITL_p50_ms": 35.77150031924248,
+    "ITL_p95_ms": 67.62724155560136,
+    "ITL_p99_ms": 69.68510992825031,
+    "Decode_SLO_screen": false
+  },
+  "actual_work": {
+    "D_prompt_recurrent_rows": 131072,
+    "expected_D_prompt_rows": 131072,
+    "completed_offloaded_serving_requests": 128,
+    "counters": {
+      "prefill": {
+        "issued_loop_rows": 1966080,
+        "issued_submissions": 128,
+        "transport_bytes_sent": 386547580928,
+        "transport_completed_count": 5888
+      },
+      "decode": {
+        "issued_loop_rows": 146944,
+        "issued_submissions": 8255,
+        "transport_bytes_sent": 0,
+        "transport_completed_count": 0
+      }
+    },
+    "passed": true,
+    "scope": "Actual P-to-D serving continuation. No independent D-local probes. Rows are not FLOPs. Transfer bytes are payload counters, not control-message or wire-header bytes."
+  }
+}

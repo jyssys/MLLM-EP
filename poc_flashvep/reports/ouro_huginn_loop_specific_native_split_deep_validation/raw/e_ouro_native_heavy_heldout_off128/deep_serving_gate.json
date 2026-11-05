@@ -1,0 +1,213 @@
+{
+  "name": "e_ouro_native_heavy_heldout_off128",
+  "model": "ouro",
+  "method": "native",
+  "load": "heavy",
+  "count": 128,
+  "independent_start": 1,
+  "markers": false,
+  "complete": true,
+  "passed": true,
+  "work": {
+    "run": "e_ouro_native_heavy_heldout_off128",
+    "expected": 2113024,
+    "observed": 2113024,
+    "passed": true,
+    "scope": "Active recurrent rows, not padded physical GEMM work."
+  },
+  "lifetime": {
+    "passed": true,
+    "compared": 128,
+    "failures": [],
+    "scope": "Recorded native ACK precedes source retirement. Both coordinator credits retire and final native KV allocations are empty. This is not GPU DMA timing or HF fidelity."
+  },
+  "output": {
+    "passed": true
+  },
+  "metrics": {
+    "completed": 128,
+    "offered": 128,
+    "response_span_s": 24.475430227816105,
+    "requests_per_second": 5.229734423811237,
+    "joint_SLO_goodput": 1.1440044052087082,
+    "joint_SLO_attainment": 0.21875,
+    "total_tokens_per_second": 21588.343701492788,
+    "output_tokens_per_second": 167.3515015619596,
+    "maximum_ITL_ms": 47.813909128308296,
+    "frozen_SLO": {
+      "TTFT_ms": 1112.9925646819174,
+      "TPOT_ms": 53.70702898374411,
+      "ITL_ms": 65.08287642151119,
+      "requests": 16,
+      "calibration": "calibration_ouro_l4096_v1",
+      "rule": "2x independent serial-calibration p95 request latency; 2x token ITL p99.",
+      "frozen_before_heldout_search": 1793516537.4520366,
+      "not_a_hard_guarantee": true
+    },
+    "scope": "Clean finite pilot. Host request latencies, not exclusive GPU durations or sustainable capacity.",
+    "TTFT_p50_ms": 3887.18019425869,
+    "TTFT_p95_ms": 5843.403212260455,
+    "TTFT_p99_ms": 6168.786689601839,
+    "TPOT_p50_ms": 38.32889774874333,
+    "TPOT_p95_ms": 38.86625152081251,
+    "TPOT_p99_ms": 38.932901809532794,
+    "E2E_p50_ms": 5086.472901515663,
+    "E2E_p95_ms": 7020.285990554839,
+    "E2E_p99_ms": 7295.469774249941,
+    "ITL_p50_ms": 38.09294756501913,
+    "ITL_p95_ms": 41.602606512606144,
+    "ITL_p99_ms": 43.48763622343539,
+    "Decode_SLO_screen": true,
+    "TTFT_SLO_pass_count": 28,
+    "TPOT_SLO_pass_count": 128,
+    "TTFT_SLO_attainment": 0.21875,
+    "TPOT_SLO_attainment": 1.0,
+    "SLO_attainment_denominator": 128,
+    "input_tokens_per_second": 21420.992199930828,
+    "nominal_QPS": 6.356,
+    "realized_arrival_QPS": 7.393962770172292,
+    "actual_submit_QPS": 7.393699667872924,
+    "markers": false,
+    "data_split": "heldout",
+    "service_scope": "NOT_MEASURED_IN_MARKER_FREE_RUN"
+  },
+  "actual_work": {
+    "D_prompt_recurrent_rows": 0,
+    "expected_D_prompt_rows": 0,
+    "completed_offloaded_serving_requests": 0,
+    "counters": {
+      "prefill": {
+        "issued_loop_rows": 2097152,
+        "issued_submissions": 128,
+        "transport_bytes_sent": 412317384704,
+        "transport_completed_count": 6272
+      },
+      "decode": {
+        "issued_loop_rows": 15872,
+        "issued_submissions": 5879,
+        "transport_bytes_sent": 0,
+        "transport_completed_count": 0
+      }
+    },
+    "passed": true,
+    "scope": "Actual P-to-D serving continuation. No independent D-local probes. Rows are not FLOPs. Transfer bytes are payload counters, not control-message or wire-header bytes."
+  },
+  "graphs": {
+    "roles": [
+      {
+        "role": "prefill",
+        "budget": 8,
+        "entries": [
+          {
+            "key": [
+              4096,
+              1,
+              4096,
+              true,
+              false
+            ],
+            "captured": true,
+            "input_hidden_bytes": 16777216
+          },
+          {
+            "key": [
+              8192,
+              2,
+              4096,
+              true,
+              false
+            ],
+            "captured": true,
+            "input_hidden_bytes": 33554432
+          }
+        ],
+        "measured": {
+          "selects": 512,
+          "existing_hits": 512,
+          "cold_entries": 0,
+          "fallbacks": 0,
+          "policy_bypass": 0,
+          "captures": 0,
+          "prepare_host_s": 0.21871047094464302
+        },
+        "measured_existing_hit_ratio": 1.0,
+        "passed": true,
+        "scope": "Measured native packed-prefill selections only. Startup counters remain separate."
+      },
+      {
+        "role": "decode",
+        "budget": 8,
+        "entries": [],
+        "measured": {
+          "selects": 0,
+          "existing_hits": 0,
+          "cold_entries": 0,
+          "fallbacks": 0,
+          "policy_bypass": 0,
+          "captures": 0,
+          "prepare_host_s": 0.0
+        },
+        "measured_existing_hit_ratio": null,
+        "passed": true,
+        "scope": "Measured native packed-prefill selections only. Startup counters remain separate."
+      }
+    ],
+    "passed": true
+  },
+  "performance_eligible_graphs": true,
+  "wire_accounting": {
+    "roles": [
+      {
+        "role": "decode",
+        "counts": {
+          "startup": {
+            "KV_bytes": 0,
+            "hidden_bytes": 0,
+            "descriptors": 0,
+            "accepted_submissions": 0,
+            "notification_payload_bytes": 0,
+            "observer_host_seconds": 0.0
+          },
+          "measured": {
+            "KV_bytes": 0,
+            "hidden_bytes": 0,
+            "descriptors": 0,
+            "accepted_submissions": 0,
+            "notification_payload_bytes": 0,
+            "observer_host_seconds": 0.0
+          }
+        },
+        "actual_completed_payload_bytes": 0,
+        "submitted_equals_completed_at_close": true,
+        "scope": "Actual successful native NIXL WRITE regions. KV and hidden are classified by registered storage. Notification payload bytes exclude PDEngine control/ACK messages and wire headers. Host observer time excludes the original submission."
+      },
+      {
+        "role": "prefill",
+        "counts": {
+          "startup": {
+            "KV_bytes": 19327352832,
+            "hidden_bytes": 53248,
+            "descriptors": 399,
+            "accepted_submissions": 301,
+            "notification_payload_bytes": 11934,
+            "observer_host_seconds": 0.003021351993083954
+          },
+          "measured": {
+            "KV_bytes": 412316860416,
+            "hidden_bytes": 524288,
+            "descriptors": 7802,
+            "accepted_submissions": 6272,
+            "notification_payload_bytes": 249600,
+            "observer_host_seconds": 0.03590617701411247
+          }
+        },
+        "actual_completed_payload_bytes": 431644790784,
+        "submitted_equals_completed_at_close": true,
+        "scope": "Actual successful native NIXL WRITE regions. KV and hidden are classified by registered storage. Notification payload bytes exclude PDEngine control/ACK messages and wire headers. Host observer time excludes the original submission."
+      }
+    ],
+    "agrees_with_native_measured_bytes": true,
+    "agrees_with_native_measured_submissions": true,
+    "scope": "Accepted-region accounting is compared with native completed-transfer counters. Startup remains separate. Control/ACK messages and wire headers remain unmeasured."
+  }
+}
