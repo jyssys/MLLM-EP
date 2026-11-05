@@ -1,0 +1,51 @@
+{
+  "name": "b_ouro_2d_c3_k3072_v7_state32",
+  "complete": true,
+  "passed": true,
+  "work": {
+    "run": "b_ouro_2d_c3_k3072_v7_state32",
+    "expected": 528256,
+    "observed": 528256,
+    "passed": true,
+    "scope": "Active recurrent rows, not padded physical GEMM work."
+  },
+  "actual_offload": {
+    "D_prompt_rows": 32768,
+    "expected_D_prompt_rows": 32768,
+    "passed": true,
+    "scope": "Measured active D recurrent rows minus exact post-first-token Decode rows. Not FLOPs."
+  },
+  "transfer": {
+    "compared": 32,
+    "expected": 32,
+    "raw_rows_including_startup": 34,
+    "passed": true,
+    "scope": "Receiver fingerprint versus source. Last observation per seed follows startup. Raw startup checks remain retained. All transferred valid KV and hidden bytes."
+  },
+  "lifetime": {
+    "passed": true,
+    "compared": 32,
+    "failures": [],
+    "scope": "Recorded native ACK precedes source retirement. Both coordinator credits retire and final native KV allocations are empty. This is not GPU DMA timing or HF fidelity."
+  },
+  "output": {
+    "reference": "b_ouro_native_v5_state32",
+    "candidate": "b_ouro_2d_c3_k3072_v7_state32",
+    "compared": 32,
+    "candidate_rows": 32,
+    "passed": true,
+    "matched_input_seed_rows": 32,
+    "comparison_applicable": true,
+    "failures": [],
+    "scope": "Internal exact output sequence parity. Not original-HF fidelity or downstream accuracy."
+  },
+  "state": {
+    "reference": "b_ouro_native_v5_state32",
+    "candidate": "b_ouro_2d_c3_k3072_v7_state32",
+    "expected": 32,
+    "missing_seeds": [],
+    "divergent_seeds": [],
+    "exact": true,
+    "scope": "Exact hashes of recorded valid KV planes and prompt hidden state. Not original-HF accuracy."
+  }
+}
