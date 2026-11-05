@@ -1,0 +1,38 @@
+{
+  "failure_receipt_epoch": 1793868021.069094,
+  "run": "c_huginn_2d_c28_k1536_discovery_s1_off128",
+  "status": "BLOCKED_RESOURCE_OOM_D_STARTUP_BATCH4",
+  "measured_facts": {
+    "returncode": 1,
+    "elapsed_dispatch_seconds": 71.20397378690541,
+    "successful_D_warmup_batches": [
+      1,
+      2,
+      3
+    ],
+    "failed_D_warmup_batch": 4,
+    "requested_allocation_MiB": 84,
+    "reported_free_MiB": 78.5,
+    "initial_D_allocated_bytes": 80036048384,
+    "D_KV_blocks": 26752,
+    "KV_block_bytes": 2703360,
+    "D_KV_pool_GiB": 67.353515625,
+    "D_KV_pool_physical_HBM_percent": 84.5645483637612
+  },
+  "hypotheses_ranked": [
+    "Retained graph and staging allocations leave insufficient transient Coda workspace at the larger D geometry.",
+    "Batch-dependent temporary allocations exceed the remaining physical device memory.",
+    "Allocator fragmentation contributes to the failed allocation."
+  ],
+  "scope": "The failure occurred before measurement. It is not a slow serving result or an output divergence. The precise contribution of graph retention, workspace, and fragmentation is not isolated.",
+  "response": "Preserve the raw failure. Continue independent qualified methods. Exclude this unchanged OOM action from later calibration and oracle expansion.",
+  "untested_memory_control": {
+    "status": "STRUCTURAL_ACCOUNTING_NOT_GPU_VALIDATED",
+    "D_KV_blocks": 25088,
+    "pool_GiB": 63.1640625,
+    "reclaimed_GiB": 4.189453125,
+    "blocks_per_full_output_request": 4128,
+    "theoretical_reserved_requests": 6,
+    "scope": "A possible common-pool control. It is not an applied repair or a validated memory solution. A changed allocation contract requires separate correctness and matched baseline checks."
+  }
+}

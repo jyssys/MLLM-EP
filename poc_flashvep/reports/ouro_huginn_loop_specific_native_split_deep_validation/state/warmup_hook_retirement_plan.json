@@ -1,0 +1,23 @@
+{
+  "CPU_reproducer": "/home/esjung/.venvs/looped-pd-abc/bin/python -m unittest poc_flashvep.native_split_deep_validation.test_warmup_hook -v",
+  "red_result": "test_terminal_state_does_not_leave_repeated_marker_IO failed with 10 reads instead of 1.",
+  "green_result": "All three scheduling-closure tests passed after terminal-state caching.",
+  "ranked_hypotheses": [
+    "Repeated completed-marker reads add host cost to D scheduling.",
+    "A retained startup barrier changes the main scheduling predicate.",
+    "The file reads have no meaningful GPU-serving impact."
+  ],
+  "confirmed_scope": "The exact installed scheduling closure repeats file reads after ALL_COMPLETE. The CPU replay also verifies that the active-import barrier remains and the previous readiness result is returned unchanged.",
+  "unconfirmed_scope": "Actual wall-time and tail-latency effects require GPU controls. The CPU result is not a measured serving speedup.",
+  "implementation": "Reuse the existing recovery warm-up's terminal-state caching pattern. Historical c_ discovery keeps its observer. New calibration and held-out runs use terminal-state retirement for all methods.",
+  "qualification": "Run new Huginn Token1984 N8 and N32 with exact state hashes and all D geometry cohorts. The additional startup work is diagnostic only.",
+  "diagnostic_timeout_basis": {
+    "old_Token1984_N8_dispatch_s": 294.28299015946686,
+    "old_Token1984_N32_dispatch_s": 608.8879107590765,
+    "added_full_prompt_startup_requests": 21,
+    "startup_timeout_s": 600,
+    "total_diagnostic_timeout_s": 1100,
+    "scope": "Bounded allowance for additional exact-state startup work. Frozen serving SLOs and the campaign deadline do not change."
+  },
+  "time_priority": "Run observer controls before calibration. Defer optional legacy-cache sensitivity until the core paired held-out repetitions finish."
+}
