@@ -156,6 +156,8 @@ Ready-queue priority cannot preempt work that the runtime already submitted. Ave
 
 The naive-full control isolates this interference without intermediate KV migration for local requests.
 
+It does not isolate GPU blocking from host submission cost. The rejected traces cannot supply that causal split.
+
 The serial slice measurements also show the effect of recurrent quantum. They do not prove online safe windows.
 
 Slice distributions: [slice_costs.csv](ouro_huginn_loop_aware_d_local_prefill_cross_phase_batching/slice_costs.csv).
@@ -354,6 +356,10 @@ A daemon restart removed dispatch controllers. One worker completed its cohort w
 Its recovered receipt has an unknown process exit code and an unqualified timing label. The raw cohort is not a clean primary comparison.
 
 A fresh named heavy control avoids reusing that interrupted timing as primary. The original result remains preserved.
+
+Several completed jobs log UCX CUDA-context error 4 during teardown. Their process exits, output checks, work counts, and saved release checks pass.
+
+The teardown error cause remains INCONCLUSIVE. Completion checks do not establish that the warning is harmless.
 
 The campaign omitted optional Huginn C32 N32 cells to prioritize mandatory C128 N32 and warm-matched serving. Their N8 tests remain.
 
