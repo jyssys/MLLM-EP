@@ -49,12 +49,15 @@ See [the operational incident](ouro_huginn_adaptive_idle_gated_loop_continuation
 The host has eight H100 80GB GPUs. Each scientific job uses an isolated two-GPU pair.
 All approved burners stop during those measurements.
 Heavy CPU trace analysis uses the same exclusive lane and does not overlap a GPU experiment.
-Driver version: 570.211.01. CUPTI collector version: CUDA 12.8.
+Driver version: 570.211.01. The collector uses CUDA 12.8 headers and link-search paths.
 The environment inventory retains topology, UUIDs, and process ownership.
 
 Python: `3.14.6 | packaged by Anaconda, Inc. | (main, Jul  9 2026, 14:37:38) [GCC 14.3.0]`.
 Torch: `2.11.0+cu129`. Torch CUDA build: `12.9`.
-See `software_versions.json` for NIXL, Triton, and other installed package versions.
+See `software_versions.json` for NIXL, Triton, CUPTI, and other installed package versions.
+The environment also contains the CUDA CUPTI package version 12.9.79.
+Per-worker resolved CUPTI library maps were not recorded. Cross-version effects remain untested.
+No export failure is attributed to a version difference without that test.
 
 ## 3. Models, requests, and frozen SLO
 
