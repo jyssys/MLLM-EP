@@ -114,6 +114,7 @@ def main():
         'Native D does not execute prompt slices. A migrated or local prefill sequence can block newly ready decode on the same execution stream.\n',
         'Ready-queue priority cannot preempt work that the runtime already submitted. Average utilization cannot establish a safe insertion deadline.\n',
         'The naive-full control isolates this interference without intermediate KV migration for local requests.\n',
+        'It does not isolate GPU blocking from host submission cost. The rejected traces cannot supply that causal split.\n',
         'The serial slice measurements also show the effect of recurrent quantum. They do not prove online safe windows.\n',
         f'Slice distributions: [slice_costs.csv]({PREFIX}slice_costs.csv).\n',
         'Historical Token/Loop paths also changed runtime, transfer, and graph costs. The new controls do not attribute every historical difference to one cause.\n']
@@ -227,6 +228,8 @@ def main():
         'A daemon restart removed dispatch controllers. One worker completed its cohort without its dispatcher receipt.\n',
         'Its recovered receipt has an unknown process exit code and an unqualified timing label. The raw cohort is not a clean primary comparison.\n',
         'A fresh named heavy control avoids reusing that interrupted timing as primary. The original result remains preserved.\n',
+        'Several completed jobs log UCX CUDA-context error 4 during teardown. Their process exits, output checks, work counts, and saved release checks pass.\n',
+        'The teardown error cause remains INCONCLUSIVE. Completion checks do not establish that the warning is harmless.\n',
         'The campaign omitted optional Huginn C32 N32 cells to prioritize mandatory C128 N32 and warm-matched serving. Their N8 tests remain.\n',
         'Cross-depth online N128, N512 persistence, natural-EOS variability, and the ExactLoop ablation did not pass the expansion gate.\n',
         'The campaign does not claim a complete calibrated generic deflection controller or a production scheduler.\n',
