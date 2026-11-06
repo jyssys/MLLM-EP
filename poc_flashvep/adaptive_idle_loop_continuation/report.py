@@ -77,12 +77,15 @@ def main():
     add('The host has eight H100 80GB GPUs. Each scientific job uses an isolated two-GPU pair.\n'
         'All approved burners stop during those measurements.\n'
         'Heavy CPU trace analysis uses the same exclusive lane and does not overlap a GPU experiment.\n'
-        'Driver version: 570.211.01. CUPTI collector version: CUDA 12.8.\n'
+        'Driver version: 570.211.01. The collector uses CUDA 12.8 headers and link-search paths.\n'
         'The environment inventory retains topology, UUIDs, and process ownership.')
     software=load(ROOT/'software_versions.json',{})
     add(f'Python: `{software.get("Python","NOT_MEASURED")}`.\n'
         f'Torch: `{software.get("Torch","NOT_MEASURED")}`. Torch CUDA build: `{software.get("Torch_CUDA","NOT_MEASURED")}`.\n'
-        'See `software_versions.json` for NIXL, Triton, and other installed package versions.')
+        'See `software_versions.json` for NIXL, Triton, CUPTI, and other installed package versions.\n'
+        'The environment also contains the CUDA CUPTI package version 12.9.79.\n'
+        'Per-worker resolved CUPTI library maps were not recorded. Cross-version effects remain untested.\n'
+        'No export failure is attributed to a version difference without that test.')
     add('## 3. Models, requests, and frozen SLO')
     add(table(['Model','Precision / depth','Input / output','Low / medium / heavy QPS','Physical P/D pair','P/D slots'],[
         ['ByteDance/Ouro-1.4B','Original BF16 / R4','4096 / 32','1.23460875 / 3.4569045 / 6.356','0 / 1','2 / 8'],

@@ -9,9 +9,11 @@ def main():
     import importlib.metadata
     import torch
     packages={d.metadata['Name']:d.version for d in importlib.metadata.distributions()
-        if any(v in d.metadata.get('Name','').lower() for v in ('torch','nixl','vllm','triton'))}
+        if any(v in d.metadata.get('Name','').lower() for v in ('torch','nixl','vllm','triton','cuda-cupti'))}
     write(ROOT/'software_versions.json',dict(Python=sys.version,Python_executable=sys.executable,
         Torch=torch.__version__,Torch_CUDA=torch.version.cuda,packages=packages,
+        collector_headers_and_link_search='/usr/local/cuda-12.8',
+        per_worker_resolved_CUPTI_library_map='NOT_RECORDED',
         private_runtime_HEAD=json.loads((ROOT/'state/preservation.json').read_text())['private_HEAD'],
         scope='CPU metadata inspection after scientific jobs. No GPU memory or model parameter change.'))
     for file in sorted((ROOT/'configs').glob('*.json')):
