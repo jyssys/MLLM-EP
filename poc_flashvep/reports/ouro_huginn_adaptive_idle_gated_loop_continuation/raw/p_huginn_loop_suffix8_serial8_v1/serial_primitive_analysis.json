@@ -1,0 +1,205 @@
+{
+  "name": "p_huginn_loop_suffix8_serial8_v1",
+  "model": "huginn",
+  "remaining_loops": 8,
+  "count": 8,
+  "frontier": null,
+  "D_loop_quantum": null,
+  "output": {
+    "reference": "p_huginn_native_serial8_v1",
+    "candidate": "p_huginn_loop_suffix8_serial8_v1",
+    "compared": 8,
+    "candidate_rows": 8,
+    "passed": true,
+    "matched_input_seed_rows": 8,
+    "comparison_applicable": true,
+    "failures": [],
+    "scope": "Internal exact output sequence parity. Not original-HF fidelity or downstream accuracy."
+  },
+  "full_work": {
+    "run": "p_huginn_loop_suffix8_serial8_v1",
+    "expected": 528128,
+    "observed": 528128,
+    "passed": true,
+    "scope": "Active recurrent rows, not padded physical GEMM work."
+  },
+  "lifetime": {
+    "passed": true,
+    "compared": 8,
+    "failures": [],
+    "scope": "Recorded native ACK precedes source retirement. Both coordinator credits retire and final native KV allocations are empty. This is not GPU DMA timing or HF fidelity."
+  },
+  "actual_D_prompt_rows": 131072,
+  "expected_D_prompt_rows": 131072,
+  "streams": {
+    "decode": {
+      "count": 8,
+      "p50_ms": 149.8342742919922,
+      "p95_ms": 150.56390991210938,
+      "maximum_ms": 150.9319610595703,
+      "per_request_sum_ms": {
+        "202611061001": 150.9319610595703,
+        "202611061002": 149.6465301513672,
+        "202611061003": 149.22738647460938,
+        "202611061004": 149.82272338867188,
+        "202611061005": 149.8458251953125,
+        "202611061006": 149.88038635253906,
+        "202611061007": 149.8501739501953,
+        "202611061008": 149.6312255859375
+      }
+    },
+    "prefill": {
+      "count": 8,
+      "p50_ms": 431.0397186279297,
+      "p95_ms": 431.9292465209961,
+      "maximum_ms": 432.119873046875,
+      "per_request_sum_ms": {
+        "202611061001": 430.69573974609375,
+        "202611061002": 430.3996887207031,
+        "202611061003": 431.5752258300781,
+        "202611061004": 430.56298828125,
+        "202611061005": 431.5711669921875,
+        "202611061006": 431.239990234375,
+        "202611061007": 432.119873046875,
+        "202611061008": 430.8394470214844
+      }
+    }
+  },
+  "counters": {
+    "prefill": {
+      "issued_loop_rows": 393216,
+      "issued_submissions": 8,
+      "transport_bytes_sent": 34256977920,
+      "transport_completed_count": 512
+    },
+    "decode": {
+      "issued_loop_rows": 134912,
+      "issued_submissions": 4096,
+      "transport_bytes_sent": 0,
+      "transport_completed_count": 0
+    }
+  },
+  "state_exactness": "NOT_MEASURED_IN_THIS_TIMED_SERIAL_RUN",
+  "passed": true,
+  "handoff": {
+    "count": 8,
+    "p50_ms": 94.00095976889133,
+    "p95_ms": 97.2936031408608,
+    "maximum_ms": 97.96964563429356
+  },
+  "service_TTFT": {
+    "count": 8,
+    "p50_ms": 694.8589524254203,
+    "p95_ms": 698.2928087934852,
+    "maximum_ms": 698.7319942563772
+  },
+  "D_prompt_window": {
+    "count": 8,
+    "p50_ms": 149.85686168074608,
+    "p95_ms": 150.5974842235446,
+    "maximum_ms": 150.97209252417088
+  },
+  "metrics": {
+    "completed": 8,
+    "offered": 8,
+    "response_span_s": 18.13583100400865,
+    "requests_per_second": 0.4411157116666847,
+    "joint_SLO_goodput": 0.4411157116666847,
+    "joint_SLO_attainment": 1.0,
+    "total_tokens_per_second": 910.4628288800371,
+    "output_tokens_per_second": 7.057851386666955,
+    "maximum_ITL_ms": 96.68819792568684,
+    "frozen_SLO": {
+      "TTFT_ms": 1963.9920117333531,
+      "TPOT_ms": 186.5715059141318,
+      "ITL_ms": 192.8212538175284,
+      "requests": 16,
+      "calibration": [
+        "short_huginn_C1024_serial16",
+        "short_huginn_C2048_serial16"
+      ],
+      "rule": "Two times serial calibration percentiles. Use the tighter per-metric limit across Atomic and C2048. Freeze before held-out pilot serving.",
+      "frozen_epoch": 1793701394.056462,
+      "calibration_values": [
+        {
+          "name": "short_huginn_C1024_serial16",
+          "TTFT_ms": 1984.9652252160013,
+          "TPOT_ms": 186.5715059141318,
+          "ITL_ms": 192.8212538175284
+        },
+        {
+          "name": "short_huginn_C2048_serial16",
+          "TTFT_ms": 1963.9920117333531,
+          "TPOT_ms": 188.43453507870436,
+          "ITL_ms": 198.30003213137388
+        }
+      ]
+    },
+    "scope": "Clean finite pilot. Host request latencies, not exclusive GPU durations or sustainable capacity.",
+    "TTFT_p50_ms": 816.1237640306354,
+    "TTFT_p95_ms": 956.6918758675456,
+    "TTFT_p99_ms": 957.1872278675437,
+    "TPOT_p50_ms": 94.47390542676051,
+    "TPOT_p95_ms": 94.56439845263958,
+    "TPOT_p99_ms": 94.56474211315313,
+    "E2E_p50_ms": 2233.9178351685405,
+    "E2E_p95_ms": 2372.774052619934,
+    "E2E_p99_ms": 2373.983768224716,
+    "ITL_p50_ms": 94.27669737488031,
+    "ITL_p95_ms": 95.8018490113318,
+    "ITL_p99_ms": 96.51943875476718,
+    "Decode_SLO_screen": true,
+    "TTFT_SLO_pass_count": 8,
+    "TPOT_SLO_pass_count": 8,
+    "TTFT_SLO_attainment": 1.0,
+    "TPOT_SLO_attainment": 1.0,
+    "SLO_attainment_denominator": 8,
+    "summed_request_E2E_ms": 18126.141177490354,
+    "summed_request_queue_E2E_percent": 6.823556417618065,
+    "summed_request_service_TTFT_E2E_percent": 30.638396444694976,
+    "summed_request_postfirst_Decode_E2E_percent": 62.53804713768696,
+    "latency_share_scope": "Disjoint host request intervals. Denominator is summed request E2E latency, not wall time, GPU time, or a sum of component percentiles.",
+    "input_tokens_per_second": 903.4049774933702,
+    "name": "p_huginn_loop_suffix8_serial8_v1",
+    "model": "huginn",
+    "arm": "PD_G1",
+    "nominal_QPS": null,
+    "arrival_seed": null,
+    "realized_arrival_QPS": 0.4402542752428163,
+    "scheduled_trace_QPS": 0.4402542752428163,
+    "actual_submit_QPS": 0.440254706616552,
+    "arrival_rate_scope": "The retained realized_arrival_QPS field measures the finite scheduled trace. actual_submit_QPS measures actual coordinator send starts. Neither is completed throughput.",
+    "service_start_evidence": "Native model-stream entry CUDA event after input preparation",
+    "service_start_limit": "Not a CUPTI first-kernel timestamp. Clock uncertainty is retained per request.",
+    "timing_scope": "Device enclosures include launch gaps and possibly other requests. They are not exclusive GPU kernel times.",
+    "coalesced_nonfirst_delivery_events": 0,
+    "token_tail_scope": "One-token coordinator deliveries.",
+    "measured_graph_capture_count": 0,
+    "measured_graph_capture_host_seconds": 0,
+    "profiler_overhead": "NOT_MEASURED",
+    "queue_ms_p50": 119.60066296160221,
+    "queue_ms_p95": 261.93534387275577,
+    "queue_ms_p99": 262.62188067659736,
+    "service_TTFT_ms_p50": 694.8589524254203,
+    "service_TTFT_ms_p95": 698.2928087934852,
+    "service_TTFT_ms_p99": 698.6441571637988,
+    "P_prompt_device_enclosure_ms_p50": 431.0655724257231,
+    "P_prompt_device_enclosure_ms_p95": 431.9550244137645,
+    "P_prompt_device_enclosure_ms_p99": 432.1059614047408,
+    "observed_handoff_ms_p50": 94.00095976889133,
+    "observed_handoff_ms_p95": 97.2936031408608,
+    "observed_handoff_ms_p99": 97.834437135607,
+    "D_prompt_device_enclosure_ms_p50": 149.85686168074608,
+    "D_prompt_device_enclosure_ms_p95": 150.5974842235446,
+    "D_prompt_device_enclosure_ms_p99": 150.89717086404562,
+    "D_continuation_to_first_token_ms_p50": 152.00013853609562,
+    "D_continuation_to_first_token_ms_p95": 152.9069715179503,
+    "D_continuation_to_first_token_ms_p99": 153.14255403354764,
+    "maximum_clock_uncertainty_ms": 0.02714339643716812,
+    "actual_submit_lateness_p50_ms": 0.0493023544549942,
+    "actual_submit_lateness_p95_ms": 0.057066790759563446,
+    "actual_submit_lateness_p99_ms": 0.05718674510717392,
+    "maximum_actual_submit_lateness_ms": 0.05721673369407654
+  },
+  "scope": "Measured serial CUDA-event enclosures. Not exclusive kernels, clean serving, simultaneous Decode interference, or a validated safe admission budget."
+}
