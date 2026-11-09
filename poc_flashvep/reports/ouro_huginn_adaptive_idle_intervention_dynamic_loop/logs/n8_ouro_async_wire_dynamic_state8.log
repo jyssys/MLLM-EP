@@ -1,0 +1,63 @@
+Attention implementation: {'backend': 'flash_attn', 'generation': 4, 'package': 'flash-attn-4', 'version': '4.0.0b30'}
+Attention implementation: {'backend': 'flash_attn', 'generation': 4, 'package': 'flash-attn-4', 'version': '4.0.0b30'}
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_headroom_recovery/worker.py", line 30, in <module>
+    main()
+    ~~~~^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_headroom_recovery/worker.py", line 26, in main
+    module.main()
+    ~~~~~~~~~~~^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_atomic_prefill/rlt_worker.py", line 78, in main
+    inherited.main()
+    ~~~~~~~~~~~~~~^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/adaptive_loop_token_pd_2gpu/worker.py", line 169, in main
+    sys.argv=flags;base.main()
+                   ~~~~~~~~~^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_abc/worker.py", line 221, in main
+    try:run(args)
+        ~~~^^^^^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_abc/worker.py", line 150, in run
+    engine=PDEngine(MODELS[args.model],pd_config=PDConfig(prefill_devices=tuple(range(p)),decode_devices=tuple(range(p,len(devices))),startup_timeout=300),
+     prefill_cache_config=cfg['cache_config'],decode_cache_config=cfg['cache_config'],
+     prefill_scheduler_config=cfg['scheduler_config'],decode_scheduler_config=cfg['scheduler_config'],
+     execution_config=cfg['execution_config'],exit_config=cfg['exit_config'],attention_backend=cfg['attention_backend'],seed=20261029)
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/adaptive_loop_token_pd_2gpu/worker.py", line 153, in init
+    initialize(self,*args,**kwargs)
+    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/reports/ouro_huginn_adaptive_idle_intervention_dynamic_loop/raw/n8_ouro_async_wire_dynamic_state8/worker_source/poc_flashvep/idle_intervention_dynamic_loop/runtime.py", line 61, in initialized_pd
+    result=init_pd(engine,*args,**kwargs)
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/native_loop_2d_oracle/native_path.py", line 194, in init
+    result = initialize_pd(engine, *args, **kwargs)
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_atomic_prefill/runtime.py", line 45, in initialize_pd
+    return initialize(self,*args,**kwargs)
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/pd/engine.py", line 147, in __init__
+    self._wait(lambda: all(p.client.ready for p in self.peers.values()), deadline)
+    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/pd/engine.py", line 169, in _wait
+    self._poll()
+    ~~~~~~~~~~^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/pd/engine.py", line 176, in _poll
+    for message in peer.client.poll():
+                   ~~~~~~~~~~~~~~~~^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/llm_engine.py", line 118, in poll
+    message = self._receive()
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/llm_engine.py", line 141, in _receive
+    raise error(f"stage worker failed:\n{self.failure}")
+RuntimeError: stage worker failed:
+Traceback (most recent call last):
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/worker.py", line 217, in worker_main
+    owner = StageWorker(
+        stage_config,
+    ...<5 lines>...
+        max_control_messages=max_control_messages,
+    )
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/worker.py", line 62, in __init__
+    self.engine = StageEngine(self.model, stage_config=stage_config, **options["engine"])
+                  ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/reports/ouro_huginn_adaptive_idle_intervention_dynamic_loop/raw/n8_ouro_async_wire_dynamic_state8/worker_source/poc_flashvep/idle_intervention_dynamic_loop/async_state.py", line 24, in initialized
+    connector_progress=engine.connector.progress
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'progress'
+

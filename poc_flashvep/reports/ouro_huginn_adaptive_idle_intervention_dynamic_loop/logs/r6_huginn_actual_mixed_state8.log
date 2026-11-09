@@ -1,0 +1,106 @@
+Attention implementation: {'backend': 'flash_attn', 'generation': 4, 'package': 'flash-attn-4', 'version': '4.0.0b30'}
+Attention implementation: {'backend': 'flash_attn', 'generation': 4, 'package': 'flash-attn-4', 'version': '4.0.0b30'}
+2026-11-09 14:09:19 NIXL INFO    _api.py:407 Backend UCX was instantiated
+2026-11-09 14:09:19 NIXL INFO    _api.py:285 Initialized NIXL agent: 62908356c6e54262a76df94bfa9e8f02-prefill-0
+2026-11-09 14:09:20 NIXL INFO    _api.py:407 Backend UCX was instantiated
+2026-11-09 14:09:20 NIXL INFO    _api.py:285 Initialized NIXL agent: 62908356c6e54262a76df94bfa9e8f02-decode-1
+/home/esjung/.venvs/ouro-chunk-loop-prefill/lib/python3.14/site-packages/nvidia_cutlass_dsl/dsl_packages/cutlass/base_dsl/dsl.py:2300: UserWarning: Argument aux_data (position 17) cannot be converted to a JitArgument for function 'cutlass___call___flash_attncuteflash_fwd_sm90FlashAttentionForwardSm90_object_at__Tensorgmemoi64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i641_None_01020620726'. Its type `<class 'flash_attn.cute.utils.AuxData'>` is not supported. If the value is known at compile time, annotate it: `aux_data: Constexpr`. Otherwise, implement the `JitArgument` or `DynamicExpression` protocol for type `<class 'flash_attn.cute.utils.AuxData'>`, or register a custom argument adapter.
+  exe_args, func_types, adapted_args = self.generate_mlir_function_types(
+/home/esjung/.venvs/ouro-chunk-loop-prefill/lib/python3.14/site-packages/nvidia_cutlass_dsl/dsl_packages/cutlass/base_dsl/dsl.py:2300: UserWarning: Argument aux_data (position 17) cannot be converted to a JitArgument for function 'cutlass___call___flash_attncuteflash_fwd_sm90FlashAttentionForwardSm90_object_at__Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_None_01020'. Its type `<class 'flash_attn.cute.utils.AuxData'>` is not supported. If the value is known at compile time, annotate it: `aux_data: Constexpr`. Otherwise, implement the `JitArgument` or `DynamicExpression` protocol for type `<class 'flash_attn.cute.utils.AuxData'>`, or register a custom argument adapter.
+  exe_args, func_types, adapted_args = self.generate_mlir_function_types(
+DONE r6_huginn_actual_mixed_state8 0 2 1210.32
+DONE r6_huginn_actual_mixed_state8 1 2 2730.08
+DONE r6_huginn_actual_mixed_state8 2 2 2730.93
+/home/esjung/.venvs/ouro-chunk-loop-prefill/lib/python3.14/site-packages/nvidia_cutlass_dsl/dsl_packages/cutlass/base_dsl/dsl.py:2300: UserWarning: Argument aux_data (position 17) cannot be converted to a JitArgument for function 'cutlass___call___flash_attncuteflash_fwd_sm90FlashAttentionForwardSm90_object_at__Tensorgmemoi64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i641_None_01020620726'. Its type `<class 'flash_attn.cute.utils.AuxData'>` is not supported. If the value is known at compile time, annotate it: `aux_data: Constexpr`. Otherwise, implement the `JitArgument` or `DynamicExpression` protocol for type `<class 'flash_attn.cute.utils.AuxData'>`, or register a custom argument adapter.
+  exe_args, func_types, adapted_args = self.generate_mlir_function_types(
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_headroom_recovery/worker.py", line 30, in <module>
+    main()
+    ~~~~^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_headroom_recovery/worker.py", line 26, in main
+    module.main()
+    ~~~~~~~~~~~^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_atomic_prefill/rlt_worker.py", line 78, in main
+    inherited.main()
+    ~~~~~~~~~~~~~~^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/adaptive_loop_token_pd_2gpu/worker.py", line 169, in main
+    sys.argv=flags;base.main()
+                   ~~~~~~~~~^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_abc/worker.py", line 221, in main
+    try:run(args)
+        ~~~^^^^^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_abc/worker.py", line 183, in run
+    for repeat in range(args.repeats):serve(engine,inputs,args,repeat)
+                                      ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_headroom_recovery/worker.py", line 24, in measured
+    return original(engine,inputs,args,run,warmup,contract)
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/reports/ouro_huginn_adaptive_idle_intervention_dynamic_loop/raw/r6_huginn_actual_mixed_state8/worker_source/poc_flashvep/idle_intervention_dynamic_loop/warmup.py", line 13, in served
+    result=previous(engine,inputs,args,run,warmup,contract)
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/native_split_deep_validation/graph_policy.py", line 228, in served
+    result = serve(engine, inputs, args, run, warmup, contract)
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_headroom_recovery/graph_warmup.py", line 99, in serve
+    if not warmup:return original(engine,inputs,args,run,False,contract)
+                         ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_atomic_prefill/rlt_worker.py", line 31, in serve
+    for output in engine.step():
+                  ~~~~~~~~~~~^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/pd/engine.py", line 433, in step
+    self._poll()
+    ~~~~~~~~~~^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/pd/engine.py", line 176, in _poll
+    for message in peer.client.poll():
+                   ~~~~~~~~~~~~~~~~^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/llm_engine.py", line 118, in poll
+    message = self._receive()
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/llm_engine.py", line 141, in _receive
+    raise error(f"stage worker failed:\n{self.failure}")
+RuntimeError: stage worker failed:
+Traceback (most recent call last):
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/worker.py", line 226, in worker_main
+    owner.run()
+    ~~~~~~~~~^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/worker.py", line 190, in run
+    for output in self.engine.step():
+                  ~~~~~~~~~~~~~~~~^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/reports/ouro_huginn_adaptive_idle_intervention_dynamic_loop/raw/r6_huginn_actual_mixed_state8/worker_source/poc_flashvep/idle_intervention_dynamic_loop/async_state.py", line 223, in stepped
+    result=step(engine,*args,**kwargs);poll(engine);return result
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/stage_engine.py", line 458, in step
+    return self._step()
+           ~~~~~~~~~~^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_autonomous_headroom/prefill_inflight.py", line 24, in step
+    return previous(self, *args, **kwargs)
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_headroom_recovery/runtime.py", line 258, in stepped
+    return step(self, *args, **kwargs)
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/stage_engine.py", line 503, in _step
+    return self._update(batch, result)
+           ~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/stage_engine.py", line 687, in _update
+    return self._apply_update(
+           ~~~~~~~~~~~~~~~~~~^
+        self.scheduler.update_from_output(
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<4 lines>...
+        )
+        ^
+    )
+    ^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/stage_engine.py", line 674, in _apply_update
+    self._notify_connector_prefill(scheduled_request, phase, progress)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/stage_engine.py", line 541, in _notify_connector_prefill
+    self.connector.prefill_submitted(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        request,
+        ^^^^^^^^
+    ...<10 lines>...
+        stream=self.model_runner.core_stream,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/reports/ouro_huginn_adaptive_idle_intervention_dynamic_loop/raw/r6_huginn_actual_mixed_state8/worker_source/poc_flashvep/idle_intervention_dynamic_loop/runtime.py", line 314, in prefill_submitted
+    assert depth in checkpoints,'Unexpected source checkpoint'
+           ^^^^^^^^^^^^^^^^^^^^
+AssertionError: Unexpected source checkpoint
+
