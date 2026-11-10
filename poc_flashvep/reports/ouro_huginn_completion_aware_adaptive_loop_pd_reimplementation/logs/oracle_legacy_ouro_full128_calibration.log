@@ -1,0 +1,101 @@
+Attention implementation: {'backend': 'flash_attn', 'generation': 4, 'package': 'flash-attn-4', 'version': '4.0.0b30'}
+Attention implementation: {'backend': 'flash_attn', 'generation': 4, 'package': 'flash-attn-4', 'version': '4.0.0b30'}
+2026-11-10 16:43:30 NIXL INFO    _api.py:407 Backend UCX was instantiated
+2026-11-10 16:43:30 NIXL INFO    _api.py:285 Initialized NIXL agent: 0e783bc505ea4f3ead0fa2e89b215de2-decode-1
+2026-11-10 16:43:30 NIXL INFO    _api.py:407 Backend UCX was instantiated
+2026-11-10 16:43:30 NIXL INFO    _api.py:285 Initialized NIXL agent: 0e783bc505ea4f3ead0fa2e89b215de2-prefill-0
+/home/esjung/.venvs/ouro-chunk-loop-prefill/lib/python3.14/site-packages/nvidia_cutlass_dsl/dsl_packages/cutlass/base_dsl/dsl.py:2300: UserWarning: Argument aux_data (position 17) cannot be converted to a JitArgument for function 'cutlass___call___flash_attncuteflash_fwd_sm90FlashAttentionForwardSm90_object_at__Tensorgmemoi64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i641_None_00883883476'. Its type `<class 'flash_attn.cute.utils.AuxData'>` is not supported. If the value is known at compile time, annotate it: `aux_data: Constexpr`. Otherwise, implement the `JitArgument` or `DynamicExpression` protocol for type `<class 'flash_attn.cute.utils.AuxData'>`, or register a custom argument adapter.
+  exe_args, func_types, adapted_args = self.generate_mlir_function_types(
+/home/esjung/.venvs/ouro-chunk-loop-prefill/lib/python3.14/site-packages/nvidia_cutlass_dsl/dsl_packages/cutlass/base_dsl/dsl.py:2300: UserWarning: Argument aux_data (position 17) cannot be converted to a JitArgument for function 'cutlass___call___flash_attncuteflash_fwd_sm90FlashAttentionForwardSm90_object_at__Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_None_00883'. Its type `<class 'flash_attn.cute.utils.AuxData'>` is not supported. If the value is known at compile time, annotate it: `aux_data: Constexpr`. Otherwise, implement the `JitArgument` or `DynamicExpression` protocol for type `<class 'flash_attn.cute.utils.AuxData'>`, or register a custom argument adapter.
+  exe_args, func_types, adapted_args = self.generate_mlir_function_types(
+DONE oracle_legacy_ouro_full128_calibration 1 2 5433.17
+DONE oracle_legacy_ouro_full128_calibration 0 2 5434.53
+DONE oracle_legacy_ouro_full128_calibration 0 32 1512.04
+DONE oracle_legacy_ouro_full128_calibration 1 32 1274.4
+DONE oracle_legacy_ouro_full128_calibration 2 32 1381.37
+DONE oracle_legacy_ouro_full128_calibration 3 32 1714.9
+DONE oracle_legacy_ouro_full128_calibration 4 32 2051.23
+DONE oracle_legacy_ouro_full128_calibration 5 32 2025.18
+DONE oracle_legacy_ouro_full128_calibration 6 32 1946.39
+DONE oracle_legacy_ouro_full128_calibration 7 32 1805.39
+DONE oracle_legacy_ouro_full128_calibration 8 32 1814.13
+DONE oracle_legacy_ouro_full128_calibration 9 32 2020.56
+DONE oracle_legacy_ouro_full128_calibration 10 32 2172.35
+DONE oracle_legacy_ouro_full128_calibration 11 32 2428.87
+DONE oracle_legacy_ouro_full128_calibration 12 32 2542.75
+DONE oracle_legacy_ouro_full128_calibration 13 32 2734.88
+DONE oracle_legacy_ouro_full128_calibration 14 32 2854.35
+DONE oracle_legacy_ouro_full128_calibration 15 32 2947.75
+DONE oracle_legacy_ouro_full128_calibration 16 32 2839.67
+DONE oracle_legacy_ouro_full128_calibration 17 32 2754.74
+DONE oracle_legacy_ouro_full128_calibration 18 32 2527.63
+DONE oracle_legacy_ouro_full128_calibration 19 32 2418.81
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_headroom_recovery/worker.py", line 30, in <module>
+    main()
+    ~~~~^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_headroom_recovery/worker.py", line 26, in main
+    module.main()
+    ~~~~~~~~~~~^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_atomic_prefill/rlt_worker.py", line 78, in main
+    inherited.main()
+    ~~~~~~~~~~~~~~^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/adaptive_loop_token_pd_2gpu/worker.py", line 169, in main
+    sys.argv=flags;base.main()
+                   ~~~~~~~~~^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_abc/worker.py", line 221, in main
+    try:run(args)
+        ~~~^^^^^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_abc/worker.py", line 183, in run
+    for repeat in range(args.repeats):serve(engine,inputs,args,repeat)
+                                      ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_headroom_recovery/worker.py", line 24, in measured
+    return original(engine,inputs,args,run,warmup,contract)
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/native_split_deep_validation/graph_policy.py", line 228, in served
+    result = serve(engine, inputs, args, run, warmup, contract)
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_headroom_recovery/graph_warmup.py", line 99, in serve
+    if not warmup:return original(engine,inputs,args,run,False,contract)
+                         ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_atomic_prefill/rlt_worker.py", line 31, in serve
+    for output in engine.step():
+                  ~~~~~~~~~~~^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/pd/engine.py", line 433, in step
+    self._poll()
+    ~~~~~~~~~~^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/pd/engine.py", line 176, in _poll
+    for message in peer.client.poll():
+                   ~~~~~~~~~~~~~~~~^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/llm_engine.py", line 118, in poll
+    message = self._receive()
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/llm_engine.py", line 141, in _receive
+    raise error(f"stage worker failed:\n{self.failure}")
+RuntimeError: stage worker failed:
+Traceback (most recent call last):
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/worker.py", line 226, in worker_main
+    owner.run()
+    ~~~~~~~~~^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/worker.py", line 186, in run
+    self.connector.progress()
+    ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/pd/connector.py", line 377, in progress
+    and self.engine.release_transfer_compute(
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        transfer.request, ready_event=transfer.last_event
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/stage_engine.py", line 603, in release_transfer_compute
+    if not ready_event.query():
+           ~~~~~~~~~~~~~~~~~^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/cuda/streams.py", line 232, in query
+    return super().query()
+           ~~~~~~~~~~~~~^^
+torch.AcceleratorError: CUDA error: unspecified launch failure
+Search for `cudaErrorLaunchFailure' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
+CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+For debugging consider passing CUDA_LAUNCH_BLOCKING=1
+Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.
+
+

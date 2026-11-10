@@ -1,0 +1,63 @@
+{
+  "time": 1794301436.639882,
+  "active_exec_session": 7207,
+  "active_stage": "Fresh serial costs, then guarded Huginn six-request Native calibration.",
+  "primary_completed": 23,
+  "primary_planned": 24,
+  "primary_requests_accounted": 2944,
+  "primary_file": "serving_results.json",
+  "paired_file": "paired_start_ratios.json",
+  "scientific_summary": {
+    "ouro_new_loop": "2/384 requests, 3/1536 loops. TTFT p95 ratio 1.269159, 95% CI [1.082073,1.443154]. No net benefit.",
+    "huginn_new_loop": "5/384 requests, 22/12288 loops. TTFT p95 ratio 0.928549, 95% CI [0.852393,1.090218]. No confirmed improvement.",
+    "correctness": "All 23 primary starts pass exact frozen Native output, full work, and lifecycle checks. Full-state N8/N32 qualification passed earlier.",
+    "token": "Ouro start 3 did not run after max ITL 866/395 ms. Primary Token has measured cold graph captures. Do not claim Loop superiority.",
+    "profiling": "Both-stage full CUPTI fails with CUDA/NIXL errors across collector versions and asynchronous flush controls. D-only full traces complete but fail the 5% interference gate.",
+    "legacy_D_only": "Instrumented Ouro D idle 32.491838%, 4268774 gaps, mean 0.001998695 ms. Huginn 57.089359%, 6014921 gaps, mean 0.010892309 ms. Not clean Native capacity.",
+    "structural": "Qualified Huginn cuts leave at most 8 loops per request. N384 maximum 3072, below requested 4000."
+  },
+  "next_steps": [
+    "Poll session 7207. It runs two CUDA12.9 D-only diagnostics, 15 fresh event costs, and two guarded pool6 Native calibrations.",
+    "After GPU list closes, analyze fresh costs and new D-only traces. Do not run heavy analysis during clean timing.",
+    "Run secondary.py N8, then sequence its state/secondary_N8_jobs.json. Require exact qualification before N32.",
+    "Run secondary.py N32, then sequence its state/secondary_N32_jobs.json. Diagnose any failure before serving.",
+    "Run secondary.py selection and its six N32 jobs. Both models use graph freeze. Huginn uses pool24832 with a 3 GiB HBM guard.",
+    "If selection shows a safe benefit, prepare paired N128 arrival seeds 2026110931/32/33. Keep all negative primary evidence.",
+    "Create measured figures and host-only interactive Native/old/new timelines. Do not draw primary GPU kernel bars from another execution.",
+    "Write both final summaries. Oracle clean-capacity fields stay NOT_MEASURED unless the trace passes interference and feasibility gates.",
+    "Restore and verify all eight approved Burners. Verify real index and external diff preservation.",
+    "Build the chunked evidence bundle. Publish scoped files with a temporary index. Push new branch and verify remote SHA."
+  ],
+  "secondary_spec": "Section 12 of the completion-aware specification.",
+  "secondary_policy": {
+    "no_measured_graph_capture": true,
+    "token_single_offer_fallback": true,
+    "initial_token_budget_selection": true,
+    "cycle_reserve": "GPU-clock full Decode-cycle p99, including host gaps. It is not a kernel union.",
+    "additional_TPOT_ms": {
+      "ouro": 48.3363260853697,
+      "huginn": 167.91435532271862
+    },
+    "ITL_target_ms": {
+      "ouro": 65.08287642151119,
+      "huginn": 192.8212538175284
+    },
+    "continuation_deadline_ms": {
+      "ouro": 1000,
+      "huginn": 1200
+    },
+    "reserve_known_decode_transitions": true,
+    "recover_empty_decode_epoch": true,
+    "limits": "Frozen absolute SLOs remain unchanged. Native-relative 5% non-inferiority remains a separate comparison. Completion failures never auto-recover."
+  },
+  "branch": "flashvep/completion-aware-adaptive-loop-pd",
+  "parent": "0adb7491c866d6d66cf71ea30dca63f82c46d135",
+  "deadline_epoch": 1794318679.0,
+  "GPU_stop_epoch": 1794315979.0,
+  "final_reports": [
+    "ouro_huginn_completion_aware_adaptive_loop_pd_reimplementation_final_summary.md",
+    "ouro_huginn_pd_idle_slack_loop_offloading_oracle_final_summary.md"
+  ],
+  "publication": "Reuse the prior temporary-index commit-tree pattern. The new chunked evidence_bundle.py handles files larger than 100 MB without changing raw files.",
+  "safeguards": "Do not modify the real index or external runtime. Do not stop unknown GPU processes. Source snapshots identify every run."
+}
