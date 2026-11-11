@@ -1,0 +1,74 @@
+{
+  "jobs": [
+    "priority_width_ouro_S1024_loop_grouped_state8",
+    "priority_width_ouro_S1024_token_grouped_state8",
+    "priority_width_ouro_zero_tuned_serial8_s1",
+    "priority_width_ouro_S1024_loop_grouped_tuned_serial8_s1",
+    "priority_width_ouro_S1024_token_grouped_tuned_serial8_s1",
+    "priority_width_huginn_S128_loop_grouped_state8",
+    "priority_width_huginn_S128_token_grouped_state8",
+    "priority_width_huginn_zero_tuned_serial8_s1",
+    "priority_width_huginn_S128_loop_grouped_tuned_serial8_s1",
+    "priority_width_huginn_S128_token_grouped_tuned_serial8_s1",
+    "priority_width_huginn_S256_loop_grouped_state8",
+    "priority_width_huginn_S256_token_grouped_state8",
+    "priority_width_huginn_S256_loop_grouped_tuned_serial8_s1",
+    "priority_width_huginn_S256_token_grouped_tuned_serial8_s1",
+    "priority_width_huginn_S512_loop_grouped_state8",
+    "priority_width_huginn_S512_token_grouped_state8",
+    "priority_width_huginn_S512_loop_grouped_tuned_serial8_s1",
+    "priority_width_huginn_S512_token_grouped_tuned_serial8_s1"
+  ],
+  "matrix": [
+    {
+      "model": "ouro",
+      "length": 4096,
+      "depth": 4,
+      "token_suffix": 1024,
+      "loop_cut": 3,
+      "D_loops": 1,
+      "recurrent_rows_per_request": 4096,
+      "token_group_limit": 4,
+      "loop_group_limit": 4,
+      "scope": "Both arms can group the full remaining work. Token is not artificially restricted to one-loop host submissions. Equal recurrent rows do not imply equal Attention or boundary work."
+    },
+    {
+      "model": "huginn",
+      "length": 2048,
+      "depth": 32,
+      "token_suffix": 128,
+      "loop_cut": 30,
+      "D_loops": 2,
+      "recurrent_rows_per_request": 4096,
+      "token_group_limit": 32,
+      "loop_group_limit": 32,
+      "scope": "Both arms can group the full remaining work. Token is not artificially restricted to one-loop host submissions. Equal recurrent rows do not imply equal Attention or boundary work."
+    },
+    {
+      "model": "huginn",
+      "length": 2048,
+      "depth": 32,
+      "token_suffix": 256,
+      "loop_cut": 28,
+      "D_loops": 4,
+      "recurrent_rows_per_request": 8192,
+      "token_group_limit": 32,
+      "loop_group_limit": 32,
+      "scope": "Both arms can group the full remaining work. Token is not artificially restricted to one-loop host submissions. Equal recurrent rows do not imply equal Attention or boundary work."
+    },
+    {
+      "model": "huginn",
+      "length": 2048,
+      "depth": 32,
+      "token_suffix": 512,
+      "loop_cut": 24,
+      "D_loops": 8,
+      "recurrent_rows_per_request": 16384,
+      "token_group_limit": 32,
+      "loop_group_limit": 32,
+      "scope": "Both arms can group the full remaining work. Token is not artificially restricted to one-loop host submissions. Equal recurrent rows do not imply equal Attention or boundary work."
+    }
+  ],
+  "requested_before": "Resume the marker-free workload discovery sequence",
+  "scope": "N8 full-state qualification precedes each fresh serial calibration. No new adaptive scheduler or online Decode-safe claim."
+}

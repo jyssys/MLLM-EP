@@ -1,0 +1,210 @@
+{
+  "name": "priority_width_huginn_S512_loop_grouped_tuned_outeronly_serial8_s2",
+  "model": "huginn",
+  "policy": "tuned_v2",
+  "frontier": null,
+  "cut": 24,
+  "passed": true,
+  "parity": {
+    "reference": "priority_width_huginn_zero_tuned_serial8_s1",
+    "candidate": "priority_width_huginn_S512_loop_grouped_tuned_outeronly_serial8_s2",
+    "compared": 8,
+    "candidate_rows": 8,
+    "passed": true,
+    "matched_input_seed_rows": 8,
+    "comparison_applicable": true,
+    "failures": [],
+    "scope": "Internal exact output sequence parity. Not original-HF fidelity or downstream accuracy."
+  },
+  "full_work": {
+    "run": "priority_width_huginn_S512_loop_grouped_tuned_outeronly_serial8_s2",
+    "expected": 528128,
+    "observed": 528128,
+    "passed": true,
+    "scope": "Active recurrent rows, not padded physical GEMM work."
+  },
+  "lifetime": {
+    "passed": true,
+    "compared": 8,
+    "failures": [],
+    "scope": "Recorded native ACK precedes source retirement. Both coordinator credits retire and final native KV allocations are empty. This is not GPU DMA timing or HF fidelity."
+  },
+  "normal_worker_exit": true,
+  "actual_D_prompt_rows": 131072,
+  "expected_D_prompt_rows": 131072,
+  "streams": {
+    "decode": {
+      "count": 8,
+      "mean": 137.99328231811523,
+      "p50": 137.9437255859375,
+      "p95": 138.69537811279298,
+      "p99": 138.9634408569336,
+      "maximum": 139.03045654296875,
+      "per_request": {
+        "2026110362": 139.03045654296875,
+        "2026110363": 138.07308959960938,
+        "2026110364": 137.9202880859375,
+        "2026110365": 137.60140991210938,
+        "2026110366": 137.44464111328125,
+        "2026110367": 137.98892211914062,
+        "2026110368": 137.92601013183594,
+        "2026110369": 137.96144104003906
+      }
+    },
+    "prefill": {
+      "count": 8,
+      "mean": 397.17912673950195,
+      "p50": 397.1713562011719,
+      "p95": 398.0935974121094,
+      "p99": 398.12880249023436,
+      "maximum": 398.1376037597656,
+      "per_request": {
+        "2026110362": 398.0118713378906,
+        "2026110363": 396.2794494628906,
+        "2026110364": 396.91595458984375,
+        "2026110365": 398.1376037597656,
+        "2026110366": 397.47320556640625,
+        "2026110367": 396.9815368652344,
+        "2026110368": 396.272216796875,
+        "2026110369": 397.3611755371094
+      }
+    }
+  },
+  "counters": {
+    "prefill": {
+      "issued_loop_rows": 393216,
+      "issued_submissions": 8,
+      "transport_bytes_sent": 34256977920,
+      "transport_completed_count": 512
+    },
+    "decode": {
+      "issued_loop_rows": 134912,
+      "issued_submissions": 376,
+      "transport_bytes_sent": 0,
+      "transport_completed_count": 0
+    }
+  },
+  "core_component_enclosures": {},
+  "largest_D_prompt_submission_ms": 139.03045654296875,
+  "D_prompt_submissions_per_request": 1.0,
+  "handoff": {
+    "count": 8,
+    "mean": 91.58039698377252,
+    "p50": 93.85473094880581,
+    "p95": 111.24142818152905,
+    "p99": 111.52590773999691,
+    "maximum": 111.59702762961388
+  },
+  "service_TTFT": {
+    "count": 8,
+    "mean": 650.5594567861408,
+    "p50": 652.4976613000035,
+    "p95": 671.747459936887,
+    "p99": 672.1535799838603,
+    "maximum": 672.2551099956036
+  },
+  "metrics": {
+    "completed": 8,
+    "offered": 8,
+    "response_span_s": 15.431026559323072,
+    "requests_per_second": 0.5184360203933797,
+    "joint_SLO_goodput": 0.5184360203933797,
+    "joint_SLO_attainment": 1.0,
+    "total_tokens_per_second": 1070.0519460919356,
+    "output_tokens_per_second": 8.294976326294075,
+    "maximum_ITL_ms": 78.84211093187332,
+    "frozen_SLO": {
+      "TTFT_ms": 1963.9920117333531,
+      "TPOT_ms": 186.5715059141318,
+      "ITL_ms": 192.8212538175284,
+      "requests": 16,
+      "calibration": [
+        "short_huginn_C1024_serial16",
+        "short_huginn_C2048_serial16"
+      ],
+      "rule": "Two times serial calibration percentiles. Use the tighter per-metric limit across Atomic and C2048. Freeze before held-out pilot serving.",
+      "frozen_epoch": 1793701394.056462,
+      "calibration_values": [
+        {
+          "name": "short_huginn_C1024_serial16",
+          "TTFT_ms": 1984.9652252160013,
+          "TPOT_ms": 186.5715059141318,
+          "ITL_ms": 192.8212538175284
+        },
+        {
+          "name": "short_huginn_C2048_serial16",
+          "TTFT_ms": 1963.9920117333531,
+          "TPOT_ms": 188.43453507870436,
+          "ITL_ms": 198.30003213137388
+        }
+      ]
+    },
+    "scope": "Clean finite pilot. Host request latencies, not exclusive GPU durations or sustainable capacity.",
+    "TTFT_p50_ms": 761.8300225585699,
+    "TTFT_p95_ms": 910.9040302224457,
+    "TTFT_p99_ms": 918.2213356532156,
+    "TPOT_p50_ms": 75.54624987145266,
+    "TPOT_p95_ms": 75.72367900982499,
+    "TPOT_p99_ms": 75.73868168269595,
+    "E2E_p50_ms": 1896.9702208414674,
+    "E2E_p95_ms": 2044.1990973427892,
+    "E2E_p99_ms": 2051.9313848391175,
+    "ITL_p50_ms": 75.6891192868352,
+    "ITL_p95_ms": 76.26203102990985,
+    "ITL_p99_ms": 78.26871374621987,
+    "Decode_SLO_screen": true,
+    "TTFT_SLO_pass_count": 8,
+    "TPOT_SLO_pass_count": 8,
+    "TTFT_SLO_attainment": 1.0,
+    "TPOT_SLO_attainment": 1.0,
+    "SLO_attainment_denominator": 8,
+    "summed_request_E2E_ms": 15417.812138795853,
+    "summed_request_queue_E2E_percent": 7.421274112782529,
+    "summed_request_service_TTFT_E2E_percent": 33.75625288099795,
+    "summed_request_postfirst_Decode_E2E_percent": 58.822473006219525,
+    "latency_share_scope": "Disjoint host request intervals. Denominator is summed request E2E latency, not wall time, GPU time, or a sum of component percentiles.",
+    "input_tokens_per_second": 1061.7569697656415,
+    "name": "priority_width_huginn_S512_loop_grouped_tuned_outeronly_serial8_s2",
+    "model": "huginn",
+    "arm": "PD_G1",
+    "nominal_QPS": null,
+    "arrival_seed": null,
+    "realized_arrival_QPS": 0.5167981196179532,
+    "scheduled_trace_QPS": 0.5167981196179532,
+    "actual_submit_QPS": 0.51679802907737,
+    "arrival_rate_scope": "The retained realized_arrival_QPS field measures the finite scheduled trace. actual_submit_QPS measures actual coordinator send starts. Neither is completed throughput.",
+    "service_start_evidence": "Native model-stream entry CUDA event after input preparation",
+    "service_start_limit": "Not a CUPTI first-kernel timestamp. Clock uncertainty is retained per request.",
+    "timing_scope": "Device enclosures include launch gaps and possibly other requests. They are not exclusive GPU kernel times.",
+    "coalesced_nonfirst_delivery_events": 0,
+    "token_tail_scope": "One-token coordinator deliveries.",
+    "measured_graph_capture_count": 0,
+    "measured_graph_capture_host_seconds": 0,
+    "profiler_overhead": "NOT_MEASURED",
+    "queue_ms_p50": 109.82382670044899,
+    "queue_ms_p95": 247.2830249927938,
+    "queue_ms_p99": 248.8533896021545,
+    "service_TTFT_ms_p50": 652.4976613000035,
+    "service_TTFT_ms_p95": 671.747459936887,
+    "service_TTFT_ms_p99": 672.1535799838603,
+    "P_prompt_device_enclosure_ms_p50": 397.2000805661082,
+    "P_prompt_device_enclosure_ms_p95": 398.12860200181603,
+    "P_prompt_device_enclosure_ms_p99": 398.1592273898423,
+    "observed_handoff_ms_p50": 93.85473094880581,
+    "observed_handoff_ms_p95": 111.24142818152905,
+    "observed_handoff_ms_p99": 111.52590773999691,
+    "D_prompt_device_enclosure_ms_p50": 137.969471514225,
+    "D_prompt_device_enclosure_ms_p95": 138.73060690239072,
+    "D_prompt_device_enclosure_ms_p99": 139.00295177474618,
+    "D_continuation_to_first_token_ms_p50": 144.40483320504427,
+    "D_continuation_to_first_token_ms_p95": 145.40648963302374,
+    "D_continuation_to_first_token_ms_p99": 145.72307419031858,
+    "maximum_clock_uncertainty_ms": 0.02680160105228424,
+    "actual_submit_lateness_p50_ms": 0.042333267629146576,
+    "actual_submit_lateness_p95_ms": 0.044445134699344635,
+    "actual_submit_lateness_p99_ms": 0.04451919347047806,
+    "maximum_actual_submit_lateness_ms": 0.044537708163261414
+  },
+  "payload_bytes_per_request": 4282122240.0,
+  "scope": "Serial instrumented stream enclosures include waits and launch gaps. They are not exclusive kernel time, physical idle, online Decode interference, or serving speedup."
+}
