@@ -1,0 +1,34 @@
+{
+  "status": "QUEUED_AFTER_CURRENT_REVIEW_REPORT_COMMIT_PUSH_AND_RESOURCE_VERIFICATION",
+  "task": "Ouro/Huginn Prefill-heavy Discovery and Decode-safe Loop Offloading",
+  "budget_hours": 10,
+  "budget_start": "NOT_STARTED",
+  "models": ["Ouro Original BF16 Fixed R4", "Huginn Original BF16 Fixed R32, context <=4096"],
+  "minimum_output_length": 16,
+  "phase_1": {
+    "P_kernel_union_busy_minimum": 0.8,
+    "P_service_proximity_minimum": 0.85,
+    "P_queue": "Compute-ready queue must grow. Coordinator waiting or D-credit waiting is not compute-ready pressure.",
+    "D_slack": "Actual physical kernel-union inactivity, continuous-window distribution, Decode deadlines, KV credit, and Source-cut readiness.",
+    "joint_gate": "Same server start and same analysis window.",
+    "instrumentation_overhead_maximum": 0.05,
+    "confirmation": "Independent starts >=3, N128 or greater. Separate N384-N512 persistence control."
+  },
+  "phase_2": {
+    "entry": "Only a model/workload that passes qualified Phase 1.",
+    "cuts": {"ouro": [3, 2], "huginn": [31, 30, 28]},
+    "admission": "Small measured-feasible fractions first. No unconditional all-request static offloading.",
+    "TTFT": "Repeated improvement versus matched optimized Native-path Zero.",
+    "ITL_and_TPOT_relative_limit": 1.05,
+    "contracts": "Original BF16, full fixed recurrent work, exact output/KV/hidden, Native ACK and resource lifetime."
+  },
+  "excluded": ["Full optimized Token comparison campaign", "Complex online predictor", "Complete Dynamic Loop Scheduler"],
+  "starting_workloads": {
+    "ouro": [[4096, 32], [6144, 32], [8192, 32], [8192, 16], [8192, 64], [12000, 16], [16384, 16]],
+    "huginn": [[2048, 16], [2560, 16], [3072, 16], [3500, 16], [3500, 32], [3900, 16]]
+  },
+  "reference_commits": ["4470f9e2a1c6ea1c1112c59ed751fa921bcaf2dd", "ef3efe173ae48c00925ec616bdb5cc4afddf86a2", "2d683cce8ebc926c9d410944b705cbcb6f6031a0", "0adb7491c866d6d66cf71ea30dca63f82c46d135", "a1c9845ba4f7a56b4e990b16e4f25f96311311de"],
+  "report": "poc_flashvep/reports/ouro_huginn_prefill_heavy_decode_safe_loop_offloading_final_summary.md",
+  "resource_policy": "Preserve user processes, staged index, external runtime, and previous evidence. Use isolated timing. Restore and verify approved burners on all GPUs 0-7.",
+  "important_limit": "Current Output4 serving gains are discovery evidence for the current task. They do not satisfy this follow-up's minimum-Output16 or physical-idle qualification gates."
+}
