@@ -1,0 +1,38 @@
+{
+  "access_date_Asia_Seoul": "2026-11-12",
+  "scope": "Primary sources only. These references do not replace local GPU evidence.",
+  "sources": [
+    {
+      "title": "Depth-adaptive Inference of Looped Language Models via Continuous Depth Batching",
+      "version": "arXiv:2608.09444v2",
+      "URL": "https://arxiv.org/html/2608.09444v2",
+      "sections": ["Related Work", "Method", "E.1 KV cache sharing", "E.2 Early-exit Gating"],
+      "claim": "Shared recurrent weights permit work at different loop depths to share a recurrent batch. The evaluated shared-KV and adaptive-depth settings do not qualify the present fixed-R32, exact per-depth KV contract.",
+      "use": "Prior-art boundary and architecture explanation, not a new measured speedup."
+    },
+    {
+      "title": "What Sets the Serving Speed of Looped Language Models? Measurements and Optimizations Graded by Exactness",
+      "version": "arXiv:2611.05150v1",
+      "URL": "https://arxiv.org/html/2611.05150v1",
+      "sections": ["Exactness ladder", "Looped models", "4.1", "4.2", "4.5", "4.6"],
+      "claim": "Fixed-batch arithmetic preservation differs from changed batching, noise, and packed-prefill arithmetic. Generic runtime costs need symmetric treatment before a Loop-specific PD claim.",
+      "use": "Exactness and baseline limits. The paper's performance numbers are not copied into our result tables."
+    },
+    {
+      "title": "FluidPD: In-Place Elasticity for SLO-Aware Prefill-Decode Disaggregated LLM Serving",
+      "version": "arXiv:2610.06917v1",
+      "URL": "https://arxiv.org/html/2610.06917v1",
+      "sections": ["IV-B FluidToken"],
+      "claim": "Decode-side slack and pressure-aware bounded Prefill work transfer are generic PD mechanisms.",
+      "use": "Novelty boundary. Our earlier Token arm remains a FluidToken-style reproduction, not an official FluidPD result."
+    },
+    {
+      "title": "PyTorch Pipeline Parallelism",
+      "version": "PyTorch 2.15 documentation",
+      "URL": "https://docs.pytorch.org/docs/2.15/distributed.pipelining.html",
+      "sections": ["Why Pipeline Parallel?", "What is torch.distributed.pipelining?"],
+      "claim": "General model execution can be partitioned into stages with microbatch scheduling and data-flow dependencies.",
+      "use": "General stage-partition concept only. Not evidence of an implemented Decode-safe adaptive Layer PD baseline."
+    }
+  ]
+}
