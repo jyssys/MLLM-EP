@@ -1,0 +1,115 @@
+Attention implementation: {'backend': 'flash_attn', 'generation': 4, 'package': 'flash-attn-4', 'version': '4.0.0b30'}
+Attention implementation: {'backend': 'flash_attn', 'generation': 4, 'package': 'flash-attn-4', 'version': '4.0.0b30'}
+2026-11-11 15:07:29 NIXL INFO    _api.py:407 Backend UCX was instantiated
+2026-11-11 15:07:29 NIXL INFO    _api.py:285 Initialized NIXL agent: fad13a9b002e48948940817f3c9ae4f8-prefill-0
+2026-11-11 15:07:30 NIXL INFO    _api.py:407 Backend UCX was instantiated
+2026-11-11 15:07:30 NIXL INFO    _api.py:285 Initialized NIXL agent: fad13a9b002e48948940817f3c9ae4f8-decode-1
+/home/esjung/.venvs/ouro-chunk-loop-prefill/lib/python3.14/site-packages/nvidia_cutlass_dsl/dsl_packages/cutlass/base_dsl/dsl.py:2300: UserWarning: Argument aux_data (position 17) cannot be converted to a JitArgument for function 'cutlass___call___flash_attncuteflash_fwd_sm90FlashAttentionForwardSm90_object_at__Tensorgmemoi64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i641_None_01020620726'. Its type `<class 'flash_attn.cute.utils.AuxData'>` is not supported. If the value is known at compile time, annotate it: `aux_data: Constexpr`. Otherwise, implement the `JitArgument` or `DynamicExpression` protocol for type `<class 'flash_attn.cute.utils.AuxData'>`, or register a custom argument adapter.
+  exe_args, func_types, adapted_args = self.generate_mlir_function_types(
+/home/esjung/.venvs/ouro-chunk-loop-prefill/lib/python3.14/site-packages/nvidia_cutlass_dsl/dsl_packages/cutlass/base_dsl/dsl.py:2300: UserWarning: Argument aux_data (position 17) cannot be converted to a JitArgument for function 'cutlass___call___flash_attncuteflash_fwd_sm90FlashAttentionForwardSm90_object_at__Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_None_01020'. Its type `<class 'flash_attn.cute.utils.AuxData'>` is not supported. If the value is known at compile time, annotate it: `aux_data: Constexpr`. Otherwise, implement the `JitArgument` or `DynamicExpression` protocol for type `<class 'flash_attn.cute.utils.AuxData'>`, or register a custom argument adapter.
+  exe_args, func_types, adapted_args = self.generate_mlir_function_types(
+DONE idle_output16_capture_n64 1 2 2307.21
+DONE idle_output16_capture_n64 0 2 2307.9
+DONE idle_output16_capture_n64 2 2 2921.49
+DONE idle_output16_capture_n64 0 16 2214.73
+DONE idle_output16_capture_n64 1 16 2595.47
+DONE idle_output16_capture_n64 2 16 2831.14
+DONE idle_output16_capture_n64 3 16 2457.62
+DONE idle_output16_capture_n64 4 16 2219.15
+DONE idle_output16_capture_n64 5 16 2627.79
+DONE idle_output16_capture_n64 6 16 2698.27
+DONE idle_output16_capture_n64 7 16 2885.84
+DONE idle_output16_capture_n64 8 16 2661.61
+DONE idle_output16_capture_n64 9 16 3244.71
+DONE idle_output16_capture_n64 10 16 2349.47
+DONE idle_output16_capture_n64 11 16 2324.3
+DONE idle_output16_capture_n64 12 16 2737.93
+DONE idle_output16_capture_n64 13 16 2730.23
+DONE idle_output16_capture_n64 14 16 2869.43
+DONE idle_output16_capture_n64 15 16 2552.9
+DONE idle_output16_capture_n64 16 16 3098.68
+DONE idle_output16_capture_n64 17 16 3362.25
+DONE idle_output16_capture_n64 18 16 2977.6
+DONE idle_output16_capture_n64 19 16 3158.11
+DONE idle_output16_capture_n64 20 16 3593.07
+DONE idle_output16_capture_n64 21 16 3534.75
+DONE idle_output16_capture_n64 22 16 3391.67
+DONE idle_output16_capture_n64 23 16 3180.71
+DONE idle_output16_capture_n64 24 16 3797.51
+DONE idle_output16_capture_n64 25 16 3938.99
+DONE idle_output16_capture_n64 26 16 4166.27
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_headroom_recovery/worker.py", line 30, in <module>
+    main()
+    ~~~~^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_headroom_recovery/worker.py", line 26, in main
+    module.main()
+    ~~~~~~~~~~~^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_atomic_prefill/rlt_worker.py", line 78, in main
+    inherited.main()
+    ~~~~~~~~~~~~~~^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/adaptive_loop_token_pd_2gpu/worker.py", line 169, in main
+    sys.argv=flags;base.main()
+                   ~~~~~~~~~^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_abc/worker.py", line 221, in main
+    try:run(args)
+        ~~~^^^^^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_abc/worker.py", line 183, in run
+    for repeat in range(args.repeats):serve(engine,inputs,args,repeat)
+                                      ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_headroom_recovery/worker.py", line 24, in measured
+    return original(engine,inputs,args,run,warmup,contract)
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/native_split_deep_validation/graph_policy.py", line 228, in served
+    result = serve(engine, inputs, args, run, warmup, contract)
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_headroom_recovery/graph_warmup.py", line 99, in serve
+    if not warmup:return original(engine,inputs,args,run,False,contract)
+                         ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/looped_pd_atomic_prefill/rlt_worker.py", line 31, in serve
+    for output in engine.step():
+                  ~~~~~~~~~~~^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/pd/engine.py", line 433, in step
+    self._poll()
+    ~~~~~~~~~~^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/pd/engine.py", line 176, in _poll
+    for message in peer.client.poll():
+                   ~~~~~~~~~~~~~~~~^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/llm_engine.py", line 118, in poll
+    message = self._receive()
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/llm_engine.py", line 141, in _receive
+    raise error(f"stage worker failed:\n{self.failure}")
+RuntimeError: stage worker failed:
+Traceback (most recent call last):
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/worker.py", line 226, in worker_main
+    owner.run()
+    ~~~~~~~~~^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/reports/huginn_loop28_decode_tail_diagnosis_20261111/raw/idle_output16_capture_n64/worker_source/poc_flashvep/huginn_net_benefit/source_pipeline.py", line 129, in finished
+    return close(worker)
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/worker.py", line 190, in run
+    for output in self.engine.step():
+                  ~~~~~~~~~~~~~~~~^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/engine/stage_engine.py", line 458, in step
+    return self._step()
+           ~~~~~~~~~~^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/reports/huginn_loop28_decode_tail_diagnosis_20261111/raw/idle_output16_capture_n64/worker_source/poc_flashvep/huginn_loop28_tail_diagnosis/output_idle.py", line 54, in stepped
+    return step(engine)
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/reports/huginn_loop28_decode_tail_diagnosis_20261111/raw/idle_output16_capture_n64/worker_source/poc_flashvep/huginn_net_benefit/deferred_coda.py", line 81, in stepped
+    outputs, remaining, collected = collect_completed(pending, engine._update)
+                                    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/reports/huginn_loop28_decode_tail_diagnosis_20261111/raw/idle_output16_capture_n64/worker_source/poc_flashvep/huginn_net_benefit/deferred_coda.py", line 14, in collect_completed
+    if ticket.ready():
+       ~~~~~~~~~~~~^^
+  File "/home/esjung/external/looped-pd-abc-rlt/vllm_rlt/worker/model_runner.py", line 128, in ready
+    return self.event is None or self.event.query()
+                                 ~~~~~~~~~~~~~~~~^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/cuda/streams.py", line 232, in query
+    return super().query()
+           ~~~~~~~~~~~~~^^
+torch.AcceleratorError: CUDA error: unspecified launch failure
+Search for `cudaErrorLaunchFailure' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
+CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+For debugging consider passing CUDA_LAUNCH_BLOCKING=1
+Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.
+
+
