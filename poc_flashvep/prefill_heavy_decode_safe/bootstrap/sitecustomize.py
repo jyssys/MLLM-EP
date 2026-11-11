@@ -12,10 +12,19 @@ if os.environ.get('PREFILL_DISCOVERY_SNAPSHOT') and os.environ.get('FLUIDTOKEN_L
         configure();cfg=json.loads(Path(os.environ['ARC_CONFIG']).read_text())
         hashes=json.loads((ROOT/'raw'/cfg['name']/'discovery_source_hashes.json').read_text())
         assert all(digest(snapshot/path)==value for path,value in hashes.items())
+        if cfg.get('capacity_native_prefill_geometry'):
+            assert cfg['worker']=='capacity_worker' and cfg.get('P_graph_local_capacity')
+            from poc_flashvep.native_split_deep_validation import graph_policy as local_graph_policy
+            local_geometry=local_graph_policy.preferred_geometry
+            def capacity_geometry(config,role):
+                return local_geometry(config,'prefill' if role=='prefill_decode' else role)
+            local_graph_policy.preferred_geometry=capacity_geometry
         runpy.run_path(str(snapshot/'poc_flashvep/huginn_net_benefit/bootstrap/sitecustomize.py'))
         from poc_flashvep.loop_width_gemm_validation import kernel_runtime,lt
         kernel_runtime.ROOT=ROOT;lt.ROOT=ROOT
         kernel_runtime.install(cfg)
+        from poc_flashvep.prefill_heavy_decode_safe.source_slot_geometry import install as source_slots
+        source_slots(cfg)
         if cfg.get('priority_serial_comparison') and cfg.get('priority_inner_core_events',True):
             from poc_flashvep.loop_width_gemm_validation import common as width_common
             width_common.ROOT=ROOT
@@ -26,6 +35,8 @@ if os.environ.get('PREFILL_DISCOVERY_SNAPSHOT') and os.environ.get('FLUIDTOKEN_L
         install(cfg)
         from poc_flashvep.prefill_heavy_decode_safe.observation import install as observe
         observe(cfg)
+        from poc_flashvep.prefill_heavy_decode_safe.device_bounds import install as bounds
+        bounds(cfg)
         from poc_flashvep.looped_pd_atomic_prefill import common as atomic
         assert atomic.ROOT==ROOT,('Evidence namespace did not propagate',atomic.ROOT,ROOT)
         write(ROOT/'raw'/cfg['name']/f'discovery_loaded_{os.getpid()}.json',dict(

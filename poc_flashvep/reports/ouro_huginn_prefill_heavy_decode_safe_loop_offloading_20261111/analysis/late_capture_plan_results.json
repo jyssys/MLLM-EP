@@ -1,0 +1,633 @@
+{
+  "plan": "/home/esjung/MLLM-EP-github/poc_flashvep/reports/ouro_huginn_prefill_heavy_decode_safe_loop_offloading_20261111/state/late_capture_plan.json",
+  "metrics": {
+    "memory_ouro_L16384_O16_P2_mu115_N64_a2026111230": {
+      "name": "memory_ouro_L16384_O16_P2_mu115_N64_a2026111230",
+      "model": "ouro",
+      "method": "native",
+      "complete": true,
+      "count": 64,
+      "nominal_QPS": 1.1949810287850386,
+      "arrival_seed": 2026111230,
+      "realized_scheduled_QPS": 1.1754840104894366,
+      "actual_submit_QPS": 1.175483185587998,
+      "completed_QPS": 1.1011454220100036,
+      "output_tokens_s": 17.61832675216006,
+      "input_tokens_s": 18041.1665942119,
+      "SLO_goodput": 0.0,
+      "TTFT_attainment": 0.0,
+      "TPOT_attainment": 1.0,
+      "ITL_limit_misses": 0,
+      "ITL_intervals": 960,
+      "maximum_ITL_ms": 50.4816472530365,
+      "coalesced_nonfirst_delivery_events": 0,
+      "maximum_TTFT_ms": 7341.71755425632,
+      "maximum_E2E_ms": 7994.333667680621,
+      "ITL_contract": "Frozen event-average delivery intervals. Exact individual token-generation times are not measured when delivery is coalesced.",
+      "offloaded_requests": 0,
+      "actual_D_prompt_recurrent_rows": 0,
+      "accepted_loop_counts": {},
+      "admissions": 0,
+      "rejected_admissions": 0,
+      "Service_TTFT": "NOT_MEASURED",
+      "latency_scope": "Marker-free output-delivery metrics unless the configuration enables device events or state hashing.",
+      "throughput_scope": "Finite-cohort drain rates. Not sustainable serving capacity.",
+      "TTFT_p50_ms": 3130.4902508854866,
+      "TTFT_p95_ms": 7000.856439396739,
+      "TTFT_p99_ms": 7336.329817771912,
+      "TPOT_p50_ms": 43.52025855332613,
+      "TPOT_p95_ms": 43.70491731291016,
+      "TPOT_p99_ms": 43.75362024332086,
+      "ITL_p50_ms": 43.28688606619835,
+      "ITL_p95_ms": 45.326883997768164,
+      "ITL_p99_ms": 47.337640542536974,
+      "E2E_p50_ms": 3784.520241431892,
+      "E2E_p95_ms": 7655.0788989290595,
+      "E2E_p99_ms": 7990.0798928923905,
+      "Decode_SLO_screen": true,
+      "frozen_SLO": {
+        "TTFT_ms": 1112.9925646819174,
+        "TPOT_ms": 53.70702898374411,
+        "ITL_ms": 65.08287642151119
+      },
+      "inherited_length_specific_SLO_metadata": {
+        "TTFT_ms": 4350.390350725502,
+        "TPOT_ms": 90.65160446358149,
+        "ITL_ms": 127.9980625025928,
+        "requests": 8,
+        "calibration": "calibration_ouro_l16384_optional_v1",
+        "rule": "2x independent serial calibration p95. Optional pool uses eight sources.",
+        "frozen_before_heldout_search": 1793541209.8842332,
+        "not_a_hard_guarantee": true
+      },
+      "SLO_scope": "The original anchor thresholds remain unchanged at every new length. No length-specific relaxation.",
+      "work": {
+        "run": "memory_ouro_L16384_O16_P2_mu115_N64_a2026111230",
+        "expected": 4198144,
+        "observed": 4198144,
+        "passed": true,
+        "scope": "Active recurrent rows, not padded physical GEMM work."
+      },
+      "lifetime": {
+        "passed": true,
+        "compared": 64,
+        "failures": [],
+        "scope": "Recorded native ACK precedes source retirement. Both coordinator credits retire and final native KV allocations are empty. This is not GPU DMA timing or HF fidelity."
+      },
+      "normal_worker_exit": true,
+      "parity": {
+        "reference": "memory_ouro_L16384_O16_P2_mu115_N64_a2026111230",
+        "candidate": "memory_ouro_L16384_O16_P2_mu115_N64_a2026111230",
+        "compared": 64,
+        "candidate_rows": 64,
+        "passed": true,
+        "matched_input_seed_rows": 64,
+        "comparison_applicable": true,
+        "failures": [],
+        "scope": "Internal exact output sequence parity. Not original-HF fidelity or downstream accuracy."
+      },
+      "correctness_passed": true,
+      "response_wall_seconds": 58.121296897530556
+    },
+    "late_profile_ouro_L16384_O16_P2_mu115_N64_a2026111230_events": {
+      "name": "late_profile_ouro_L16384_O16_P2_mu115_N64_a2026111230_events",
+      "model": "ouro",
+      "method": "native",
+      "complete": true,
+      "count": 64,
+      "nominal_QPS": 1.1949810287850386,
+      "arrival_seed": 2026111230,
+      "realized_scheduled_QPS": 1.1754840104894366,
+      "actual_submit_QPS": 1.175471808872325,
+      "completed_QPS": 1.1015226977513124,
+      "output_tokens_s": 17.624363164021,
+      "input_tokens_s": 18047.347879957502,
+      "SLO_goodput": 0.0,
+      "TTFT_attainment": 0.0,
+      "TPOT_attainment": 1.0,
+      "ITL_limit_misses": 0,
+      "ITL_intervals": 960,
+      "maximum_ITL_ms": 50.905996933579445,
+      "coalesced_nonfirst_delivery_events": 0,
+      "maximum_TTFT_ms": 7352.682748809457,
+      "maximum_E2E_ms": 8005.649918690324,
+      "ITL_contract": "Frozen event-average delivery intervals. Exact individual token-generation times are not measured when delivery is coalesced.",
+      "offloaded_requests": 0,
+      "actual_D_prompt_recurrent_rows": 0,
+      "accepted_loop_counts": {},
+      "admissions": 0,
+      "rejected_admissions": 0,
+      "Service_TTFT": "NOT_MEASURED",
+      "latency_scope": "Marker-free output-delivery metrics unless the configuration enables device events or state hashing.",
+      "throughput_scope": "Finite-cohort drain rates. Not sustainable serving capacity.",
+      "TTFT_p50_ms": 3139.4214052706957,
+      "TTFT_p95_ms": 7017.812714911997,
+      "TTFT_p99_ms": 7350.828779786825,
+      "TPOT_p50_ms": 43.542188654343285,
+      "TPOT_p95_ms": 43.78868245830139,
+      "TPOT_p99_ms": 43.842611603438854,
+      "ITL_p50_ms": 43.36492158472538,
+      "ITL_p95_ms": 45.0370317324996,
+      "ITL_p99_ms": 47.057072538882494,
+      "E2E_p50_ms": 3794.1385628655553,
+      "E2E_p95_ms": 7670.445933379233,
+      "E2E_p99_ms": 8004.0766158513725,
+      "Decode_SLO_screen": true,
+      "frozen_SLO": {
+        "TTFT_ms": 1112.9925646819174,
+        "TPOT_ms": 53.70702898374411,
+        "ITL_ms": 65.08287642151119
+      },
+      "inherited_length_specific_SLO_metadata": {
+        "TTFT_ms": 4350.390350725502,
+        "TPOT_ms": 90.65160446358149,
+        "ITL_ms": 127.9980625025928,
+        "requests": 8,
+        "calibration": "calibration_ouro_l16384_optional_v1",
+        "rule": "2x independent serial calibration p95. Optional pool uses eight sources.",
+        "frozen_before_heldout_search": 1793541209.8842332,
+        "not_a_hard_guarantee": true
+      },
+      "SLO_scope": "The original anchor thresholds remain unchanged at every new length. No length-specific relaxation.",
+      "work": {
+        "run": "late_profile_ouro_L16384_O16_P2_mu115_N64_a2026111230_events",
+        "expected": 4198144,
+        "observed": 4198144,
+        "passed": true,
+        "scope": "Active recurrent rows, not padded physical GEMM work."
+      },
+      "lifetime": {
+        "passed": true,
+        "compared": 64,
+        "failures": [],
+        "scope": "Recorded native ACK precedes source retirement. Both coordinator credits retire and final native KV allocations are empty. This is not GPU DMA timing or HF fidelity."
+      },
+      "normal_worker_exit": true,
+      "parity": {
+        "reference": "memory_ouro_L16384_O16_P2_mu115_N64_a2026111230",
+        "candidate": "late_profile_ouro_L16384_O16_P2_mu115_N64_a2026111230_events",
+        "compared": 64,
+        "candidate_rows": 64,
+        "passed": true,
+        "matched_input_seed_rows": 64,
+        "comparison_applicable": true,
+        "failures": [],
+        "scope": "Internal exact output sequence parity. Not original-HF fidelity or downstream accuracy."
+      },
+      "correctness_passed": true,
+      "response_wall_seconds": 58.10139013081789
+    },
+    "late_profile_ouro_L16384_O16_P2_mu115_N64_a2026111230_late_capture": {
+      "name": "late_profile_ouro_L16384_O16_P2_mu115_N64_a2026111230_late_capture",
+      "model": "ouro",
+      "method": "native",
+      "complete": true,
+      "count": 64,
+      "nominal_QPS": 1.1949810287850386,
+      "arrival_seed": 2026111230,
+      "realized_scheduled_QPS": 1.1754840104894366,
+      "actual_submit_QPS": 1.1754812852796397,
+      "completed_QPS": 1.0963234035117542,
+      "output_tokens_s": 17.541174456188067,
+      "input_tokens_s": 17962.16264313658,
+      "SLO_goodput": 0.0,
+      "TTFT_attainment": 0.0,
+      "TPOT_attainment": 0.96875,
+      "ITL_limit_misses": 4,
+      "ITL_intervals": 960,
+      "maximum_ITL_ms": 67.63916648924351,
+      "coalesced_nonfirst_delivery_events": 0,
+      "maximum_TTFT_ms": 7450.667887926102,
+      "maximum_E2E_ms": 8143.2107873260975,
+      "ITL_contract": "Frozen event-average delivery intervals. Exact individual token-generation times are not measured when delivery is coalesced.",
+      "offloaded_requests": 0,
+      "actual_D_prompt_recurrent_rows": 0,
+      "accepted_loop_counts": {},
+      "admissions": 0,
+      "rejected_admissions": 0,
+      "Service_TTFT": "NOT_MEASURED",
+      "latency_scope": "Marker-free output-delivery metrics unless the configuration enables device events or state hashing.",
+      "throughput_scope": "Finite-cohort drain rates. Not sustainable serving capacity.",
+      "TTFT_p50_ms": 3299.487884156406,
+      "TTFT_p95_ms": 7106.564207188785,
+      "TTFT_p99_ms": 7447.646788004786,
+      "TPOT_p50_ms": 43.52113374819358,
+      "TPOT_p95_ms": 46.538080517202616,
+      "TPOT_p99_ms": 55.272709076603256,
+      "ITL_p50_ms": 43.65826305001974,
+      "ITL_p95_ms": 47.49827729538083,
+      "ITL_p99_ms": 62.63983774930237,
+      "E2E_p50_ms": 3969.749337993562,
+      "E2E_p95_ms": 7758.031440898776,
+      "E2E_p99_ms": 8115.362931266427,
+      "Decode_SLO_screen": true,
+      "frozen_SLO": {
+        "TTFT_ms": 1112.9925646819174,
+        "TPOT_ms": 53.70702898374411,
+        "ITL_ms": 65.08287642151119
+      },
+      "inherited_length_specific_SLO_metadata": {
+        "TTFT_ms": 4350.390350725502,
+        "TPOT_ms": 90.65160446358149,
+        "ITL_ms": 127.9980625025928,
+        "requests": 8,
+        "calibration": "calibration_ouro_l16384_optional_v1",
+        "rule": "2x independent serial calibration p95. Optional pool uses eight sources.",
+        "frozen_before_heldout_search": 1793541209.8842332,
+        "not_a_hard_guarantee": true
+      },
+      "SLO_scope": "The original anchor thresholds remain unchanged at every new length. No length-specific relaxation.",
+      "work": {
+        "run": "late_profile_ouro_L16384_O16_P2_mu115_N64_a2026111230_late_capture",
+        "expected": 4198144,
+        "observed": 4198144,
+        "passed": true,
+        "scope": "Active recurrent rows, not padded physical GEMM work."
+      },
+      "lifetime": {
+        "passed": true,
+        "compared": 64,
+        "failures": [],
+        "scope": "Recorded native ACK precedes source retirement. Both coordinator credits retire and final native KV allocations are empty. This is not GPU DMA timing or HF fidelity."
+      },
+      "normal_worker_exit": true,
+      "parity": {
+        "reference": "memory_ouro_L16384_O16_P2_mu115_N64_a2026111230",
+        "candidate": "late_profile_ouro_L16384_O16_P2_mu115_N64_a2026111230_late_capture",
+        "compared": 64,
+        "candidate_rows": 64,
+        "passed": true,
+        "matched_input_seed_rows": 64,
+        "comparison_applicable": true,
+        "failures": [],
+        "scope": "Internal exact output sequence parity. Not original-HF fidelity or downstream accuracy."
+      },
+      "correctness_passed": true,
+      "response_wall_seconds": 58.3769349399954
+    },
+    "late_profile_ouro_L16384_O16_P2_mu115_N64_a2026111230_repeat": {
+      "name": "late_profile_ouro_L16384_O16_P2_mu115_N64_a2026111230_repeat",
+      "model": "ouro",
+      "method": "native",
+      "complete": true,
+      "count": 64,
+      "nominal_QPS": 1.1949810287850386,
+      "arrival_seed": 2026111230,
+      "realized_scheduled_QPS": 1.1754840104894366,
+      "actual_submit_QPS": 1.1754757986210727,
+      "completed_QPS": 1.1002050356788222,
+      "output_tokens_s": 17.603280570861155,
+      "input_tokens_s": 18025.759304561823,
+      "SLO_goodput": 0.0,
+      "TTFT_attainment": 0.0,
+      "TPOT_attainment": 1.0,
+      "ITL_limit_misses": 0,
+      "ITL_intervals": 960,
+      "maximum_ITL_ms": 51.43224261701107,
+      "coalesced_nonfirst_delivery_events": 0,
+      "maximum_TTFT_ms": 7515.1356644928455,
+      "maximum_E2E_ms": 8165.9116595983505,
+      "ITL_contract": "Frozen event-average delivery intervals. Exact individual token-generation times are not measured when delivery is coalesced.",
+      "offloaded_requests": 0,
+      "actual_D_prompt_recurrent_rows": 0,
+      "accepted_loop_counts": {},
+      "admissions": 0,
+      "rejected_admissions": 0,
+      "Service_TTFT": "NOT_MEASURED",
+      "latency_scope": "Marker-free output-delivery metrics unless the configuration enables device events or state hashing.",
+      "throughput_scope": "Finite-cohort drain rates. Not sustainable serving capacity.",
+      "TTFT_p50_ms": 3279.185892082751,
+      "TTFT_p95_ms": 7177.218234911561,
+      "TTFT_p99_ms": 7511.998453587294,
+      "TPOT_p50_ms": 43.48564501851797,
+      "TPOT_p95_ms": 43.890900711218514,
+      "TPOT_p99_ms": 44.05192563061913,
+      "ITL_p50_ms": 43.36584825068712,
+      "ITL_p95_ms": 44.98335253447294,
+      "ITL_p99_ms": 47.641370575875044,
+      "E2E_p50_ms": 3936.936380341649,
+      "E2E_p95_ms": 7831.945812981576,
+      "E2E_p99_ms": 8164.623384717852,
+      "Decode_SLO_screen": true,
+      "frozen_SLO": {
+        "TTFT_ms": 1112.9925646819174,
+        "TPOT_ms": 53.70702898374411,
+        "ITL_ms": 65.08287642151119
+      },
+      "inherited_length_specific_SLO_metadata": {
+        "TTFT_ms": 4350.390350725502,
+        "TPOT_ms": 90.65160446358149,
+        "ITL_ms": 127.9980625025928,
+        "requests": 8,
+        "calibration": "calibration_ouro_l16384_optional_v1",
+        "rule": "2x independent serial calibration p95. Optional pool uses eight sources.",
+        "frozen_before_heldout_search": 1793541209.8842332,
+        "not_a_hard_guarantee": true
+      },
+      "SLO_scope": "The original anchor thresholds remain unchanged at every new length. No length-specific relaxation.",
+      "work": {
+        "run": "late_profile_ouro_L16384_O16_P2_mu115_N64_a2026111230_repeat",
+        "expected": 4198144,
+        "observed": 4198144,
+        "passed": true,
+        "scope": "Active recurrent rows, not padded physical GEMM work."
+      },
+      "lifetime": {
+        "passed": true,
+        "compared": 64,
+        "failures": [],
+        "scope": "Recorded native ACK precedes source retirement. Both coordinator credits retire and final native KV allocations are empty. This is not GPU DMA timing or HF fidelity."
+      },
+      "normal_worker_exit": true,
+      "parity": {
+        "reference": "memory_ouro_L16384_O16_P2_mu115_N64_a2026111230",
+        "candidate": "late_profile_ouro_L16384_O16_P2_mu115_N64_a2026111230_repeat",
+        "compared": 64,
+        "candidate_rows": 64,
+        "passed": true,
+        "matched_input_seed_rows": 64,
+        "comparison_applicable": true,
+        "failures": [],
+        "scope": "Internal exact output sequence parity. Not original-HF fidelity or downstream accuracy."
+      },
+      "correctness_passed": true,
+      "response_wall_seconds": 58.170975340530276
+    }
+  },
+  "Native_AA": {
+    "ratios": {
+      "response_wall_seconds": 1.000854737345027,
+      "TTFT_p95_ms": 1.0251914600794212,
+      "TPOT_p95_ms": 1.0042554341649197,
+      "ITL_p99_ms": 1.0064162478285148,
+      "maximum_ITL_ms": 1.018830513972925
+    },
+    "passed": true,
+    "scope": "Two-sided five-percent point screen. Independent-start variation requires a separate audit."
+  },
+  "observers": [
+    {
+      "name": "late_profile_ouro_L16384_O16_P2_mu115_N64_a2026111230_events",
+      "whole_run_screens": {
+        "memory_ouro_L16384_O16_P2_mu115_N64_a2026111230": {
+          "ratios": {
+            "response_wall_seconds": 0.9996574961713645,
+            "TTFT_p95_ms": 1.0024220287420604,
+            "TPOT_p95_ms": 1.0019166068841063,
+            "ITL_p99_ms": 0.9940730463022895,
+            "maximum_ITL_ms": 1.0084060188926862
+          },
+          "passed": true,
+          "scope": "Two-sided five-percent point screen. Independent-start variation requires a separate audit."
+        },
+        "late_profile_ouro_L16384_O16_P2_mu115_N64_a2026111230_repeat": {
+          "ratios": {
+            "response_wall_seconds": 0.998803781279151,
+            "TTFT_p95_ms": 0.9777900692465807,
+            "TPOT_p95_ms": 0.9976710832710025,
+            "ITL_p99_ms": 0.9877354906055447,
+            "maximum_ITL_ms": 0.9897681754351974
+          },
+          "passed": true,
+          "scope": "Two-sided five-percent point screen. Independent-start variation requires a separate audit."
+        }
+      },
+      "local_screens": {},
+      "local_ITL": {},
+      "trace": null,
+      "qualified": true,
+      "status": "QUALIFIED_OBSERVER_PILOT",
+      "Phase_1_qualified": false,
+      "scope": "Observer point screen only. Independent starts, capacity, queue ownership, and source/handoff feasibility remain separate gates."
+    },
+    {
+      "name": "late_profile_ouro_L16384_O16_P2_mu115_N64_a2026111230_late_capture",
+      "whole_run_screens": {
+        "memory_ouro_L16384_O16_P2_mu115_N64_a2026111230": {
+          "ratios": {
+            "response_wall_seconds": 1.0043983540648713,
+            "TTFT_p95_ms": 1.0150992623127058,
+            "TPOT_p95_ms": 1.064824815569564,
+            "ITL_p99_ms": 1.3232564409925553,
+            "maximum_ITL_ms": 1.3398763742832298
+          },
+          "passed": false,
+          "scope": "Two-sided five-percent point screen. Independent-start variation requires a separate audit."
+        },
+        "late_profile_ouro_L16384_O16_P2_mu115_N64_a2026111230_repeat": {
+          "ratios": {
+            "response_wall_seconds": 1.0035405904449675,
+            "TTFT_p95_ms": 0.9901557922010649,
+            "TPOT_p95_ms": 1.0603127245759048,
+            "ITL_p99_ms": 1.3148202285561943,
+            "maximum_ITL_ms": 1.3151121368149723
+          },
+          "passed": false,
+          "scope": "Two-sided five-percent point screen. Independent-start variation requires a separate audit."
+        }
+      },
+      "local_screens": {
+        "memory_ouro_L16384_O16_P2_mu115_N64_a2026111230": {
+          "ratios": {
+            "p99": 1.0991275189912397,
+            "maximum": 1.0920438179250762
+          },
+          "passed": false,
+          "scope": "Two-sided five-percent point screen. Independent-start variation requires a separate audit."
+        },
+        "late_profile_ouro_L16384_O16_P2_mu115_N64_a2026111230_repeat": {
+          "ratios": {
+            "p99": 1.14899981139295,
+            "maximum": 1.0117170952621959
+          },
+          "passed": false,
+          "scope": "Two-sided five-percent point screen. Independent-start variation requires a separate audit."
+        }
+      },
+      "local_ITL": {
+        "memory_ouro_L16384_O16_P2_mu115_N64_a2026111230": {
+          "count": 119,
+          "mean": 43.56018698015133,
+          "p50": 43.180299922823906,
+          "p90": 44.409701600670815,
+          "p95": 46.11614011228084,
+          "p99": 47.325615137815475,
+          "maximum": 47.64907620847225
+        },
+        "late_profile_ouro_L16384_O16_P2_mu115_N64_a2026111230_repeat": {
+          "count": 119,
+          "mean": 43.42633343356497,
+          "p50": 43.285803869366646,
+          "p90": 44.16875019669533,
+          "p95": 44.468616507947445,
+          "p99": 45.27144864201546,
+          "maximum": 51.43224261701107
+        },
+        "late_profile_ouro_L16384_O16_P2_mu115_N64_a2026111230_late_capture": {
+          "count": 111,
+          "mean": 46.260490929623984,
+          "p50": 46.08488082885742,
+          "p90": 47.09051176905632,
+          "p95": 48.81998244673014,
+          "p99": 52.016885951161385,
+          "maximum": 52.034879103302956
+        }
+      },
+      "trace": {
+        "prefill": {
+          "run": "late_profile_ouro_L16384_O16_P2_mu115_N64_a2026111230_late_capture",
+          "role": "prefill",
+          "left": 9102233.362828663,
+          "right": 9102240.149900608,
+          "window_seconds": 6.787071945145726,
+          "actual_kernel_records": 125230,
+          "streams": [
+            "18"
+          ],
+          "kernel_union_seconds": 5.877575632184744,
+          "kernel_busy_percent": 86.59957754519641,
+          "physical_kernel_idle_seconds": 0.9094963129609823,
+          "physical_kernel_idle_percent": 13.400422454803584,
+          "idle_window_count": 125049,
+          "idle_ms": {
+            "count": 125049,
+            "mean": 0.007273119440867039,
+            "p50": 0.00044889748096466064,
+            "p90": 0.004062429070472717,
+            "p95": 0.004192814230918884,
+            "p99": 0.006081536412239075,
+            "maximum": 681.4238503575325
+          },
+          "thresholds": {
+            "1": {
+              "count": 1,
+              "seconds": 0.6814238503575325
+            },
+            "2": {
+              "count": 1,
+              "seconds": 0.6814238503575325
+            },
+            "5": {
+              "count": 1,
+              "seconds": 0.6814238503575325
+            },
+            "10": {
+              "count": 1,
+              "seconds": 0.6814238503575325
+            },
+            "20": {
+              "count": 1,
+              "seconds": 0.6814238503575325
+            },
+            "30": {
+              "count": 1,
+              "seconds": 0.6814238503575325
+            },
+            "50": {
+              "count": 1,
+              "seconds": 0.6814238503575325
+            },
+            "100": {
+              "count": 1,
+              "seconds": 0.6814238503575325
+            }
+          },
+          "collector_status": 0,
+          "collector_counters": {
+            "dropped": 0,
+            "invalid": 0,
+            "count": 134641,
+            "all_kernels": 319086,
+            "requested_buffers": 10,
+            "completed_buffers": 10,
+            "reserved_host_bytes": 4294967296
+          },
+          "collector_valid": true,
+          "clock_bracket_max_ms": 0.014087185263633728,
+          "copy_activity": "MEASURED",
+          "scope": "Actual all-stream kernel interval union inside the same captured run/window. Profiling sensitivity is a separate gate. Physical kernel inactivity is not automatically Decode-safe slack."
+        },
+        "decode": {
+          "run": "late_profile_ouro_L16384_O16_P2_mu115_N64_a2026111230_late_capture",
+          "role": "decode",
+          "left": 9102233.362828663,
+          "right": 9102240.149900608,
+          "window_seconds": 6.787071945145726,
+          "actual_kernel_records": 665836,
+          "streams": [
+            "18",
+            "22",
+            "26",
+            "30"
+          ],
+          "kernel_union_seconds": 4.434732573106885,
+          "kernel_busy_percent": 65.3408805586437,
+          "physical_kernel_idle_seconds": 2.3523393720388412,
+          "physical_kernel_idle_percent": 34.65911944135629,
+          "idle_window_count": 665383,
+          "idle_ms": {
+            "count": 665383,
+            "mean": 0.0035353163096124205,
+            "p50": 0.0004172325134277344,
+            "p90": 0.0007990747690200806,
+            "p95": 0.002078711986541748,
+            "p99": 0.0022407621145248413,
+            "maximum": 499.97617676854134
+          },
+          "thresholds": {
+            "1": {
+              "count": 132,
+              "seconds": 1.8421241734176874
+            },
+            "2": {
+              "count": 26,
+              "seconds": 1.653026606887579
+            },
+            "5": {
+              "count": 8,
+              "seconds": 1.6079505290836096
+            },
+            "10": {
+              "count": 8,
+              "seconds": 1.6079505290836096
+            },
+            "20": {
+              "count": 8,
+              "seconds": 1.6079505290836096
+            },
+            "30": {
+              "count": 8,
+              "seconds": 1.6079505290836096
+            },
+            "50": {
+              "count": 8,
+              "seconds": 1.6079505290836096
+            },
+            "100": {
+              "count": 7,
+              "seconds": 1.5134390871971846
+            }
+          },
+          "collector_status": 0,
+          "collector_counters": {
+            "dropped": 0,
+            "invalid": 0,
+            "count": 677746,
+            "all_kernels": 1723350,
+            "requested_buffers": 45,
+            "completed_buffers": 45,
+            "reserved_host_bytes": 4294967296
+          },
+          "collector_valid": true,
+          "clock_bracket_max_ms": 0.01296214759349823,
+          "copy_activity": "MEASURED",
+          "scope": "Actual all-stream kernel interval union inside the same captured run/window. Profiling sensitivity is a separate gate. Physical kernel inactivity is not automatically Decode-safe slack."
+        }
+      },
+      "qualified": false,
+      "status": "DIAGNOSTIC_ONLY",
+      "Phase_1_qualified": false,
+      "scope": "Observer point screen only. Independent starts, capacity, queue ownership, and source/handoff feasibility remain separate gates."
+    }
+  ]
+}

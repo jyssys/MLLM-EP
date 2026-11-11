@@ -15,9 +15,17 @@ def execute(name):
             with zipfile.ZipFile(folder/'discovery_source.zip','w',zipfile.ZIP_DEFLATED) as archive:
                 for path in paths:archive.write(path,str(path.relative_to(REPO)))
                 archive.extractall(snapshot)
-            write(folder/'discovery_source_hashes.json',{str(p.relative_to(REPO)):digest(p) for p in paths})
+            write(folder/'discovery_source_hashes.json',{str(p.relative_to(REPO)):digest(snapshot/p.relative_to(REPO)) for p in paths})
             env=dict(kwargs['env']);env['PREFILL_DISCOVERY_SNAPSHOT']=str(snapshot)
             cfg=json.loads((ROOT/'configs'/(name+'.json')).read_text())
+            if cfg.get('discovery_activity'):
+                # Compile the immutable worker copy before the GPU process starts.
+                # A later edit cannot substitute another collector binary.
+                from .activity import build
+                record=build(snapshot/'poc_flashvep/prefill_heavy_decode_safe/preallocated_activity.cc')
+                assert digest(record['library'])==record['library_SHA256']
+                assert digest(snapshot/'poc_flashvep/prefill_heavy_decode_safe/preallocated_activity.cc')==record['source_SHA256']
+                write(folder/'activity_runtime_build.json',record)
             if cfg.get('discovery_cupti_preload'):
                 library=Path(cfg['discovery_cupti_preload'])
                 assert digest(library)==cfg['discovery_cupti_preload_SHA256']

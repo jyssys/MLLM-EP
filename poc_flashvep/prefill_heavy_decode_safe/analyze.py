@@ -42,13 +42,34 @@ def native(name,reference=None):
     from ..huginn_net_benefit.common import analysis
     from ..looped_pd_atomic_prefill.evidence import full_work,compare
     from ..dynamic_loop_split_serving.lifetime_gate import check
-    value=analysis().metrics(name)
-    if not value['complete']:return value
     cfg=json.loads((ROOT/'configs'/(name+'.json')).read_text())
+    frozen_path=ROOT/'configs/frozen_SLO.json';frozen_text=frozen_path.read_text()
+    old_metadata=json.loads(frozen_text);key=cfg['model']+'_L'+str(cfg['length'])
+    metadata_adapter=key not in old_metadata
+    if metadata_adapter:
+        assert cfg.get('campaign_frozen_SLO'),'A new length needs explicit frozen campaign limits'
+        from ..idle_intervention_dynamic_loop import analyze as old_metrics
+        previous_json=old_metrics.json
+        class FrozenMetadataJSON:
+            def loads(self,text,*args,**kwargs):
+                result=json.loads(text,*args,**kwargs)
+                if text==frozen_text:result=dict(result,**{key:cfg['campaign_frozen_SLO']})
+                return result
+            def __getattr__(self,item):return getattr(json,item)
+        old_metrics.json=FrozenMetadataJSON()
+        try:value=analysis().metrics(name)
+        finally:old_metrics.json=previous_json
+    else:value=analysis().metrics(name)
+    if not value['complete']:return value
     if cfg.get('campaign_frozen_SLO'):
         value['inherited_length_specific_SLO_metadata']=value['frozen_SLO']
         value['frozen_SLO']=cfg['campaign_frozen_SLO']
         value['SLO_scope']=cfg['SLO_scope']
+    if metadata_adapter:
+        value['inherited_length_specific_SLO_metadata']='NOT_DEFINED_FOR_THIS_NEW_LENGTH'
+        value['SLO_metadata_analysis_adapter']=dict(original_metadata_SHA256=digest(frozen_path),
+            inserted_analysis_key=key,
+            scope='Analysis view only. The inherited metric code already uses the unchanged frozen anchor thresholds. No runtime config, original SLO file, or threshold changes.')
     work,lifetime=full_work(name),check(name)
     folder=ROOT/'raw'/name
     exits=[json.loads(p.read_text()) for p in folder.glob('native_worker_exit_*.json')]
@@ -63,6 +84,8 @@ def native(name,reference=None):
 def physical(name):
     folder=ROOT/'raw'/name
     meta={role:json.loads((folder/f'physical_activity_{role}.json').read_text()) for role in ('prefill','decode')}
+    assert not any(m.get('quiescent_only') for m in meta.values()),'Partial tracing cannot establish whole-window kernel inactivity'
+    assert not any(m.get('graph_enclosures') for m in meta.values()),'Graph enclosures cannot establish an exact kernel union'
     left=max(r['start']['host_midpoint'] for r in meta.values());right=min(r['stop']['host_midpoint'] for r in meta.values())
     assert right>left
     results={}
