@@ -1,0 +1,65 @@
+[
+  {
+    "id": "H0",
+    "hypothesis": "The frozen Loop implementation fails the required Zero-relative targets.",
+    "evidence": "Frozen replay asserts TTFT ratio <=0.95 and ITL ratio <=1.05.",
+    "code_change": "No Runtime change.",
+    "cost": "Read-only evidence replay.",
+    "result": "RED: TTFT 1.3586225, E2E 1.3328046, ITL 1.3277983.",
+    "decision": "Use Native-path Zero as the mandatory reference."
+  },
+  {
+    "id": "H1",
+    "hypothesis": "Checkpoint exposure adds cost without migration.",
+    "evidence": "Native uses one grouped prompt submission. The previous Loop source exposes six boundaries.",
+    "code_change": "Checkpoint-only control. No destination admissions.",
+    "cost": "Fresh N8 and N32 state qualification, followed by paired N128.",
+    "result": "STATE_PASS. Serving comparison is pending.",
+    "decision": "Measure before adopting selective exposure."
+  },
+  {
+    "id": "H2",
+    "hypothesis": "Repeated Gate-result readback adds avoidable fixed-depth host waits.",
+    "evidence": "Synchronous StageEngine collects non-null results. Submission.collect synchronizes its CUDA event. Async fixed-depth execution can suppress unused gate results.",
+    "code_change": "Use the existing asynchronous Runtime option in a separate candidate.",
+    "cost": "New N8 and N32 exact qualification.",
+    "result": "NOT_RUN",
+    "decision": "Apply to the Zero reference too if the path qualifies and improves performance."
+  },
+  {
+    "id": "H3",
+    "hypothesis": "KV fragments wait until the source final frontier, delaying destination import.",
+    "evidence": "Native CutConnector.queue_snapshot builds final valid KV descriptors only after the selected cut.",
+    "code_change": "Publish immutable KV planes at exposed boundaries. Transfer final hidden state and commit through the Native protocol.",
+    "cost": "One additional checkpoint and exact plane accounting. No duplicate KV planes.",
+    "result": "Five CPU plane-accounting tests passed. GPU qualification is pending.",
+    "decision": "Do not use in Serving before N8 and N32 exactness."
+  },
+  {
+    "id": "H4",
+    "hypothesis": "Broad checkpoint monitoring spends source cost on unavailable destination capacity.",
+    "evidence": "Previous source_monitor_boundaries returns true independently of D availability.",
+    "code_change": "Choose a legal future checkpoint from a fresh advertisement and the shared completion model. Keep boundary revalidation.",
+    "cost": "Small source decision. A full atomic fallback cannot revisit an internal boundary.",
+    "result": "Six planner tests passed. GPU qualification is pending.",
+    "decision": "Measure exposure coverage, missed opportunities, and net serving cost."
+  },
+  {
+    "id": "H5",
+    "hypothesis": "Graph-level activity tracing reduces node-record overhead enough for useful activity bounds.",
+    "evidence": "NVIDIA documents lower overhead for graph-level capture. Prior node-level collectors changed ITL tails.",
+    "code_change": "Bounded Nsight graph-enclosure capture, with an independent interference gate.",
+    "cost": "Three-second diagnostic window.",
+    "result": "NOT_RUN",
+    "decision": "Do not label graph enclosures as kernel unions or claim clean idle until the relevant gate passes."
+  },
+  {
+    "id": "H6",
+    "hypothesis": "Fixed R32 Decode pays scheduler and metadata costs once per recurrent stage.",
+    "evidence": "The Native scheduler returns one Loop for RECURRENT. Both Native update paths increment loops_done by one. The ModelRunner already supports explicit multi-loop metadata.",
+    "code_change": "Optional fixed-only Decode grouping with validated grouped lifecycle transitions. No model kernel or Attention change.",
+    "cost": "Six CPU transition tests. New N8 and N32 exact-state gates are required.",
+    "result": "CPU_PASS. GPU_NOT_RUN.",
+    "decision": "Apply the same option to Zero and Loop if qualified. Do not combine asynchronous pending-work budgets before validating their semantics."
+  }
+]

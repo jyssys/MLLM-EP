@@ -1,0 +1,1547 @@
+{
+  "pid": 1927125,
+  "status": "CLOSED",
+  "names": [
+    "match18_loop28_full_state8",
+    "match18_loop28_full_state32",
+    "match18_loop28_full_seed2026110940",
+    "match18_loop28_tile256_state8",
+    "match18_loop28_tile256_state32",
+    "match18_loop28_tile256_seed2026110940",
+    "disjoint13_sm8_zero_state8",
+    "disjoint13_sm8_zero_state32",
+    "disjoint13_sm8_zero_seed2026110940",
+    "disjoint13_sm8_loop31_state8",
+    "disjoint13_sm8_loop31_state32",
+    "disjoint13_sm8_loop31_seed2026110940"
+  ],
+  "results": [
+    {
+      "name": "match18_loop28_full_state8",
+      "returncode": 0,
+      "time": 1794361035.7830815,
+      "metrics": {
+        "name": "match18_loop28_full_state8",
+        "model": "huginn",
+        "method": "native",
+        "complete": true,
+        "count": 8,
+        "nominal_QPS": null,
+        "arrival_seed": null,
+        "realized_scheduled_QPS": null,
+        "actual_submit_QPS": 1128.80153787005,
+        "completed_QPS": 1.2922619631562713,
+        "output_tokens_s": 20.67619141050034,
+        "input_tokens_s": 2646.5525005440436,
+        "SLO_goodput": 0.3230654907890678,
+        "TTFT_attainment": 0.25,
+        "TPOT_attainment": 1.0,
+        "ITL_limit_misses": 0,
+        "ITL_intervals": 120,
+        "maximum_ITL_ms": 160.7704758644104,
+        "coalesced_nonfirst_delivery_events": 0,
+        "maximum_TTFT_ms": 4995.142467319965,
+        "maximum_E2E_ms": 6190.695252269506,
+        "ITL_contract": "Frozen event-average delivery intervals. Exact individual token-generation times are not measured when delivery is coalesced.",
+        "offloaded_requests": 8,
+        "actual_D_prompt_recurrent_rows": 65536,
+        "accepted_loop_counts": {},
+        "admissions": 0,
+        "rejected_admissions": 0,
+        "Service_TTFT": "NOT_MEASURED",
+        "latency_scope": "Marker-free output-delivery metrics unless the configuration enables device events or state hashing.",
+        "throughput_scope": "Finite-cohort drain rates. Not sustainable serving capacity.",
+        "TTFT_p50_ms": 3157.06152562052,
+        "TTFT_p95_ms": 4858.6604178883135,
+        "TTFT_p99_ms": 4967.846057433635,
+        "TPOT_p50_ms": 97.35851436853409,
+        "TPOT_p95_ms": 103.15210953975718,
+        "TPOT_p99_ms": 104.7521026643614,
+        "ITL_p50_ms": 86.17216534912586,
+        "ITL_p95_ms": 150.6993591785431,
+        "ITL_p99_ms": 159.90955892950296,
+        "E2E_p50_ms": 4673.735613003373,
+        "E2E_p95_ms": 6112.723589222878,
+        "E2E_p99_ms": 6175.100919660181,
+        "Decode_SLO_screen": true,
+        "frozen_SLO": {
+          "TTFT_ms": 1963.9920117333531,
+          "TPOT_ms": 186.5715059141318,
+          "ITL_ms": 192.8212538175284,
+          "requests": 16,
+          "calibration": [
+            "short_huginn_C1024_serial16",
+            "short_huginn_C2048_serial16"
+          ],
+          "rule": "Two times serial calibration percentiles. Use the tighter per-metric limit across Atomic and C2048. Freeze before held-out pilot serving.",
+          "frozen_epoch": 1793701394.056462,
+          "calibration_values": [
+            {
+              "name": "short_huginn_C1024_serial16",
+              "TTFT_ms": 1984.9652252160013,
+              "TPOT_ms": 186.5715059141318,
+              "ITL_ms": 192.8212538175284
+            },
+            {
+              "name": "short_huginn_C2048_serial16",
+              "TTFT_ms": 1963.9920117333531,
+              "TPOT_ms": 188.43453507870436,
+              "ITL_ms": 198.30003213137388
+            }
+          ]
+        }
+      },
+      "qualification": {
+        "name": "match18_loop28_full_state8",
+        "complete": true,
+        "work": {
+          "run": "match18_loop28_full_state8",
+          "expected": 528128,
+          "observed": 528128,
+          "passed": true,
+          "scope": "Active recurrent rows, not padded physical GEMM work."
+        },
+        "lifetime": {
+          "passed": true,
+          "compared": 8,
+          "failures": [],
+          "scope": "Recorded native ACK precedes source retirement. Both coordinator credits retire and final native KV allocations are empty. This is not GPU DMA timing or HF fidelity."
+        },
+        "offload": {
+          "actual_D_prompt_rows": 65536,
+          "expected_D_prompt_rows": 65536,
+          "passed": true,
+          "requests": 8,
+          "per_request_D_prompt_rows": {
+            "2026110362": 8192,
+            "2026110363": 8192,
+            "2026110364": 8192,
+            "2026110365": 8192,
+            "2026110366": 8192,
+            "2026110367": 8192,
+            "2026110368": 8192,
+            "2026110369": 8192
+          },
+          "accepted_loop_counts": [],
+          "accepted_suffix_tokens": [],
+          "adaptive_diversity": false
+        },
+        "actual_dynamic_continuation_tested": false,
+        "async_handoff": {
+          "compared": 8,
+          "expected": 8,
+          "divergent_seeds": [],
+          "passed": true,
+          "scope": "Same full valid export KV byte order and hidden bytes. Asynchronous diagnostic, not clean serving."
+        },
+        "passed": true,
+        "frozen_output": {
+          "reference": "/home/esjung/MLLM-EP-github/poc_flashvep/reports/ouro_huginn_adaptive_idle_intervention_dynamic_loop/raw/n32_huginn_native_full_state32",
+          "expected": 8,
+          "failures": [],
+          "passed": true
+        },
+        "frozen_full_state": {
+          "reference": "/home/esjung/MLLM-EP-github/poc_flashvep/reports/ouro_huginn_adaptive_idle_intervention_dynamic_loop/raw/n32_huginn_native_full_state32",
+          "expected": 8,
+          "failures": [],
+          "passed": true,
+          "scope": "All recorded valid KV-plane hashes and prompt hidden hashes. Frozen qualified Native reference, not a new Native GPU run."
+        },
+        "effective_quantum": {
+          "name": "match18_loop28_full_state8",
+          "measured_prompt_spans": 32,
+          "request_coverage": 8,
+          "expected_requests": 8,
+          "loop_limit": 1,
+          "token_limit": 2048,
+          "violations": 0,
+          "histogram": [
+            {
+              "phase": "prefilling_recurrent",
+              "rows": 2048,
+              "loops": 1,
+              "spans": 32
+            }
+          ],
+          "passed": true,
+          "scope": "Observed D prompt spans with measured sampling seeds. This checks the submitted work quantum, not GPU kernel preemption or execution time."
+        },
+        "campaign_gate_passed": true
+      }
+    },
+    {
+      "name": "match18_loop28_full_state32",
+      "returncode": 0,
+      "time": 1794361328.4226513,
+      "metrics": {
+        "name": "match18_loop28_full_state32",
+        "model": "huginn",
+        "method": "native",
+        "complete": true,
+        "count": 32,
+        "nominal_QPS": null,
+        "arrival_seed": null,
+        "realized_scheduled_QPS": null,
+        "actual_submit_QPS": 1160.6307611466557,
+        "completed_QPS": 1.69524904341815,
+        "output_tokens_s": 27.1239846946904,
+        "input_tokens_s": 3471.870040920371,
+        "SLO_goodput": 0.05297653260681719,
+        "TTFT_attainment": 0.03125,
+        "TPOT_attainment": 1.0,
+        "ITL_limit_misses": 0,
+        "ITL_intervals": 480,
+        "maximum_ITL_ms": 160.18333472311497,
+        "coalesced_nonfirst_delivery_events": 0,
+        "maximum_TTFT_ms": 17666.946904733777,
+        "maximum_E2E_ms": 18876.282587647438,
+        "ITL_contract": "Frozen event-average delivery intervals. Exact individual token-generation times are not measured when delivery is coalesced.",
+        "offloaded_requests": 32,
+        "actual_D_prompt_recurrent_rows": 262144,
+        "accepted_loop_counts": {},
+        "admissions": 0,
+        "rejected_admissions": 0,
+        "Service_TTFT": "NOT_MEASURED",
+        "latency_scope": "Marker-free output-delivery metrics unless the configuration enables device events or state hashing.",
+        "throughput_scope": "Finite-cohort drain rates. Not sustainable serving capacity.",
+        "TTFT_p50_ms": 9728.641666471958,
+        "TTFT_p95_ms": 16928.000875376165,
+        "TTFT_p99_ms": 17525.36270171404,
+        "TPOT_p50_ms": 103.00450194627047,
+        "TPOT_p95_ms": 104.04025413716833,
+        "TPOT_p99_ms": 104.15882296363513,
+        "ITL_p50_ms": 89.25668522715569,
+        "ITL_p95_ms": 157.49084688723087,
+        "ITL_p99_ms": 158.62028254196048,
+        "E2E_p50_ms": 11273.782616481185,
+        "E2E_p95_ms": 18358.671529684216,
+        "E2E_p99_ms": 18782.77883928269,
+        "Decode_SLO_screen": true,
+        "frozen_SLO": {
+          "TTFT_ms": 1963.9920117333531,
+          "TPOT_ms": 186.5715059141318,
+          "ITL_ms": 192.8212538175284,
+          "requests": 16,
+          "calibration": [
+            "short_huginn_C1024_serial16",
+            "short_huginn_C2048_serial16"
+          ],
+          "rule": "Two times serial calibration percentiles. Use the tighter per-metric limit across Atomic and C2048. Freeze before held-out pilot serving.",
+          "frozen_epoch": 1793701394.056462,
+          "calibration_values": [
+            {
+              "name": "short_huginn_C1024_serial16",
+              "TTFT_ms": 1984.9652252160013,
+              "TPOT_ms": 186.5715059141318,
+              "ITL_ms": 192.8212538175284
+            },
+            {
+              "name": "short_huginn_C2048_serial16",
+              "TTFT_ms": 1963.9920117333531,
+              "TPOT_ms": 188.43453507870436,
+              "ITL_ms": 198.30003213137388
+            }
+          ]
+        }
+      },
+      "qualification": {
+        "name": "match18_loop28_full_state32",
+        "complete": true,
+        "work": {
+          "run": "match18_loop28_full_state32",
+          "expected": 2112512,
+          "observed": 2112512,
+          "passed": true,
+          "scope": "Active recurrent rows, not padded physical GEMM work."
+        },
+        "lifetime": {
+          "passed": true,
+          "compared": 32,
+          "failures": [],
+          "scope": "Recorded native ACK precedes source retirement. Both coordinator credits retire and final native KV allocations are empty. This is not GPU DMA timing or HF fidelity."
+        },
+        "offload": {
+          "actual_D_prompt_rows": 262144,
+          "expected_D_prompt_rows": 262144,
+          "passed": true,
+          "requests": 32,
+          "per_request_D_prompt_rows": {
+            "2026110362": 8192,
+            "2026110363": 8192,
+            "2026110364": 8192,
+            "2026110365": 8192,
+            "2026110366": 8192,
+            "2026110367": 8192,
+            "2026110368": 8192,
+            "2026110369": 8192,
+            "2026110370": 8192,
+            "2026110371": 8192,
+            "2026110372": 8192,
+            "2026110373": 8192,
+            "2026110374": 8192,
+            "2026110375": 8192,
+            "2026110376": 8192,
+            "2026110377": 8192,
+            "2026110378": 8192,
+            "2026110379": 8192,
+            "2026110380": 8192,
+            "2026110381": 8192,
+            "2026110382": 8192,
+            "2026110383": 8192,
+            "2026110384": 8192,
+            "2026110385": 8192,
+            "2026110386": 8192,
+            "2026110387": 8192,
+            "2026110388": 8192,
+            "2026110389": 8192,
+            "2026110390": 8192,
+            "2026110391": 8192,
+            "2026110392": 8192,
+            "2026110393": 8192
+          },
+          "accepted_loop_counts": [],
+          "accepted_suffix_tokens": [],
+          "adaptive_diversity": false
+        },
+        "actual_dynamic_continuation_tested": false,
+        "async_handoff": {
+          "compared": 32,
+          "expected": 32,
+          "divergent_seeds": [],
+          "passed": true,
+          "scope": "Same full valid export KV byte order and hidden bytes. Asynchronous diagnostic, not clean serving."
+        },
+        "passed": true,
+        "frozen_output": {
+          "reference": "/home/esjung/MLLM-EP-github/poc_flashvep/reports/ouro_huginn_adaptive_idle_intervention_dynamic_loop/raw/n32_huginn_native_full_state32",
+          "expected": 32,
+          "failures": [],
+          "passed": true
+        },
+        "frozen_full_state": {
+          "reference": "/home/esjung/MLLM-EP-github/poc_flashvep/reports/ouro_huginn_adaptive_idle_intervention_dynamic_loop/raw/n32_huginn_native_full_state32",
+          "expected": 32,
+          "failures": [],
+          "passed": true,
+          "scope": "All recorded valid KV-plane hashes and prompt hidden hashes. Frozen qualified Native reference, not a new Native GPU run."
+        },
+        "effective_quantum": {
+          "name": "match18_loop28_full_state32",
+          "measured_prompt_spans": 128,
+          "request_coverage": 32,
+          "expected_requests": 32,
+          "loop_limit": 1,
+          "token_limit": 2048,
+          "violations": 0,
+          "histogram": [
+            {
+              "phase": "prefilling_recurrent",
+              "rows": 2048,
+              "loops": 1,
+              "spans": 128
+            }
+          ],
+          "passed": true,
+          "scope": "Observed D prompt spans with measured sampling seeds. This checks the submitted work quantum, not GPU kernel preemption or execution time."
+        },
+        "campaign_gate_passed": true
+      }
+    },
+    {
+      "name": "match18_loop28_full_seed2026110940",
+      "returncode": 0,
+      "time": 1794361464.1229806,
+      "metrics": {
+        "name": "match18_loop28_full_seed2026110940",
+        "model": "huginn",
+        "method": "native",
+        "complete": true,
+        "count": 128,
+        "nominal_QPS": 1.971,
+        "arrival_seed": 2026110940,
+        "realized_scheduled_QPS": 1.8450342553627683,
+        "actual_submit_QPS": 1.845020262784489,
+        "completed_QPS": 1.7904358337313089,
+        "output_tokens_s": 28.646973339700942,
+        "input_tokens_s": 3666.8125874817206,
+        "SLO_goodput": 0.9791445965718095,
+        "TTFT_attainment": 0.546875,
+        "TPOT_attainment": 1.0,
+        "ITL_limit_misses": 0,
+        "ITL_intervals": 1920,
+        "maximum_ITL_ms": 169.13126967847347,
+        "coalesced_nonfirst_delivery_events": 0,
+        "maximum_TTFT_ms": 4153.401678428054,
+        "maximum_E2E_ms": 5675.222305580974,
+        "ITL_contract": "Frozen event-average delivery intervals. Exact individual token-generation times are not measured when delivery is coalesced.",
+        "offloaded_requests": 128,
+        "actual_D_prompt_recurrent_rows": 1048576,
+        "accepted_loop_counts": {},
+        "admissions": 0,
+        "rejected_admissions": 0,
+        "Service_TTFT": "NOT_MEASURED",
+        "latency_scope": "Marker-free output-delivery metrics unless the configuration enables device events or state hashing.",
+        "throughput_scope": "Finite-cohort drain rates. Not sustainable serving capacity.",
+        "TTFT_p50_ms": 1865.6378770247102,
+        "TTFT_p95_ms": 3422.702479269355,
+        "TTFT_p99_ms": 3973.3440150506804,
+        "TPOT_p50_ms": 101.23824166754882,
+        "TPOT_p95_ms": 102.69753508269787,
+        "TPOT_p99_ms": 102.91956227396925,
+        "ITL_p50_ms": 86.9734175503254,
+        "ITL_p95_ms": 160.69452483206987,
+        "ITL_p99_ms": 162.89235381409526,
+        "E2E_p50_ms": 3323.207796551287,
+        "E2E_p95_ms": 4927.592712733894,
+        "E2E_p99_ms": 5443.278675302864,
+        "Decode_SLO_screen": true,
+        "frozen_SLO": {
+          "TTFT_ms": 1963.9920117333531,
+          "TPOT_ms": 186.5715059141318,
+          "ITL_ms": 192.8212538175284,
+          "requests": 16,
+          "calibration": [
+            "short_huginn_C1024_serial16",
+            "short_huginn_C2048_serial16"
+          ],
+          "rule": "Two times serial calibration percentiles. Use the tighter per-metric limit across Atomic and C2048. Freeze before held-out pilot serving.",
+          "frozen_epoch": 1793701394.056462,
+          "calibration_values": [
+            {
+              "name": "short_huginn_C1024_serial16",
+              "TTFT_ms": 1984.9652252160013,
+              "TPOT_ms": 186.5715059141318,
+              "ITL_ms": 192.8212538175284
+            },
+            {
+              "name": "short_huginn_C2048_serial16",
+              "TTFT_ms": 1963.9920117333531,
+              "TPOT_ms": 188.43453507870436,
+              "ITL_ms": 198.30003213137388
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "match18_loop28_tile256_state8",
+      "returncode": 0,
+      "time": 1794361588.9638963,
+      "metrics": {
+        "name": "match18_loop28_tile256_state8",
+        "model": "huginn",
+        "method": "native",
+        "complete": true,
+        "count": 8,
+        "nominal_QPS": null,
+        "arrival_seed": null,
+        "realized_scheduled_QPS": null,
+        "actual_submit_QPS": 1128.1465292072287,
+        "completed_QPS": 1.1289296569645653,
+        "output_tokens_s": 18.062874511433044,
+        "input_tokens_s": 2312.0479374634297,
+        "SLO_goodput": 0.0,
+        "TTFT_attainment": 0.0,
+        "TPOT_attainment": 1.0,
+        "ITL_limit_misses": 0,
+        "ITL_intervals": 120,
+        "maximum_ITL_ms": 139.28784057497978,
+        "coalesced_nonfirst_delivery_events": 0,
+        "maximum_TTFT_ms": 5885.15898026526,
+        "maximum_E2E_ms": 7086.35826036334,
+        "ITL_contract": "Frozen event-average delivery intervals. Exact individual token-generation times are not measured when delivery is coalesced.",
+        "offloaded_requests": 8,
+        "actual_D_prompt_recurrent_rows": 65536,
+        "accepted_loop_counts": {},
+        "admissions": 0,
+        "rejected_admissions": 0,
+        "Service_TTFT": "NOT_MEASURED",
+        "latency_scope": "Marker-free output-delivery metrics unless the configuration enables device events or state hashing.",
+        "throughput_scope": "Finite-cohort drain rates. Not sustainable serving capacity.",
+        "TTFT_p50_ms": 4100.166270509362,
+        "TTFT_p95_ms": 5739.032607804984,
+        "TTFT_p99_ms": 5855.933705773205,
+        "TPOT_p50_ms": 94.93139932552974,
+        "TPOT_p95_ms": 100.78959537049134,
+        "TPOT_p99_ms": 101.72491982082526,
+        "ITL_p50_ms": 86.72638516873121,
+        "ITL_p95_ms": 125.61532789841294,
+        "ITL_p99_ms": 137.9744944162667,
+        "E2E_p50_ms": 5604.494201019406,
+        "E2E_p95_ms": 6982.259769830853,
+        "E2E_p99_ms": 7065.538562256843,
+        "Decode_SLO_screen": true,
+        "frozen_SLO": {
+          "TTFT_ms": 1963.9920117333531,
+          "TPOT_ms": 186.5715059141318,
+          "ITL_ms": 192.8212538175284,
+          "requests": 16,
+          "calibration": [
+            "short_huginn_C1024_serial16",
+            "short_huginn_C2048_serial16"
+          ],
+          "rule": "Two times serial calibration percentiles. Use the tighter per-metric limit across Atomic and C2048. Freeze before held-out pilot serving.",
+          "frozen_epoch": 1793701394.056462,
+          "calibration_values": [
+            {
+              "name": "short_huginn_C1024_serial16",
+              "TTFT_ms": 1984.9652252160013,
+              "TPOT_ms": 186.5715059141318,
+              "ITL_ms": 192.8212538175284
+            },
+            {
+              "name": "short_huginn_C2048_serial16",
+              "TTFT_ms": 1963.9920117333531,
+              "TPOT_ms": 188.43453507870436,
+              "ITL_ms": 198.30003213137388
+            }
+          ]
+        }
+      },
+      "qualification": {
+        "name": "match18_loop28_tile256_state8",
+        "complete": true,
+        "work": {
+          "run": "match18_loop28_tile256_state8",
+          "expected": 528128,
+          "observed": 528128,
+          "passed": true,
+          "scope": "Active recurrent rows, not padded physical GEMM work."
+        },
+        "lifetime": {
+          "passed": true,
+          "compared": 8,
+          "failures": [],
+          "scope": "Recorded native ACK precedes source retirement. Both coordinator credits retire and final native KV allocations are empty. This is not GPU DMA timing or HF fidelity."
+        },
+        "offload": {
+          "actual_D_prompt_rows": 65536,
+          "expected_D_prompt_rows": 65536,
+          "passed": true,
+          "requests": 8,
+          "per_request_D_prompt_rows": {
+            "2026110362": 8192,
+            "2026110363": 8192,
+            "2026110364": 8192,
+            "2026110365": 8192,
+            "2026110366": 8192,
+            "2026110367": 8192,
+            "2026110368": 8192,
+            "2026110369": 8192
+          },
+          "accepted_loop_counts": [],
+          "accepted_suffix_tokens": [],
+          "adaptive_diversity": false
+        },
+        "actual_dynamic_continuation_tested": false,
+        "async_handoff": {
+          "compared": 8,
+          "expected": 8,
+          "divergent_seeds": [],
+          "passed": true,
+          "scope": "Same full valid export KV byte order and hidden bytes. Asynchronous diagnostic, not clean serving."
+        },
+        "passed": true,
+        "frozen_output": {
+          "reference": "/home/esjung/MLLM-EP-github/poc_flashvep/reports/ouro_huginn_adaptive_idle_intervention_dynamic_loop/raw/n32_huginn_native_full_state32",
+          "expected": 8,
+          "failures": [],
+          "passed": true
+        },
+        "frozen_full_state": {
+          "reference": "/home/esjung/MLLM-EP-github/poc_flashvep/reports/ouro_huginn_adaptive_idle_intervention_dynamic_loop/raw/n32_huginn_native_full_state32",
+          "expected": 8,
+          "failures": [],
+          "passed": true,
+          "scope": "All recorded valid KV-plane hashes and prompt hidden hashes. Frozen qualified Native reference, not a new Native GPU run."
+        },
+        "effective_quantum": {
+          "name": "match18_loop28_tile256_state8",
+          "measured_prompt_spans": 256,
+          "request_coverage": 8,
+          "expected_requests": 8,
+          "loop_limit": 1,
+          "token_limit": 256,
+          "violations": 0,
+          "histogram": [
+            {
+              "phase": "prefilling_recurrent",
+              "rows": 256,
+              "loops": 1,
+              "spans": 256
+            }
+          ],
+          "passed": true,
+          "scope": "Observed D prompt spans with measured sampling seeds. This checks the submitted work quantum, not GPU kernel preemption or execution time."
+        },
+        "campaign_gate_passed": true
+      }
+    },
+    {
+      "name": "match18_loop28_tile256_state32",
+      "returncode": 0,
+      "time": 1794361871.9287257,
+      "metrics": {
+        "name": "match18_loop28_tile256_state32",
+        "model": "huginn",
+        "method": "native",
+        "complete": true,
+        "count": 32,
+        "nominal_QPS": null,
+        "arrival_seed": null,
+        "realized_scheduled_QPS": null,
+        "actual_submit_QPS": 1092.225377904901,
+        "completed_QPS": 1.6918801470907259,
+        "output_tokens_s": 27.070082353451614,
+        "input_tokens_s": 3464.9705412418066,
+        "SLO_goodput": 0.0,
+        "TTFT_attainment": 0.0,
+        "TPOT_attainment": 1.0,
+        "ITL_limit_misses": 0,
+        "ITL_intervals": 480,
+        "maximum_ITL_ms": 159.74226035177708,
+        "coalesced_nonfirst_delivery_events": 0,
+        "maximum_TTFT_ms": 17708.18993449211,
+        "maximum_E2E_ms": 18913.869315758348,
+        "ITL_contract": "Frozen event-average delivery intervals. Exact individual token-generation times are not measured when delivery is coalesced.",
+        "offloaded_requests": 32,
+        "actual_D_prompt_recurrent_rows": 262144,
+        "accepted_loop_counts": {},
+        "admissions": 0,
+        "rejected_admissions": 0,
+        "Service_TTFT": "NOT_MEASURED",
+        "latency_scope": "Marker-free output-delivery metrics unless the configuration enables device events or state hashing.",
+        "throughput_scope": "Finite-cohort drain rates. Not sustainable serving capacity.",
+        "TTFT_p50_ms": 9767.25628040731,
+        "TTFT_p95_ms": 16969.20819533989,
+        "TTFT_p99_ms": 17568.281296323985,
+        "TPOT_p50_ms": 102.84537300467491,
+        "TPOT_p95_ms": 104.17435416330893,
+        "TPOT_p99_ms": 105.2029832676053,
+        "ITL_p50_ms": 94.74033676087856,
+        "ITL_p95_ms": 133.26230440288782,
+        "ITL_p99_ms": 134.17852627113461,
+        "E2E_p50_ms": 11308.986908756196,
+        "E2E_p95_ms": 18397.975824866444,
+        "E2E_p99_ms": 18821.0019079037,
+        "Decode_SLO_screen": true,
+        "frozen_SLO": {
+          "TTFT_ms": 1963.9920117333531,
+          "TPOT_ms": 186.5715059141318,
+          "ITL_ms": 192.8212538175284,
+          "requests": 16,
+          "calibration": [
+            "short_huginn_C1024_serial16",
+            "short_huginn_C2048_serial16"
+          ],
+          "rule": "Two times serial calibration percentiles. Use the tighter per-metric limit across Atomic and C2048. Freeze before held-out pilot serving.",
+          "frozen_epoch": 1793701394.056462,
+          "calibration_values": [
+            {
+              "name": "short_huginn_C1024_serial16",
+              "TTFT_ms": 1984.9652252160013,
+              "TPOT_ms": 186.5715059141318,
+              "ITL_ms": 192.8212538175284
+            },
+            {
+              "name": "short_huginn_C2048_serial16",
+              "TTFT_ms": 1963.9920117333531,
+              "TPOT_ms": 188.43453507870436,
+              "ITL_ms": 198.30003213137388
+            }
+          ]
+        }
+      },
+      "qualification": {
+        "name": "match18_loop28_tile256_state32",
+        "complete": true,
+        "work": {
+          "run": "match18_loop28_tile256_state32",
+          "expected": 2112512,
+          "observed": 2112512,
+          "passed": true,
+          "scope": "Active recurrent rows, not padded physical GEMM work."
+        },
+        "lifetime": {
+          "passed": true,
+          "compared": 32,
+          "failures": [],
+          "scope": "Recorded native ACK precedes source retirement. Both coordinator credits retire and final native KV allocations are empty. This is not GPU DMA timing or HF fidelity."
+        },
+        "offload": {
+          "actual_D_prompt_rows": 262144,
+          "expected_D_prompt_rows": 262144,
+          "passed": true,
+          "requests": 32,
+          "per_request_D_prompt_rows": {
+            "2026110362": 8192,
+            "2026110363": 8192,
+            "2026110364": 8192,
+            "2026110365": 8192,
+            "2026110366": 8192,
+            "2026110367": 8192,
+            "2026110368": 8192,
+            "2026110369": 8192,
+            "2026110370": 8192,
+            "2026110371": 8192,
+            "2026110372": 8192,
+            "2026110373": 8192,
+            "2026110374": 8192,
+            "2026110375": 8192,
+            "2026110376": 8192,
+            "2026110377": 8192,
+            "2026110378": 8192,
+            "2026110379": 8192,
+            "2026110380": 8192,
+            "2026110381": 8192,
+            "2026110382": 8192,
+            "2026110383": 8192,
+            "2026110384": 8192,
+            "2026110385": 8192,
+            "2026110386": 8192,
+            "2026110387": 8192,
+            "2026110388": 8192,
+            "2026110389": 8192,
+            "2026110390": 8192,
+            "2026110391": 8192,
+            "2026110392": 8192,
+            "2026110393": 8192
+          },
+          "accepted_loop_counts": [],
+          "accepted_suffix_tokens": [],
+          "adaptive_diversity": false
+        },
+        "actual_dynamic_continuation_tested": false,
+        "async_handoff": {
+          "compared": 32,
+          "expected": 32,
+          "divergent_seeds": [],
+          "passed": true,
+          "scope": "Same full valid export KV byte order and hidden bytes. Asynchronous diagnostic, not clean serving."
+        },
+        "passed": true,
+        "frozen_output": {
+          "reference": "/home/esjung/MLLM-EP-github/poc_flashvep/reports/ouro_huginn_adaptive_idle_intervention_dynamic_loop/raw/n32_huginn_native_full_state32",
+          "expected": 32,
+          "failures": [],
+          "passed": true
+        },
+        "frozen_full_state": {
+          "reference": "/home/esjung/MLLM-EP-github/poc_flashvep/reports/ouro_huginn_adaptive_idle_intervention_dynamic_loop/raw/n32_huginn_native_full_state32",
+          "expected": 32,
+          "failures": [],
+          "passed": true,
+          "scope": "All recorded valid KV-plane hashes and prompt hidden hashes. Frozen qualified Native reference, not a new Native GPU run."
+        },
+        "effective_quantum": {
+          "name": "match18_loop28_tile256_state32",
+          "measured_prompt_spans": 1024,
+          "request_coverage": 32,
+          "expected_requests": 32,
+          "loop_limit": 1,
+          "token_limit": 256,
+          "violations": 0,
+          "histogram": [
+            {
+              "phase": "prefilling_recurrent",
+              "rows": 256,
+              "loops": 1,
+              "spans": 1024
+            }
+          ],
+          "passed": true,
+          "scope": "Observed D prompt spans with measured sampling seeds. This checks the submitted work quantum, not GPU kernel preemption or execution time."
+        },
+        "campaign_gate_passed": true
+      }
+    },
+    {
+      "name": "match18_loop28_tile256_seed2026110940",
+      "returncode": 0,
+      "time": 1794362003.6346822,
+      "metrics": {
+        "name": "match18_loop28_tile256_seed2026110940",
+        "model": "huginn",
+        "method": "native",
+        "complete": true,
+        "count": 128,
+        "nominal_QPS": 1.971,
+        "arrival_seed": 2026110940,
+        "realized_scheduled_QPS": 1.8450342553627683,
+        "actual_submit_QPS": 1.8450194760474514,
+        "completed_QPS": 1.7857948069647533,
+        "output_tokens_s": 28.572716911436054,
+        "input_tokens_s": 3657.307764663815,
+        "SLO_goodput": 0.8370913157647282,
+        "TTFT_attainment": 0.46875,
+        "TPOT_attainment": 1.0,
+        "ITL_limit_misses": 0,
+        "ITL_intervals": 1920,
+        "maximum_ITL_ms": 144.47854086756706,
+        "coalesced_nonfirst_delivery_events": 0,
+        "maximum_TTFT_ms": 4260.529672726989,
+        "maximum_E2E_ms": 5729.80367206037,
+        "ITL_contract": "Frozen event-average delivery intervals. Exact individual token-generation times are not measured when delivery is coalesced.",
+        "offloaded_requests": 128,
+        "actual_D_prompt_recurrent_rows": 1048576,
+        "accepted_loop_counts": {},
+        "admissions": 0,
+        "rejected_admissions": 0,
+        "Service_TTFT": "NOT_MEASURED",
+        "latency_scope": "Marker-free output-delivery metrics unless the configuration enables device events or state hashing.",
+        "throughput_scope": "Finite-cohort drain rates. Not sustainable serving capacity.",
+        "TTFT_p50_ms": 2030.335208401084,
+        "TTFT_p95_ms": 3563.798664044589,
+        "TTFT_p99_ms": 4154.966459944845,
+        "TPOT_p50_ms": 97.19024033596119,
+        "TPOT_p95_ms": 99.29011069238186,
+        "TPOT_p99_ms": 99.44768951584895,
+        "ITL_p50_ms": 85.57950612157583,
+        "ITL_p95_ms": 133.81165508180857,
+        "ITL_p99_ms": 142.9148438759148,
+        "E2E_p50_ms": 3486.950883641839,
+        "E2E_p95_ms": 5036.766361258924,
+        "E2E_p99_ms": 5627.32130765915,
+        "Decode_SLO_screen": true,
+        "frozen_SLO": {
+          "TTFT_ms": 1963.9920117333531,
+          "TPOT_ms": 186.5715059141318,
+          "ITL_ms": 192.8212538175284,
+          "requests": 16,
+          "calibration": [
+            "short_huginn_C1024_serial16",
+            "short_huginn_C2048_serial16"
+          ],
+          "rule": "Two times serial calibration percentiles. Use the tighter per-metric limit across Atomic and C2048. Freeze before held-out pilot serving.",
+          "frozen_epoch": 1793701394.056462,
+          "calibration_values": [
+            {
+              "name": "short_huginn_C1024_serial16",
+              "TTFT_ms": 1984.9652252160013,
+              "TPOT_ms": 186.5715059141318,
+              "ITL_ms": 192.8212538175284
+            },
+            {
+              "name": "short_huginn_C2048_serial16",
+              "TTFT_ms": 1963.9920117333531,
+              "TPOT_ms": 188.43453507870436,
+              "ITL_ms": 198.30003213137388
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "disjoint13_sm8_zero_state8",
+      "returncode": 0,
+      "time": 1794362128.4767108,
+      "metrics": {
+        "name": "disjoint13_sm8_zero_state8",
+        "model": "huginn",
+        "method": "native",
+        "complete": true,
+        "count": 8,
+        "nominal_QPS": null,
+        "arrival_seed": null,
+        "realized_scheduled_QPS": null,
+        "actual_submit_QPS": 1088.7273787054673,
+        "completed_QPS": 1.1424465633215664,
+        "output_tokens_s": 18.27914501314506,
+        "input_tokens_s": 2339.730561682568,
+        "SLO_goodput": 0.2856116408303916,
+        "TTFT_attainment": 0.25,
+        "TPOT_attainment": 1.0,
+        "ITL_limit_misses": 0,
+        "ITL_intervals": 120,
+        "maximum_ITL_ms": 104.25951518118382,
+        "coalesced_nonfirst_delivery_events": 0,
+        "maximum_TTFT_ms": 5689.625576138496,
+        "maximum_E2E_ms": 7002.5157034397125,
+        "ITL_contract": "Frozen event-average delivery intervals. Exact individual token-generation times are not measured when delivery is coalesced.",
+        "offloaded_requests": 0,
+        "actual_D_prompt_recurrent_rows": 0,
+        "accepted_loop_counts": {},
+        "admissions": 0,
+        "rejected_admissions": 0,
+        "Service_TTFT": "NOT_MEASURED",
+        "latency_scope": "Marker-free output-delivery metrics unless the configuration enables device events or state hashing.",
+        "throughput_scope": "Finite-cohort drain rates. Not sustainable serving capacity.",
+        "TTFT_p50_ms": 3690.759682096541,
+        "TTFT_p95_ms": 5495.515815913677,
+        "TTFT_p99_ms": 5650.803624093533,
+        "TPOT_p50_ms": 90.73781011005242,
+        "TPOT_p95_ms": 91.98087217286229,
+        "TPOT_p99_ms": 92.18688291683793,
+        "ITL_p50_ms": 88.15308846533298,
+        "ITL_p95_ms": 102.1464392542839,
+        "ITL_p99_ms": 103.91348592936993,
+        "E2E_p50_ms": 5055.141631513834,
+        "E2E_p95_ms": 6826.736880932003,
+        "E2E_p99_ms": 6967.359938938171,
+        "Decode_SLO_screen": true,
+        "frozen_SLO": {
+          "TTFT_ms": 1963.9920117333531,
+          "TPOT_ms": 186.5715059141318,
+          "ITL_ms": 192.8212538175284,
+          "requests": 16,
+          "calibration": [
+            "short_huginn_C1024_serial16",
+            "short_huginn_C2048_serial16"
+          ],
+          "rule": "Two times serial calibration percentiles. Use the tighter per-metric limit across Atomic and C2048. Freeze before held-out pilot serving.",
+          "frozen_epoch": 1793701394.056462,
+          "calibration_values": [
+            {
+              "name": "short_huginn_C1024_serial16",
+              "TTFT_ms": 1984.9652252160013,
+              "TPOT_ms": 186.5715059141318,
+              "ITL_ms": 192.8212538175284
+            },
+            {
+              "name": "short_huginn_C2048_serial16",
+              "TTFT_ms": 1963.9920117333531,
+              "TPOT_ms": 188.43453507870436,
+              "ITL_ms": 198.30003213137388
+            }
+          ]
+        }
+      },
+      "qualification": {
+        "name": "disjoint13_sm8_zero_state8",
+        "complete": true,
+        "work": {
+          "run": "disjoint13_sm8_zero_state8",
+          "expected": 528128,
+          "observed": 528128,
+          "passed": true,
+          "scope": "Active recurrent rows, not padded physical GEMM work."
+        },
+        "lifetime": {
+          "passed": true,
+          "compared": 8,
+          "failures": [],
+          "scope": "Recorded native ACK precedes source retirement. Both coordinator credits retire and final native KV allocations are empty. This is not GPU DMA timing or HF fidelity."
+        },
+        "offload": {
+          "actual_D_prompt_rows": 0,
+          "expected_D_prompt_rows": 0,
+          "passed": true,
+          "requests": 0,
+          "per_request_D_prompt_rows": {},
+          "accepted_loop_counts": [],
+          "accepted_suffix_tokens": [],
+          "adaptive_diversity": false
+        },
+        "actual_dynamic_continuation_tested": false,
+        "async_handoff": {
+          "compared": 8,
+          "expected": 8,
+          "divergent_seeds": [],
+          "passed": true,
+          "scope": "Same full valid export KV byte order and hidden bytes. Asynchronous diagnostic, not clean serving."
+        },
+        "passed": true,
+        "analysis_configuration_view": {
+          "original_sha256": "f14666ba813a1592daf7c25ad4333d2e65ef6e018e4c7f21f7e5d9f970964e0c",
+          "raw_native_partial_cut": null,
+          "effective_native_partial_cut": 32,
+          "scope": "Native-path runtime resolves null to full depth. This view fixes inherited audit arithmetic only. Output, KV, hidden, and lifetime gates remain unchanged."
+        },
+        "frozen_output": {
+          "reference": "/home/esjung/MLLM-EP-github/poc_flashvep/reports/ouro_huginn_adaptive_idle_intervention_dynamic_loop/raw/n32_huginn_native_full_state32",
+          "expected": 8,
+          "failures": [],
+          "passed": true
+        },
+        "frozen_full_state": {
+          "reference": "/home/esjung/MLLM-EP-github/poc_flashvep/reports/ouro_huginn_adaptive_idle_intervention_dynamic_loop/raw/n32_huginn_native_full_state32",
+          "expected": 8,
+          "failures": [],
+          "passed": true,
+          "scope": "All recorded valid KV-plane hashes and prompt hidden hashes. Frozen qualified Native reference, not a new Native GPU run."
+        },
+        "campaign_gate_passed": true
+      }
+    },
+    {
+      "name": "disjoint13_sm8_zero_state32",
+      "returncode": 0,
+      "time": 1794362421.6690874,
+      "metrics": {
+        "name": "disjoint13_sm8_zero_state32",
+        "model": "huginn",
+        "method": "native",
+        "complete": true,
+        "count": 32,
+        "nominal_QPS": null,
+        "arrival_seed": null,
+        "realized_scheduled_QPS": null,
+        "actual_submit_QPS": 1139.36201963731,
+        "completed_QPS": 1.490898600258245,
+        "output_tokens_s": 23.85437760413192,
+        "input_tokens_s": 3053.3603333288856,
+        "SLO_goodput": 0.09318116251614031,
+        "TTFT_attainment": 0.0625,
+        "TPOT_attainment": 1.0,
+        "ITL_limit_misses": 0,
+        "ITL_intervals": 480,
+        "maximum_ITL_ms": 102.21382975578308,
+        "coalesced_nonfirst_delivery_events": 0,
+        "maximum_TTFT_ms": 20175.179628655314,
+        "maximum_E2E_ms": 21463.565660640597,
+        "ITL_contract": "Frozen event-average delivery intervals. Exact individual token-generation times are not measured when delivery is coalesced.",
+        "offloaded_requests": 0,
+        "actual_D_prompt_recurrent_rows": 0,
+        "accepted_loop_counts": {},
+        "admissions": 0,
+        "rejected_admissions": 0,
+        "Service_TTFT": "NOT_MEASURED",
+        "latency_scope": "Marker-free output-delivery metrics unless the configuration enables device events or state hashing.",
+        "throughput_scope": "Finite-cohort drain rates. Not sustainable serving capacity.",
+        "TTFT_p50_ms": 10955.242032185197,
+        "TTFT_p95_ms": 19398.23440015316,
+        "TTFT_p99_ms": 20009.166605044156,
+        "TPOT_p50_ms": 89.31282684206963,
+        "TPOT_p95_ms": 90.13376924519737,
+        "TPOT_p99_ms": 90.3815088532865,
+        "ITL_p50_ms": 86.52912266552448,
+        "ITL_p95_ms": 99.90822952240705,
+        "ITL_p99_ms": 101.0171527042985,
+        "E2E_p50_ms": 12306.009905412793,
+        "E2E_p95_ms": 20737.53142664209,
+        "E2E_p99_ms": 21311.32255010307,
+        "Decode_SLO_screen": true,
+        "frozen_SLO": {
+          "TTFT_ms": 1963.9920117333531,
+          "TPOT_ms": 186.5715059141318,
+          "ITL_ms": 192.8212538175284,
+          "requests": 16,
+          "calibration": [
+            "short_huginn_C1024_serial16",
+            "short_huginn_C2048_serial16"
+          ],
+          "rule": "Two times serial calibration percentiles. Use the tighter per-metric limit across Atomic and C2048. Freeze before held-out pilot serving.",
+          "frozen_epoch": 1793701394.056462,
+          "calibration_values": [
+            {
+              "name": "short_huginn_C1024_serial16",
+              "TTFT_ms": 1984.9652252160013,
+              "TPOT_ms": 186.5715059141318,
+              "ITL_ms": 192.8212538175284
+            },
+            {
+              "name": "short_huginn_C2048_serial16",
+              "TTFT_ms": 1963.9920117333531,
+              "TPOT_ms": 188.43453507870436,
+              "ITL_ms": 198.30003213137388
+            }
+          ]
+        }
+      },
+      "qualification": {
+        "name": "disjoint13_sm8_zero_state32",
+        "complete": true,
+        "work": {
+          "run": "disjoint13_sm8_zero_state32",
+          "expected": 2112512,
+          "observed": 2112512,
+          "passed": true,
+          "scope": "Active recurrent rows, not padded physical GEMM work."
+        },
+        "lifetime": {
+          "passed": true,
+          "compared": 32,
+          "failures": [],
+          "scope": "Recorded native ACK precedes source retirement. Both coordinator credits retire and final native KV allocations are empty. This is not GPU DMA timing or HF fidelity."
+        },
+        "offload": {
+          "actual_D_prompt_rows": 0,
+          "expected_D_prompt_rows": 0,
+          "passed": true,
+          "requests": 0,
+          "per_request_D_prompt_rows": {},
+          "accepted_loop_counts": [],
+          "accepted_suffix_tokens": [],
+          "adaptive_diversity": false
+        },
+        "actual_dynamic_continuation_tested": false,
+        "async_handoff": {
+          "compared": 32,
+          "expected": 32,
+          "divergent_seeds": [],
+          "passed": true,
+          "scope": "Same full valid export KV byte order and hidden bytes. Asynchronous diagnostic, not clean serving."
+        },
+        "passed": true,
+        "analysis_configuration_view": {
+          "original_sha256": "d462e81bb943b6933cf760ee3ffcbb808d3c64142f6087a9b0ed1632618e2655",
+          "raw_native_partial_cut": null,
+          "effective_native_partial_cut": 32,
+          "scope": "Native-path runtime resolves null to full depth. This view fixes inherited audit arithmetic only. Output, KV, hidden, and lifetime gates remain unchanged."
+        },
+        "frozen_output": {
+          "reference": "/home/esjung/MLLM-EP-github/poc_flashvep/reports/ouro_huginn_adaptive_idle_intervention_dynamic_loop/raw/n32_huginn_native_full_state32",
+          "expected": 32,
+          "failures": [],
+          "passed": true
+        },
+        "frozen_full_state": {
+          "reference": "/home/esjung/MLLM-EP-github/poc_flashvep/reports/ouro_huginn_adaptive_idle_intervention_dynamic_loop/raw/n32_huginn_native_full_state32",
+          "expected": 32,
+          "failures": [],
+          "passed": true,
+          "scope": "All recorded valid KV-plane hashes and prompt hidden hashes. Frozen qualified Native reference, not a new Native GPU run."
+        },
+        "campaign_gate_passed": true
+      }
+    },
+    {
+      "name": "disjoint13_sm8_zero_seed2026110940",
+      "returncode": 0,
+      "time": 1794362559.890566,
+      "metrics": {
+        "name": "disjoint13_sm8_zero_seed2026110940",
+        "model": "huginn",
+        "method": "native",
+        "complete": true,
+        "count": 128,
+        "nominal_QPS": 1.971,
+        "arrival_seed": 2026110940,
+        "realized_scheduled_QPS": 1.8450342553627683,
+        "actual_submit_QPS": 1.8450212963077455,
+        "completed_QPS": 1.6279132735787007,
+        "output_tokens_s": 26.046612377259212,
+        "input_tokens_s": 3333.966384289179,
+        "SLO_goodput": 0.2416433765468384,
+        "TTFT_attainment": 0.1484375,
+        "TPOT_attainment": 1.0,
+        "ITL_limit_misses": 0,
+        "ITL_intervals": 1920,
+        "maximum_ITL_ms": 99.17921759188175,
+        "coalesced_nonfirst_delivery_events": 0,
+        "maximum_TTFT_ms": 10398.295104503632,
+        "maximum_E2E_ms": 11720.796717330813,
+        "ITL_contract": "Frozen event-average delivery intervals. Exact individual token-generation times are not measured when delivery is coalesced.",
+        "offloaded_requests": 0,
+        "actual_D_prompt_recurrent_rows": 0,
+        "accepted_loop_counts": {},
+        "admissions": 0,
+        "rejected_admissions": 0,
+        "Service_TTFT": "NOT_MEASURED",
+        "latency_scope": "Marker-free output-delivery metrics unless the configuration enables device events or state hashing.",
+        "throughput_scope": "Finite-cohort drain rates. Not sustainable serving capacity.",
+        "TTFT_p50_ms": 6958.472291007638,
+        "TTFT_p95_ms": 9789.059824310243,
+        "TTFT_p99_ms": 10298.047611098737,
+        "TPOT_p50_ms": 87.72760697950919,
+        "TPOT_p95_ms": 88.52239662781358,
+        "TPOT_p99_ms": 88.91220085819562,
+        "ITL_p50_ms": 85.79861000180244,
+        "ITL_p95_ms": 94.96845658868551,
+        "ITL_p99_ms": 96.52880126610398,
+        "E2E_p50_ms": 8273.241209797561,
+        "E2E_p95_ms": 11108.821497112513,
+        "E2E_p99_ms": 11617.552164457738,
+        "Decode_SLO_screen": true,
+        "frozen_SLO": {
+          "TTFT_ms": 1963.9920117333531,
+          "TPOT_ms": 186.5715059141318,
+          "ITL_ms": 192.8212538175284,
+          "requests": 16,
+          "calibration": [
+            "short_huginn_C1024_serial16",
+            "short_huginn_C2048_serial16"
+          ],
+          "rule": "Two times serial calibration percentiles. Use the tighter per-metric limit across Atomic and C2048. Freeze before held-out pilot serving.",
+          "frozen_epoch": 1793701394.056462,
+          "calibration_values": [
+            {
+              "name": "short_huginn_C1024_serial16",
+              "TTFT_ms": 1984.9652252160013,
+              "TPOT_ms": 186.5715059141318,
+              "ITL_ms": 192.8212538175284
+            },
+            {
+              "name": "short_huginn_C2048_serial16",
+              "TTFT_ms": 1963.9920117333531,
+              "TPOT_ms": 188.43453507870436,
+              "ITL_ms": 198.30003213137388
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "disjoint13_sm8_loop31_state8",
+      "returncode": 0,
+      "time": 1794362691.9556792,
+      "metrics": {
+        "name": "disjoint13_sm8_loop31_state8",
+        "model": "huginn",
+        "method": "native",
+        "complete": true,
+        "count": 8,
+        "nominal_QPS": null,
+        "arrival_seed": null,
+        "realized_scheduled_QPS": null,
+        "actual_submit_QPS": 1096.8467439693218,
+        "completed_QPS": 0.9999751417557861,
+        "output_tokens_s": 15.999602268092577,
+        "input_tokens_s": 2047.9490903158498,
+        "SLO_goodput": 0.12499689271947326,
+        "TTFT_attainment": 0.125,
+        "TPOT_attainment": 1.0,
+        "ITL_limit_misses": 14,
+        "ITL_intervals": 120,
+        "maximum_ITL_ms": 307.54612386226654,
+        "coalesced_nonfirst_delivery_events": 0,
+        "maximum_TTFT_ms": 6715.1686903089285,
+        "maximum_E2E_ms": 8000.198870897293,
+        "ITL_contract": "Frozen event-average delivery intervals. Exact individual token-generation times are not measured when delivery is coalesced.",
+        "offloaded_requests": 8,
+        "actual_D_prompt_recurrent_rows": 16384,
+        "accepted_loop_counts": {},
+        "admissions": 0,
+        "rejected_admissions": 0,
+        "Service_TTFT": "NOT_MEASURED",
+        "latency_scope": "Marker-free output-delivery metrics unless the configuration enables device events or state hashing.",
+        "throughput_scope": "Finite-cohort drain rates. Not sustainable serving capacity.",
+        "TTFT_p50_ms": 4534.121337346733,
+        "TTFT_p95_ms": 6566.234644223005,
+        "TTFT_p99_ms": 6685.381881091744,
+        "TPOT_p50_ms": 115.61470876137415,
+        "TPOT_p95_ms": 129.33908166984716,
+        "TPOT_p99_ms": 132.19877871374288,
+        "ITL_p50_ms": 90.88553208857775,
+        "ITL_p95_ms": 234.70310820266604,
+        "ITL_p99_ms": 302.67376653850084,
+        "E2E_p50_ms": 6331.965757533908,
+        "E2E_p95_ms": 7915.086116921157,
+        "E2E_p99_ms": 7983.176320102066,
+        "Decode_SLO_screen": false,
+        "frozen_SLO": {
+          "TTFT_ms": 1963.9920117333531,
+          "TPOT_ms": 186.5715059141318,
+          "ITL_ms": 192.8212538175284,
+          "requests": 16,
+          "calibration": [
+            "short_huginn_C1024_serial16",
+            "short_huginn_C2048_serial16"
+          ],
+          "rule": "Two times serial calibration percentiles. Use the tighter per-metric limit across Atomic and C2048. Freeze before held-out pilot serving.",
+          "frozen_epoch": 1793701394.056462,
+          "calibration_values": [
+            {
+              "name": "short_huginn_C1024_serial16",
+              "TTFT_ms": 1984.9652252160013,
+              "TPOT_ms": 186.5715059141318,
+              "ITL_ms": 192.8212538175284
+            },
+            {
+              "name": "short_huginn_C2048_serial16",
+              "TTFT_ms": 1963.9920117333531,
+              "TPOT_ms": 188.43453507870436,
+              "ITL_ms": 198.30003213137388
+            }
+          ]
+        }
+      },
+      "qualification": {
+        "name": "disjoint13_sm8_loop31_state8",
+        "complete": true,
+        "work": {
+          "run": "disjoint13_sm8_loop31_state8",
+          "expected": 528128,
+          "observed": 528128,
+          "passed": true,
+          "scope": "Active recurrent rows, not padded physical GEMM work."
+        },
+        "lifetime": {
+          "passed": true,
+          "compared": 8,
+          "failures": [],
+          "scope": "Recorded native ACK precedes source retirement. Both coordinator credits retire and final native KV allocations are empty. This is not GPU DMA timing or HF fidelity."
+        },
+        "offload": {
+          "actual_D_prompt_rows": 16384,
+          "expected_D_prompt_rows": 16384,
+          "passed": true,
+          "requests": 8,
+          "per_request_D_prompt_rows": {
+            "2026110362": 2048,
+            "2026110363": 2048,
+            "2026110364": 2048,
+            "2026110365": 2048,
+            "2026110366": 2048,
+            "2026110367": 2048,
+            "2026110368": 2048,
+            "2026110369": 2048
+          },
+          "accepted_loop_counts": [],
+          "accepted_suffix_tokens": [],
+          "adaptive_diversity": false
+        },
+        "actual_dynamic_continuation_tested": false,
+        "async_handoff": {
+          "compared": 8,
+          "expected": 8,
+          "divergent_seeds": [],
+          "passed": true,
+          "scope": "Same full valid export KV byte order and hidden bytes. Asynchronous diagnostic, not clean serving."
+        },
+        "passed": true,
+        "frozen_output": {
+          "reference": "/home/esjung/MLLM-EP-github/poc_flashvep/reports/ouro_huginn_adaptive_idle_intervention_dynamic_loop/raw/n32_huginn_native_full_state32",
+          "expected": 8,
+          "failures": [],
+          "passed": true
+        },
+        "frozen_full_state": {
+          "reference": "/home/esjung/MLLM-EP-github/poc_flashvep/reports/ouro_huginn_adaptive_idle_intervention_dynamic_loop/raw/n32_huginn_native_full_state32",
+          "expected": 8,
+          "failures": [],
+          "passed": true,
+          "scope": "All recorded valid KV-plane hashes and prompt hidden hashes. Frozen qualified Native reference, not a new Native GPU run."
+        },
+        "campaign_gate_passed": true
+      }
+    },
+    {
+      "name": "disjoint13_sm8_loop31_state32",
+      "returncode": 0,
+      "time": 1794362986.3218186,
+      "metrics": {
+        "name": "disjoint13_sm8_loop31_state32",
+        "model": "huginn",
+        "method": "native",
+        "complete": true,
+        "count": 32,
+        "nominal_QPS": null,
+        "arrival_seed": null,
+        "realized_scheduled_QPS": null,
+        "actual_submit_QPS": 2664.269832948039,
+        "completed_QPS": 1.4210323241358127,
+        "output_tokens_s": 22.736517186173003,
+        "input_tokens_s": 2910.2741998301444,
+        "SLO_goodput": 0.0,
+        "TTFT_attainment": 0.0,
+        "TPOT_attainment": 1.0,
+        "ITL_limit_misses": 90,
+        "ITL_intervals": 480,
+        "maximum_ITL_ms": 372.96679988503456,
+        "coalesced_nonfirst_delivery_events": 0,
+        "maximum_TTFT_ms": 21210.742715746164,
+        "maximum_E2E_ms": 22518.84032227099,
+        "ITL_contract": "Frozen event-average delivery intervals. Exact individual token-generation times are not measured when delivery is coalesced.",
+        "offloaded_requests": 32,
+        "actual_D_prompt_recurrent_rows": 65536,
+        "accepted_loop_counts": {},
+        "admissions": 0,
+        "rejected_admissions": 0,
+        "Service_TTFT": "NOT_MEASURED",
+        "latency_scope": "Marker-free output-delivery metrics unless the configuration enables device events or state hashing.",
+        "throughput_scope": "Finite-cohort drain rates. Not sustainable serving capacity.",
+        "TTFT_p50_ms": 11792.121916078031,
+        "TTFT_p95_ms": 20311.88383065164,
+        "TTFT_p99_ms": 21042.924273610115,
+        "TPOT_p50_ms": 130.87045935293037,
+        "TPOT_p95_ms": 146.81614599501094,
+        "TPOT_p99_ms": 149.4249305302898,
+        "ITL_p50_ms": 96.63704596459866,
+        "ITL_p95_ms": 287.47363118454814,
+        "ITL_p99_ms": 313.0689014866948,
+        "E2E_p50_ms": 13798.424598760903,
+        "E2E_p95_ms": 21957.75219006464,
+        "E2E_p99_ms": 22417.551920507103,
+        "Decode_SLO_screen": false,
+        "frozen_SLO": {
+          "TTFT_ms": 1963.9920117333531,
+          "TPOT_ms": 186.5715059141318,
+          "ITL_ms": 192.8212538175284,
+          "requests": 16,
+          "calibration": [
+            "short_huginn_C1024_serial16",
+            "short_huginn_C2048_serial16"
+          ],
+          "rule": "Two times serial calibration percentiles. Use the tighter per-metric limit across Atomic and C2048. Freeze before held-out pilot serving.",
+          "frozen_epoch": 1793701394.056462,
+          "calibration_values": [
+            {
+              "name": "short_huginn_C1024_serial16",
+              "TTFT_ms": 1984.9652252160013,
+              "TPOT_ms": 186.5715059141318,
+              "ITL_ms": 192.8212538175284
+            },
+            {
+              "name": "short_huginn_C2048_serial16",
+              "TTFT_ms": 1963.9920117333531,
+              "TPOT_ms": 188.43453507870436,
+              "ITL_ms": 198.30003213137388
+            }
+          ]
+        }
+      },
+      "qualification": {
+        "name": "disjoint13_sm8_loop31_state32",
+        "complete": true,
+        "work": {
+          "run": "disjoint13_sm8_loop31_state32",
+          "expected": 2112512,
+          "observed": 2112512,
+          "passed": true,
+          "scope": "Active recurrent rows, not padded physical GEMM work."
+        },
+        "lifetime": {
+          "passed": true,
+          "compared": 32,
+          "failures": [],
+          "scope": "Recorded native ACK precedes source retirement. Both coordinator credits retire and final native KV allocations are empty. This is not GPU DMA timing or HF fidelity."
+        },
+        "offload": {
+          "actual_D_prompt_rows": 65536,
+          "expected_D_prompt_rows": 65536,
+          "passed": true,
+          "requests": 32,
+          "per_request_D_prompt_rows": {
+            "2026110362": 2048,
+            "2026110363": 2048,
+            "2026110364": 2048,
+            "2026110365": 2048,
+            "2026110366": 2048,
+            "2026110367": 2048,
+            "2026110368": 2048,
+            "2026110369": 2048,
+            "2026110370": 2048,
+            "2026110371": 2048,
+            "2026110372": 2048,
+            "2026110373": 2048,
+            "2026110374": 2048,
+            "2026110375": 2048,
+            "2026110376": 2048,
+            "2026110377": 2048,
+            "2026110378": 2048,
+            "2026110379": 2048,
+            "2026110380": 2048,
+            "2026110381": 2048,
+            "2026110382": 2048,
+            "2026110383": 2048,
+            "2026110384": 2048,
+            "2026110385": 2048,
+            "2026110386": 2048,
+            "2026110387": 2048,
+            "2026110388": 2048,
+            "2026110389": 2048,
+            "2026110390": 2048,
+            "2026110391": 2048,
+            "2026110392": 2048,
+            "2026110393": 2048
+          },
+          "accepted_loop_counts": [],
+          "accepted_suffix_tokens": [],
+          "adaptive_diversity": false
+        },
+        "actual_dynamic_continuation_tested": false,
+        "async_handoff": {
+          "compared": 32,
+          "expected": 32,
+          "divergent_seeds": [],
+          "passed": true,
+          "scope": "Same full valid export KV byte order and hidden bytes. Asynchronous diagnostic, not clean serving."
+        },
+        "passed": true,
+        "frozen_output": {
+          "reference": "/home/esjung/MLLM-EP-github/poc_flashvep/reports/ouro_huginn_adaptive_idle_intervention_dynamic_loop/raw/n32_huginn_native_full_state32",
+          "expected": 32,
+          "failures": [],
+          "passed": true
+        },
+        "frozen_full_state": {
+          "reference": "/home/esjung/MLLM-EP-github/poc_flashvep/reports/ouro_huginn_adaptive_idle_intervention_dynamic_loop/raw/n32_huginn_native_full_state32",
+          "expected": 32,
+          "failures": [],
+          "passed": true,
+          "scope": "All recorded valid KV-plane hashes and prompt hidden hashes. Frozen qualified Native reference, not a new Native GPU run."
+        },
+        "campaign_gate_passed": true
+      }
+    },
+    {
+      "name": "disjoint13_sm8_loop31_seed2026110940",
+      "returncode": 0,
+      "time": 1794363127.0191112,
+      "metrics": {
+        "name": "disjoint13_sm8_loop31_seed2026110940",
+        "model": "huginn",
+        "method": "native",
+        "complete": true,
+        "count": 128,
+        "nominal_QPS": 1.971,
+        "arrival_seed": 2026110940,
+        "realized_scheduled_QPS": 1.8450342553627683,
+        "actual_submit_QPS": 1.845020469878472,
+        "completed_QPS": 1.6779235625158475,
+        "output_tokens_s": 26.84677700025356,
+        "input_tokens_s": 3436.3874560324557,
+        "SLO_goodput": 0.222849223146636,
+        "TTFT_attainment": 0.1328125,
+        "TPOT_attainment": 1.0,
+        "ITL_limit_misses": 472,
+        "ITL_intervals": 1920,
+        "maximum_ITL_ms": 295.578058809042,
+        "coalesced_nonfirst_delivery_events": 0,
+        "maximum_TTFT_ms": 9120.675254613161,
+        "maximum_E2E_ms": 11264.805370941758,
+        "ITL_contract": "Frozen event-average delivery intervals. Exact individual token-generation times are not measured when delivery is coalesced.",
+        "offloaded_requests": 128,
+        "actual_D_prompt_recurrent_rows": 262144,
+        "accepted_loop_counts": {},
+        "admissions": 0,
+        "rejected_admissions": 0,
+        "Service_TTFT": "NOT_MEASURED",
+        "latency_scope": "Marker-free output-delivery metrics unless the configuration enables device events or state hashing.",
+        "throughput_scope": "Finite-cohort drain rates. Not sustainable serving capacity.",
+        "TTFT_p50_ms": 5676.335749216378,
+        "TTFT_p95_ms": 8356.110798660666,
+        "TTFT_p99_ms": 8942.409660518171,
+        "TPOT_p50_ms": 140.2009623746077,
+        "TPOT_p95_ms": 144.418849820892,
+        "TPOT_p99_ms": 145.44072763745984,
+        "ITL_p50_ms": 95.43055947870016,
+        "ITL_p95_ms": 287.12955694645643,
+        "ITL_p99_ms": 291.99673844501376,
+        "E2E_p50_ms": 7589.556462131441,
+        "E2E_p95_ms": 10446.69591691345,
+        "E2E_p99_ms": 11074.18637532741,
+        "Decode_SLO_screen": false,
+        "frozen_SLO": {
+          "TTFT_ms": 1963.9920117333531,
+          "TPOT_ms": 186.5715059141318,
+          "ITL_ms": 192.8212538175284,
+          "requests": 16,
+          "calibration": [
+            "short_huginn_C1024_serial16",
+            "short_huginn_C2048_serial16"
+          ],
+          "rule": "Two times serial calibration percentiles. Use the tighter per-metric limit across Atomic and C2048. Freeze before held-out pilot serving.",
+          "frozen_epoch": 1793701394.056462,
+          "calibration_values": [
+            {
+              "name": "short_huginn_C1024_serial16",
+              "TTFT_ms": 1984.9652252160013,
+              "TPOT_ms": 186.5715059141318,
+              "ITL_ms": 192.8212538175284
+            },
+            {
+              "name": "short_huginn_C2048_serial16",
+              "TTFT_ms": 1963.9920117333531,
+              "TPOT_ms": 188.43453507870436,
+              "ITL_ms": 198.30003213137388
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "time": 1794363130.2525935
+}

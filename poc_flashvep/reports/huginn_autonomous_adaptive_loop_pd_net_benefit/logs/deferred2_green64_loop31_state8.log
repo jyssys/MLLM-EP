@@ -1,0 +1,72 @@
+Attention implementation: {'backend': 'flash_attn', 'generation': 4, 'package': 'flash-attn-4', 'version': '4.0.0b30'}
+Attention implementation: {'backend': 'flash_attn', 'generation': 4, 'package': 'flash-attn-4', 'version': '4.0.0b30'}
+2026-11-11 04:41:27 NIXL INFO    _api.py:407 Backend UCX was instantiated
+2026-11-11 04:41:27 NIXL INFO    _api.py:285 Initialized NIXL agent: 01b6a1f9e1f945e799daebc250dec117-decode-1
+2026-11-11 04:41:27 NIXL INFO    _api.py:407 Backend UCX was instantiated
+2026-11-11 04:41:27 NIXL INFO    _api.py:285 Initialized NIXL agent: 01b6a1f9e1f945e799daebc250dec117-prefill-0
+/home/esjung/.venvs/ouro-chunk-loop-prefill/lib/python3.14/site-packages/nvidia_cutlass_dsl/dsl_packages/cutlass/base_dsl/dsl.py:2300: UserWarning: Argument aux_data (position 17) cannot be converted to a JitArgument for function 'cutlass___call___flash_attncuteflash_fwd_sm90FlashAttentionForwardSm90_object_at__Tensorgmemoi64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i641_None_01020620726'. Its type `<class 'flash_attn.cute.utils.AuxData'>` is not supported. If the value is known at compile time, annotate it: `aux_data: Constexpr`. Otherwise, implement the `JitArgument` or `DynamicExpression` protocol for type `<class 'flash_attn.cute.utils.AuxData'>`, or register a custom argument adapter.
+  exe_args, func_types, adapted_args = self.generate_mlir_function_types(
+/home/esjung/.venvs/ouro-chunk-loop-prefill/lib/python3.14/site-packages/nvidia_cutlass_dsl/dsl_packages/cutlass/base_dsl/dsl.py:2300: UserWarning: Argument aux_data (position 17) cannot be converted to a JitArgument for function 'cutlass___call___flash_attncuteflash_fwd_sm90FlashAttentionForwardSm90_object_at__Tensorgmemoi64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i641_None_01020620726'. Its type `<class 'flash_attn.cute.utils.AuxData'>` is not supported. If the value is known at compile time, annotate it: `aux_data: Constexpr`. Otherwise, implement the `JitArgument` or `DynamicExpression` protocol for type `<class 'flash_attn.cute.utils.AuxData'>`, or register a custom argument adapter.
+  exe_args, func_types, adapted_args = self.generate_mlir_function_types(
+/home/esjung/.venvs/ouro-chunk-loop-prefill/lib/python3.14/site-packages/nvidia_cutlass_dsl/dsl_packages/cutlass/base_dsl/dsl.py:2300: UserWarning: Argument aux_data (position 17) cannot be converted to a JitArgument for function 'cutlass___call___flash_attncuteflash_fwd_sm90FlashAttentionForwardSm90_object_at__Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_None_01020'. Its type `<class 'flash_attn.cute.utils.AuxData'>` is not supported. If the value is known at compile time, annotate it: `aux_data: Constexpr`. Otherwise, implement the `JitArgument` or `DynamicExpression` protocol for type `<class 'flash_attn.cute.utils.AuxData'>`, or register a custom argument adapter.
+  exe_args, func_types, adapted_args = self.generate_mlir_function_types(
+DONE deferred2_green64_loop31_state8 0 2 2423.04
+DONE deferred2_green64_loop31_state8 1 2 2423.86
+DONE deferred2_green64_loop31_state8 2 2 2942.18
+DONE deferred2_green64_loop31_state8 1 16 3353.83
+DONE deferred2_green64_loop31_state8 0 16 3354.9
+DONE deferred2_green64_loop31_state8 2 16 5174.32
+DONE deferred2_green64_loop31_state8 3 16 5253.44
+DONE deferred2_green64_loop31_state8 4 16 6425.12
+DONE deferred2_green64_loop31_state8 5 16 7185.11
+DONE deferred2_green64_loop31_state8 6 16 7577.23
+DONE deferred2_green64_loop31_state8 7 16 7950.45
+[1794339744.927858] [cloud-0n58xq:1511961:0]        cuda_ctx.c:23   UCX  ERROR cuDevicePrimaryCtxGetState(cuda_device, &flags, &active) failed: unrecognized error code 4
+[1794339744.927896] [cloud-0n58xq:1511961:0]        cuda_ctx.c:23   UCX  ERROR cuDevicePrimaryCtxGetState(cuda_device, &flags, &active) failed: unrecognized error code 4
+[1794339744.927900] [cloud-0n58xq:1511961:0]        cuda_ctx.c:23   UCX  ERROR cuDevicePrimaryCtxGetState(cuda_device, &flags, &active) failed: unrecognized error code 4
+!!!!!!! Segfault encountered !!!!!!!
+  File "<unknown>", line 0, in cudaGraphExecDestroy
+  File "<unknown>", line 0, in at::cuda::CUDAGraph::reset()
+  File "<unknown>", line 0, in at::cuda::CUDAGraph::~CUDAGraph()
+  File "<unknown>", line 0, in std::_Sp_counted_ptr<at::cuda::CUDAGraph*, (__gnu_cxx::_Lock_policy)2>::_M_dispose()
+  File "<unknown>", line 0, in std::_Sp_counted_base<(__gnu_cxx::_Lock_policy)2>::_M_release()
+  File "<unknown>", line 0, in pybind11::class_<at::cuda::CUDAGraph, std::shared_ptr<at::cuda::CUDAGraph> >::dealloc_without_manipulating_gil(pybind11::detail::value_and_holder&)
+  File "<unknown>", line 0, in pybind11::detail::clear_instance(_object*)
+  File "<unknown>", line 0, in pybind11_object_dealloc
+  File "/usr/local/src/conda/python-3.14.6/Objects/object.c", line 3208, in _Py_Dealloc
+  File "/usr/local/src/conda/python-3.14.6/Include/refcount.h", line 421, in Py_DECREF
+  File "/usr/local/src/conda/python-3.14.6/Include/refcount.h", line 514, in Py_XDECREF
+  File "/usr/local/src/conda/python-3.14.6/Objects/dictobject.c", line 463, in dictkeys_decref
+  File "/usr/local/src/conda/python-3.14.6/Objects/dictobject.c", line 447, in dictkeys_decref
+  File "/usr/local/src/conda/python-3.14.6/Objects/dictobject.c", line 3391, in dict_dealloc
+  File "/usr/local/src/conda/python-3.14.6/Objects/object.c", line 3208, in _Py_Dealloc
+  File "/usr/local/src/conda/python-3.14.6/Include/refcount.h", line 421, in Py_DECREF
+  File "/usr/local/src/conda/python-3.14.6/Objects/namespaceobject.c", line 87, in namespace_dealloc
+  File "/usr/local/src/conda/python-3.14.6/Objects/object.c", line 3208, in _Py_Dealloc
+  File "/usr/local/src/conda/python-3.14.6/Include/refcount.h", line 421, in Py_DECREF
+  File "/usr/local/src/conda/python-3.14.6/Include/refcount.h", line 514, in Py_XDECREF
+  File "/usr/local/src/conda/python-3.14.6/Objects/dictobject.c", line 471, in dictkeys_decref
+  File "/usr/local/src/conda/python-3.14.6/Objects/dictobject.c", line 447, in dictkeys_decref
+  File "/usr/local/src/conda/python-3.14.6/Objects/dictobject.c", line 3391, in dict_dealloc
+  File "/usr/local/src/conda/python-3.14.6/Objects/object.c", line 3208, in _Py_Dealloc
+  File "/usr/local/src/conda/python-3.14.6/Include/refcount.h", line 421, in Py_DECREF
+  File "/usr/local/src/conda/python-3.14.6/Objects/dictobject.c", line 7277, in clear_inline_values
+  File "/usr/local/src/conda/python-3.14.6/Objects/dictobject.c", line 7496, in PyObject_ClearManagedDict
+  File "/usr/local/src/conda/python-3.14.6/Objects/typeobject.c", line 2600, in subtype_clear
+  File "/usr/local/src/conda/python-3.14.6/Python/gc.c", line 1049, in delete_garbage
+  File "/usr/local/src/conda/python-3.14.6/Python/gc.c", line 1467, in gc_collect_main
+  File "/usr/local/src/conda/python-3.14.6/Python/gc.c", line 1682, in PyGC_Collect
+  File "/usr/local/src/conda/python-3.14.6/Python/pylifecycle.c", line 2235, in _Py_Finalize.constprop.0
+  File "/usr/local/src/conda/python-3.14.6/Python/pylifecycle.c", line 3616, in Py_Exit
+  File "/usr/local/src/conda/python-3.14.6/Python/pythonrun.c", line 688, in handle_system_exit
+  File "/usr/local/src/conda/python-3.14.6/Python/pythonrun.c", line 697, in _PyErr_PrintEx
+  File "/usr/local/src/conda/python-3.14.6/Python/pythonrun.c", line 777, in PyErr_PrintEx
+  File "/usr/local/src/conda/python-3.14.6/Python/pythonrun.c", line 783, in PyErr_Print
+  File "/usr/local/src/conda/python-3.14.6/Python/pythonrun.c", line 583, in _PyRun_SimpleStringFlagsWithName
+  File "/usr/local/src/conda/python-3.14.6/Modules/main.c", line 261, in pymain_run_command
+  File "/usr/local/src/conda/python-3.14.6/Modules/main.c", line 686, in pymain_run_python
+  File "/usr/local/src/conda/python-3.14.6/Modules/main.c", line 776, in Py_RunMain
+  File "/usr/local/src/conda/python-3.14.6/Modules/main.c", line 830, in Py_BytesMain
+  File "<unknown>", line 0, in _start
+  File "<unknown>", line 0, in 0xffffffffffffffff
+
