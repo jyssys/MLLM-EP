@@ -1,0 +1,77 @@
+{
+  "name": "capacity_qwen8_L8000_O16_p_only_B124_s0",
+  "model": "qwen8",
+  "model_revision": "b968826d9c46dd6066d109eabc6255188de91218",
+  "arm": "PD_G1",
+  "length": 8000,
+  "cap": 16,
+  "depth": 1,
+  "cut": 1,
+  "context_limit": 40960,
+  "P_slots": 4,
+  "D_slots": 16,
+  "chunk": 8000,
+  "token_budget": 32000,
+  "ar_batch_invariant": true,
+  "ar_enforce_eager": false,
+  "ar_cudagraph_mode": "NONE",
+  "ar_async_scheduling": false,
+  "ar_execution_family": "BI_COMPILED_NO_GRAPH",
+  "gpu_memory_utilization": 0.8,
+  "seed": 2026110507,
+  "arrival_seed": 2026111201,
+  "gpus": [
+    0
+  ],
+  "count": 8,
+  "dataset": "qualification_qwen8_L8000.json",
+  "request_caps": [
+    16,
+    16,
+    16,
+    16,
+    16,
+    16,
+    16,
+    16
+  ],
+  "arrival_offsets": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "warmup_count": 2,
+  "atomic_prompt": true,
+  "timeout": 300,
+  "startup_timeout": 360,
+  "phase": "INDEPENDENT_NATIVE_CAPACITY",
+  "prefix_caching": false,
+  "ignore_eos": true,
+  "clean_timing": true,
+  "qualification_scope": "Exact generated token sequence. Full valid KV and Hidden require separate State capture before Layer continuation claims.",
+  "module": "capacity",
+  "capacity_mode": "P_ONLY",
+  "jobs": [
+    {
+      "batch": 1,
+      "cap": 16,
+      "repeats": 3
+    },
+    {
+      "batch": 2,
+      "cap": 16,
+      "repeats": 3
+    },
+    {
+      "batch": 4,
+      "cap": 16,
+      "repeats": 3
+    }
+  ],
+  "environment_revision": "EXPLICIT_NATIVE_PYTHON_BIN_PATH"
+}
