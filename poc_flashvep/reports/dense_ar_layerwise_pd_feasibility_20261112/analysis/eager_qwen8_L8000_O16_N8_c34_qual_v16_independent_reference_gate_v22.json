@@ -1,0 +1,117 @@
+{
+  "name": "eager_qwen8_L8000_O16_N8_c34_qual_v16",
+  "passed": true,
+  "state_reference": "eager_qwen8_L8000_O16_N8_reference_qual_v16",
+  "output_reference": "eager_qwen8_L8000_O16_N8_local_full_qual_v16",
+  "checks": [
+    {
+      "reference": "eager_qwen8_L8000_O16_N8_local_full_qual_v16",
+      "candidate": "eager_qwen8_L8000_O16_N8_c34_qual_v16",
+      "compared": 8,
+      "passed": true,
+      "failures": [],
+      "scope": "Exact generated tokens at matched input and Seed. Not a full KV/Hidden state check."
+    },
+    {
+      "reference": "eager_qwen8_L8000_O16_N8_reference_qual_v16",
+      "candidate": "eager_qwen8_L8000_O16_N8_c34_qual_v16",
+      "role": "prefill",
+      "compared": 8,
+      "layers_per_request": 34,
+      "passed": true,
+      "failures": [],
+      "scope": "Bitwise hashes of every queried valid KV cell and, for complete Prefill, final Hidden. Not arbitrary unqueried cache storage."
+    },
+    {
+      "reference": "eager_qwen8_L8000_O16_N8_reference_qual_v16",
+      "candidate": "eager_qwen8_L8000_O16_N8_c34_qual_v16",
+      "role": "decode",
+      "compared": 8,
+      "layers_per_request": 36,
+      "passed": true,
+      "failures": [],
+      "scope": "Bitwise hashes of every queried valid KV cell and, for complete Prefill, final Hidden. Not arbitrary unqueried cache storage."
+    }
+  ],
+  "numerical_qualification": null,
+  "actual_layer_execution": {
+    "prefill": {
+      "passed": true,
+      "measured_backend_invocations": 8,
+      "prefill_counts": {
+        "q0": 1,
+        "q1": 1,
+        "q2": 1,
+        "q3": 1,
+        "q4": 1,
+        "q5": 1,
+        "q6": 1,
+        "q7": 1
+      },
+      "Decode_counts": {
+        "q0": 0,
+        "q1": 0,
+        "q2": 0,
+        "q3": 0,
+        "q4": 0,
+        "q5": 0,
+        "q6": 0,
+        "q7": 0
+      }
+    },
+    "decode": {
+      "passed": true,
+      "measured_backend_invocations": 128,
+      "prefill_counts": {
+        "q0": 1,
+        "q1": 1,
+        "q2": 1,
+        "q3": 1,
+        "q4": 1,
+        "q5": 1,
+        "q6": 1,
+        "q7": 1
+      },
+      "Decode_counts": {
+        "q0": 15,
+        "q1": 15,
+        "q2": 15,
+        "q3": 15,
+        "q4": 15,
+        "q5": 15,
+        "q6": 15,
+        "q7": 15
+      }
+    }
+  },
+  "lifetimes": {
+    "prefill": {
+      "KV": {
+        "initial_free_blocks": 19113,
+        "final_free_blocks": 19113,
+        "total_blocks": 19114,
+        "pending_requests": 0,
+        "running": 0,
+        "waiting": 0,
+        "passed": true,
+        "scope": "Observed after all outputs and Hidden ACK cleanup, before Native worker shutdown. Prefix caching is disabled. This checks normal completion, not cancellation or GPU failure recovery."
+      },
+      "Hidden_ACK_pass": true
+    },
+    "decode": {
+      "KV": {
+        "initial_free_blocks": 19113,
+        "final_free_blocks": 19113,
+        "total_blocks": 19114,
+        "pending_requests": 0,
+        "running": 0,
+        "waiting": 0,
+        "passed": true,
+        "scope": "Observed after all outputs and Hidden ACK cleanup, before Native worker shutdown. Prefix caching is disabled. This checks normal completion, not cancellation or GPU failure recovery."
+      },
+      "Hidden_ACK_pass": true
+    }
+  },
+  "evidence": "CORRECTNESS_ONLY",
+  "scope": "Actual Native Attention backend invocations, exact outputs and queried valid state, normal ACK/KV cleanup. No claim of cancellation or GPU failure recovery."
+}

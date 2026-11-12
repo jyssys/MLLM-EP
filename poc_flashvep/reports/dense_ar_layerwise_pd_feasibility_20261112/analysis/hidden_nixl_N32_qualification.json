@@ -1,0 +1,53 @@
+{
+  "passed": true,
+  "checks": [
+    {
+      "reference": "layer_qwen8_L1024_O16_state_reference_N32_v4",
+      "candidate": "layer_qwen8_L1024_O16_migrate_c32_N32_nixl_gpu_v5",
+      "compared": 32,
+      "passed": true,
+      "failures": [],
+      "scope": "Exact generated tokens at matched input and Seed. Not a full KV/Hidden state check."
+    },
+    {
+      "reference": "layer_qwen8_L1024_O16_state_reference_N32_v4",
+      "candidate": "layer_qwen8_L1024_O16_migrate_c32_N32_nixl_gpu_v5",
+      "role": "prefill",
+      "compared": 32,
+      "layers_per_request": 32,
+      "passed": true,
+      "failures": [],
+      "scope": "Bitwise hashes of every queried valid KV cell and, for complete Prefill, final Hidden. Not arbitrary unqueried cache storage."
+    },
+    {
+      "reference": "layer_qwen8_L1024_O16_state_reference_N32_v4",
+      "candidate": "layer_qwen8_L1024_O16_migrate_c32_N32_nixl_gpu_v5",
+      "role": "decode",
+      "compared": 32,
+      "layers_per_request": 36,
+      "passed": true,
+      "failures": [],
+      "scope": "Bitwise hashes of every queried valid KV cell and, for complete Prefill, final Hidden. Not arbitrary unqueried cache storage."
+    }
+  ],
+  "buffer_close": {
+    "prefill": [
+      {
+        "event": "HIDDEN_GPU_POOL_CLOSE",
+        "time": 9155760.934258789,
+        "role": "prefill",
+        "pending_requests": [],
+        "all_ACKed": true
+      }
+    ],
+    "decode": [
+      {
+        "event": "HIDDEN_GPU_POOL_CLOSE",
+        "time": 9155760.934018092,
+        "role": "decode",
+        "pending_requests": [],
+        "all_ACKed": true
+      }
+    ]
+  }
+}

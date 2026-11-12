@@ -1,0 +1,45 @@
+{
+  "name": "layer_qwen8_L8000_O16_state_reference_c36_N32_gpu_v6",
+  "passed": true,
+  "checks": [
+    {
+      "reference": "native_qwen8_L8000_O32_reference32_s0",
+      "candidate": "layer_qwen8_L8000_O16_state_reference_c36_N32_gpu_v6",
+      "compared": 32,
+      "passed": true,
+      "failures": [],
+      "scope": "Exact generated tokens at matched input and Seed. Not a full KV/Hidden state check."
+    },
+    {
+      "reference": "layer_qwen8_L8000_O16_state_reference_c36_N32_gpu_v6",
+      "candidate": "layer_qwen8_L8000_O16_state_reference_c36_N8_gpu_v6",
+      "role": "prefill",
+      "compared": 8,
+      "layers_per_request": 36,
+      "passed": true,
+      "failures": [],
+      "scope": "Bitwise hashes of every queried valid KV cell and, for complete Prefill, final Hidden. Not arbitrary unqueried cache storage."
+    }
+  ],
+  "hidden_lifecycle": {
+    "prefill": [
+      {
+        "event": "HIDDEN_GPU_POOL_CLOSE",
+        "time": 9157331.407493033,
+        "role": "prefill",
+        "pending_requests": [],
+        "all_ACKed": true
+      }
+    ],
+    "decode": [
+      {
+        "event": "HIDDEN_GPU_POOL_CLOSE",
+        "time": 9157331.410185767,
+        "role": "decode",
+        "pending_requests": [],
+        "all_ACKed": true
+      }
+    ]
+  },
+  "layer_work": "STRUCTURAL_ACCOUNTING_FROM_EXECUTED_STATIC_SPAN_AND_COMPLETE_VALID_KV"
+}

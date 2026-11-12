@@ -1,0 +1,94 @@
+{
+  "name": "eager_qwen8_L8000_O16_N8_c35_qual_v16",
+  "reference": "eager_qwen8_L8000_O16_N8_reference_qual_v16",
+  "passed": true,
+  "checks": [
+    {
+      "reference": "eager_qwen8_L8000_O16_N8_reference_qual_v16",
+      "candidate": "eager_qwen8_L8000_O16_N8_c35_qual_v16",
+      "compared": 8,
+      "passed": true,
+      "failures": [],
+      "scope": "Exact generated tokens at matched input and Seed. Not a full KV/Hidden state check."
+    },
+    {
+      "reference": "eager_qwen8_L8000_O16_N8_reference_qual_v16",
+      "candidate": "eager_qwen8_L8000_O16_N8_c35_qual_v16",
+      "role": "prefill",
+      "compared": 8,
+      "layers_per_request": 35,
+      "passed": true,
+      "failures": [],
+      "scope": "Bitwise hashes of every queried valid KV cell and, for complete Prefill, final Hidden. Not arbitrary unqueried cache storage."
+    },
+    {
+      "reference": "eager_qwen8_L8000_O16_N8_reference_qual_v16",
+      "candidate": "eager_qwen8_L8000_O16_N8_c35_qual_v16",
+      "role": "decode",
+      "compared": 8,
+      "layers_per_request": 36,
+      "passed": true,
+      "failures": [],
+      "scope": "Bitwise hashes of every queried valid KV cell and, for complete Prefill, final Hidden. Not arbitrary unqueried cache storage."
+    }
+  ],
+  "actual_execution": {
+    "prefill": {
+      "passed": true,
+      "prefill_counts": {
+        "q0": 1,
+        "q1": 1,
+        "q2": 1,
+        "q3": 1,
+        "q4": 1,
+        "q5": 1,
+        "q6": 1,
+        "q7": 1
+      }
+    },
+    "decode": {
+      "passed": true,
+      "prefill_counts": {
+        "q0": 1,
+        "q1": 1,
+        "q2": 1,
+        "q3": 1,
+        "q4": 1,
+        "q5": 1,
+        "q6": 1,
+        "q7": 1
+      }
+    }
+  },
+  "lifetimes": {
+    "prefill": {
+      "passed": true,
+      "KV": {
+        "initial_free_blocks": 19113,
+        "final_free_blocks": 19113,
+        "total_blocks": 19114,
+        "pending_requests": 0,
+        "running": 0,
+        "waiting": 0,
+        "passed": true,
+        "scope": "Observed after all outputs and Hidden ACK cleanup, before Native worker shutdown. Prefix caching is disabled. This checks normal completion, not cancellation or GPU failure recovery."
+      }
+    },
+    "decode": {
+      "passed": true,
+      "KV": {
+        "initial_free_blocks": 19113,
+        "final_free_blocks": 19113,
+        "total_blocks": 19114,
+        "pending_requests": 0,
+        "running": 0,
+        "waiting": 0,
+        "passed": true,
+        "scope": "Observed after all outputs and Hidden ACK cleanup, before Native worker shutdown. Prefix caching is disabled. This checks normal completion, not cancellation or GPU failure recovery."
+      }
+    }
+  },
+  "evidence": "CORRECTNESS_ONLY",
+  "family": "BI_EAGER_NO_GRAPH",
+  "scope": "All weights and Attention remain original BF16. Exact tokens and bitwise queried valid KV/Hidden are required within this family. Compiled-family token equality is reported separately, not assumed."
+}

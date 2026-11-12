@@ -1,0 +1,12 @@
+{
+  "observed_failure": "Native host-observer D startup found only 9.43 GiB free. Required 63.35 GiB. No measured requests were produced.",
+  "evidence": [
+    "raw/native_qwen8_L8000_O16_N128_load130_s4_host/decode.log",
+    "resource_ledger.jsonl",
+    "state/burner_*.json"
+  ],
+  "cause": "A completed launcher restored Burners outside quiet_lane.lock. A second launcher had acquired the lock but had not created its D CUDA context.",
+  "fix": "Use quiet_lane.lock for group-final restoration as well as experiment startup.",
+  "validity": "The failed host-observer cell is invalid and preserved. It is not a Dense AR capacity or Layer continuation failure. New controls require a new namespace.",
+  "future_rule": "Do not queue a new group behind a pre-fix launcher. Wait for all pre-fix launchers to finish."
+}

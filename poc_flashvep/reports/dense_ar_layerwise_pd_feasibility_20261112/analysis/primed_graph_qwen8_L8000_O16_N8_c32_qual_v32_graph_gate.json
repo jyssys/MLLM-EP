@@ -1,0 +1,94 @@
+{
+  "name": "primed_graph_qwen8_L8000_O16_N8_c32_qual_v32",
+  "checks": [
+    {
+      "reference": "eager_qwen8_L8000_O16_N32_independent_full_cohort_reference_v21",
+      "candidate": "primed_graph_qwen8_L8000_O16_N8_c32_qual_v32",
+      "compared": 8,
+      "passed": true,
+      "failures": [],
+      "scope": "Exact generated tokens at matched input and Seed. Not a full KV/Hidden state check."
+    },
+    {
+      "passed": true,
+      "graph_capture_definitions": 5,
+      "scope": "Observed original full-36-layer Decode graph definitions."
+    },
+    {
+      "reference": "eager_qwen8_L8000_O16_N8_reference_qual_v16",
+      "candidate": "primed_graph_qwen8_L8000_O16_N8_c32_qual_v32",
+      "role": "prefill",
+      "compared": 8,
+      "layers_per_request": 32,
+      "passed": true,
+      "failures": [],
+      "scope": "Bitwise hashes of every queried valid KV cell and, for complete Prefill, final Hidden. Not arbitrary unqueried cache storage."
+    },
+    {
+      "reference": "eager_qwen8_L8000_O16_N8_reference_qual_v16",
+      "candidate": "primed_graph_qwen8_L8000_O16_N8_c32_qual_v32",
+      "role": "decode",
+      "compared": 8,
+      "layers_per_request": 36,
+      "passed": true,
+      "failures": [],
+      "scope": "Bitwise hashes of every queried valid KV cell and, for complete Prefill, final Hidden. Not arbitrary unqueried cache storage."
+    },
+    {
+      "passed": true,
+      "source_prompt_counts": {
+        "q0": 1,
+        "q1": 1,
+        "q2": 1,
+        "q3": 1,
+        "q4": 1,
+        "q5": 1,
+        "q6": 1,
+        "q7": 1
+      },
+      "destination_suffix_counts": {
+        "q0": 1,
+        "q1": 1,
+        "q2": 1,
+        "q3": 1,
+        "q4": 1,
+        "q5": 1,
+        "q6": 1,
+        "q7": 1
+      },
+      "destination_full_Decode_counts": {
+        "q0": 15,
+        "q1": 15,
+        "q2": 15,
+        "q3": 15,
+        "q4": 15,
+        "q5": 15,
+        "q6": 15,
+        "q7": 15
+      },
+      "scope": "Measured Prefix/Suffix backend calls and actual full-model graph replay calls. No duplicate or missing Layer work."
+    },
+    {
+      "initial_free_blocks": 19113,
+      "final_free_blocks": 19113,
+      "total_blocks": 19114,
+      "pending_requests": 0,
+      "running": 0,
+      "waiting": 0,
+      "passed": true,
+      "scope": "Observed after all outputs and Hidden ACK cleanup, before Native worker shutdown. Prefix caching is disabled. This checks normal completion, not cancellation or GPU failure recovery."
+    },
+    {
+      "initial_free_blocks": 19113,
+      "final_free_blocks": 19113,
+      "total_blocks": 19114,
+      "pending_requests": 0,
+      "running": 0,
+      "waiting": 0,
+      "passed": true,
+      "scope": "Observed after all outputs and Hidden ACK cleanup, before Native worker shutdown. Prefix caching is disabled. This checks normal completion, not cancellation or GPU failure recovery."
+    }
+  ],
+  "passed": true,
+  "evidence": "CORRECTNESS_ONLY"
+}
