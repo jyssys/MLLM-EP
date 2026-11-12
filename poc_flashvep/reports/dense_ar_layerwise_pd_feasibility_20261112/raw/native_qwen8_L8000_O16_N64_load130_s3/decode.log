@@ -1,0 +1,121 @@
+INFO 11-12 15:33:06 [nixl_utils.py:32] Setting UCX_RCACHE_MAX_UNRELEASED to '1024' to avoid a rare memory leak in UCX when using NIXL.
+INFO 11-12 15:33:06 [nixl_utils.py:68] NIXL is available
+INFO 11-12 15:33:06 [api_utils.py:273] non-default args: {'dtype': 'bfloat16', 'seed': 2026110507, 'max_model_len': 8016, 'enable_prefix_caching': False, 'gpu_memory_utilization': 0.8, 'max_num_batched_tokens': 32000, 'max_num_seqs': 16, 'disable_log_stats': True, 'enable_chunked_prefill': True, 'compilation_config': {'mode': None, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', 'custom_ops': [], 'ir_enable_torch_wrap': None, 'splitting_ops': None, 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'compile_sizes': None, 'compile_ranges_endpoints': None, 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'size_asserts': False, 'alignment_asserts': False, 'scalar_asserts': False, 'combo_kernels': True, 'benchmark_combo_kernel': True}, 'inductor_passes': {}, 'cudagraph_mode': <CUDAGraphMode.NONE: 0>, 'cudagraph_num_of_warmups': 0, 'cudagraph_capture_sizes': [1, 2, 4, 8, 16], 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': None, 'pass_config': {}, 'max_cudagraph_capture_size': None, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': None, 'static_all_moe_layers': []}, 'kv_transfer_config': KVTransferConfig(kv_connector='NixlConnector', engine_id='b0546426-59d6-4c6e-8049-a22b5ea9b043', kv_buffer_device='cuda', kv_buffer_size=1000000000.0, kv_role='kv_consumer', kv_rank=None, kv_parallel_size=1, kv_ip='127.0.0.1', kv_port=14579, kv_connector_extra_config={}, kv_connector_module_path=None, enable_permute_local_kv=False, kv_load_failure_policy='fail'), 'async_scheduling': False, 'model': '/home/esjung/.cache/huggingface/hub/models--Qwen--Qwen3-8B/snapshots/b968826d9c46dd6066d109eabc6255188de91218'}
+WARNING 11-12 15:33:06 [arg_utils.py:1631] The global random seed is set to 2026110507. Since VLLM_ENABLE_V1_MULTIPROCESSING is set to False, this may affect the random state of the Python process that launched vLLM.
+INFO 11-12 15:33:06 [model.py:623] Resolved architecture: Qwen3ForCausalLM
+INFO 11-12 15:33:06 [model.py:1788] Using max model len 8016
+INFO 11-12 15:33:06 [scheduler.py:252] Chunked prefill is enabled with max_num_batched_tokens=32000.
+INFO 11-12 15:33:06 [vllm.py:1109] Asynchronous scheduling is disabled.
+INFO 11-12 15:33:06 [kernel.py:295] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native'])
+INFO 11-12 15:33:08 [core.py:116] Initializing a V1 LLM engine (v0.26.0) with config: model='/home/esjung/.cache/huggingface/hub/models--Qwen--Qwen3-8B/snapshots/b968826d9c46dd6066d109eabc6255188de91218', speculative_config=None, tokenizer='/home/esjung/.cache/huggingface/hub/models--Qwen--Qwen3-8B/snapshots/b968826d9c46dd6066d109eabc6255188de91218', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, tokenizer_revision=None, trust_remote_code=False, dtype=torch.bfloat16, max_seq_len=8016, download_dir=None, load_format=auto, tensor_parallel_size=1, pipeline_parallel_size=1, data_parallel_size=1, decode_context_parallel_size=1, dcp_comm_backend=ag_rs, disable_custom_all_reduce=True, quantization=None, quantization_config=None, enforce_eager=False, enable_return_routed_experts=False, kv_cache_dtype=auto, device_config=cuda, structured_outputs_config=StructuredOutputsConfig(backend='auto', disable_any_whitespace=False, disable_additional_properties=False, reasoning_parser='', reasoning_parser_plugin='', enable_in_reasoning=False), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None, kv_cache_metrics=False, kv_cache_metrics_sample=0.01, cudagraph_metrics=False, enable_layerwise_nvtx_tracing=False, enable_mfu_metrics=False, enable_mm_processor_stats=False, enable_logging_iteration_details=False, jit_monitor_mode='warn', jit_monitor_verbose=False), seed=2026110507, served_model_name=/home/esjung/.cache/huggingface/hub/models--Qwen--Qwen3-8B/snapshots/b968826d9c46dd6066d109eabc6255188de91218, enable_prefix_caching=False, enable_chunked_prefill=True, pooler_config=None, compilation_config={'mode': <CompilationMode.VLLM_COMPILE: 3>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', 'custom_ops': ['none'], 'ir_enable_torch_wrap': True, 'splitting_ops': ['vllm::unified_attention_with_output', 'vllm::unified_mla_attention_with_output', 'vllm::mamba_mixer2', 'vllm::mamba_mixer', 'vllm::short_conv', 'vllm::linear_attention', 'vllm::plamo2_mamba_mixer', 'vllm::qwen_gdn_attention_core', 'vllm::gdn_attention_core_xpu', 'vllm::olmo_hybrid_gdn_full_forward', 'vllm::kda_attention', 'vllm::sparse_attn_indexer', 'vllm::rocm_aiter_sparse_attn_indexer', 'vllm::deepseek_v4_attention', 'vllm::hpc_rope_norm_forward', 'vllm::unified_kv_cache_update', 'vllm::unified_mla_kv_cache_update'], 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'compile_sizes': [], 'compile_ranges_endpoints': [32000], 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'size_asserts': False, 'alignment_asserts': False, 'scalar_asserts': False, 'combo_kernels': True, 'benchmark_combo_kernel': True}, 'inductor_passes': {}, 'cudagraph_mode': <CUDAGraphMode.NONE: 0>, 'cudagraph_num_of_warmups': 1, 'cudagraph_capture_sizes': [], 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': False, 'pass_config': {'fuse_norm_quant': False, 'fuse_act_quant': False, 'fuse_attn_quant': False, 'enable_sp': False, 'fuse_gemm_comms': False, 'fuse_allreduce_rms': False, 'enable_qk_norm_rope_fusion': False, 'fuse_rope_kvcache_cat_mla': False, 'fuse_act_padding': False, 'fuse_qk_norm_rope_kvcache': False}, 'max_cudagraph_capture_size': 0, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': False, 'static_all_moe_layers': []}, kernel_config=KernelConfig(ir_op_priority=IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native']), enable_flashinfer_autotune=True, enable_cutedsl_warmup=True, enable_bf16x3_router_gemm=False, moe_backend='auto', linear_backend='auto')
+/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/library.py:363: UserWarning: Warning only once for all operators,  other operators may also be overridden.
+  Overriding a previously registered kernel for the same operator and the same dispatch key
+  operator: aten::_log_softmax(Tensor self, int dim, bool half_to_float) -> Tensor
+    registered at /pytorch/build/aten/src/ATen/RegisterSchema.cpp:6
+  dispatch key: CUDA
+  previous kernel: registered at /pytorch/build/aten/src/ATen/RegisterCPU_3.cpp:3799
+       new kernel: registered at /home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/model_executor/layers/batch_invariant.py:910 (Triggered internally at /pytorch/aten/src/ATen/core/dispatch/OperatorEntry.cpp:208.)
+  self.m.impl(
+[W1112 15:33:09.599254839 Context.cpp:541] Warning: torch.backends.cuda.preferred_blas_library is an experimental feature. If you see any error or unexpected behavior when this flag is set please file an issue on GitHub. (function operator())
+INFO 11-12 15:33:09 [parallel_state.py:1615] world_size=1 rank=0 local_rank=0 distributed_init_method=tcp://192.168.0.2:58489 backend=nccl
+INFO 11-12 15:33:09 [parallel_state.py:1946] rank 0 in world size 1 is assigned as DP rank 0, PP rank 0, PCP rank 0, TP rank 0, EP rank N/A, EPLB rank N/A
+INFO 11-12 15:33:09 [gpu_worker.py:378] Using V2 Model Runner
+INFO 11-12 15:33:10 [model_runner.py:284] Loading model from scratch...
+INFO 11-12 15:33:10 [cuda.py:482] Using FLASH_ATTN attention backend out of potential backends: ['FLASH_ATTN', 'TRITON_ATTN', 'FLEX_ATTENTION'].
+INFO 11-12 15:33:10 [flash_attn.py:776] Using FlashAttention version 3
+<frozen importlib._bootstrap_external>:1061: FutureWarning: The cuda.cudart module is deprecated and will be removed in a future release, please switch to use the cuda.bindings.runtime module instead.
+<frozen importlib._bootstrap_external>:1061: FutureWarning: The cuda.nvrtc module is deprecated and will be removed in a future release, please switch to use the cuda.bindings.nvrtc module instead.
+INFO 11-12 15:33:11 [weight_utils.py:869] Filesystem type for checkpoints: EXT4. Checkpoint size: 15.26 GiB. Available RAM: 1852.49 GiB.
+INFO 11-12 15:33:11 [weight_utils.py:892] Auto-prefetch is disabled because the filesystem (EXT4) is not a recognized network FS (NFS/Lustre). If you want to force prefetching, start vLLM with --safetensors-load-strategy=prefetch.
+Loading safetensors checkpoint shards:   0% Completed | 0/5 [00:00<?, ?it/s]
+Loading safetensors checkpoint shards:  20% Completed | 1/5 [00:00<00:03,  1.30it/s]
+Loading safetensors checkpoint shards:  40% Completed | 2/5 [00:01<00:02,  1.20it/s]
+Loading safetensors checkpoint shards:  60% Completed | 3/5 [00:02<00:01,  1.17it/s]
+Loading safetensors checkpoint shards:  80% Completed | 4/5 [00:03<00:00,  1.25it/s]
+Loading safetensors checkpoint shards: 100% Completed | 5/5 [00:03<00:00,  1.59it/s]
+Loading safetensors checkpoint shards: 100% Completed | 5/5 [00:03<00:00,  1.40it/s]
+
+INFO 11-12 15:33:15 [default_loader.py:430] Loading weights took 3.60 seconds
+INFO 11-12 15:33:16 [model_runner.py:305] Model loading took 15.27 GiB and 6.294757 seconds
+INFO 11-12 15:33:16 [topk_topp_sampler.py:55] Using FlashInfer for top-p & top-k sampling.
+INFO 11-12 15:33:16 [connector.py:154] NixlConnector setting KV cache layout to HND for better xfer performance.
+/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/_dynamo/variables/functions.py:2202: UserWarning: Dynamo detected a call to a `functools.lru_cache`-wrapped function at 'batch_invariant.py:141'. Dynamo ignores the cache wrapper and directly traces the wrapped function. Silent incorrectness is only a *potential* risk, not something we have observed. Enable TORCH_LOGS=+dynamo for a DEBUG stack trace.
+
+This call originates from:
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/model_executor/layers/batch_invariant.py", line 141, in matmul_persistent
+    NUM_SMS = num_compute_units(a.device.index)
+
+  torch._dynamo.utils.warn_once(msg)
+INFO 11-12 15:33:24 [backends.py:1094] Using cache directory: /home/esjung/.cache/vllm/torch_compile_cache/4c66dc9e47/rank_0_0/backbone for vLLM's torch.compile
+INFO 11-12 15:33:24 [backends.py:1155] Dynamo bytecode transform time: 8.38 s
+INFO 11-12 15:33:26 [backends.py:378] Cache the graph of compile range (1, 32000) for later use
+INFO 11-12 15:33:29 [backends.py:393] Compiling a graph for compile range (1, 32000) takes 3.52 s
+INFO 11-12 15:33:30 [monitor.py:53] torch.compile and initial profiling/warmup run together took 13.58 s in total
+INFO 11-12 15:33:32 [gpu_worker.py:560] Available KV cache memory: 44.75 GiB
+INFO 11-12 15:33:32 [kv_cache_utils.py:2177] GPU KV cache size: 325,840 tokens
+INFO 11-12 15:33:32 [kv_cache_utils.py:2178] Maximum concurrency for 8,016 tokens per request: 40.65x
+INFO 11-12 15:33:32 [factory.py:62] Creating v1 connector with name: NixlPullConnector and engine_id: b0546426-59d6-4c6e-8049-a22b5ea9b043
+WARNING 11-12 15:33:32 [base.py:190] Initializing KVConnectorBase_V1. This API is experimental and subject to change in the future as we iterate the design.
+INFO 11-12 15:33:32 [base_worker.py:249] Initializing NIXL wrapper
+INFO 11-12 15:33:32 [base_worker.py:250] Initializing NIXL worker b0546426-59d6-4c6e-8049-a22b5ea9b043
+W1112 15:33:32.302695 3759987 telemetry.cpp:114] telemetry: no invariant CPU counter available; per-transfer timing falls back to steady_clock (higher overhead)
+2026-11-12 15:33:35 NIXL INFO    _api.py:407 Backend UCX was instantiated
+2026-11-12 15:33:35 NIXL INFO    _api.py:285 Initialized NIXL agent: f9dd1a69-7fd7-40ed-b19d-a09c559412dd
+INFO 11-12 15:33:35 [base_worker.py:506] Detected attention backend(s) ['FLASH_ATTN']
+INFO 11-12 15:33:35 [base_worker.py:510] Detected kv cache layout HND
+INFO 11-12 15:33:35 [base_worker.py:1073] Registering KV_Caches. use_mla: False, kv_buffer_device: cuda, use_host_buffer: False
+INFO 11-12 15:33:35 [gpu_worker.py:774] Compile and warming up model for size 32000
+INFO 11-12 15:33:35 [kernel_warmup.py:65] Warming up ll_bf16 router GEMM kernels.
+INFO 11-12 15:33:42 [cutedsl_warmup.py:101] Skipping CuTeDSL warmup because no compile units were requested.
+WARNING 11-12 15:33:42 [model_runner.py:713] Skipping CUDA graph capture. To turn on CUDA graph capture, ensure `cudagraph_mode` was not manually set to `NONE`
+INFO 11-12 15:33:42 [gpu_worker.py:857] Free memory on device (78.68/79.19 GiB) on startup. Desired GPU memory utilization is (0.8, 63.35 GiB). Actual usage is 15.27 GiB for weight, 3.17 GiB for peak activation, 0.16 GiB for non-torch memory, and 0.0 GiB for CUDAGraph memory. Replace gpu_memory_utilization config with `--kv-cache-memory=47891424768` (44.6 GiB) to fit into requested memory, or `--kv-cache-memory=64346727936` (59.93 GiB) to fully utilize gpu memory. Current kv cache memory in use is 44.75 GiB.
+[WARNING] Field "span" in type "ir.TupleType" duplicates an ancestor field in "ir.Type". Child types should not re-register inherited fields.
+[WARNING] Field "span" in type "ir.FuncType" duplicates an ancestor field in "ir.Type". Child types should not re-register inherited fields.
+[WARNING] Field "span" in type "ir.TensorMapType" duplicates an ancestor field in "ir.Type". Child types should not re-register inherited fields.
+[WARNING] Field "binding_blocks" in type "script.ir_builder.relax.FunctionFrame" duplicates an ancestor field in "script.ir_builder.relax.SeqExprFrame". Child types should not re-register inherited fields.
+[WARNING] Field "output" in type "script.ir_builder.relax.FunctionFrame" duplicates an ancestor field in "script.ir_builder.relax.SeqExprFrame". Child types should not re-register inherited fields.
+INFO 11-12 15:33:42 [jit_monitor.py:79] Kernel JIT monitor activated; monitored JIT compilations during inference will use mode=warn.
+INFO 11-12 15:33:43 [core.py:340] init engine (profile, create kv cache, warmup model) took 27.32 s (compilation: 13.58 s)
+INFO 11-12 15:33:43 [factory.py:62] Creating v1 connector with name: NixlPullConnector and engine_id: b0546426-59d6-4c6e-8049-a22b5ea9b043
+WARNING 11-12 15:33:43 [base.py:190] Initializing KVConnectorBase_V1. This API is experimental and subject to change in the future as we iterate the design.
+INFO 11-12 15:33:43 [base_scheduler.py:96] Initializing NIXL Scheduler b0546426-59d6-4c6e-8049-a22b5ea9b043
+WARNING 11-12 15:33:43 [input_processor.py:282] Passing raw prompts to InputProcessor is deprecated and will be removed in v0.18. You should instead pass the outputs of Renderer.render_cmpl() or Renderer.render_chat().
+INFO 11-12 15:33:43 [base_worker.py:668] NIXL compatibility check passed (hash: 610558e3f58d7219e55976391648bc600d4f26f420a68e00cb39a723a81c9214)
+INFO 11-12 15:33:43 [base_worker.py:1565] Transfer plan: TransferTopology(tp_ratio=1, num_kv_heads=8, local_tp=1, remote_tp=1, remote_pp=0, local_rank=0, remote_block_len=65536)
+WARNING 11-12 15:33:44 [jit_monitor.py:135] Triton kernel JIT compilation during inference: matmul_kernel_persistent. This causes a latency spike; consider extending warmup to cover this shape/config.
+[1794465248.422671] [cloud-0n58xq:3759987:0]        cuda_ctx.c:23   UCX  ERROR cuDevicePrimaryCtxGetState(cuda_device, &flags, &active) failed: unrecognized error code 4
+[1794465248.422717] [cloud-0n58xq:3759987:0]        cuda_ctx.c:23   UCX  ERROR cuDevicePrimaryCtxGetState(cuda_device, &flags, &active) failed: unrecognized error code 4
+[1794465248.422721] [cloud-0n58xq:3759987:0]        cuda_ctx.c:23   UCX  ERROR cuDevicePrimaryCtxGetState(cuda_device, &flags, &active) failed: unrecognized error code 4
+[1794465248.422733] [cloud-0n58xq:3759987:0]        cuda_ctx.c:23   UCX  ERROR cuDevicePrimaryCtxGetState(cuda_device, &flags, &active) failed: unrecognized error code 4
+[1794465248.422735] [cloud-0n58xq:3759987:0]        cuda_ctx.c:23   UCX  ERROR cuDevicePrimaryCtxGetState(cuda_device, &flags, &active) failed: unrecognized error code 4
+[1794465248.422738] [cloud-0n58xq:3759987:0]        cuda_ctx.c:23   UCX  ERROR cuDevicePrimaryCtxGetState(cuda_device, &flags, &active) failed: unrecognized error code 4
+[1794465248.422740] [cloud-0n58xq:3759987:0]        cuda_ctx.c:23   UCX  ERROR cuDevicePrimaryCtxGetState(cuda_device, &flags, &active) failed: unrecognized error code 4
+[1794465248.422742] [cloud-0n58xq:3759987:0]        cuda_ctx.c:23   UCX  ERROR cuDevicePrimaryCtxGetState(cuda_device, &flags, &active) failed: unrecognized error code 4
+[1794465248.422745] [cloud-0n58xq:3759987:0]        cuda_ctx.c:23   UCX  ERROR cuDevicePrimaryCtxGetState(cuda_device, &flags, &active) failed: unrecognized error code 4
+[1794465248.422748] [cloud-0n58xq:3759987:0]        cuda_ctx.c:23   UCX  ERROR cuDevicePrimaryCtxGetState(cuda_device, &flags, &active) failed: unrecognized error code 4
+[1794465248.422751] [cloud-0n58xq:3759987:0]        cuda_ctx.c:23   UCX  ERROR cuDevicePrimaryCtxGetState(cuda_device, &flags, &active) failed: unrecognized error code 4
+[1794465248.422754] [cloud-0n58xq:3759987:0]        cuda_ctx.c:23   UCX  ERROR cuDevicePrimaryCtxGetState(cuda_device, &flags, &active) failed: unrecognized error code 4
+[1794465248.422756] [cloud-0n58xq:3759987:0]        cuda_ctx.c:23   UCX  ERROR cuDevicePrimaryCtxGetState(cuda_device, &flags, &active) failed: unrecognized error code 4
+[1794465248.422759] [cloud-0n58xq:3759987:0]        cuda_ctx.c:23   UCX  ERROR cuDevicePrimaryCtxGetState(cuda_device, &flags, &active) failed: unrecognized error code 4
+[1794465248.422761] [cloud-0n58xq:3759987:0]        cuda_ctx.c:23   UCX  ERROR cuDevicePrimaryCtxGetState(cuda_device, &flags, &active) failed: unrecognized error code 4
+[1794465248.422764] [cloud-0n58xq:3759987:0]        cuda_ctx.c:23   UCX  ERROR cuDevicePrimaryCtxGetState(cuda_device, &flags, &active) failed: unrecognized error code 4
+[1794465248.422766] [cloud-0n58xq:3759987:0]        cuda_ctx.c:23   UCX  ERROR cuDevicePrimaryCtxGetState(cuda_device, &flags, &active) failed: unrecognized error code 4
+[1794465248.422768] [cloud-0n58xq:3759987:0]        cuda_ctx.c:23   UCX  ERROR cuDevicePrimaryCtxGetState(cuda_device, &flags, &active) failed: unrecognized error code 4
+[1794465248.422771] [cloud-0n58xq:3759987:0]        cuda_ctx.c:23   UCX  ERROR cuDevicePrimaryCtxGetState(cuda_device, &flags, &active) failed: unrecognized error code 4
+[1794465248.422773] [cloud-0n58xq:3759987:0]        cuda_ctx.c:23   UCX  ERROR cuDevicePrimaryCtxGetState(cuda_device, &flags, &active) failed: unrecognized error code 4
+[1794465248.422775] [cloud-0n58xq:3759987:0]        cuda_ctx.c:23   UCX  ERROR cuDevicePrimaryCtxGetState(cuda_device, &flags, &active) failed: unrecognized error code 4
+[1794465248.422777] [cloud-0n58xq:3759987:0]        cuda_ctx.c:23   UCX  ERROR cuDevicePrimaryCtxGetState(cuda_device, &flags, &active) failed: unrecognized error code 4
+[1794465248.422780] [cloud-0n58xq:3759987:0]        cuda_ctx.c:23   UCX  ERROR cuDevicePrimaryCtxGetState(cuda_device, &flags, &active) failed: unrecognized error code 4
+[1794465248.422782] [cloud-0n58xq:3759987:0]        cuda_ctx.c:23   UCX  ERROR cuDevicePrimaryCtxGetState(cuda_device, &flags, &active) failed: unrecognized error code 4
+[1794465248.422784] [cloud-0n58xq:3759987:0]        cuda_ctx.c:23   UCX  ERROR cuDevicePrimaryCtxGetState(cuda_device, &flags, &active) failed: unrecognized error code 4
+[1794465248.422787] [cloud-0n58xq:3759987:0]        cuda_ctx.c:23   UCX  ERROR cuDevicePrimaryCtxGetState(cuda_device, &flags, &active) failed: unrecognized error code 4
+[1794465248.422790] [cloud-0n58xq:3759987:0]        cuda_ctx.c:23   UCX  ERROR cuDevicePrimaryCtxGetState(cuda_device, &flags, &active) failed: unrecognized error code 4
+[1794465248.422795] [cloud-0n58xq:3759987:0]        cuda_ctx.c:23   UCX  ERROR cuDevicePrimaryCtxGetState(cuda_device, &flags, &active) failed: unrecognized error code 4
+[1794465248.422797] [cloud-0n58xq:3759987:0]        cuda_ctx.c:23   UCX  ERROR cuDevicePrimaryCtxGetState(cuda_device, &flags, &active) failed: unrecognized error code 4
+[1794465248.422799] [cloud-0n58xq:3759987:0]        cuda_ctx.c:23   UCX  ERROR cuDevicePrimaryCtxGetState(cuda_device, &flags, &active) failed: unrecognized error code 4
+[1794465248.422802] [cloud-0n58xq:3759987:0]        cuda_ctx.c:23   UCX  ERROR cuDevicePrimaryCtxGetState(cuda_device, &flags, &active) failed: unrecognized error code 4
+[1794465248.422804] [cloud-0n58xq:3759987:0]        cuda_ctx.c:23   UCX  ERROR cuDevicePrimaryCtxGetState(cuda_device, &flags, &active) failed: unrecognized error code 4
+[1794465248.422807] [cloud-0n58xq:3759987:0]        cuda_ctx.c:23   UCX  ERROR cuDevicePrimaryCtxGetState(cuda_device, &flags, &active) failed: unrecognized error code 4
+[1794465248.422809] [cloud-0n58xq:3759987:0]        cuda_ctx.c:23   UCX  ERROR cuDevicePrimaryCtxGetState(cuda_device, &flags, &active) failed: unrecognized error code 4
+[1794465248.422811] [cloud-0n58xq:3759987:0]        cuda_ctx.c:23   UCX  ERROR cuDevicePrimaryCtxGetState(cuda_device, &flags, &active) failed: unrecognized error code 4
+[1794465248.422814] [cloud-0n58xq:3759987:0]        cuda_ctx.c:23   UCX  ERROR cuDevicePrimaryCtxGetState(cuda_device, &flags, &active) failed: unrecognized error code 4
