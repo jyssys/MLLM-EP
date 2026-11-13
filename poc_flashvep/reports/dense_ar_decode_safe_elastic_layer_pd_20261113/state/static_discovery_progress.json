@@ -1,0 +1,2050 @@
+{
+  "results": [
+    {
+      "name": "tune_Static2_f100_O16_N64_q4p8_v1",
+      "output": {
+        "reference": "baseline_Native_O200_N64_q4p8_s21_v1",
+        "candidate": "tune_Static2_f100_O16_N64_q4p8_v1",
+        "compared": 64,
+        "failures": [],
+        "passed": true,
+        "evidence": "CORRECTNESS_ONLY",
+        "scope": "Exact generated tokens at matched inputs and seeds. Separate state and actual-layer checks are required for migration."
+      },
+      "metrics": {
+        "name": "tune_Static2_f100_O16_N64_q4p8_v1",
+        "complete": true,
+        "arm": "PD_G1",
+        "output_cap": 16,
+        "count": 64,
+        "distinct_prompt_ids": 64,
+        "offered_QPS": 4.8,
+        "scheduled_trace_QPS": 5.198548457772387,
+        "realized_arrival_QPS": 5.198763370753647,
+        "completed_QPS": 3.3578078289366577,
+        "input_tokens_s": 26862.46263149326,
+        "output_tokens_s": 53.724925262986524,
+        "observation_seconds": 19.06005443446338,
+        "maximum_ITL_ms": 30.80889768898487,
+        "ITL_intervals": 960,
+        "coalesced_intervals": 0,
+        "Service_TTFT": "NOT_MEASURED",
+        "physical_GPU_idle": "NOT_MEASURED",
+        "scope": "Coordinator delivery timestamps. First ITL is included. Finite-cohort drain rates are not sustainable capacity.",
+        "TTFT_p50_ms": 4281.26775380224,
+        "TTFT_p95_ms": 6400.711112283169,
+        "TTFT_p99_ms": 6539.481493029743,
+        "TPOT_p50_ms": 24.876534069577854,
+        "TPOT_p95_ms": 25.437344604482252,
+        "TPOT_p99_ms": 25.512090247124434,
+        "E2E_p50_ms": 4662.448565475643,
+        "E2E_p95_ms": 6765.383262839167,
+        "E2E_p99_ms": 6913.734869323671,
+        "ITL_p50_ms": 24.702679365873337,
+        "ITL_p95_ms": 26.436131726950407,
+        "ITL_p99_ms": 29.950311593711373,
+        "first_ITL_p50_ms": 25.305108167231083,
+        "first_ITL_p95_ms": 25.784235540777445,
+        "first_ITL_p99_ms": 25.85348902270198,
+        "steady_ITL_p50_ms": 24.648266844451427,
+        "steady_ITL_p95_ms": 26.46643202751875,
+        "steady_ITL_p99_ms": 30.06098307669161,
+        "request_max_ITL_p50_ms": 27.235870249569416,
+        "request_max_ITL_p95_ms": 30.616605933755636,
+        "request_max_ITL_p99_ms": 30.802349746227264,
+        "worker_emission_ITL_p99_ms": 25.868692379444838,
+        "coordinator_delivery_lag_p95_ms": 0.4251083359122275,
+        "parent_tail_interval_identity": {
+          "samples": 10,
+          "parent_interval_mean_ms": 30.534351989626884,
+          "worker_interval_mean_ms": 25.202462822198868,
+          "receiver_lag_change_mean_ms": 5.331889167428017,
+          "scope": "Select parent intervals at or above its p99. Parent interval equals worker interval plus the change in receive lag. The worker interval still includes GPU and Host scheduling. This is not an additive decomposition of p99 or between-method regression."
+        },
+        "SLO_regimes": {
+          "TTFT_priority": {
+            "thresholds": {
+              "TTFT_ms": 2000,
+              "ITL_ms": 54,
+              "TPOT_ms": 52
+            },
+            "TTFT_attainment": 0.125,
+            "Decode_attainment": 1.0,
+            "Joint_attainment": 0.125,
+            "Request_SLO_goodput": 0.4197259786170822,
+            "Output_token_SLO_goodput": 6.7156156578733155,
+            "ITL_threshold_exceedances": 0,
+            "percentile_Decode_absolute_pass": true
+          },
+          "Balanced": {
+            "thresholds": {
+              "TTFT_ms": 5000,
+              "ITL_ms": 34,
+              "TPOT_ms": 33
+            },
+            "TTFT_attainment": 0.703125,
+            "Decode_attainment": 1.0,
+            "Joint_attainment": 0.703125,
+            "Request_SLO_goodput": 2.3609586297210874,
+            "Output_token_SLO_goodput": 37.7753380755374,
+            "ITL_threshold_exceedances": 0,
+            "percentile_Decode_absolute_pass": true
+          },
+          "Decode_priority": {
+            "thresholds": {
+              "TTFT_ms": 10000,
+              "ITL_ms": 30,
+              "TPOT_ms": 29
+            },
+            "TTFT_attainment": 1.0,
+            "Decode_attainment": 0.84375,
+            "Joint_attainment": 0.84375,
+            "Request_SLO_goodput": 2.8331503556653046,
+            "Output_token_SLO_goodput": 45.330405690644874,
+            "ITL_threshold_exceedances": 10,
+            "percentile_Decode_absolute_pass": true
+          }
+        },
+        "native_observations": {
+          "decode": {
+            "queue_samples": 52,
+            "waiting_max": 0,
+            "waiting_excluding_remote_KV_max": 0,
+            "waiting_half_means": [
+              0.0,
+              0.0
+            ],
+            "KV_free_min": 17109,
+            "KV_usage_max": 0.10485010202479983,
+            "KV_allocation_refusals": 0,
+            "scope": "Native scheduler observations. WAITING_REMOTE_KVS is not compute-ready work. Detailed status counts remain in raw evidence."
+          },
+          "prefill": {
+            "queue_samples": 20,
+            "waiting_max": 0,
+            "waiting_excluding_remote_KV_max": 0,
+            "waiting_half_means": [
+              0.0,
+              0.0
+            ],
+            "KV_free_min": 15113,
+            "KV_usage_max": 0.20928164076806366,
+            "KV_allocation_refusals": 0,
+            "scope": "Native scheduler observations. WAITING_REMOTE_KVS is not compute-ready work. Detailed status counts remain in raw evidence."
+          }
+        },
+        "actual_compute_submission_QPS": 3.5188882062654594,
+        "compute_submission_roles": [
+          "prefill"
+        ],
+        "P_source_production_span_s": 18.20126054994762,
+        "P_clearance_after_last_arrival_s": 6.082493068650365,
+        "finite_P_source_ready_rate": 3.5162399782351437,
+        "P_production_scope": "Host observation start to final Source-ready notification. Includes compute, queue, preparation, and backpressure. This is not exclusive GPU compute or sustainable capacity.",
+        "arrival_observation_lag_ms": {
+          "samples": 64,
+          "p95": 0.33390736207365984,
+          "scope": "Coordinator arrival observation is separate from a later Source submission. Older discovery logs do not contain this boundary."
+        },
+        "coordinator_queue_observations": {
+          "P_host_compute_pending_max": 20,
+          "P_host_compute_pending_half_means": [
+            7.25,
+            14.0
+          ],
+          "D_host_pending_max": 1,
+          "scope": "Dynamic holds its compute queue in the coordinator. Native holds its queue in the worker. Neither coordinator outstanding nor D_HOST_PENDING is P compute-ready work."
+        },
+        "D_cohort_request_admissions_by_batch_size": {
+          "1": 2,
+          "2": 2,
+          "4": 60
+        },
+        "D_cohort_count": 18
+      },
+      "completed_layer_distribution": {
+        "0": 0,
+        "2": 64,
+        "4": 0,
+        "8": 0,
+        "12": 0
+      }
+    },
+    {
+      "name": "tune_Static4_f100_O16_N64_q4p8_v1",
+      "output": {
+        "reference": "baseline_Native_O200_N64_q4p8_s21_v1",
+        "candidate": "tune_Static4_f100_O16_N64_q4p8_v1",
+        "compared": 64,
+        "failures": [],
+        "passed": true,
+        "evidence": "CORRECTNESS_ONLY",
+        "scope": "Exact generated tokens at matched inputs and seeds. Separate state and actual-layer checks are required for migration."
+      },
+      "metrics": {
+        "name": "tune_Static4_f100_O16_N64_q4p8_v1",
+        "complete": true,
+        "arm": "PD_G1",
+        "output_cap": 16,
+        "count": 64,
+        "distinct_prompt_ids": 64,
+        "offered_QPS": 4.8,
+        "scheduled_trace_QPS": 5.198548457772387,
+        "realized_arrival_QPS": 5.198679536740084,
+        "completed_QPS": 3.5400370304972713,
+        "input_tokens_s": 28320.29624397817,
+        "output_tokens_s": 56.64059248795634,
+        "observation_seconds": 18.07890692912042,
+        "maximum_ITL_ms": 36.40793450176716,
+        "ITL_intervals": 960,
+        "coalesced_intervals": 0,
+        "Service_TTFT": "NOT_MEASURED",
+        "physical_GPU_idle": "NOT_MEASURED",
+        "scope": "Coordinator delivery timestamps. First ITL is included. Finite-cohort drain rates are not sustainable capacity.",
+        "TTFT_p50_ms": 3743.8787799328566,
+        "TTFT_p95_ms": 5340.828348696232,
+        "TTFT_p99_ms": 5454.980890024453,
+        "TPOT_p50_ms": 27.413058653473854,
+        "TPOT_p95_ms": 28.591588598986466,
+        "TPOT_p99_ms": 28.765814170241356,
+        "E2E_p50_ms": 4151.769809424877,
+        "E2E_p95_ms": 5757.686840090901,
+        "E2E_p99_ms": 5877.615284025669,
+        "ITL_p50_ms": 27.14240364730358,
+        "ITL_p95_ms": 29.718354903161526,
+        "ITL_p99_ms": 33.670988082885735,
+        "first_ITL_p50_ms": 28.33375707268715,
+        "first_ITL_p95_ms": 29.863524809479713,
+        "first_ITL_p99_ms": 29.990585297346115,
+        "steady_ITL_p50_ms": 27.104281820356846,
+        "steady_ITL_p95_ms": 29.32604681700468,
+        "steady_ITL_p99_ms": 33.82429787889121,
+        "request_max_ITL_p50_ms": 31.56615700572729,
+        "request_max_ITL_p95_ms": 35.82146558910608,
+        "request_max_ITL_p99_ms": 36.34363675490022,
+        "worker_emission_ITL_p99_ms": 29.589191619306803,
+        "coordinator_delivery_lag_p95_ms": 0.5897318013012408,
+        "parent_tail_interval_identity": {
+          "samples": 10,
+          "parent_interval_mean_ms": 35.29946468770504,
+          "worker_interval_mean_ms": 28.983882069587708,
+          "receiver_lag_change_mean_ms": 6.3155826181173325,
+          "scope": "Select parent intervals at or above its p99. Parent interval equals worker interval plus the change in receive lag. The worker interval still includes GPU and Host scheduling. This is not an additive decomposition of p99 or between-method regression."
+        },
+        "SLO_regimes": {
+          "TTFT_priority": {
+            "thresholds": {
+              "TTFT_ms": 2000,
+              "ITL_ms": 54,
+              "TPOT_ms": 52
+            },
+            "TTFT_attainment": 0.125,
+            "Decode_attainment": 1.0,
+            "Joint_attainment": 0.125,
+            "Request_SLO_goodput": 0.4425046288121589,
+            "Output_token_SLO_goodput": 7.0800740609945425,
+            "ITL_threshold_exceedances": 0,
+            "percentile_Decode_absolute_pass": true
+          },
+          "Balanced": {
+            "thresholds": {
+              "TTFT_ms": 5000,
+              "ITL_ms": 34,
+              "TPOT_ms": 33
+            },
+            "TTFT_attainment": 0.859375,
+            "Decode_attainment": 0.859375,
+            "Joint_attainment": 0.75,
+            "Request_SLO_goodput": 2.6550277728729537,
+            "Output_token_SLO_goodput": 42.48044436596726,
+            "ITL_threshold_exceedances": 9,
+            "percentile_Decode_absolute_pass": true
+          },
+          "Decode_priority": {
+            "thresholds": {
+              "TTFT_ms": 10000,
+              "ITL_ms": 30,
+              "TPOT_ms": 29
+            },
+            "TTFT_attainment": 1.0,
+            "Decode_attainment": 0.375,
+            "Joint_attainment": 0.375,
+            "Request_SLO_goodput": 1.3275138864364768,
+            "Output_token_SLO_goodput": 21.24022218298363,
+            "ITL_threshold_exceedances": 41,
+            "percentile_Decode_absolute_pass": false
+          }
+        },
+        "native_observations": {
+          "prefill": {
+            "queue_samples": 21,
+            "waiting_max": 0,
+            "waiting_excluding_remote_KV_max": 0,
+            "waiting_half_means": [
+              0.0,
+              0.0
+            ],
+            "KV_free_min": 15113,
+            "KV_usage_max": 0.20928164076806366,
+            "KV_allocation_refusals": 0,
+            "scope": "Native scheduler observations. WAITING_REMOTE_KVS is not compute-ready work. Detailed status counts remain in raw evidence."
+          },
+          "decode": {
+            "queue_samples": 52,
+            "waiting_max": 0,
+            "waiting_excluding_remote_KV_max": 0,
+            "waiting_half_means": [
+              0.0,
+              0.0
+            ],
+            "KV_free_min": 17109,
+            "KV_usage_max": 0.10485010202479983,
+            "KV_allocation_refusals": 0,
+            "scope": "Native scheduler observations. WAITING_REMOTE_KVS is not compute-ready work. Detailed status counts remain in raw evidence."
+          }
+        },
+        "actual_compute_submission_QPS": 3.7799884204563576,
+        "compute_submission_roles": [
+          "prefill"
+        ],
+        "P_source_production_span_s": 16.945351667702198,
+        "P_clearance_after_last_arrival_s": 4.8265841864049435,
+        "finite_P_source_ready_rate": 3.7768469639956694,
+        "P_production_scope": "Host observation start to final Source-ready notification. Includes compute, queue, preparation, and backpressure. This is not exclusive GPU compute or sustainable capacity.",
+        "arrival_observation_lag_ms": {
+          "samples": 64,
+          "p95": 0.3148494288325309,
+          "scope": "Coordinator arrival observation is separate from a later Source submission. Older discovery logs do not contain this boundary."
+        },
+        "coordinator_queue_observations": {
+          "P_host_compute_pending_max": 16,
+          "P_host_compute_pending_half_means": [
+            6.583333333333333,
+            11.333333333333334
+          ],
+          "D_host_pending_max": 1,
+          "scope": "Dynamic holds its compute queue in the coordinator. Native holds its queue in the worker. Neither coordinator outstanding nor D_HOST_PENDING is P compute-ready work."
+        },
+        "D_cohort_request_admissions_by_batch_size": {
+          "1": 2,
+          "2": 2,
+          "4": 60
+        },
+        "D_cohort_count": 18
+      },
+      "completed_layer_distribution": {
+        "0": 0,
+        "2": 0,
+        "4": 64,
+        "8": 0,
+        "12": 0
+      }
+    },
+    {
+      "name": "tune_Static8_f100_O16_N64_q4p8_v1",
+      "output": {
+        "reference": "baseline_Native_O200_N64_q4p8_s21_v1",
+        "candidate": "tune_Static8_f100_O16_N64_q4p8_v1",
+        "compared": 64,
+        "failures": [],
+        "passed": true,
+        "evidence": "CORRECTNESS_ONLY",
+        "scope": "Exact generated tokens at matched inputs and seeds. Separate state and actual-layer checks are required for migration."
+      },
+      "metrics": {
+        "name": "tune_Static8_f100_O16_N64_q4p8_v1",
+        "complete": true,
+        "arm": "PD_G1",
+        "output_cap": 16,
+        "count": 64,
+        "distinct_prompt_ids": 64,
+        "offered_QPS": 4.8,
+        "scheduled_trace_QPS": 5.198548457772387,
+        "realized_arrival_QPS": 5.198738048065842,
+        "completed_QPS": 4.1202529085077755,
+        "input_tokens_s": 32962.02326806221,
+        "output_tokens_s": 65.92404653612441,
+        "observation_seconds": 15.533027078956366,
+        "maximum_ITL_ms": 33.55168178677559,
+        "ITL_intervals": 960,
+        "coalesced_intervals": 0,
+        "Service_TTFT": "NOT_MEASURED",
+        "physical_GPU_idle": "NOT_MEASURED",
+        "scope": "Coordinator delivery timestamps. First ITL is included. Finite-cohort drain rates are not sustainable capacity.",
+        "TTFT_p50_ms": 2341.9362558051944,
+        "TTFT_p95_ms": 3022.4772959947586,
+        "TTFT_p99_ms": 3350.353105440735,
+        "TPOT_p50_ms": 24.9738539258639,
+        "TPOT_p95_ms": 26.95230361074209,
+        "TPOT_p99_ms": 27.357682370891172,
+        "E2E_p50_ms": 2713.394441641867,
+        "E2E_p95_ms": 3407.965448312461,
+        "E2E_p99_ms": 3721.669196765869,
+        "ITL_p50_ms": 24.70546867698431,
+        "ITL_p95_ms": 27.19523524865507,
+        "ITL_p99_ms": 30.66404826939106,
+        "first_ITL_p50_ms": 25.343074463307858,
+        "first_ITL_p95_ms": 28.05755892768502,
+        "first_ITL_p99_ms": 28.146348744630814,
+        "steady_ITL_p50_ms": 24.67382699251175,
+        "steady_ITL_p95_ms": 27.06868015229702,
+        "steady_ITL_p99_ms": 30.70278298109768,
+        "request_max_ITL_p50_ms": 28.152487240731716,
+        "request_max_ITL_p95_ms": 31.79087834432721,
+        "request_max_ITL_p99_ms": 33.098513688892126,
+        "worker_emission_ITL_p99_ms": 27.626225873827934,
+        "coordinator_delivery_lag_p95_ms": 0.439257454127073,
+        "parent_tail_interval_identity": {
+          "samples": 10,
+          "parent_interval_mean_ms": 31.783766858279705,
+          "worker_interval_mean_ms": 27.018615789711475,
+          "receiver_lag_change_mean_ms": 4.76515106856823,
+          "scope": "Select parent intervals at or above its p99. Parent interval equals worker interval plus the change in receive lag. The worker interval still includes GPU and Host scheduling. This is not an additive decomposition of p99 or between-method regression."
+        },
+        "SLO_regimes": {
+          "TTFT_priority": {
+            "thresholds": {
+              "TTFT_ms": 2000,
+              "ITL_ms": 54,
+              "TPOT_ms": 52
+            },
+            "TTFT_attainment": 0.21875,
+            "Decode_attainment": 1.0,
+            "Joint_attainment": 0.21875,
+            "Request_SLO_goodput": 0.9013053237360759,
+            "Output_token_SLO_goodput": 14.420885179777214,
+            "ITL_threshold_exceedances": 0,
+            "percentile_Decode_absolute_pass": true
+          },
+          "Balanced": {
+            "thresholds": {
+              "TTFT_ms": 5000,
+              "ITL_ms": 34,
+              "TPOT_ms": 33
+            },
+            "TTFT_attainment": 1.0,
+            "Decode_attainment": 1.0,
+            "Joint_attainment": 1.0,
+            "Request_SLO_goodput": 4.1202529085077755,
+            "Output_token_SLO_goodput": 65.92404653612441,
+            "ITL_threshold_exceedances": 0,
+            "percentile_Decode_absolute_pass": true
+          },
+          "Decode_priority": {
+            "thresholds": {
+              "TTFT_ms": 10000,
+              "ITL_ms": 30,
+              "TPOT_ms": 29
+            },
+            "TTFT_attainment": 1.0,
+            "Decode_attainment": 0.765625,
+            "Joint_attainment": 0.765625,
+            "Request_SLO_goodput": 3.1545686330762654,
+            "Output_token_SLO_goodput": 50.47309812922025,
+            "ITL_threshold_exceedances": 15,
+            "percentile_Decode_absolute_pass": false
+          }
+        },
+        "native_observations": {
+          "prefill": {
+            "queue_samples": 20,
+            "waiting_max": 0,
+            "waiting_excluding_remote_KV_max": 0,
+            "waiting_half_means": [
+              0.0,
+              0.0
+            ],
+            "KV_free_min": 15113,
+            "KV_usage_max": 0.20928164076806366,
+            "KV_allocation_refusals": 0,
+            "scope": "Native scheduler observations. WAITING_REMOTE_KVS is not compute-ready work. Detailed status counts remain in raw evidence."
+          },
+          "decode": {
+            "queue_samples": 51,
+            "waiting_max": 0,
+            "waiting_excluding_remote_KV_max": 0,
+            "waiting_half_means": [
+              0.0,
+              0.0
+            ],
+            "KV_free_min": 17109,
+            "KV_usage_max": 0.10485010202479983,
+            "KV_allocation_refusals": 0,
+            "scope": "Native scheduler observations. WAITING_REMOTE_KVS is not compute-ready work. Detailed status counts remain in raw evidence."
+          }
+        },
+        "actual_compute_submission_QPS": 4.444549643701117,
+        "compute_submission_roles": [
+          "prefill"
+        ],
+        "P_source_production_span_s": 14.41753252223134,
+        "P_clearance_after_last_arrival_s": 2.298765040934086,
+        "finite_P_source_ready_rate": 4.439039752559198,
+        "P_production_scope": "Host observation start to final Source-ready notification. Includes compute, queue, preparation, and backpressure. This is not exclusive GPU compute or sustainable capacity.",
+        "arrival_observation_lag_ms": {
+          "samples": 64,
+          "p95": 0.3113910555839538,
+          "scope": "Coordinator arrival observation is separate from a later Source submission. Older discovery logs do not contain this boundary."
+        },
+        "coordinator_queue_observations": {
+          "P_host_compute_pending_max": 9,
+          "P_host_compute_pending_half_means": [
+            4.583333333333333,
+            5.0
+          ],
+          "D_host_pending_max": 1,
+          "scope": "Dynamic holds its compute queue in the coordinator. Native holds its queue in the worker. Neither coordinator outstanding nor D_HOST_PENDING is P compute-ready work."
+        },
+        "D_cohort_request_admissions_by_batch_size": {
+          "1": 2,
+          "2": 2,
+          "4": 60
+        },
+        "D_cohort_count": 18
+      },
+      "completed_layer_distribution": {
+        "0": 0,
+        "2": 0,
+        "4": 0,
+        "8": 64,
+        "12": 0
+      }
+    },
+    {
+      "name": "tune_Static12_f100_O16_N64_q4p8_v1",
+      "output": {
+        "reference": "baseline_Native_O200_N64_q4p8_s21_v1",
+        "candidate": "tune_Static12_f100_O16_N64_q4p8_v1",
+        "compared": 64,
+        "failures": [],
+        "passed": true,
+        "evidence": "CORRECTNESS_ONLY",
+        "scope": "Exact generated tokens at matched inputs and seeds. Separate state and actual-layer checks are required for migration."
+      },
+      "metrics": {
+        "name": "tune_Static12_f100_O16_N64_q4p8_v1",
+        "complete": true,
+        "arm": "PD_G1",
+        "output_cap": 16,
+        "count": 64,
+        "distinct_prompt_ids": 64,
+        "offered_QPS": 4.8,
+        "scheduled_trace_QPS": 5.198548457772387,
+        "realized_arrival_QPS": 5.198644073404911,
+        "completed_QPS": 4.133915534785097,
+        "input_tokens_s": 33071.32427828077,
+        "output_tokens_s": 66.14264855656155,
+        "observation_seconds": 15.481690291315317,
+        "maximum_ITL_ms": 31.171487644314766,
+        "ITL_intervals": 960,
+        "coalesced_intervals": 0,
+        "Service_TTFT": "NOT_MEASURED",
+        "physical_GPU_idle": "NOT_MEASURED",
+        "scope": "Coordinator delivery timestamps. First ITL is included. Finite-cohort drain rates are not sustainable capacity.",
+        "TTFT_p50_ms": 2624.2218371480703,
+        "TTFT_p95_ms": 3316.067910194397,
+        "TTFT_p99_ms": 3413.0678314901884,
+        "TPOT_p50_ms": 24.89320499201616,
+        "TPOT_p95_ms": 25.484186907609303,
+        "TPOT_p99_ms": 25.580467889706295,
+        "E2E_p50_ms": 3000.8716182783246,
+        "E2E_p95_ms": 3683.9389523491263,
+        "E2E_p99_ms": 3786.479087565094,
+        "ITL_p50_ms": 24.69803486019373,
+        "ITL_p95_ms": 26.556339394301176,
+        "ITL_p99_ms": 30.24500535801053,
+        "first_ITL_p50_ms": 25.918993167579174,
+        "first_ITL_p95_ms": 26.592167373746634,
+        "first_ITL_p99_ms": 26.601314079016447,
+        "steady_ITL_p50_ms": 24.68054834753275,
+        "steady_ITL_p95_ms": 26.340014301240444,
+        "steady_ITL_p99_ms": 30.27777317911386,
+        "request_max_ITL_p50_ms": 27.276362292468548,
+        "request_max_ITL_p95_ms": 30.99253149703145,
+        "request_max_ITL_p99_ms": 31.16413000971079,
+        "worker_emission_ITL_p99_ms": 26.336459312587976,
+        "coordinator_delivery_lag_p95_ms": 0.4673893563449376,
+        "parent_tail_interval_identity": {
+          "samples": 10,
+          "parent_interval_mean_ms": 30.76520748436451,
+          "worker_interval_mean_ms": 25.065945275127888,
+          "receiver_lag_change_mean_ms": 5.699262209236622,
+          "scope": "Select parent intervals at or above its p99. Parent interval equals worker interval plus the change in receive lag. The worker interval still includes GPU and Host scheduling. This is not an additive decomposition of p99 or between-method regression."
+        },
+        "SLO_regimes": {
+          "TTFT_priority": {
+            "thresholds": {
+              "TTFT_ms": 2000,
+              "ITL_ms": 54,
+              "TPOT_ms": 52
+            },
+            "TTFT_attainment": 0.25,
+            "Decode_attainment": 1.0,
+            "Joint_attainment": 0.25,
+            "Request_SLO_goodput": 1.0334788836962743,
+            "Output_token_SLO_goodput": 16.53566213914039,
+            "ITL_threshold_exceedances": 0,
+            "percentile_Decode_absolute_pass": true
+          },
+          "Balanced": {
+            "thresholds": {
+              "TTFT_ms": 5000,
+              "ITL_ms": 34,
+              "TPOT_ms": 33
+            },
+            "TTFT_attainment": 1.0,
+            "Decode_attainment": 1.0,
+            "Joint_attainment": 1.0,
+            "Request_SLO_goodput": 4.133915534785097,
+            "Output_token_SLO_goodput": 66.14264855656155,
+            "ITL_threshold_exceedances": 0,
+            "percentile_Decode_absolute_pass": true
+          },
+          "Decode_priority": {
+            "thresholds": {
+              "TTFT_ms": 10000,
+              "ITL_ms": 30,
+              "TPOT_ms": 29
+            },
+            "TTFT_attainment": 1.0,
+            "Decode_attainment": 0.796875,
+            "Joint_attainment": 0.796875,
+            "Request_SLO_goodput": 3.294213941781874,
+            "Output_token_SLO_goodput": 52.70742306850998,
+            "ITL_threshold_exceedances": 13,
+            "percentile_Decode_absolute_pass": false
+          }
+        },
+        "native_observations": {
+          "decode": {
+            "queue_samples": 47,
+            "waiting_max": 0,
+            "waiting_excluding_remote_KV_max": 0,
+            "waiting_half_means": [
+              0.0,
+              0.0
+            ],
+            "KV_free_min": 17109,
+            "KV_usage_max": 0.10485010202479983,
+            "KV_allocation_refusals": 0,
+            "scope": "Native scheduler observations. WAITING_REMOTE_KVS is not compute-ready work. Detailed status counts remain in raw evidence."
+          },
+          "prefill": {
+            "queue_samples": 24,
+            "waiting_max": 0,
+            "waiting_excluding_remote_KV_max": 0,
+            "waiting_half_means": [
+              0.0,
+              0.0
+            ],
+            "KV_free_min": 14113,
+            "KV_usage_max": 0.2616020509600795,
+            "KV_allocation_refusals": 0,
+            "scope": "Native scheduler observations. WAITING_REMOTE_KVS is not compute-ready work. Detailed status counts remain in raw evidence."
+          }
+        },
+        "actual_compute_submission_QPS": 4.741278281706289,
+        "compute_submission_roles": [
+          "prefill"
+        ],
+        "P_source_production_span_s": 13.671409979462624,
+        "P_clearance_after_last_arrival_s": 1.552642498165369,
+        "finite_P_source_ready_rate": 4.681302081946314,
+        "P_production_scope": "Host observation start to final Source-ready notification. Includes compute, queue, preparation, and backpressure. This is not exclusive GPU compute or sustainable capacity.",
+        "arrival_observation_lag_ms": {
+          "samples": 64,
+          "p95": 0.3261968493461607,
+          "scope": "Coordinator arrival observation is separate from a later Source submission. Older discovery logs do not contain this boundary."
+        },
+        "coordinator_queue_observations": {
+          "P_host_compute_pending_max": 7,
+          "P_host_compute_pending_half_means": [
+            3.5,
+            3.5
+          ],
+          "D_host_pending_max": 6,
+          "scope": "Dynamic holds its compute queue in the coordinator. Native holds its queue in the worker. Neither coordinator outstanding nor D_HOST_PENDING is P compute-ready work."
+        },
+        "D_cohort_request_admissions_by_batch_size": {
+          "1": 1,
+          "2": 2,
+          "3": 9,
+          "4": 52
+        },
+        "D_cohort_count": 18
+      },
+      "completed_layer_distribution": {
+        "0": 0,
+        "2": 0,
+        "4": 0,
+        "8": 0,
+        "12": 64
+      }
+    },
+    {
+      "name": "tune_Static12_f50_O16_N64_q4p8_v1",
+      "output": {
+        "reference": "baseline_Native_O200_N64_q4p8_s21_v1",
+        "candidate": "tune_Static12_f50_O16_N64_q4p8_v1",
+        "compared": 64,
+        "failures": [],
+        "passed": true,
+        "evidence": "CORRECTNESS_ONLY",
+        "scope": "Exact generated tokens at matched inputs and seeds. Separate state and actual-layer checks are required for migration."
+      },
+      "metrics": {
+        "name": "tune_Static12_f50_O16_N64_q4p8_v1",
+        "complete": true,
+        "arm": "PD_G1",
+        "output_cap": 16,
+        "count": 64,
+        "distinct_prompt_ids": 64,
+        "offered_QPS": 4.8,
+        "scheduled_trace_QPS": 5.198548457772387,
+        "realized_arrival_QPS": 5.198649709855072,
+        "completed_QPS": 3.774912825961526,
+        "input_tokens_s": 30199.302607692207,
+        "output_tokens_s": 60.398605215384414,
+        "observation_seconds": 16.954033894464374,
+        "maximum_ITL_ms": 33.69107097387314,
+        "ITL_intervals": 960,
+        "coalesced_intervals": 0,
+        "Service_TTFT": "NOT_MEASURED",
+        "physical_GPU_idle": "NOT_MEASURED",
+        "scope": "Coordinator delivery timestamps. First ITL is included. Finite-cohort drain rates are not sustainable capacity.",
+        "TTFT_p50_ms": 3216.5918489918113,
+        "TTFT_p95_ms": 4274.716182332485,
+        "TTFT_p99_ms": 4426.883815303445,
+        "TPOT_p50_ms": 27.00334501763185,
+        "TPOT_p95_ms": 27.473868895322084,
+        "TPOT_p99_ms": 27.565478691210348,
+        "E2E_p50_ms": 3623.254365287721,
+        "E2E_p95_ms": 4672.728944290428,
+        "E2E_p99_ms": 4827.940946798772,
+        "ITL_p50_ms": 26.860633864998817,
+        "ITL_p95_ms": 28.32202957943082,
+        "ITL_p99_ms": 33.189957439899445,
+        "first_ITL_p50_ms": 24.67819582670927,
+        "first_ITL_p95_ms": 28.28050758689642,
+        "first_ITL_p99_ms": 28.29987458884716,
+        "steady_ITL_p50_ms": 26.86198242008686,
+        "steady_ITL_p95_ms": 28.63416774198413,
+        "steady_ITL_p99_ms": 33.204584661871195,
+        "request_max_ITL_p50_ms": 30.20316455513239,
+        "request_max_ITL_p95_ms": 33.584323432296515,
+        "request_max_ITL_p99_ms": 33.67189418524504,
+        "worker_emission_ITL_p99_ms": 28.32628384232521,
+        "coordinator_delivery_lag_p95_ms": 0.4711637273430822,
+        "parent_tail_interval_identity": {
+          "samples": 10,
+          "parent_interval_mean_ms": 33.45792684704065,
+          "worker_interval_mean_ms": 28.21462880820036,
+          "receiver_lag_change_mean_ms": 5.243298038840294,
+          "scope": "Select parent intervals at or above its p99. Parent interval equals worker interval plus the change in receive lag. The worker interval still includes GPU and Host scheduling. This is not an additive decomposition of p99 or between-method regression."
+        },
+        "SLO_regimes": {
+          "TTFT_priority": {
+            "thresholds": {
+              "TTFT_ms": 2000,
+              "ITL_ms": 54,
+              "TPOT_ms": 52
+            },
+            "TTFT_attainment": 0.15625,
+            "Decode_attainment": 1.0,
+            "Joint_attainment": 0.15625,
+            "Request_SLO_goodput": 0.5898301290564884,
+            "Output_token_SLO_goodput": 9.437282064903814,
+            "ITL_threshold_exceedances": 0,
+            "percentile_Decode_absolute_pass": true
+          },
+          "Balanced": {
+            "thresholds": {
+              "TTFT_ms": 5000,
+              "ITL_ms": 34,
+              "TPOT_ms": 33
+            },
+            "TTFT_attainment": 1.0,
+            "Decode_attainment": 1.0,
+            "Joint_attainment": 1.0,
+            "Request_SLO_goodput": 3.774912825961526,
+            "Output_token_SLO_goodput": 60.398605215384414,
+            "ITL_threshold_exceedances": 0,
+            "percentile_Decode_absolute_pass": true
+          },
+          "Decode_priority": {
+            "thresholds": {
+              "TTFT_ms": 10000,
+              "ITL_ms": 30,
+              "TPOT_ms": 29
+            },
+            "TTFT_attainment": 1.0,
+            "Decode_attainment": 0.453125,
+            "Joint_attainment": 0.453125,
+            "Request_SLO_goodput": 1.7105073742638164,
+            "Output_token_SLO_goodput": 27.368117988221062,
+            "ITL_threshold_exceedances": 35,
+            "percentile_Decode_absolute_pass": false
+          }
+        },
+        "native_observations": {
+          "decode": {
+            "queue_samples": 49,
+            "waiting_max": 0,
+            "waiting_excluding_remote_KV_max": 0,
+            "waiting_half_means": [
+              0.0,
+              0.0
+            ],
+            "KV_free_min": 17109,
+            "KV_usage_max": 0.10485010202479983,
+            "KV_allocation_refusals": 0,
+            "scope": "Native scheduler observations. WAITING_REMOTE_KVS is not compute-ready work. Detailed status counts remain in raw evidence."
+          },
+          "prefill": {
+            "queue_samples": 21,
+            "waiting_max": 0,
+            "waiting_excluding_remote_KV_max": 0,
+            "waiting_half_means": [
+              0.0,
+              0.0
+            ],
+            "KV_free_min": 15113,
+            "KV_usage_max": 0.20928164076806366,
+            "KV_allocation_refusals": 0,
+            "scope": "Native scheduler observations. WAITING_REMOTE_KVS is not compute-ready work. Detailed status counts remain in raw evidence."
+          }
+        },
+        "actual_compute_submission_QPS": 4.027173463179491,
+        "compute_submission_roles": [
+          "prefill"
+        ],
+        "P_source_production_span_s": 15.850709352642298,
+        "P_clearance_after_last_arrival_s": 3.731941871345043,
+        "finite_P_source_ready_rate": 4.037674187075499,
+        "P_production_scope": "Host observation start to final Source-ready notification. Includes compute, queue, preparation, and backpressure. This is not exclusive GPU compute or sustainable capacity.",
+        "arrival_observation_lag_ms": {
+          "samples": 64,
+          "p95": 0.3283738158643245,
+          "scope": "Coordinator arrival observation is separate from a later Source submission. Older discovery logs do not contain this boundary."
+        },
+        "coordinator_queue_observations": {
+          "P_host_compute_pending_max": 12,
+          "P_host_compute_pending_half_means": [
+            5.916666666666667,
+            9.333333333333334
+          ],
+          "D_host_pending_max": 1,
+          "scope": "Dynamic holds its compute queue in the coordinator. Native holds its queue in the worker. Neither coordinator outstanding nor D_HOST_PENDING is P compute-ready work."
+        },
+        "D_cohort_request_admissions_by_batch_size": {
+          "1": 2,
+          "2": 2,
+          "4": 60
+        },
+        "D_cohort_count": 18
+      },
+      "completed_layer_distribution": {
+        "0": 33,
+        "2": 0,
+        "4": 0,
+        "8": 0,
+        "12": 31
+      }
+    },
+    {
+      "name": "tune_Static8_f50_O16_N64_q4p8_v1",
+      "output": {
+        "reference": "baseline_Native_O200_N64_q4p8_s21_v1",
+        "candidate": "tune_Static8_f50_O16_N64_q4p8_v1",
+        "compared": 64,
+        "failures": [],
+        "passed": true,
+        "evidence": "CORRECTNESS_ONLY",
+        "scope": "Exact generated tokens at matched inputs and seeds. Separate state and actual-layer checks are required for migration."
+      },
+      "metrics": {
+        "name": "tune_Static8_f50_O16_N64_q4p8_v1",
+        "complete": true,
+        "arm": "PD_G1",
+        "output_cap": 16,
+        "count": 64,
+        "distinct_prompt_ids": 64,
+        "offered_QPS": 4.8,
+        "scheduled_trace_QPS": 5.198548457772387,
+        "realized_arrival_QPS": 5.198710928531856,
+        "completed_QPS": 3.6561296180363017,
+        "input_tokens_s": 29249.036944290412,
+        "output_tokens_s": 58.49807388858083,
+        "observation_seconds": 17.50484985113144,
+        "maximum_ITL_ms": 33.5846021771431,
+        "ITL_intervals": 960,
+        "coalesced_intervals": 0,
+        "Service_TTFT": "NOT_MEASURED",
+        "physical_GPU_idle": "NOT_MEASURED",
+        "scope": "Coordinator delivery timestamps. First ITL is included. Finite-cohort drain rates are not sustainable capacity.",
+        "TTFT_p50_ms": 3556.6441901028156,
+        "TTFT_p95_ms": 4847.112538479268,
+        "TTFT_p99_ms": 4938.059933762997,
+        "TPOT_p50_ms": 26.67151354253292,
+        "TPOT_p95_ms": 27.391667384654284,
+        "TPOT_p99_ms": 27.677699577063322,
+        "E2E_p50_ms": 3955.4980592802167,
+        "E2E_p95_ms": 5244.476013537495,
+        "E2E_p99_ms": 5340.516529344022,
+        "ITL_p50_ms": 26.557047851383686,
+        "ITL_p95_ms": 28.349091485142708,
+        "ITL_p99_ms": 31.751192212104797,
+        "first_ITL_p50_ms": 24.65149760246277,
+        "first_ITL_p95_ms": 28.56229478493333,
+        "first_ITL_p99_ms": 28.615088611841202,
+        "steady_ITL_p50_ms": 26.557397097349167,
+        "steady_ITL_p95_ms": 28.341363184154034,
+        "steady_ITL_p99_ms": 31.768945697695013,
+        "request_max_ITL_p50_ms": 29.412509873509407,
+        "request_max_ITL_p95_ms": 33.32354091107845,
+        "request_max_ITL_p99_ms": 33.537414744496346,
+        "worker_emission_ITL_p99_ms": 28.336809929460287,
+        "coordinator_delivery_lag_p95_ms": 0.4564600065350531,
+        "parent_tail_interval_identity": {
+          "samples": 10,
+          "parent_interval_mean_ms": 32.85510428249836,
+          "worker_interval_mean_ms": 28.078639693558216,
+          "receiver_lag_change_mean_ms": 4.776464588940144,
+          "scope": "Select parent intervals at or above its p99. Parent interval equals worker interval plus the change in receive lag. The worker interval still includes GPU and Host scheduling. This is not an additive decomposition of p99 or between-method regression."
+        },
+        "SLO_regimes": {
+          "TTFT_priority": {
+            "thresholds": {
+              "TTFT_ms": 2000,
+              "ITL_ms": 54,
+              "TPOT_ms": 52
+            },
+            "TTFT_attainment": 0.15625,
+            "Decode_attainment": 1.0,
+            "Joint_attainment": 0.15625,
+            "Request_SLO_goodput": 0.5712702528181721,
+            "Output_token_SLO_goodput": 9.140324045090754,
+            "ITL_threshold_exceedances": 0,
+            "percentile_Decode_absolute_pass": true
+          },
+          "Balanced": {
+            "thresholds": {
+              "TTFT_ms": 5000,
+              "ITL_ms": 34,
+              "TPOT_ms": 33
+            },
+            "TTFT_attainment": 1.0,
+            "Decode_attainment": 1.0,
+            "Joint_attainment": 1.0,
+            "Request_SLO_goodput": 3.6561296180363017,
+            "Output_token_SLO_goodput": 58.49807388858083,
+            "ITL_threshold_exceedances": 0,
+            "percentile_Decode_absolute_pass": true
+          },
+          "Decode_priority": {
+            "thresholds": {
+              "TTFT_ms": 10000,
+              "ITL_ms": 30,
+              "TPOT_ms": 29
+            },
+            "TTFT_attainment": 1.0,
+            "Decode_attainment": 0.640625,
+            "Joint_attainment": 0.640625,
+            "Request_SLO_goodput": 2.342208036554506,
+            "Output_token_SLO_goodput": 37.475328584872095,
+            "ITL_threshold_exceedances": 23,
+            "percentile_Decode_absolute_pass": false
+          }
+        },
+        "native_observations": {
+          "prefill": {
+            "queue_samples": 21,
+            "waiting_max": 0,
+            "waiting_excluding_remote_KV_max": 0,
+            "waiting_half_means": [
+              0.0,
+              0.0
+            ],
+            "KV_free_min": 15113,
+            "KV_usage_max": 0.20928164076806366,
+            "KV_allocation_refusals": 0,
+            "scope": "Native scheduler observations. WAITING_REMOTE_KVS is not compute-ready work. Detailed status counts remain in raw evidence."
+          },
+          "decode": {
+            "queue_samples": 49,
+            "waiting_max": 0,
+            "waiting_excluding_remote_KV_max": 0,
+            "waiting_half_means": [
+              0.0,
+              0.0
+            ],
+            "KV_free_min": 17109,
+            "KV_usage_max": 0.10485010202479983,
+            "KV_allocation_refusals": 0,
+            "scope": "Native scheduler observations. WAITING_REMOTE_KVS is not compute-ready work. Detailed status counts remain in raw evidence."
+          }
+        },
+        "actual_compute_submission_QPS": 3.8837866168257276,
+        "compute_submission_roles": [
+          "prefill"
+        ],
+        "P_source_production_span_s": 16.45427862741053,
+        "P_clearance_after_last_arrival_s": 4.3355111461132765,
+        "finite_P_source_ready_rate": 3.8895658356839133,
+        "P_production_scope": "Host observation start to final Source-ready notification. Includes compute, queue, preparation, and backpressure. This is not exclusive GPU compute or sustainable capacity.",
+        "arrival_observation_lag_ms": {
+          "samples": 64,
+          "p95": 0.3061816096305847,
+          "scope": "Coordinator arrival observation is separate from a later Source submission. Older discovery logs do not contain this boundary."
+        },
+        "coordinator_queue_observations": {
+          "P_host_compute_pending_max": 16,
+          "P_host_compute_pending_half_means": [
+            5.916666666666667,
+            10.333333333333334
+          ],
+          "D_host_pending_max": 1,
+          "scope": "Dynamic holds its compute queue in the coordinator. Native holds its queue in the worker. Neither coordinator outstanding nor D_HOST_PENDING is P compute-ready work."
+        },
+        "D_cohort_request_admissions_by_batch_size": {
+          "1": 2,
+          "2": 2,
+          "4": 60
+        },
+        "D_cohort_count": 18
+      },
+      "completed_layer_distribution": {
+        "0": 33,
+        "2": 0,
+        "4": 0,
+        "8": 31,
+        "12": 0
+      }
+    },
+    {
+      "name": "tune_Static2_f100_O64_N64_q4p8_v1",
+      "output": {
+        "reference": "baseline_Native_O200_N64_q4p8_s21_v1",
+        "candidate": "tune_Static2_f100_O64_N64_q4p8_v1",
+        "compared": 64,
+        "failures": [],
+        "passed": true,
+        "evidence": "CORRECTNESS_ONLY",
+        "scope": "Exact generated tokens at matched inputs and seeds. Separate state and actual-layer checks are required for migration."
+      },
+      "metrics": {
+        "name": "tune_Static2_f100_O64_N64_q4p8_v1",
+        "complete": true,
+        "arm": "PD_G1",
+        "output_cap": 64,
+        "count": 64,
+        "distinct_prompt_ids": 64,
+        "offered_QPS": 4.8,
+        "scheduled_trace_QPS": 5.198548457772387,
+        "realized_arrival_QPS": 5.198735129060602,
+        "completed_QPS": 1.8867850392091927,
+        "input_tokens_s": 15094.280313673542,
+        "output_tokens_s": 120.75424250938833,
+        "observation_seconds": 33.9201332796365,
+        "maximum_ITL_ms": 37.49343566596508,
+        "ITL_intervals": 4032,
+        "coalesced_intervals": 0,
+        "Service_TTFT": "NOT_MEASURED",
+        "physical_GPU_idle": "NOT_MEASURED",
+        "scope": "Coordinator delivery timestamps. First ITL is included. Finite-cohort drain rates are not sustainable capacity.",
+        "TTFT_p50_ms": 12539.560561068356,
+        "TTFT_p95_ms": 20175.0053986907,
+        "TTFT_p99_ms": 20412.559250164777,
+        "TPOT_p50_ms": 26.981851913862755,
+        "TPOT_p95_ms": 27.710702029308155,
+        "TPOT_p99_ms": 27.791393009561396,
+        "E2E_p50_ms": 14232.08454810083,
+        "E2E_p95_ms": 21925.369652174413,
+        "E2E_p99_ms": 22157.867203131318,
+        "ITL_p50_ms": 26.900824159383774,
+        "ITL_p95_ms": 27.83237099647522,
+        "ITL_p99_ms": 30.149712301790714,
+        "first_ITL_p50_ms": 27.913076803088188,
+        "first_ITL_p95_ms": 29.255583416670554,
+        "first_ITL_p99_ms": 29.397231210023165,
+        "steady_ITL_p50_ms": 26.896038092672825,
+        "steady_ITL_p95_ms": 27.791823260486126,
+        "steady_ITL_p99_ms": 30.17112176865339,
+        "request_max_ITL_p50_ms": 31.089816242456436,
+        "request_max_ITL_p95_ms": 34.66802109032869,
+        "request_max_ITL_p99_ms": 36.07961513102054,
+        "worker_emission_ITL_p99_ms": 28.512352369725704,
+        "coordinator_delivery_lag_p95_ms": 0.4266859032213688,
+        "parent_tail_interval_identity": {
+          "samples": 41,
+          "parent_interval_mean_ms": 32.68070191871829,
+          "worker_interval_mean_ms": 28.35346931001035,
+          "receiver_lag_change_mean_ms": 4.32723260870794,
+          "scope": "Select parent intervals at or above its p99. Parent interval equals worker interval plus the change in receive lag. The worker interval still includes GPU and Host scheduling. This is not an additive decomposition of p99 or between-method regression."
+        },
+        "SLO_regimes": {
+          "TTFT_priority": {
+            "thresholds": {
+              "TTFT_ms": 2000,
+              "ITL_ms": 55,
+              "TPOT_ms": 53
+            },
+            "TTFT_attainment": 0.046875,
+            "Decode_attainment": 1.0,
+            "Joint_attainment": 0.046875,
+            "Request_SLO_goodput": 0.0884430487129309,
+            "Output_token_SLO_goodput": 5.660355117627578,
+            "ITL_threshold_exceedances": 0,
+            "percentile_Decode_absolute_pass": true
+          },
+          "Balanced": {
+            "thresholds": {
+              "TTFT_ms": 5000,
+              "ITL_ms": 35,
+              "TPOT_ms": 33
+            },
+            "TTFT_attainment": 0.171875,
+            "Decode_attainment": 0.96875,
+            "Joint_attainment": 0.171875,
+            "Request_SLO_goodput": 0.32429117861408,
+            "Output_token_SLO_goodput": 20.75463543130112,
+            "ITL_threshold_exceedances": 2,
+            "percentile_Decode_absolute_pass": true
+          },
+          "Decode_priority": {
+            "thresholds": {
+              "TTFT_ms": 10000,
+              "ITL_ms": 31,
+              "TPOT_ms": 29
+            },
+            "TTFT_attainment": 0.390625,
+            "Decode_attainment": 0.5,
+            "Joint_attainment": 0.203125,
+            "Request_SLO_goodput": 0.3832532110893673,
+            "Output_token_SLO_goodput": 24.528205509719506,
+            "ITL_threshold_exceedances": 32,
+            "percentile_Decode_absolute_pass": true
+          }
+        },
+        "native_observations": {
+          "decode": {
+            "queue_samples": 123,
+            "waiting_max": 0,
+            "waiting_excluding_remote_KV_max": 0,
+            "waiting_half_means": [
+              0.0,
+              0.0
+            ],
+            "KV_free_min": 16593,
+            "KV_usage_max": 0.13184743368388008,
+            "KV_allocation_refusals": 0,
+            "scope": "Native scheduler observations. WAITING_REMOTE_KVS is not compute-ready work. Detailed status counts remain in raw evidence."
+          },
+          "prefill": {
+            "queue_samples": 75,
+            "waiting_max": 0,
+            "waiting_excluding_remote_KV_max": 0,
+            "waiting_half_means": [
+              0.0,
+              0.0
+            ],
+            "KV_free_min": 2613,
+            "KV_usage_max": 0.8632867681682624,
+            "KV_allocation_refusals": 0,
+            "scope": "Native scheduler observations. WAITING_REMOTE_KVS is not compute-ready work. Detailed status counts remain in raw evidence."
+          }
+        },
+        "actual_compute_submission_QPS": 3.5460040758110685,
+        "compute_submission_roles": [
+          "prefill"
+        ],
+        "P_source_production_span_s": 18.059529511258006,
+        "P_clearance_after_last_arrival_s": 5.9407620299607515,
+        "finite_P_source_ready_rate": 3.5438354005902246,
+        "P_production_scope": "Host observation start to final Source-ready notification. Includes compute, queue, preparation, and backpressure. This is not exclusive GPU compute or sustainable capacity.",
+        "arrival_observation_lag_ms": {
+          "samples": 64,
+          "p95": 0.33259596675634384,
+          "scope": "Coordinator arrival observation is separate from a later Source submission. Older discovery logs do not contain this boundary."
+        },
+        "coordinator_queue_observations": {
+          "P_host_compute_pending_max": 20,
+          "P_host_compute_pending_half_means": [
+            7.25,
+            13.333333333333334
+          ],
+          "D_host_pending_max": 32,
+          "scope": "Dynamic holds its compute queue in the coordinator. Native holds its queue in the worker. Neither coordinator outstanding nor D_HOST_PENDING is P compute-ready work."
+        },
+        "D_cohort_request_admissions_by_batch_size": {
+          "1": 1,
+          "4": 56,
+          "2": 2,
+          "5": 5
+        },
+        "D_cohort_count": 17
+      },
+      "completed_layer_distribution": {
+        "0": 21,
+        "2": 43,
+        "4": 0,
+        "8": 0,
+        "12": 0
+      }
+    },
+    {
+      "name": "tune_Static4_f100_O64_N64_q4p8_v1",
+      "output": {
+        "reference": "baseline_Native_O200_N64_q4p8_s21_v1",
+        "candidate": "tune_Static4_f100_O64_N64_q4p8_v1",
+        "compared": 64,
+        "failures": [],
+        "passed": true,
+        "evidence": "CORRECTNESS_ONLY",
+        "scope": "Exact generated tokens at matched inputs and seeds. Separate state and actual-layer checks are required for migration."
+      },
+      "metrics": {
+        "name": "tune_Static4_f100_O64_N64_q4p8_v1",
+        "complete": true,
+        "arm": "PD_G1",
+        "output_cap": 64,
+        "count": 64,
+        "distinct_prompt_ids": 64,
+        "offered_QPS": 4.8,
+        "scheduled_trace_QPS": 5.198548457772387,
+        "realized_arrival_QPS": 5.198700615048702,
+        "completed_QPS": 1.8744359792556873,
+        "input_tokens_s": 14995.487834045498,
+        "output_tokens_s": 119.96390267236399,
+        "observation_seconds": 34.1436041072011,
+        "maximum_ITL_ms": 44.32940296828747,
+        "ITL_intervals": 4032,
+        "coalesced_intervals": 0,
+        "Service_TTFT": "NOT_MEASURED",
+        "physical_GPU_idle": "NOT_MEASURED",
+        "scope": "Coordinator delivery timestamps. First ITL is included. Finite-cohort drain rates are not sustainable capacity.",
+        "TTFT_p50_ms": 12671.776265837252,
+        "TTFT_p95_ms": 19375.597731024023,
+        "TTFT_p99_ms": 20090.066662225872,
+        "TPOT_p50_ms": 27.017486237344286,
+        "TPOT_p95_ms": 28.113616516606676,
+        "TPOT_p99_ms": 28.1917007486262,
+        "E2E_p50_ms": 14326.235983520746,
+        "E2E_p95_ms": 21143.42707209289,
+        "E2E_p99_ms": 21817.587889172137,
+        "ITL_p50_ms": 26.880565099418163,
+        "ITL_p95_ms": 28.144418727606535,
+        "ITL_p99_ms": 30.30345277860761,
+        "first_ITL_p50_ms": 27.771840803325176,
+        "first_ITL_p95_ms": 28.5665818490088,
+        "first_ITL_p99_ms": 28.594831246882677,
+        "steady_ITL_p50_ms": 26.878769509494305,
+        "steady_ITL_p95_ms": 28.11307981610298,
+        "steady_ITL_p99_ms": 30.34301923587918,
+        "request_max_ITL_p50_ms": 31.633186154067516,
+        "request_max_ITL_p95_ms": 38.19760633632539,
+        "request_max_ITL_p99_ms": 43.11013730242848,
+        "worker_emission_ITL_p99_ms": 28.6343845538795,
+        "coordinator_delivery_lag_p95_ms": 0.4348750226199627,
+        "parent_tail_interval_identity": {
+          "samples": 41,
+          "parent_interval_mean_ms": 33.59819794209992,
+          "worker_interval_mean_ms": 28.622495055925555,
+          "receiver_lag_change_mean_ms": 4.975702886174365,
+          "scope": "Select parent intervals at or above its p99. Parent interval equals worker interval plus the change in receive lag. The worker interval still includes GPU and Host scheduling. This is not an additive decomposition of p99 or between-method regression."
+        },
+        "SLO_regimes": {
+          "TTFT_priority": {
+            "thresholds": {
+              "TTFT_ms": 2000,
+              "ITL_ms": 55,
+              "TPOT_ms": 53
+            },
+            "TTFT_attainment": 0.03125,
+            "Decode_attainment": 1.0,
+            "Joint_attainment": 0.03125,
+            "Request_SLO_goodput": 0.05857612435174023,
+            "Output_token_SLO_goodput": 3.7488719585113746,
+            "ITL_threshold_exceedances": 0,
+            "percentile_Decode_absolute_pass": true
+          },
+          "Balanced": {
+            "thresholds": {
+              "TTFT_ms": 5000,
+              "ITL_ms": 35,
+              "TPOT_ms": 33
+            },
+            "TTFT_attainment": 0.171875,
+            "Decode_attainment": 0.921875,
+            "Joint_attainment": 0.171875,
+            "Request_SLO_goodput": 0.32216868393457126,
+            "Output_token_SLO_goodput": 20.61879577181256,
+            "ITL_threshold_exceedances": 5,
+            "percentile_Decode_absolute_pass": true
+          },
+          "Decode_priority": {
+            "thresholds": {
+              "TTFT_ms": 10000,
+              "ITL_ms": 31,
+              "TPOT_ms": 29
+            },
+            "TTFT_attainment": 0.359375,
+            "Decode_attainment": 0.484375,
+            "Joint_attainment": 0.203125,
+            "Request_SLO_goodput": 0.38074480828631146,
+            "Output_token_SLO_goodput": 24.367667730323934,
+            "ITL_threshold_exceedances": 33,
+            "percentile_Decode_absolute_pass": true
+          }
+        },
+        "native_observations": {
+          "prefill": {
+            "queue_samples": 79,
+            "waiting_max": 0,
+            "waiting_excluding_remote_KV_max": 0,
+            "waiting_half_means": [
+              0.0,
+              0.0
+            ],
+            "KV_free_min": 1113,
+            "KV_usage_max": 0.9417673834562863,
+            "KV_allocation_refusals": 0,
+            "scope": "Native scheduler observations. WAITING_REMOTE_KVS is not compute-ready work. Detailed status counts remain in raw evidence."
+          },
+          "decode": {
+            "queue_samples": 124,
+            "waiting_max": 0,
+            "waiting_excluding_remote_KV_max": 0,
+            "waiting_half_means": [
+              0.0,
+              0.0
+            ],
+            "KV_free_min": 15081,
+            "KV_usage_max": 0.2109558938942081,
+            "KV_allocation_refusals": 0,
+            "scope": "Native scheduler observations. WAITING_REMOTE_KVS is not compute-ready work. Detailed status counts remain in raw evidence."
+          }
+        },
+        "actual_compute_submission_QPS": 3.692127175341784,
+        "compute_submission_roles": [
+          "prefill"
+        ],
+        "P_source_production_span_s": 17.32689905166626,
+        "P_clearance_after_last_arrival_s": 5.208131570369005,
+        "finite_P_source_ready_rate": 3.6936788174941997,
+        "P_production_scope": "Host observation start to final Source-ready notification. Includes compute, queue, preparation, and backpressure. This is not exclusive GPU compute or sustainable capacity.",
+        "arrival_observation_lag_ms": {
+          "samples": 64,
+          "p95": 0.3478710539638995,
+          "scope": "Coordinator arrival observation is separate from a later Source submission. Older discovery logs do not contain this boundary."
+        },
+        "coordinator_queue_observations": {
+          "P_host_compute_pending_max": 17,
+          "P_host_compute_pending_half_means": [
+            5.916666666666667,
+            11.333333333333334
+          ],
+          "D_host_pending_max": 33,
+          "scope": "Dynamic holds its compute queue in the coordinator. Native holds its queue in the worker. Neither coordinator outstanding nor D_HOST_PENDING is P compute-ready work."
+        },
+        "D_cohort_request_admissions_by_batch_size": {
+          "1": 2,
+          "4": 52,
+          "2": 2,
+          "8": 8
+        },
+        "D_cohort_count": 17
+      },
+      "completed_layer_distribution": {
+        "0": 24,
+        "2": 0,
+        "4": 40,
+        "8": 0,
+        "12": 0
+      }
+    },
+    {
+      "name": "tune_Static8_f100_O64_N64_q4p8_v1",
+      "output": {
+        "reference": "baseline_Native_O200_N64_q4p8_s21_v1",
+        "candidate": "tune_Static8_f100_O64_N64_q4p8_v1",
+        "compared": 64,
+        "failures": [],
+        "passed": true,
+        "evidence": "CORRECTNESS_ONLY",
+        "scope": "Exact generated tokens at matched inputs and seeds. Separate state and actual-layer checks are required for migration."
+      },
+      "metrics": {
+        "name": "tune_Static8_f100_O64_N64_q4p8_v1",
+        "complete": true,
+        "arm": "PD_G1",
+        "output_cap": 64,
+        "count": 64,
+        "distinct_prompt_ids": 64,
+        "offered_QPS": 4.8,
+        "scheduled_trace_QPS": 5.198548457772387,
+        "realized_arrival_QPS": 5.198647132140454,
+        "completed_QPS": 1.8122788578564446,
+        "input_tokens_s": 14498.230862851557,
+        "output_tokens_s": 115.98584690281245,
+        "observation_seconds": 35.31465354934335,
+        "maximum_ITL_ms": 44.55791041254997,
+        "ITL_intervals": 4032,
+        "coalesced_intervals": 0,
+        "Service_TTFT": "NOT_MEASURED",
+        "physical_GPU_idle": "NOT_MEASURED",
+        "scope": "Coordinator delivery timestamps. First ITL is included. Finite-cohort drain rates are not sustainable capacity.",
+        "TTFT_p50_ms": 13406.14004060626,
+        "TTFT_p95_ms": 20084.32154804468,
+        "TTFT_p99_ms": 20713.923986591395,
+        "TPOT_p50_ms": 27.23217479115914,
+        "TPOT_p95_ms": 28.45506737274783,
+        "TPOT_p99_ms": 28.53183169686605,
+        "E2E_p50_ms": 15084.453334100544,
+        "E2E_p95_ms": 21792.103785276413,
+        "E2E_p99_ms": 22382.099774293598,
+        "ITL_p50_ms": 27.115250937640667,
+        "ITL_p95_ms": 28.479302767664194,
+        "ITL_p99_ms": 30.495419017970583,
+        "first_ITL_p50_ms": 27.721311897039413,
+        "first_ITL_p95_ms": 29.039101954549547,
+        "first_ITL_p99_ms": 29.127573110163212,
+        "steady_ITL_p50_ms": 27.11172215640545,
+        "steady_ITL_p95_ms": 28.477636724710464,
+        "steady_ITL_p99_ms": 30.630896780639883,
+        "request_max_ITL_p50_ms": 31.71725943684578,
+        "request_max_ITL_p95_ms": 38.48519101738928,
+        "request_max_ITL_p99_ms": 43.367752581834786,
+        "worker_emission_ITL_p99_ms": 28.732115402817726,
+        "coordinator_delivery_lag_p95_ms": 0.4408913664519787,
+        "parent_tail_interval_identity": {
+          "samples": 41,
+          "parent_interval_mean_ms": 33.841804851119115,
+          "worker_interval_mean_ms": 28.915058821439743,
+          "receiver_lag_change_mean_ms": 4.926746029679368,
+          "scope": "Select parent intervals at or above its p99. Parent interval equals worker interval plus the change in receive lag. The worker interval still includes GPU and Host scheduling. This is not an additive decomposition of p99 or between-method regression."
+        },
+        "SLO_regimes": {
+          "TTFT_priority": {
+            "thresholds": {
+              "TTFT_ms": 2000,
+              "ITL_ms": 55,
+              "TPOT_ms": 53
+            },
+            "TTFT_attainment": 0.03125,
+            "Decode_attainment": 1.0,
+            "Joint_attainment": 0.03125,
+            "Request_SLO_goodput": 0.056633714308013894,
+            "Output_token_SLO_goodput": 3.624557715712889,
+            "ITL_threshold_exceedances": 0,
+            "percentile_Decode_absolute_pass": true
+          },
+          "Balanced": {
+            "thresholds": {
+              "TTFT_ms": 5000,
+              "ITL_ms": 35,
+              "TPOT_ms": 33
+            },
+            "TTFT_attainment": 0.140625,
+            "Decode_attainment": 0.90625,
+            "Joint_attainment": 0.125,
+            "Request_SLO_goodput": 0.22653485723205558,
+            "Output_token_SLO_goodput": 14.498230862851557,
+            "ITL_threshold_exceedances": 6,
+            "percentile_Decode_absolute_pass": true
+          },
+          "Decode_priority": {
+            "thresholds": {
+              "TTFT_ms": 10000,
+              "ITL_ms": 31,
+              "TPOT_ms": 29
+            },
+            "TTFT_attainment": 0.3125,
+            "Decode_attainment": 0.484375,
+            "Joint_attainment": 0.171875,
+            "Request_SLO_goodput": 0.3114854286940764,
+            "Output_token_SLO_goodput": 19.93506743642089,
+            "ITL_threshold_exceedances": 33,
+            "percentile_Decode_absolute_pass": true
+          }
+        },
+        "native_observations": {
+          "prefill": {
+            "queue_samples": 87,
+            "waiting_max": 0,
+            "waiting_excluding_remote_KV_max": 0,
+            "waiting_half_means": [
+              0.0,
+              0.0
+            ],
+            "KV_free_min": 613,
+            "KV_usage_max": 0.9679275885522942,
+            "KV_allocation_refusals": 0,
+            "scope": "Native scheduler observations. WAITING_REMOTE_KVS is not compute-ready work. Detailed status counts remain in raw evidence."
+          },
+          "decode": {
+            "queue_samples": 128,
+            "waiting_max": 0,
+            "waiting_excluding_remote_KV_max": 0,
+            "waiting_half_means": [
+              0.0,
+              0.0
+            ],
+            "KV_free_min": 15081,
+            "KV_usage_max": 0.2109558938942081,
+            "KV_allocation_refusals": 0,
+            "scope": "Native scheduler observations. WAITING_REMOTE_KVS is not compute-ready work. Detailed status counts remain in raw evidence."
+          }
+        },
+        "actual_compute_submission_QPS": 3.9609635247978656,
+        "compute_submission_roles": [
+          "prefill"
+        ],
+        "P_source_production_span_s": 16.217616530135274,
+        "P_clearance_after_last_arrival_s": 4.098849048838019,
+        "finite_P_source_ready_rate": 3.946325890803768,
+        "P_production_scope": "Host observation start to final Source-ready notification. Includes compute, queue, preparation, and backpressure. This is not exclusive GPU compute or sustainable capacity.",
+        "arrival_observation_lag_ms": {
+          "samples": 64,
+          "p95": 0.30814418569207186,
+          "scope": "Coordinator arrival observation is separate from a later Source submission. Older discovery logs do not contain this boundary."
+        },
+        "coordinator_queue_observations": {
+          "P_host_compute_pending_max": 13,
+          "P_host_compute_pending_half_means": [
+            4.916666666666667,
+            8.666666666666666
+          ],
+          "D_host_pending_max": 37,
+          "scope": "Dynamic holds its compute queue in the coordinator. Native holds its queue in the worker. Neither coordinator outstanding nor D_HOST_PENDING is P compute-ready work."
+        },
+        "D_cohort_request_admissions_by_batch_size": {
+          "1": 2,
+          "4": 52,
+          "2": 2,
+          "8": 8
+        },
+        "D_cohort_count": 17
+      },
+      "completed_layer_distribution": {
+        "0": 25,
+        "2": 0,
+        "4": 0,
+        "8": 39,
+        "12": 0
+      }
+    },
+    {
+      "name": "tune_Static12_f100_O64_N64_q4p8_v1",
+      "output": {
+        "reference": "baseline_Native_O200_N64_q4p8_s21_v1",
+        "candidate": "tune_Static12_f100_O64_N64_q4p8_v1",
+        "compared": 64,
+        "failures": [],
+        "passed": true,
+        "evidence": "CORRECTNESS_ONLY",
+        "scope": "Exact generated tokens at matched inputs and seeds. Separate state and actual-layer checks are required for migration."
+      },
+      "metrics": {
+        "name": "tune_Static12_f100_O64_N64_q4p8_v1",
+        "complete": true,
+        "arm": "PD_G1",
+        "output_cap": 64,
+        "count": 64,
+        "distinct_prompt_ids": 64,
+        "offered_QPS": 4.8,
+        "scheduled_trace_QPS": 5.198548457772387,
+        "realized_arrival_QPS": 5.198715679763633,
+        "completed_QPS": 1.909646915441497,
+        "input_tokens_s": 15277.175323531976,
+        "output_tokens_s": 122.21740258825581,
+        "observation_seconds": 33.51404884457588,
+        "maximum_ITL_ms": 41.93287342786789,
+        "ITL_intervals": 4032,
+        "coalesced_intervals": 0,
+        "Service_TTFT": "NOT_MEASURED",
+        "physical_GPU_idle": "NOT_MEASURED",
+        "scope": "Coordinator delivery timestamps. First ITL is included. Finite-cohort drain rates are not sustainable capacity.",
+        "TTFT_p50_ms": 11690.324948169291,
+        "TTFT_p95_ms": 19924.220121093094,
+        "TTFT_p99_ms": 20375.63543813303,
+        "TPOT_p50_ms": 27.172679717223794,
+        "TPOT_p95_ms": 28.141796971774763,
+        "TPOT_p99_ms": 28.21819926745125,
+        "E2E_p50_ms": 13404.07189168036,
+        "E2E_p95_ms": 21697.688499465585,
+        "E2E_p99_ms": 22144.40571039915,
+        "ITL_p50_ms": 26.96233708411455,
+        "ITL_p95_ms": 28.14402813091874,
+        "ITL_p99_ms": 29.57084694877267,
+        "first_ITL_p50_ms": 25.954732671380043,
+        "first_ITL_p95_ms": 29.448486771434542,
+        "first_ITL_p99_ms": 29.57497278228402,
+        "steady_ITL_p50_ms": 26.96897927671671,
+        "steady_ITL_p95_ms": 28.130213730037212,
+        "steady_ITL_p99_ms": 29.33302253484726,
+        "request_max_ITL_p50_ms": 30.130062252283096,
+        "request_max_ITL_p95_ms": 36.1035592854023,
+        "request_max_ITL_p99_ms": 40.727216452360146,
+        "worker_emission_ITL_p99_ms": 28.546853326261044,
+        "coordinator_delivery_lag_p95_ms": 0.42197713628411293,
+        "parent_tail_interval_identity": {
+          "samples": 41,
+          "parent_interval_mean_ms": 32.51484095505098,
+          "worker_interval_mean_ms": 28.21774485452873,
+          "receiver_lag_change_mean_ms": 4.297096100522251,
+          "scope": "Select parent intervals at or above its p99. Parent interval equals worker interval plus the change in receive lag. The worker interval still includes GPU and Host scheduling. This is not an additive decomposition of p99 or between-method regression."
+        },
+        "SLO_regimes": {
+          "TTFT_priority": {
+            "thresholds": {
+              "TTFT_ms": 2000,
+              "ITL_ms": 55,
+              "TPOT_ms": 53
+            },
+            "TTFT_attainment": 0.046875,
+            "Decode_attainment": 1.0,
+            "Joint_attainment": 0.046875,
+            "Request_SLO_goodput": 0.08951469916132017,
+            "Output_token_SLO_goodput": 5.728940746324491,
+            "ITL_threshold_exceedances": 0,
+            "percentile_Decode_absolute_pass": true
+          },
+          "Balanced": {
+            "thresholds": {
+              "TTFT_ms": 5000,
+              "ITL_ms": 35,
+              "TPOT_ms": 33
+            },
+            "TTFT_attainment": 0.171875,
+            "Decode_attainment": 0.921875,
+            "Joint_attainment": 0.171875,
+            "Request_SLO_goodput": 0.3282205635915073,
+            "Output_token_SLO_goodput": 21.006116069856468,
+            "ITL_threshold_exceedances": 5,
+            "percentile_Decode_absolute_pass": true
+          },
+          "Decode_priority": {
+            "thresholds": {
+              "TTFT_ms": 10000,
+              "ITL_ms": 31,
+              "TPOT_ms": 29
+            },
+            "TTFT_attainment": 0.40625,
+            "Decode_attainment": 0.609375,
+            "Joint_attainment": 0.296875,
+            "Request_SLO_goodput": 0.5669264280216945,
+            "Output_token_SLO_goodput": 36.283291393388446,
+            "ITL_threshold_exceedances": 25,
+            "percentile_Decode_absolute_pass": true
+          }
+        },
+        "native_observations": {
+          "decode": {
+            "queue_samples": 117,
+            "waiting_max": 0,
+            "waiting_excluding_remote_KV_max": 0,
+            "waiting_half_means": [
+              0.0,
+              0.0
+            ],
+            "KV_free_min": 15585,
+            "KV_usage_max": 0.18458640715743213,
+            "KV_allocation_refusals": 0,
+            "scope": "Native scheduler observations. WAITING_REMOTE_KVS is not compute-ready work. Detailed status counts remain in raw evidence."
+          },
+          "prefill": {
+            "queue_samples": 85,
+            "waiting_max": 0,
+            "waiting_excluding_remote_KV_max": 0,
+            "waiting_half_means": [
+              0.0,
+              0.0
+            ],
+            "KV_free_min": 1113,
+            "KV_usage_max": 0.9417673834562863,
+            "KV_allocation_refusals": 0,
+            "scope": "Native scheduler observations. WAITING_REMOTE_KVS is not compute-ready work. Detailed status counts remain in raw evidence."
+          }
+        },
+        "actual_compute_submission_QPS": 4.2595893333162165,
+        "compute_submission_roles": [
+          "prefill"
+        ],
+        "P_source_production_span_s": 15.642572585493326,
+        "P_clearance_after_last_arrival_s": 3.5238051041960716,
+        "finite_P_source_ready_rate": 4.091398627061675,
+        "P_production_scope": "Host observation start to final Source-ready notification. Includes compute, queue, preparation, and backpressure. This is not exclusive GPU compute or sustainable capacity.",
+        "arrival_observation_lag_ms": {
+          "samples": 64,
+          "p95": 0.32962439581751823,
+          "scope": "Coordinator arrival observation is separate from a later Source submission. Older discovery logs do not contain this boundary."
+        },
+        "coordinator_queue_observations": {
+          "P_host_compute_pending_max": 11,
+          "P_host_compute_pending_half_means": [
+            3.3333333333333335,
+            6.333333333333333
+          ],
+          "D_host_pending_max": 35,
+          "scope": "Dynamic holds its compute queue in the coordinator. Native holds its queue in the worker. Neither coordinator outstanding nor D_HOST_PENDING is P compute-ready work."
+        },
+        "D_cohort_request_admissions_by_batch_size": {
+          "1": 1,
+          "4": 56,
+          "7": 7
+        },
+        "D_cohort_count": 16
+      },
+      "completed_layer_distribution": {
+        "0": 23,
+        "2": 0,
+        "4": 0,
+        "8": 0,
+        "12": 41
+      }
+    },
+    {
+      "name": "tune_Static12_f50_O64_N64_q4p8_v1",
+      "output": {
+        "reference": "baseline_Native_O200_N64_q4p8_s21_v1",
+        "candidate": "tune_Static12_f50_O64_N64_q4p8_v1",
+        "compared": 64,
+        "failures": [],
+        "passed": true,
+        "evidence": "CORRECTNESS_ONLY",
+        "scope": "Exact generated tokens at matched inputs and seeds. Separate state and actual-layer checks are required for migration."
+      },
+      "metrics": {
+        "name": "tune_Static12_f50_O64_N64_q4p8_v1",
+        "complete": true,
+        "arm": "PD_G1",
+        "output_cap": 64,
+        "count": 64,
+        "distinct_prompt_ids": 64,
+        "offered_QPS": 4.8,
+        "scheduled_trace_QPS": 5.198548457772387,
+        "realized_arrival_QPS": 5.196709261729755,
+        "completed_QPS": 2.023910053204962,
+        "input_tokens_s": 16191.280425639696,
+        "output_tokens_s": 129.53024340511757,
+        "observation_seconds": 31.621958643198013,
+        "maximum_ITL_ms": 49.43010210990906,
+        "ITL_intervals": 4032,
+        "coalesced_intervals": 0,
+        "Service_TTFT": "NOT_MEASURED",
+        "physical_GPU_idle": "NOT_MEASURED",
+        "scope": "Coordinator delivery timestamps. First ITL is included. Finite-cohort drain rates are not sustainable capacity.",
+        "TTFT_p50_ms": 12497.239275835454,
+        "TTFT_p95_ms": 17966.709044761956,
+        "TTFT_p99_ms": 18530.903797950596,
+        "TPOT_p50_ms": 25.04892047080729,
+        "TPOT_p95_ms": 27.230713612562607,
+        "TPOT_p99_ms": 27.318925261497498,
+        "E2E_p50_ms": 14029.343227855861,
+        "E2E_p95_ms": 19630.178197659552,
+        "E2E_p99_ms": 20205.36684025079,
+        "ITL_p50_ms": 24.944234639406204,
+        "ITL_p95_ms": 27.32844315469265,
+        "ITL_p99_ms": 28.71854841709137,
+        "first_ITL_p50_ms": 25.231913663446903,
+        "first_ITL_p95_ms": 28.63664403557777,
+        "first_ITL_p99_ms": 28.856617845594883,
+        "steady_ITL_p50_ms": 24.938223883509636,
+        "steady_ITL_p95_ms": 27.326166350394487,
+        "steady_ITL_p99_ms": 28.554517515003674,
+        "request_max_ITL_p50_ms": 28.89518067240715,
+        "request_max_ITL_p95_ms": 43.32217965275048,
+        "request_max_ITL_p99_ms": 48.21235373616218,
+        "worker_emission_ITL_p99_ms": 27.7668178640306,
+        "coordinator_delivery_lag_p95_ms": 0.4473798908293247,
+        "parent_tail_interval_identity": {
+          "samples": 41,
+          "parent_interval_mean_ms": 32.85020130981759,
+          "worker_interval_mean_ms": 27.001971515213572,
+          "receiver_lag_change_mean_ms": 5.8482297946040225,
+          "scope": "Select parent intervals at or above its p99. Parent interval equals worker interval plus the change in receive lag. The worker interval still includes GPU and Host scheduling. This is not an additive decomposition of p99 or between-method regression."
+        },
+        "SLO_regimes": {
+          "TTFT_priority": {
+            "thresholds": {
+              "TTFT_ms": 2000,
+              "ITL_ms": 55,
+              "TPOT_ms": 53
+            },
+            "TTFT_attainment": 0.015625,
+            "Decode_attainment": 1.0,
+            "Joint_attainment": 0.015625,
+            "Request_SLO_goodput": 0.03162359458132753,
+            "Output_token_SLO_goodput": 2.023910053204962,
+            "ITL_threshold_exceedances": 0,
+            "percentile_Decode_absolute_pass": true
+          },
+          "Balanced": {
+            "thresholds": {
+              "TTFT_ms": 5000,
+              "ITL_ms": 35,
+              "TPOT_ms": 33
+            },
+            "TTFT_attainment": 0.109375,
+            "Decode_attainment": 0.875,
+            "Joint_attainment": 0.109375,
+            "Request_SLO_goodput": 0.22136516206929271,
+            "Output_token_SLO_goodput": 14.167370372434734,
+            "ITL_threshold_exceedances": 8,
+            "percentile_Decode_absolute_pass": true
+          },
+          "Decode_priority": {
+            "thresholds": {
+              "TTFT_ms": 10000,
+              "ITL_ms": 31,
+              "TPOT_ms": 29
+            },
+            "TTFT_attainment": 0.359375,
+            "Decode_attainment": 0.71875,
+            "Joint_attainment": 0.265625,
+            "Request_SLO_goodput": 0.537601107882568,
+            "Output_token_SLO_goodput": 34.40647090448435,
+            "ITL_threshold_exceedances": 18,
+            "percentile_Decode_absolute_pass": true
+          }
+        },
+        "native_observations": {
+          "decode": {
+            "queue_samples": 110,
+            "waiting_max": 0,
+            "waiting_excluding_remote_KV_max": 0,
+            "waiting_half_means": [
+              0.0,
+              0.0
+            ],
+            "KV_free_min": 13065,
+            "KV_usage_max": 0.3164338408413122,
+            "KV_allocation_refusals": 0,
+            "scope": "Native scheduler observations. WAITING_REMOTE_KVS is not compute-ready work. Detailed status counts remain in raw evidence."
+          },
+          "prefill": {
+            "queue_samples": 74,
+            "waiting_max": 0,
+            "waiting_excluding_remote_KV_max": 0,
+            "waiting_half_means": [
+              0.0,
+              0.0
+            ],
+            "KV_free_min": 613,
+            "KV_usage_max": 0.9679275885522942,
+            "KV_allocation_refusals": 0,
+            "scope": "Native scheduler observations. WAITING_REMOTE_KVS is not compute-ready work. Detailed status counts remain in raw evidence."
+          }
+        },
+        "actual_compute_submission_QPS": 4.003975832061064,
+        "compute_submission_roles": [
+          "prefill"
+        ],
+        "P_source_production_span_s": 15.934397080913186,
+        "P_clearance_after_last_arrival_s": 3.8156295996159315,
+        "finite_P_source_ready_rate": 4.016468252611928,
+        "P_production_scope": "Host observation start to final Source-ready notification. Includes compute, queue, preparation, and backpressure. This is not exclusive GPU compute or sustainable capacity.",
+        "arrival_observation_lag_ms": {
+          "samples": 64,
+          "p95": 0.3207873553037643,
+          "scope": "Coordinator arrival observation is separate from a later Source submission. Older discovery logs do not contain this boundary."
+        },
+        "coordinator_queue_observations": {
+          "P_host_compute_pending_max": 12,
+          "P_host_compute_pending_half_means": [
+            5.916666666666667,
+            8.0
+          ],
+          "D_host_pending_max": 37,
+          "scope": "Dynamic holds its compute queue in the coordinator. Native holds its queue in the worker. Neither coordinator outstanding nor D_HOST_PENDING is P compute-ready work."
+        },
+        "D_cohort_request_admissions_by_batch_size": {
+          "1": 2,
+          "2": 2,
+          "4": 48,
+          "12": 12
+        },
+        "D_cohort_count": 16
+      },
+      "completed_layer_distribution": {
+        "0": 37,
+        "2": 0,
+        "4": 0,
+        "8": 0,
+        "12": 27
+      }
+    },
+    {
+      "name": "tune_Static8_f50_O64_N64_q4p8_v1",
+      "output": {
+        "reference": "baseline_Native_O200_N64_q4p8_s21_v1",
+        "candidate": "tune_Static8_f50_O64_N64_q4p8_v1",
+        "compared": 64,
+        "failures": [],
+        "passed": true,
+        "evidence": "CORRECTNESS_ONLY",
+        "scope": "Exact generated tokens at matched inputs and seeds. Separate state and actual-layer checks are required for migration."
+      },
+      "metrics": {
+        "name": "tune_Static8_f50_O64_N64_q4p8_v1",
+        "complete": true,
+        "arm": "PD_G1",
+        "output_cap": 64,
+        "count": 64,
+        "distinct_prompt_ids": 64,
+        "offered_QPS": 4.8,
+        "scheduled_trace_QPS": 5.198548457772387,
+        "realized_arrival_QPS": 5.198745142229113,
+        "completed_QPS": 1.9255905369177582,
+        "input_tokens_s": 15404.724295342065,
+        "output_tokens_s": 123.23779436273652,
+        "observation_seconds": 33.23655718751252,
+        "maximum_ITL_ms": 37.34425641596317,
+        "ITL_intervals": 4032,
+        "coalesced_intervals": 0,
+        "Service_TTFT": "NOT_MEASURED",
+        "physical_GPU_idle": "NOT_MEASURED",
+        "scope": "Coordinator delivery timestamps. First ITL is included. Finite-cohort drain rates are not sustainable capacity.",
+        "TTFT_p50_ms": 11166.253507137299,
+        "TTFT_p95_ms": 19493.636745028198,
+        "TTFT_p99_ms": 19731.188520267606,
+        "TPOT_p50_ms": 26.28224233668002,
+        "TPOT_p95_ms": 27.680071294012052,
+        "TPOT_p99_ms": 27.759047314406388,
+        "E2E_p50_ms": 12841.074130497873,
+        "E2E_p95_ms": 21242.022747918963,
+        "E2E_p99_ms": 21474.543567020446,
+        "ITL_p50_ms": 26.300333440303802,
+        "ITL_p95_ms": 27.69492631778121,
+        "ITL_p99_ms": 29.016279093921188,
+        "first_ITL_p50_ms": 24.80840403586626,
+        "first_ITL_p95_ms": 28.506450261920687,
+        "first_ITL_p99_ms": 28.59850622713566,
+        "steady_ITL_p50_ms": 26.316756382584572,
+        "steady_ITL_p95_ms": 27.687348797917366,
+        "steady_ITL_p99_ms": 29.10286249592899,
+        "request_max_ITL_p50_ms": 29.45294789969921,
+        "request_max_ITL_p95_ms": 34.49901817366481,
+        "request_max_ITL_p99_ms": 36.10048290342092,
+        "worker_emission_ITL_p99_ms": 28.132871426641945,
+        "coordinator_delivery_lag_p95_ms": 0.4167775623500347,
+        "parent_tail_interval_identity": {
+          "samples": 41,
+          "parent_interval_mean_ms": 31.42707944824928,
+          "worker_interval_mean_ms": 27.625670929144068,
+          "receiver_lag_change_mean_ms": 3.8014085191052134,
+          "scope": "Select parent intervals at or above its p99. Parent interval equals worker interval plus the change in receive lag. The worker interval still includes GPU and Host scheduling. This is not an additive decomposition of p99 or between-method regression."
+        },
+        "SLO_regimes": {
+          "TTFT_priority": {
+            "thresholds": {
+              "TTFT_ms": 2000,
+              "ITL_ms": 55,
+              "TPOT_ms": 53
+            },
+            "TTFT_attainment": 0.03125,
+            "Decode_attainment": 1.0,
+            "Joint_attainment": 0.03125,
+            "Request_SLO_goodput": 0.06017470427867994,
+            "Output_token_SLO_goodput": 3.8511810738355163,
+            "ITL_threshold_exceedances": 0,
+            "percentile_Decode_absolute_pass": true
+          },
+          "Balanced": {
+            "thresholds": {
+              "TTFT_ms": 5000,
+              "ITL_ms": 35,
+              "TPOT_ms": 33
+            },
+            "TTFT_attainment": 0.15625,
+            "Decode_attainment": 0.96875,
+            "Joint_attainment": 0.15625,
+            "Request_SLO_goodput": 0.3008735213933997,
+            "Output_token_SLO_goodput": 19.25590536917758,
+            "ITL_threshold_exceedances": 2,
+            "percentile_Decode_absolute_pass": true
+          },
+          "Decode_priority": {
+            "thresholds": {
+              "TTFT_ms": 10000,
+              "ITL_ms": 31,
+              "TPOT_ms": 29
+            },
+            "TTFT_attainment": 0.46875,
+            "Decode_attainment": 0.6875,
+            "Joint_attainment": 0.40625,
+            "Request_SLO_goodput": 0.7822711556228392,
+            "Output_token_SLO_goodput": 50.06535395986171,
+            "ITL_threshold_exceedances": 20,
+            "percentile_Decode_absolute_pass": true
+          }
+        },
+        "native_observations": {
+          "decode": {
+            "queue_samples": 119,
+            "waiting_max": 0,
+            "waiting_excluding_remote_KV_max": 0,
+            "waiting_half_means": [
+              0.0,
+              0.0
+            ],
+            "KV_free_min": 16593,
+            "KV_usage_max": 0.13184743368388008,
+            "KV_allocation_refusals": 0,
+            "scope": "Native scheduler observations. WAITING_REMOTE_KVS is not compute-ready work. Detailed status counts remain in raw evidence."
+          },
+          "prefill": {
+            "queue_samples": 77,
+            "waiting_max": 0,
+            "waiting_excluding_remote_KV_max": 0,
+            "waiting_half_means": [
+              0.0,
+              0.0
+            ],
+            "KV_free_min": 2613,
+            "KV_usage_max": 0.8632867681682624,
+            "KV_allocation_refusals": 0,
+            "scope": "Native scheduler observations. WAITING_REMOTE_KVS is not compute-ready work. Detailed status counts remain in raw evidence."
+          }
+        },
+        "actual_compute_submission_QPS": 3.783659221239914,
+        "compute_submission_roles": [
+          "prefill"
+        ],
+        "P_source_production_span_s": 16.945227643474936,
+        "P_clearance_after_last_arrival_s": 4.826460162177682,
+        "finite_P_source_ready_rate": 3.776874607208027,
+        "P_production_scope": "Host observation start to final Source-ready notification. Includes compute, queue, preparation, and backpressure. This is not exclusive GPU compute or sustainable capacity.",
+        "arrival_observation_lag_ms": {
+          "samples": 64,
+          "p95": 0.3312276676297187,
+          "scope": "Coordinator arrival observation is separate from a later Source submission. Older discovery logs do not contain this boundary."
+        },
+        "coordinator_queue_observations": {
+          "P_host_compute_pending_max": 16,
+          "P_host_compute_pending_half_means": [
+            6.583333333333333,
+            11.333333333333334
+          ],
+          "D_host_pending_max": 29,
+          "scope": "Dynamic holds its compute queue in the coordinator. Native holds its queue in the worker. Neither coordinator outstanding nor D_HOST_PENDING is P compute-ready work."
+        },
+        "D_cohort_request_admissions_by_batch_size": {
+          "1": 1,
+          "2": 2,
+          "4": 56,
+          "5": 5
+        },
+        "D_cohort_count": 17
+      },
+      "completed_layer_distribution": {
+        "0": 34,
+        "2": 0,
+        "4": 0,
+        "8": 30,
+        "12": 0
+      }
+    }
+  ]
+}
