@@ -1,0 +1,151 @@
+{
+  "time": 1794700880.2465432,
+  "model_revision": "b968826d9c46dd6066d109eabc6255188de91218",
+  "methods": {
+    "Static": {
+      "arm": "STATIC",
+      "rate": 4.4,
+      "upper_rate": 4.8,
+      "options": {
+        "verified_ByteLevel_priming": true,
+        "direct_phase_norm": true,
+        "nixl_manual_coalesce": true,
+        "nixl_descriptor_sort": false,
+        "cost_model": "canonical_cost_model_v5.json",
+        "P_group_size": 8,
+        "D_wait_for_source_macro": false,
+        "hidden_source_slots": 32,
+        "track_active_preparation": true,
+        "direct_objective": "PIPELINE_RATE",
+        "direct_wait_limit_ms": 2500.0,
+        "objective_SLO": "Decode_priority",
+        "safety_margin_ms": 150,
+        "safety_margin_by_layers_ms": {
+          "2": 150,
+          "4": 150,
+          "8": 150,
+          "12": 150
+        },
+        "phase": "EXPIRED_TTFT_RECOVERY_DISCOVERY_NOT_HELD_OUT",
+        "D_combine_ready_macros": true,
+        "D_admission_batch": 4,
+        "bounded_destination_batches": true,
+        "frontier_completion_model": true,
+        "static_request_block_size": 8,
+        "async_decode": true,
+        "separate_nominal_objective": true,
+        "pipeline_objective_excludes_existing_wait": true,
+        "queue_benefit_external_only": true,
+        "expired_ttft_policy": "QUEUE_RECOVERY",
+        "canonical_new_KV_block_order": true,
+        "static_layers": 12,
+        "migration_fraction": 1.0
+      },
+      "selection_status": "PREDECLARED_UNTESTED_LOWER_RATE_CANDIDATE"
+    },
+    "Dynamic": {
+      "arm": "DIRECT",
+      "rate": 4.8,
+      "upper_rate": 5.0,
+      "options": {
+        "verified_ByteLevel_priming": true,
+        "direct_phase_norm": true,
+        "nixl_manual_coalesce": true,
+        "nixl_descriptor_sort": false,
+        "cost_model": "canonical_cost_model_v5.json",
+        "P_group_size": 8,
+        "D_wait_for_source_macro": false,
+        "hidden_source_slots": 32,
+        "track_active_preparation": true,
+        "direct_objective": "PIPELINE_RATE",
+        "direct_wait_limit_ms": 2500.0,
+        "objective_SLO": "Decode_priority",
+        "safety_margin_ms": 150,
+        "safety_margin_by_layers_ms": {
+          "2": 150,
+          "4": 150,
+          "8": 150,
+          "12": 150
+        },
+        "phase": "EXPIRED_TTFT_RECOVERY_DISCOVERY_NOT_HELD_OUT",
+        "D_combine_ready_macros": true,
+        "D_admission_batch": 4,
+        "bounded_destination_batches": true,
+        "frontier_completion_model": true,
+        "static_request_block_size": 8,
+        "async_decode": true,
+        "separate_nominal_objective": true,
+        "pipeline_objective_excludes_existing_wait": true,
+        "queue_benefit_external_only": true,
+        "expired_ttft_policy": "QUEUE_RECOVERY",
+        "canonical_new_KV_block_order": true
+      },
+      "selection_status": "QUALIFIED_DISCOVERY_POINT"
+    },
+    "Native": {
+      "arm": "Native",
+      "rate": 3.2,
+      "upper_rate": 3.4,
+      "selection_status": "LOWER_RATE_AFTER_REJECTED_CANONICAL_3.4_POINT",
+      "options": {
+        "verified_ByteLevel_priming": true,
+        "direct_phase_norm": true,
+        "async_decode": true,
+        "nixl_manual_coalesce": true,
+        "nixl_descriptor_sort": false,
+        "canonical_new_KV_block_order": true,
+        "cost_model": "canonical_cost_model_v5.json"
+      }
+    },
+    "Colocated": {
+      "arm": "Colocated",
+      "rate": 5.0,
+      "upper_rate": 5.2,
+      "options": {
+        "verified_ByteLevel_priming": true,
+        "ar_async_scheduling": true,
+        "gpu_phase_mask_norm": true,
+        "ar_cudagraph_mode": "FULL",
+        "chunk": 512,
+        "token_budget": 512,
+        "D_slots": 16,
+        "explicit_cudagraph_capture_sizes": [
+          1,
+          2,
+          4,
+          8,
+          16,
+          256,
+          512
+        ],
+        "canonical_new_KV_block_order": false
+      },
+      "selection_status": "SLO_SPECIFIC_FULL_GRAPH_FRONTIER_AFTER_ROUTER_AND_LAYOUT_TUNING"
+    }
+  },
+  "stop_new_GPU_epoch": 1794717349.6152813,
+  "source_points": {
+    "Static": {
+      "chosen_geometry": "canonical_capacity_Static12_D4_O16_q4.8_s2026111462_W600_v1",
+      "whole_point": "canonical_capacity_Static12_O16_q5.0_s2026111462_W600_v1",
+      "whole_qualified": false,
+      "D4_point": "canonical_capacity_Static12_D4_O16_q4.8_s2026111462_W600_v1",
+      "D4_qualified": false
+    },
+    "Dynamic": {
+      "chosen_geometry": "canonical_capacity_Dynamic_D4_O16_q4.8_s2026111462_W600_v1",
+      "whole_point": "canonical_capacity_Dynamic_O16_q5.0_s2026111462_W600_v1",
+      "whole_qualified": false,
+      "D4_point": "canonical_capacity_Dynamic_D4_O16_q4.8_s2026111462_W600_v1",
+      "D4_qualified": true
+    }
+  },
+  "calibration": {
+    "model": "canonical_cost_model_v5.json",
+    "model_SHA256": "41924524528e49210a7b78b1802efa0abe3f29a52edda3fe3539de5430f40451",
+    "completion_margin_ms": 150,
+    "margin_SHA256": "c137571b5bd7367be0c92576cd23d4a7c4967176316e9ba57ce65a2e41211486"
+  },
+  "selection_rule": "Choose the highest passed predeclared Decode-priority discovery point for each PD method. Whole D8 at5.0 precedes streaming D4 at4.8. If both fail, test the predeclared lower4.4 D4 candidate. It is not called qualified before confirmation. Native uses3.2 after the rejected new3.4 point. Colocated uses its stronger SLO-specific5.0 frontier. Do not retune on unseen performance.",
+  "scope": "Capacity candidates are selected before any held-out performance. An untested lower point remains a candidate. Same-rate Native references follow the selected Dynamic rate. No exact global maximum or untested workload benefit is assumed."
+}
