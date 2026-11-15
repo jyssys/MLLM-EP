@@ -549,6 +549,12 @@ GPU 작업 종료 후 승인된 Burner 8개의 새 Generation을 두 차례 확�
 검증은 [final_verification.json](dense_ar_slo_throughput_dynamic_layer_pd_20261114/state/final_verification.json)에 있다.
 원본 Weight 검사는 [별도 Checksum 근거](dense_ar_slo_throughput_dynamic_layer_pd_20261114/state/model_checkpoint_integrity_verified.json)에 있다.
 
+Commit 범위의 Whitespace 검사에는 Source 끝의 빈 줄 경고 27개가 있다.
+실측 Source와 동결 Hash를 유지하기 위해 해당 줄을 제거하지 않았다.
+이 검사를 경고 없는 통과로 표현하지 않는다.
+기능·수치 정합성 검사와는 별개다.
+근거는 [Whitespace Audit](dense_ar_slo_throughput_dynamic_layer_pd_20261114/state/frozen_source_whitespace_audit.json)에 있다.
+
 큰 Evidence 25478913961 Bytes는 208478356 Bytes의 Lossless Archive로 보존했다.
 공개용 파일은 5개 Part로 나눴다.
 모든 원본의 SHA256을 압축 해제 Stream과 대조했다.
