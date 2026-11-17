@@ -1,0 +1,207 @@
+{
+  "time": 1794866164.294484,
+  "elapsed_s": 12.073946714401245,
+  "static": {
+    "best": {
+      "metric": {
+        "SLO_output_tokens_s": 234.90594406118745,
+        "raw_output_tokens_s": 238.08648875834086,
+        "Joint_attainment": 0.9453125,
+        "TTFT_p95_ms": 10038.027239223007,
+        "mean_TTFT_ms": 6932.162439370946,
+        "span": 35.214094019882864,
+        "migrated_requests": 80,
+        "layer_work": 624
+      },
+      "plan": [
+        0,
+        0,
+        0,
+        0,
+        2,
+        12,
+        12,
+        4,
+        12,
+        12,
+        12,
+        12,
+        4,
+        12,
+        4,
+        4
+      ],
+      "policy": {
+        "kind": "PER_CAP_FIXED_FRACTION",
+        "mapping": {
+          "16": {
+            "layers": 12,
+            "migrated_groups_per_cycle": 7,
+            "cycle_groups": 8
+          },
+          "64": {
+            "layers": 4,
+            "migrated_groups_per_cycle": 4,
+            "cycle_groups": 5
+          },
+          "200": {
+            "layers": 2,
+            "migrated_groups_per_cycle": 1,
+            "cycle_groups": 3
+          }
+        }
+      }
+    },
+    "best_with_Joint95": {
+      "metric": {
+        "SLO_output_tokens_s": 231.03605421155723,
+        "raw_output_tokens_s": 233.71214750358297,
+        "Joint_attainment": 0.953125,
+        "TTFT_p95_ms": 9905.942327243118,
+        "mean_TTFT_ms": 6885.399691579589,
+        "span": 35.87318883316267,
+        "migrated_requests": 72,
+        "layer_work": 576
+      },
+      "plan": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        8,
+        8,
+        8,
+        8,
+        8,
+        8,
+        8,
+        8,
+        8,
+        8,
+        8
+      ],
+      "policy": {
+        "kind": "PER_CAP_FIXED_FRACTION",
+        "mapping": {
+          "16": {
+            "layers": 8,
+            "migrated_groups_per_cycle": 7,
+            "cycle_groups": 8
+          },
+          "64": {
+            "layers": 8,
+            "migrated_groups_per_cycle": 4,
+            "cycle_groups": 5
+          },
+          "200": {
+            "layers": 0,
+            "migrated_groups_per_cycle": 0,
+            "cycle_groups": 1
+          }
+        }
+      }
+    },
+    "tested": 9009,
+    "scope": "Known output caps, fixed occurrence counters and fixed phase0. No arrival-time or completion-state input. Complete fractions for the observed class counts. This is stronger than one cut per cap, but not all possible static policies or phases."
+  },
+  "beams": [
+    {
+      "width": 256,
+      "metric": {
+        "SLO_output_tokens_s": 233.99975704923122,
+        "raw_output_tokens_s": 235.79975518037915,
+        "Joint_attainment": 0.96875,
+        "TTFT_p95_ms": 9652.554293452175,
+        "mean_TTFT_ms": 6739.216883559209,
+        "span": 35.55559247119028,
+        "migrated_requests": 64,
+        "layer_work": 576
+      },
+      "plan": [
+        4,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        4,
+        0,
+        8,
+        12,
+        12,
+        12,
+        8,
+        12,
+        0
+      ]
+    },
+    {
+      "width": 1024,
+      "metric": {
+        "SLO_output_tokens_s": 235.76129018327813,
+        "raw_output_tokens_s": 237.57483856930335,
+        "Joint_attainment": 0.96875,
+        "TTFT_p95_ms": 9720.367835751149,
+        "mean_TTFT_ms": 6718.924468093396,
+        "span": 35.28993242924709,
+        "migrated_requests": 72,
+        "layer_work": 608
+      },
+      "plan": [
+        4,
+        0,
+        0,
+        0,
+        0,
+        0,
+        4,
+        4,
+        0,
+        8,
+        12,
+        12,
+        12,
+        12,
+        8,
+        0
+      ]
+    }
+  ],
+  "best_tested_dynamic_with_Joint95": {
+    "width": 1024,
+    "metric": {
+      "SLO_output_tokens_s": 235.76129018327813,
+      "raw_output_tokens_s": 237.57483856930335,
+      "Joint_attainment": 0.96875,
+      "TTFT_p95_ms": 9720.367835751149,
+      "mean_TTFT_ms": 6718.924468093396,
+      "span": 35.28993242924709,
+      "migrated_requests": 72,
+      "layer_work": 608
+    },
+    "plan": [
+      4,
+      0,
+      0,
+      0,
+      0,
+      0,
+      4,
+      4,
+      0,
+      8,
+      12,
+      12,
+      12,
+      12,
+      8,
+      0
+    ]
+  },
+  "ratio_Joint95": 1.0204523747942564,
+  "model_SHA256": "fbf7f0069868e321f4ca28ca96b9127e35abaf07e7217c421f03a6c1ad76ac95",
+  "evidence": "OFFLINE_ORACLE",
+  "scope": "Repeat the same frozen mixed-cap replay. Keep the unconstrained token-rate maximum separate from the Joint95-constrained maximum. Beam256/1024 are approximate searches, not optimality bounds. No measured serving or sustainable-capacity claim."
+}

@@ -1,0 +1,61 @@
+{
+  "evidence": "TRACE_ANALYSIS",
+  "source": "flow_low_Static_fraction_P4_adaptiveD8_N128_v1",
+  "latest_states": {
+    "prefill": {
+      "kind": "runtime_state",
+      "role": "prefill",
+      "time": 9552104.960678903,
+      "running": 0,
+      "waiting": 4,
+      "decode_ready": 0,
+      "KV_free_blocks": 113,
+      "reserved_future_blocks": 0,
+      "remaining_Decode_tokens": [],
+      "scope": "Host scheduler state after engine.step. Not physical GPU idle or future-arrival knowledge."
+    },
+    "decode": {
+      "kind": "runtime_state",
+      "role": "decode",
+      "time": 9552104.976042062,
+      "running": 0,
+      "waiting": 2,
+      "decode_ready": 0,
+      "KV_free_blocks": 16613,
+      "reserved_future_blocks": 16152,
+      "remaining_Decode_tokens": [],
+      "scope": "Host scheduler state after engine.step. Not physical GPU idle or future-arrival knowledge."
+    }
+  },
+  "last_cohort": 5,
+  "members": [
+    "q25",
+    "q26",
+    "q27",
+    "q28",
+    "q29",
+    "q30",
+    "q31"
+  ],
+  "submitted_prefix_reads": [
+    "q25",
+    "q26",
+    "q27",
+    "q28",
+    "q29"
+  ],
+  "missing_prefix_reads": [
+    "q30",
+    "q31"
+  ],
+  "cohort_ready_events": [],
+  "free_blocks": 16613,
+  "reserved_future_blocks": 16152,
+  "effective_free_blocks": 461,
+  "minimum_native_prompt_allocation_blocks": 501,
+  "actual_allocator_predicate_rejects": true,
+  "source_free_blocks": 113,
+  "source_prompt_blocks": 500,
+  "mechanism": "Future committed suffix reservations can block unreserved Native members of an all-or-none cohort. The cohort cannot retire until every member imports. Future suffix work cannot be admitted before that cohort retires. Source retention can then fill the P KV pool.",
+  "scope": "Read actual queue, reservation and submitted-read records and the unchanged allocator/barrier predicates. The failed process did not flush its final per-request allocation-refusal log. Exact callback ordering remains NOT_IDENTIFIED. This is an implementation credit-ordering diagnosis, not proof of GPU compute exhaustion."
+}

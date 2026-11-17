@@ -1,0 +1,87 @@
+{
+  "static": {
+    "best": {
+      "metric": {
+        "SLO_output_tokens_s": 234.90594406118745,
+        "raw_output_tokens_s": 238.08648875834086,
+        "Joint_attainment": 0.9453125,
+        "TTFT_p95_ms": 10038.027239223007,
+        "mean_TTFT_ms": 6932.162439370946,
+        "span": 35.214094019882864,
+        "migrated_requests": 80,
+        "layer_work": 624
+      },
+      "plan": [
+        0,
+        0,
+        0,
+        0,
+        2,
+        12,
+        12,
+        4,
+        12,
+        12,
+        12,
+        12,
+        4,
+        12,
+        4,
+        4
+      ],
+      "policy": {
+        "kind": "PER_CAP_FIXED_FRACTION",
+        "mapping": {
+          "16": {
+            "layers": 12,
+            "migrated_groups_per_cycle": 7,
+            "cycle_groups": 8
+          },
+          "64": {
+            "layers": 4,
+            "migrated_groups_per_cycle": 4,
+            "cycle_groups": 5
+          },
+          "200": {
+            "layers": 2,
+            "migrated_groups_per_cycle": 1,
+            "cycle_groups": 3
+          }
+        }
+      }
+    },
+    "tested": 9009,
+    "scope": "Known output caps, fixed occurrence counters and fixed phase0. No arrival-time or completion-state input. Complete fractions for the observed class counts. This is stronger than one cut per cap, but not all possible static policies or phases."
+  },
+  "oracle": {
+    "SLO_output_tokens_s": 233.99975704923122,
+    "raw_output_tokens_s": 235.79975518037915,
+    "Joint_attainment": 0.96875,
+    "TTFT_p95_ms": 9652.554293452175,
+    "mean_TTFT_ms": 6739.216883559209,
+    "span": 35.55559247119028,
+    "migrated_requests": 64,
+    "layer_work": 576
+  },
+  "oracle_plan": [
+    4,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    4,
+    0,
+    8,
+    12,
+    12,
+    12,
+    8,
+    12,
+    0
+  ],
+  "ratio": 0.9961423410736674,
+  "evidence": "OFFLINE_ORACLE",
+  "scope": "Same empirical state-updating replay. The bounded dynamic search is not an upper bound. Per-cap fixed fractions remove a pipeline-balance confound. No online gain claim."
+}

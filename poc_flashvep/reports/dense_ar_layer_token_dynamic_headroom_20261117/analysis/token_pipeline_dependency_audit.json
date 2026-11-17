@@ -1,0 +1,32 @@
+{
+  "evidence": "STRUCTURAL_ACCOUNTING",
+  "implemented": "Completed full-depth prefix KV handoff followed by exact causal suffix continuation",
+  "layer_streaming_pipeline": "NOT_RUN",
+  "dependency": {
+    "D_suffix_layer_l": [
+      "P_prefix_KV_layer_l",
+      "D_suffix_hidden_layer_l_minus_1"
+    ],
+    "P_prefix_layer_l_plus_1": "No dependency on later suffix tokens under causal attention"
+  },
+  "runtime_sources": [
+    {
+      "path": "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/distributed/kv_transfer/kv_connector/v1/nixl/connector.py",
+      "SHA256": "95b0a138309ff6de80440a5cf604acda6187ab3125ccaa2d04ccf745afb809e4"
+    },
+    {
+      "path": "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/distributed/kv_transfer/kv_connector/v1/nixl/pull_worker.py",
+      "SHA256": "ba16c48417f3648ef3441cb60fea5f01efcb3ee5eaac8b4afa57a19871cc5ed5"
+    },
+    {
+      "path": "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/distributed/kv_transfer/kv_connector/v1/nixl/pull_scheduler.py",
+      "SHA256": "428d1a5bffdca7f4b5c87055efd753b22d3d56e8470def844d0f13d477b0059f"
+    }
+  ],
+  "observed_contract": {
+    "connector_wait_for_layer_load": "No-op at lines277-279",
+    "pull_start_load_kv": "Request-level reqs_to_recv and asynchronous _read_blocks_for_req at lines44-80",
+    "campaign_source_ready": "PrefixChannel exports parameters only after finished full-prefix output in token_axis.py"
+  },
+  "scope": "Source audit and causal dependency reasoning only. It does not measure pipeline cost, prove a streaming implementation impossible, or establish a universal layer-axis performance advantage. Per-layer validity, transfer fences, ownership and forward scheduling require separate implementation and state validation."
+}
