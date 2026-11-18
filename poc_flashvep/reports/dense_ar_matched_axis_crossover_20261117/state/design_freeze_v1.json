@@ -1,0 +1,19 @@
+{
+  "time": 1794892489.0120656,
+  "B": 8192,
+  "S": 1024,
+  "PD_common_admission_cap": 8,
+  "source_macro_limit": 1,
+  "admission_policy": "FIFO, no active D cohort, same per-iteration query-token budget and request cap in all PD methods",
+  "batch_scope": "Actual D cohort is bounded by the sum of original prompt query counts. This count is8000 for a layer suffix, token suffix length for a token continuation, and1 for a cached Native first query. Shapes are not forced to match.",
+  "source_scope": "Every P prefix exceeds4096 query rows. Thus at most one complete prompt prefix fits B8192. The coordinator source macro is1. Worker S is still1024.",
+  "primary_requests": 144,
+  "qualification_requests": [
+    8,
+    32,
+    128
+  ],
+  "arithmetic_scope": "N128 cannot exactly match integer suffix rows for all three cuts. N144 supports exact16-token-aligned plans.",
+  "frozen_SLO_SHA256": "c8aa94213e4f4ce54821d01ba985a8e9e88a20566a3e8d1f3cc8060d1b3926d9",
+  "evidence": "STRUCTURAL_ACCOUNTING_NOT_PERFORMANCE"
+}
