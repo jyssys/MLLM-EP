@@ -1,0 +1,1584 @@
+{
+  "name": "calibration_Layer_Last4_N36_O16_q0p5_s2026111900_B1_W32_v2",
+  "method": "Layer",
+  "layers": 4,
+  "output": 16,
+  "count": 36,
+  "batch": 1,
+  "stage": "calibration",
+  "seed": 2026111900,
+  "source_window": 32,
+  "metrics": {
+    "offered_QPS": 0.5,
+    "scheduled_trace_QPS": 0.5516880462221445,
+    "realized_arrival_QPS": 0.5516919332394997,
+    "completed_QPS": 0.5614438332635064,
+    "observation_seconds": 64.12039436027408,
+    "mean_TTFT_ms": 322.5396061833534,
+    "TTFT_p50_ms": 317.39352364093065,
+    "TTFT_p95_ms": 338.43999821692705,
+    "TTFT_p99_ms": 423.2310856692491,
+    "mean_TBT_ms": 23.356660658976548,
+    "ITL_p50_ms": 23.324495181441307,
+    "ITL_p95_ms": 23.957088589668274,
+    "ITL_p99_ms": 24.08848375082016,
+    "maximum_ITL_ms": 24.192800745368004,
+    "TPOT_p50_ms": 23.32167314986388,
+    "TPOT_p95_ms": 23.799934796988964,
+    "TPOT_p99_ms": 23.830077399810158,
+    "first_ITL_p95_ms": 24.02448933571577,
+    "steady_ITL_p99_ms": 24.088674187660217,
+    "E2E_p95_ms": 685.740047134459,
+    "output_tokens_s": 8.983101332216103,
+    "mean_worker_emission_TBT_ms": 23.355727666919982,
+    "worker_emission_ITL_p99_ms": 24.014009572565556,
+    "coordinator_delivery_lag_p95_ms": 0.39416877552866936,
+    "parent_tail_interval_identity": {
+      "samples": 6,
+      "parent_interval_mean_ms": 24.123784465094406,
+      "worker_interval_mean_ms": 23.9442881817619,
+      "receiver_lag_change_mean_ms": 0.1794962833325068,
+      "scope": "Select parent intervals at or above its p99. Parent interval equals worker interval plus the change in receive lag. The worker interval still includes GPU and Host scheduling. This is not an additive decomposition of p99 or between-method regression."
+    },
+    "coordinator_queue_observations": {
+      "P_host_compute_pending_max": 0,
+      "P_host_compute_pending_half_means": [
+        0.0,
+        0.0
+      ],
+      "D_host_pending_max": 1,
+      "scope": "All unified PD arms hold external requests in the coordinator. P_HOST_COMPUTE_PENDING is an external wait state. The common outstanding-window, KV and reservation gates can block admission. Queue growth alone is not evidence of P compute saturation."
+    },
+    "native_observations": {
+      "prefill": {
+        "queue_samples": 68,
+        "waiting_max": 0,
+        "waiting_excluding_remote_KV_max": 0,
+        "waiting_half_means": [
+          0.0,
+          0.0
+        ],
+        "KV_free_min": 18613,
+        "KV_usage_max": 0.026160205096007916,
+        "KV_allocation_refusals": 0,
+        "scope": "Native scheduler observations. WAITING_REMOTE_KVS is not compute-ready work. Detailed status counts remain in raw evidence."
+      },
+      "decode": {
+        "queue_samples": 72,
+        "waiting_max": 0,
+        "waiting_excluding_remote_KV_max": 0,
+        "waiting_half_means": [
+          0.0,
+          0.0
+        ],
+        "KV_free_min": 18612,
+        "KV_usage_max": 0.026212525506200013,
+        "KV_allocation_refusals": 0,
+        "scope": "Native scheduler observations. WAITING_REMOTE_KVS is not compute-ready work. Detailed status counts remain in raw evidence."
+      }
+    },
+    "transport_audit": {
+      "name": "calibration_Layer_Last4_N36_O16_q0p5_s2026111900_B1_W32_v2",
+      "evidence": "TRACE_ANALYSIS",
+      "expected_valid_KV_bytes": 37748736000,
+      "NIXL_reported_KV_bytes": 37748736000,
+      "KV_byte_gate": true,
+      "submitted_KV_bytes": 37748736000,
+      "measured_boundary_flushed": [
+        true
+      ],
+      "expected_hidden_residual_bytes": 4718592000,
+      "NIXL_reported_hidden_residual_bytes": 4718592000,
+      "hidden_byte_gate": true,
+      "KV_transfer_telemetry_ms": {
+        "count": 36,
+        "p50": 5.333499999999999,
+        "p95": 6.0245,
+        "maximum": 6.737
+      },
+      "KV_post_telemetry_ms": {
+        "count": 36,
+        "p50": 0.5325,
+        "p95": 0.7745,
+        "maximum": 0.959
+      },
+      "KV_coalescing_host_ms": {
+        "count": 36,
+        "p50": 1.7540575936436653,
+        "p95": 2.0103221759200096,
+        "maximum": 3.5341307520866394
+      },
+      "hidden_transfer_telemetry_ms": {
+        "count": 36,
+        "p50": 0.41,
+        "p95": 0.446,
+        "maximum": 0.456
+      },
+      "hidden_submit_to_done_host_ms": {
+        "count": 36,
+        "p50": 0.41524041444063187,
+        "p95": 0.4521189257502556,
+        "maximum": 0.47044456005096436
+      },
+      "failed_transfers": [],
+      "failed_notifications": [],
+      "scope": "Native transfer telemetry and actual submitted ranges. Warm-up native counters are flushed at measurement begin. Manual descriptors are filtered by the measured host window. NIXL KV stats use seconds; hidden API fields use microseconds converted by the original wrapper. Concurrent transfer durations are not additive request critical paths or exclusive wire/kernel times. Hidden0 is supported only when the method sends no hidden state."
+    },
+    "work_accounting": {
+      "P_GEMM_token_layer_rows": 9216000,
+      "D_GEMM_token_layer_rows": 1152000,
+      "valid_KV_payload_bytes": 37748736000,
+      "hidden_residual_payload_bytes": 4718592000,
+      "completed_migrated_requests": 36,
+      "completed_layer_work": 144,
+      "P_unused_prefix_output_tokens": 36,
+      "D_native_prompt_replay_queries": 0,
+      "Full36_generated_decode_query_rows": 540,
+      "source_exported_cache_blocks": 18000,
+      "D_full_prompt_and_output_blocks_structural": 18036
+    },
+    "actual_cut_histogram": {
+      "4": 36
+    }
+  },
+  "common_Balanced": {
+    "thresholds": {
+      "TTFT_ms": 5000,
+      "ITL_ms": 34,
+      "TPOT_ms": 33
+    },
+    "TTFT_attainment": 1.0,
+    "Decode_attainment": 1.0,
+    "Joint_attainment": 1.0,
+    "Request_SLO_goodput": 0.5614438332635064,
+    "Output_token_SLO_goodput": 8.983101332216103,
+    "ITL_threshold_exceedances": 0,
+    "percentile_Decode_absolute_pass": true
+  },
+  "workers": {
+    "prefill": {
+      "UUID": "f217c8a0-1142-20f4-d84b-af29f3a47a0d",
+      "KV_blocks": 19114,
+      "KV_tensor_bytes": 45095583744,
+      "weight_bytes": 16381470720,
+      "actual_options": {
+        "max_model_len": 8016,
+        "max_num_seqs": 1024,
+        "max_num_batched_tokens": 8192,
+        "enable_prefix_caching": false,
+        "enable_chunked_prefill": true,
+        "async_scheduling": false,
+        "compilation_config": {
+          "cudagraph_capture_sizes": [
+            1,
+            2,
+            4,
+            8,
+            16,
+            32
+          ],
+          "cudagraph_mode": "NONE",
+          "custom_ops": [
+            "all"
+          ],
+          "mode": 0,
+          "cache_dir": "/home/esjung/MLLM-EP-github/poc_flashvep/reports/dense_ar_axis_sweetspot_knob_discovery_20261119/tools/layer_compile_cache/MIGRATE_32_prefill_r16_BI_OPAQUE_NO_COMPILE_DECODE_GRAPH"
+        }
+      },
+      "actual_measured_geometry": {
+        "counts": {
+          "{\"padded_query_tokens\": 8000, \"prefilling\": true, \"query_tokens\": 8000, \"requests\": 1}": 36
+        },
+        "scope": "Actual measured input batches. Counts exclude warm-up. These counts are not GPU kernel durations."
+      },
+      "effective_runtime_snapshot_SHA256": "619eef30834744930c8a52df598a6b9e51a79453fc8ddd48d8d13a673646ecb5"
+    },
+    "decode": {
+      "UUID": "a77f3471-67d4-20b0-9fab-e502d4de5adb",
+      "KV_blocks": 19114,
+      "KV_tensor_bytes": 45095583744,
+      "weight_bytes": 16381470720,
+      "actual_options": {
+        "max_model_len": 8016,
+        "max_num_seqs": 1024,
+        "max_num_batched_tokens": 8192,
+        "enable_prefix_caching": false,
+        "enable_chunked_prefill": true,
+        "async_scheduling": true,
+        "compilation_config": {
+          "cudagraph_capture_sizes": [
+            1,
+            2,
+            4,
+            8,
+            16,
+            32
+          ],
+          "cudagraph_mode": "FULL_DECODE_ONLY",
+          "custom_ops": [
+            "all"
+          ],
+          "mode": 0,
+          "cache_dir": "/home/esjung/MLLM-EP-github/poc_flashvep/reports/dense_ar_axis_sweetspot_knob_discovery_20261119/tools/layer_compile_cache/MIGRATE_32_decode_r16_BI_OPAQUE_NO_COMPILE_DECODE_GRAPH"
+        }
+      },
+      "actual_measured_geometry": {
+        "counts": {
+          "{\"padded_query_tokens\": 8000, \"prefilling\": true, \"query_tokens\": 8000, \"requests\": 1}": 36,
+          "{\"padded_query_tokens\": 1, \"prefilling\": false, \"query_tokens\": 1, \"requests\": 1}": 540
+        },
+        "scope": "Actual measured input batches. Counts exclude warm-up. These counts are not GPU kernel durations."
+      },
+      "effective_runtime_snapshot_SHA256": "e670c8ddbae63fa0b7a2438ace3cc04312c8c5078041aa9e6cdabe6f46b6aee6"
+    }
+  },
+  "gates": {
+    "output_gate": {
+      "name": "calibration_Layer_Last4_N36_O16_q0p5_s2026111900_B1_W32_v2",
+      "passed": true,
+      "count": 36,
+      "failures": [],
+      "reference": "/home/esjung/MLLM-EP-github/poc_flashvep/reports/dense_ar_axis_sweetspot_knob_discovery_20261119/raw/HISTORICAL_original_outputs/requests.jsonl",
+      "evidence": "CORRECTNESS_ONLY",
+      "scope": "Preserved original BF16 reference outputs only. No historical latency reuse."
+    },
+    "exact_GEMM_row_gate": true,
+    "unified_worker_gate": true,
+    "common_reservation_gate": {
+      "passed": true,
+      "granted_requests": 36,
+      "retired_requests": 36,
+      "generations": 36,
+      "expected_cut": 32,
+      "evidence": "TRACE_ANALYSIS",
+      "scope": "The same existing prospective KV ledger is used by Native, Layer and Token. Every measured request has one grant, one committed allocation and one retirement. Worker validation checks its generation and cut. This verifies normal completion, not every failure/cancellation scenario."
+    },
+    "actual_query_coverage_gate": {
+      "passed": true,
+      "checks": {
+        "P_queries": true,
+        "D_queries": true,
+        "no_P_decode_queries": true
+      },
+      "observed": {
+        "prefill": {
+          "prompt_phase_query_rows": 288000,
+          "decode_phase_query_rows": 0,
+          "total_query_rows": 288000
+        },
+        "decode": {
+          "prompt_phase_query_rows": 288000,
+          "decode_phase_query_rows": 540,
+          "total_query_rows": 288540
+        }
+      },
+      "expected_P": 288000,
+      "expected_D": 288540,
+      "evidence": "MEASURED",
+      "measurement_class": "INPUT_GEOMETRY_WITH_STRUCTURAL_LAYER_ACCOUNTING",
+      "scope": "Actual unpadded query counts in measured GPU inputs. Prompt and generated Decode queries are separate. Prior state gates establish actual layer execution. This is not exclusive kernel timing."
+    }
+  },
+  "queue_diagnostic": {
+    "status": "FINITE_WINDOW_NO_STRONG_GROWTH",
+    "arrival_window_seconds": 63.44165011309087,
+    "completed_during_arrivals": 34,
+    "arrival_window_completed_QPS": 0.5359255306157976,
+    "arrival_window_arrival_QPS": 0.5516880462221445,
+    "unfinished_at_last_arrival": 2,
+    "unfinished_middle_window_slope_requests_s": -0.006928578288336515,
+    "final_Drain_seconds": 0.6787442471832037,
+    "samples": [
+      {
+        "seconds": 0.0,
+        "arrived": 1,
+        "completed": 0,
+        "unfinished": 1
+      },
+      {
+        "seconds": 3.172082506120205,
+        "arrived": 2,
+        "completed": 2,
+        "unfinished": 0
+      },
+      {
+        "seconds": 6.344165010377765,
+        "arrived": 2,
+        "completed": 2,
+        "unfinished": 0
+      },
+      {
+        "seconds": 9.51624751649797,
+        "arrived": 4,
+        "completed": 4,
+        "unfinished": 0
+      },
+      {
+        "seconds": 12.688330022618175,
+        "arrived": 4,
+        "completed": 4,
+        "unfinished": 0
+      },
+      {
+        "seconds": 15.86041252873838,
+        "arrived": 7,
+        "completed": 6,
+        "unfinished": 1
+      },
+      {
+        "seconds": 19.032495034858584,
+        "arrived": 9,
+        "completed": 8,
+        "unfinished": 1
+      },
+      {
+        "seconds": 22.204577539116144,
+        "arrived": 11,
+        "completed": 10,
+        "unfinished": 1
+      },
+      {
+        "seconds": 25.37666004523635,
+        "arrived": 12,
+        "completed": 12,
+        "unfinished": 0
+      },
+      {
+        "seconds": 28.548742551356554,
+        "arrived": 16,
+        "completed": 15,
+        "unfinished": 1
+      },
+      {
+        "seconds": 31.720825055614114,
+        "arrived": 19,
+        "completed": 19,
+        "unfinished": 0
+      },
+      {
+        "seconds": 34.89290756173432,
+        "arrived": 20,
+        "completed": 19,
+        "unfinished": 1
+      },
+      {
+        "seconds": 38.064990067854524,
+        "arrived": 22,
+        "completed": 21,
+        "unfinished": 1
+      },
+      {
+        "seconds": 41.23707257397473,
+        "arrived": 22,
+        "completed": 22,
+        "unfinished": 0
+      },
+      {
+        "seconds": 44.40915508009493,
+        "arrived": 25,
+        "completed": 25,
+        "unfinished": 0
+      },
+      {
+        "seconds": 47.58123758435249,
+        "arrived": 26,
+        "completed": 26,
+        "unfinished": 0
+      },
+      {
+        "seconds": 50.7533200904727,
+        "arrived": 28,
+        "completed": 27,
+        "unfinished": 1
+      },
+      {
+        "seconds": 53.9254025965929,
+        "arrived": 29,
+        "completed": 29,
+        "unfinished": 0
+      },
+      {
+        "seconds": 57.09748510085046,
+        "arrived": 30,
+        "completed": 30,
+        "unfinished": 0
+      },
+      {
+        "seconds": 60.26956760697067,
+        "arrived": 32,
+        "completed": 32,
+        "unfinished": 0
+      },
+      {
+        "seconds": 63.44165011309087,
+        "arrived": 36,
+        "completed": 34,
+        "unfinished": 2
+      }
+    ],
+    "scope": "A finite-window diagnostic. No status establishes sustainable stability. The 0.1 request/s and 20% backlog flags are descriptive, not a predeclared capacity test. Every request remains in the final latency and throughput denominator."
+  },
+  "requests": [
+    {
+      "request_id": "q0",
+      "prompt_id": "longbench_musique_fefac36b35cb4347cc12c1f4b449f55f907eb074ff9bd548_L8000",
+      "input_IDs_SHA256": "a8a0a0f4c4514b5c3dab3608e9f201babfbb8219cbacc1fda2b7bdde10805994",
+      "input_tokens": 8000,
+      "output_tokens": 16,
+      "TTFT_ms": 311.80835142731667,
+      "TPOT_ms": 23.80415089428425,
+      "E2E_ms": 668.8706148415804,
+      "first_ITL_ms": 24.06422048807144,
+      "steady_ITL_p99_ms": 24.10379644483328,
+      "maximum_ITL_ms": 24.134697392582893,
+      "SLO_passes": {
+        "TTFT": true,
+        "ITL": true,
+        "TPOT": true
+      },
+      "joint_pass": true,
+      "actual_layer_cut": 32,
+      "host_boundaries_monotonic": [
+        9708761.245599044,
+        9708761.251864651,
+        9708761.506855784,
+        9708761.51018314,
+        9708761.557156803,
+        9708761.557407396
+      ],
+      "first_worker_output": 9708761.557156803,
+      "last_worker_output": 9708761.914124044,
+      "first_client_output": 9708761.557407396,
+      "last_client_output": 9708761.91446966
+    },
+    {
+      "request_id": "q1",
+      "prompt_id": "longbench_repobench-p_afbbbfa76f78afdd3ff165fcdbf9974ec1afb308b2ffa4bd_L8000",
+      "input_IDs_SHA256": "54fd6b74af5727f10ed1dcfdc0704e49e3dc36ce30fe60b7f177ac0138b2e007",
+      "input_tokens": 8000,
+      "output_tokens": 16,
+      "TTFT_ms": 319.16959024965763,
+      "TPOT_ms": 23.684994255503018,
+      "E2E_ms": 674.4445040822029,
+      "first_ITL_ms": 24.034645408391953,
+      "steady_ITL_p99_ms": 24.059048183262348,
+      "maximum_ITL_ms": 24.068448692560196,
+      "SLO_passes": {
+        "TTFT": true,
+        "ITL": true,
+        "TPOT": true
+      },
+      "joint_pass": true,
+      "actual_layer_cut": 32,
+      "host_boundaries_monotonic": [
+        9708763.266592044,
+        9708763.270791965,
+        9708763.53159515,
+        9708763.534934692,
+        9708763.585642574,
+        9708763.585761635
+      ],
+      "first_worker_output": 9708763.585642574,
+      "last_worker_output": 9708763.940709611,
+      "first_client_output": 9708763.585761635,
+      "last_client_output": 9708763.941036548
+    },
+    {
+      "request_id": "q2",
+      "prompt_id": "longbench_repobench-p_a22fc8c575abd0b749f0893c6cd4e745d98462d936c48d87_L8000",
+      "input_IDs_SHA256": "6178f5c6bfcbc1b8e854bb5c6342a5f2b06064dd03adb2c2677441612f84b844",
+      "input_tokens": 8000,
+      "output_tokens": 16,
+      "TTFT_ms": 319.26366314291954,
+      "TPOT_ms": 22.927410900592804,
+      "E2E_ms": 663.1748266518116,
+      "first_ITL_ms": 22.880645468831062,
+      "steady_ITL_p99_ms": 23.23616387322545,
+      "maximum_ITL_ms": 23.263435810804367,
+      "SLO_passes": {
+        "TTFT": true,
+        "ITL": true,
+        "TPOT": true
+      },
+      "joint_pass": true,
+      "actual_layer_cut": 32,
+      "host_boundaries_monotonic": [
+        9708767.775410615,
+        9708767.77981471,
+        9708768.04258364,
+        9708768.04573404,
+        9708768.094286008,
+        9708768.094674278
+      ],
+      "first_worker_output": 9708768.094286008,
+      "last_worker_output": 9708768.438361088,
+      "first_client_output": 9708768.094674278,
+      "last_client_output": 9708768.438585442
+    },
+    {
+      "request_id": "q3",
+      "prompt_id": "longbench_repobench-p_e8b24917a0c42a43b36c6d492668dc92cf13031be38b97d1_L8000",
+      "input_IDs_SHA256": "dab23c9485d30d9b239ae54525d7868e59e17fe5fb7335f6a789e0f18e60e7b9",
+      "input_tokens": 8000,
+      "output_tokens": 16,
+      "TTFT_ms": 321.138309314847,
+      "TPOT_ms": 23.010704790552456,
+      "E2E_ms": 666.2988811731339,
+      "first_ITL_ms": 23.29648844897747,
+      "steady_ITL_p99_ms": 23.470509368926287,
+      "maximum_ITL_ms": 23.510916158556938,
+      "SLO_passes": {
+        "TTFT": true,
+        "ITL": true,
+        "TPOT": true
+      },
+      "joint_pass": true,
+      "actual_layer_cut": 32,
+      "host_boundaries_monotonic": [
+        9708768.294831514,
+        9708768.301594427,
+        9708768.564368717,
+        9708768.567300927,
+        9708768.61567824,
+        9708768.615969824
+      ],
+      "first_worker_output": 9708768.61567824,
+      "last_worker_output": 9708768.961015984,
+      "first_client_output": 9708768.615969824,
+      "last_client_output": 9708768.961130396
+    },
+    {
+      "request_id": "q4",
+      "prompt_id": "longbench_repobench-p_59c239534029025e12c36739e14f072bac88014b257410e8_L8000",
+      "input_IDs_SHA256": "c26dc9e29abaa544e6a615e4e245f1bc08439738fd4f0c7909d5af2c9b47f717",
+      "input_tokens": 8000,
+      "output_tokens": 16,
+      "TTFT_ms": 309.45033952593803,
+      "TPOT_ms": 23.742686087886494,
+      "E2E_ms": 665.5906308442354,
+      "first_ITL_ms": 23.744817823171616,
+      "steady_ITL_p99_ms": 23.997670225799084,
+      "maximum_ITL_ms": 23.999299854040146,
+      "SLO_passes": {
+        "TTFT": true,
+        "ITL": true,
+        "TPOT": true
+      },
+      "joint_pass": true,
+      "actual_layer_cut": 32,
+      "host_boundaries_monotonic": [
+        9708774.456064897,
+        9708774.460366596,
+        9708774.713722399,
+        9708774.716794612,
+        9708774.765154619,
+        9708774.765515236
+      ],
+      "first_worker_output": 9708774.765154619,
+      "last_worker_output": 9708775.121491369,
+      "first_client_output": 9708774.765515236,
+      "last_client_output": 9708775.121655528
+    },
+    {
+      "request_id": "q5",
+      "prompt_id": "longbench_repobench-p_75a20ac07baa1c9bb4237eaf9e4d422f7773d27ef1aa4743_L8000",
+      "input_IDs_SHA256": "17fe8503dc20dd821a95c4c9533928dc4093555cf3173f568398f500df3fe1d9",
+      "input_tokens": 8000,
+      "output_tokens": 16,
+      "TTFT_ms": 316.2252698093653,
+      "TPOT_ms": 23.0720450480779,
+      "E2E_ms": 662.3059455305338,
+      "first_ITL_ms": 23.27645942568779,
+      "steady_ITL_p99_ms": 23.245994597673416,
+      "maximum_ITL_ms": 23.27645942568779,
+      "SLO_passes": {
+        "TTFT": true,
+        "ITL": true,
+        "TPOT": true
+      },
+      "joint_pass": true,
+      "actual_layer_cut": 32,
+      "host_boundaries_monotonic": [
+        9708775.219879366,
+        9708775.223671012,
+        9708775.484740527,
+        9708775.4878314,
+        9708775.535838827,
+        9708775.536104636
+      ],
+      "first_worker_output": 9708775.535838827,
+      "last_worker_output": 9708775.881876577,
+      "first_client_output": 9708775.536104636,
+      "last_client_output": 9708775.882185312
+    },
+    {
+      "request_id": "q6",
+      "prompt_id": "longbench_2wikimqa_b9a9b860c0f0430853d1db2756095da274d522beed2acbeb_L8000",
+      "input_IDs_SHA256": "88cce53efd0a48e42a4e342917277191853f0dbcc69d835ddb46cdd29aad3fcf",
+      "input_tokens": 8000,
+      "output_tokens": 16,
+      "TTFT_ms": 323.8163273781538,
+      "TPOT_ms": 23.31428515414397,
+      "E2E_ms": 673.5306046903133,
+      "first_ITL_ms": 23.610621690750122,
+      "steady_ITL_p99_ms": 23.64570375531912,
+      "maximum_ITL_ms": 23.648159578442574,
+      "SLO_passes": {
+        "TTFT": true,
+        "ITL": true,
+        "TPOT": true
+      },
+      "joint_pass": true,
+      "actual_layer_cut": 32,
+      "host_boundaries_monotonic": [
+        9708776.632613484,
+        9708776.636585128,
+        9708776.898771033,
+        9708776.90202702,
+        9708776.956226964,
+        9708776.956429811
+      ],
+      "first_worker_output": 9708776.956226964,
+      "last_worker_output": 9708777.305779329,
+      "first_client_output": 9708776.956429811,
+      "last_client_output": 9708777.306144089
+    },
+    {
+      "request_id": "q7",
+      "prompt_id": "longbench_repobench-p_0a45d485d9ae9638ea99d7edd297fced2e037f584add8417_L8000",
+      "input_IDs_SHA256": "22aa049d6acfdae397642f089779645151d5f29c0da6293ffd28144c55f70507",
+      "input_tokens": 8000,
+      "output_tokens": 16,
+      "TTFT_ms": 317.55364313721657,
+      "TPOT_ms": 22.960004583001137,
+      "E2E_ms": 661.9537118822336,
+      "first_ITL_ms": 23.24117347598076,
+      "steady_ITL_p99_ms": 23.169853538274765,
+      "maximum_ITL_ms": 23.24117347598076,
+      "SLO_passes": {
+        "TTFT": true,
+        "ITL": true,
+        "TPOT": true
+      },
+      "joint_pass": true,
+      "actual_layer_cut": 32,
+      "host_boundaries_monotonic": [
+        9708778.883416016,
+        9708778.88764524,
+        9708779.1500193,
+        9708779.153299363,
+        9708779.200878482,
+        9708779.200969659
+      ],
+      "first_worker_output": 9708779.200878482,
+      "last_worker_output": 9708779.545065789,
+      "first_client_output": 9708779.200969659,
+      "last_client_output": 9708779.545369728
+    },
+    {
+      "request_id": "q8",
+      "prompt_id": "longbench_repobench-p_100dbc990bc2d7eec54973c0555245aa566691b4f093da12_L8000",
+      "input_IDs_SHA256": "0b64898f19098b823c5c0e9e9dc5cb19f75c07ac9ac1e7f924d5a7129df82f4b",
+      "input_tokens": 8000,
+      "output_tokens": 16,
+      "TTFT_ms": 316.33979827165604,
+      "TPOT_ms": 23.357780650258064,
+      "E2E_ms": 666.706508025527,
+      "first_ITL_ms": 23.36394041776657,
+      "steady_ITL_p99_ms": 23.670173902064562,
+      "maximum_ITL_ms": 23.68110790848732,
+      "SLO_passes": {
+        "TTFT": true,
+        "ITL": true,
+        "TPOT": true
+      },
+      "joint_pass": true,
+      "actual_layer_cut": 32,
+      "host_boundaries_monotonic": [
+        9708779.67239417,
+        9708779.67659309,
+        9708779.938722512,
+        9708779.941964952,
+        9708779.988604398,
+        9708779.988733968
+      ],
+      "first_worker_output": 9708779.988604398,
+      "last_worker_output": 9708780.338848224,
+      "first_client_output": 9708779.988733968,
+      "last_client_output": 9708780.339100678
+    },
+    {
+      "request_id": "q9",
+      "prompt_id": "longbench_repobench-p_29bfed67ad9ae2798615a5de71e971b2639dad4cd5cb9baf_L8000",
+      "input_IDs_SHA256": "fd391a7b155675ae658ef62ec92ff481a6bb28766ab06cd936d10667ccbec555",
+      "input_tokens": 8000,
+      "output_tokens": 16,
+      "TTFT_ms": 318.3822575956583,
+      "TPOT_ms": 23.43607470393181,
+      "E2E_ms": 669.9233781546354,
+      "first_ITL_ms": 23.916808888316154,
+      "steady_ITL_p99_ms": 23.60515607520938,
+      "maximum_ITL_ms": 23.916808888316154,
+      "SLO_passes": {
+        "TTFT": true,
+        "ITL": true,
+        "TPOT": true
+      },
+      "joint_pass": true,
+      "actual_layer_cut": 32,
+      "host_boundaries_monotonic": [
+        9708780.617724894,
+        9708780.621827906,
+        9708780.884713488,
+        9708780.888094535,
+        9708780.935957788,
+        9708780.936107151
+      ],
+      "first_worker_output": 9708780.935957788,
+      "last_worker_output": 9708781.287428673,
+      "first_client_output": 9708780.936107151,
+      "last_client_output": 9708781.287648272
+    },
+    {
+      "request_id": "q10",
+      "prompt_id": "longbench_repobench-p_274c0e629f8193e16863cb8e69c0cc02645c5fe122ed35a3_L8000",
+      "input_IDs_SHA256": "ca084621958af6c8b906f8dfc13f67fd8d259ab4106f7bdc0539820f236a73d4",
+      "input_tokens": 8000,
+      "output_tokens": 16,
+      "TTFT_ms": 316.66601821780205,
+      "TPOT_ms": 23.711113010843594,
+      "E2E_ms": 672.332713380456,
+      "first_ITL_ms": 23.999951779842377,
+      "steady_ITL_p99_ms": 23.98473145440221,
+      "maximum_ITL_ms": 23.999951779842377,
+      "SLO_passes": {
+        "TTFT": true,
+        "ITL": true,
+        "TPOT": true
+      },
+      "joint_pass": true,
+      "actual_layer_cut": 32,
+      "host_boundaries_monotonic": [
+        9708782.883545298,
+        9708782.88782248,
+        9708783.150355157,
+        9708783.153450929,
+        9708783.199899992,
+        9708783.200211316
+      ],
+      "first_worker_output": 9708783.199899992,
+      "last_worker_output": 9708783.555701949,
+      "first_client_output": 9708783.200211316,
+      "last_client_output": 9708783.555878012
+    },
+    {
+      "request_id": "q11",
+      "prompt_id": "longbench_repobench-p_0993199b857b48a40a11ae45fc3b33f01ea536c24cd817ef_L8000",
+      "input_IDs_SHA256": "621fc4c2ffa054e5dc8dbc3d2a847223eab51626a426f5cea6ccf1feac7793a1",
+      "input_tokens": 8000,
+      "output_tokens": 16,
+      "TTFT_ms": 317.7717011421919,
+      "TPOT_ms": 23.15450683236122,
+      "E2E_ms": 665.0893036276102,
+      "first_ITL_ms": 23.092307150363922,
+      "steady_ITL_p99_ms": 23.46007576212287,
+      "maximum_ITL_ms": 23.467272520065308,
+      "SLO_passes": {
+        "TTFT": true,
+        "ITL": true,
+        "TPOT": true
+      },
+      "joint_pass": true,
+      "actual_layer_cut": 32,
+      "host_boundaries_monotonic": [
+        9708784.704632211,
+        9708784.70825652,
+        9708784.970849333,
+        9708784.97407876,
+        9708785.02226631,
+        9708785.022403913
+      ],
+      "first_worker_output": 9708785.02226631,
+      "last_worker_output": 9708785.36946068,
+      "first_client_output": 9708785.022403913,
+      "last_client_output": 9708785.369721515
+    },
+    {
+      "request_id": "q12",
+      "prompt_id": "longbench_repobench-p_2c2ff8de3a417a8b44de412585fca987e86a0537c6b0ac3e_L8000",
+      "input_IDs_SHA256": "7ed8f73a8c7c256e846bfde3ec61b0b3c7c1cbc27a456a9679f27d4ed5fa2848",
+      "input_tokens": 8000,
+      "output_tokens": 16,
+      "TTFT_ms": 317.62909702956676,
+      "TPOT_ms": 22.947336236635845,
+      "E2E_ms": 661.8391405791044,
+      "first_ITL_ms": 22.825224325060844,
+      "steady_ITL_p99_ms": 23.164827954024076,
+      "maximum_ITL_ms": 23.16548489034176,
+      "SLO_passes": {
+        "TTFT": true,
+        "ITL": true,
+        "TPOT": true
+      },
+      "joint_pass": true,
+      "actual_layer_cut": 32,
+      "host_boundaries_monotonic": [
+        9708787.399539815,
+        9708787.404256413,
+        9708787.666152116,
+        9708787.669307964,
+        9708787.716611844,
+        9708787.717168912
+      ],
+      "first_worker_output": 9708787.716611844,
+      "last_worker_output": 9708788.061090775,
+      "first_client_output": 9708787.717168912,
+      "last_client_output": 9708788.061378956
+    },
+    {
+      "request_id": "q13",
+      "prompt_id": "longbench_repobench-p_b4f1a595291f1868d156da0f76328eabcde8dbdcf0b37613_L8000",
+      "input_IDs_SHA256": "90258a68b225accdd5cd61c298203afb9a9c27da2ecec13de0eeb5e26021a476",
+      "input_tokens": 8000,
+      "output_tokens": 16,
+      "TTFT_ms": 320.39559073746204,
+      "TPOT_ms": 23.54803296426932,
+      "E2E_ms": 673.6160852015018,
+      "first_ITL_ms": 23.743025958538055,
+      "steady_ITL_p99_ms": 23.799851797521114,
+      "maximum_ITL_ms": 23.80409464240074,
+      "SLO_passes": {
+        "TTFT": true,
+        "ITL": true,
+        "TPOT": true
+      },
+      "joint_pass": true,
+      "actual_layer_cut": 32,
+      "host_boundaries_monotonic": [
+        9708788.010609947,
+        9708788.0160496,
+        9708788.27948433,
+        9708788.282787593,
+        9708788.330716632,
+        9708788.331005538
+      ],
+      "first_worker_output": 9708788.330716632,
+      "last_worker_output": 9708788.68394502,
+      "first_client_output": 9708788.331005538,
+      "last_client_output": 9708788.684226032
+    },
+    {
+      "request_id": "q14",
+      "prompt_id": "longbench_repobench-p_443c1278e5d9623fee6148ef1c0cc93d266d7561f4c35d8e_L8000",
+      "input_IDs_SHA256": "095737717ff8a31d5a337d835b4ad6a0c66d9107d14fe7936665b40e25207eae",
+      "input_tokens": 8000,
+      "output_tokens": 16,
+      "TTFT_ms": 354.2443420737982,
+      "TPOT_ms": 23.28251066307227,
+      "E2E_ms": 703.4820020198822,
+      "first_ITL_ms": 23.563742637634277,
+      "steady_ITL_p99_ms": 23.610313087701797,
+      "maximum_ITL_ms": 23.627005517482758,
+      "SLO_passes": {
+        "TTFT": true,
+        "ITL": true,
+        "TPOT": true
+      },
+      "joint_pass": true,
+      "actual_layer_cut": 32,
+      "host_boundaries_monotonic": [
+        9708788.377034059,
+        9708788.402879385,
+        9708788.665728107,
+        9708788.6848842,
+        9708788.731176749,
+        9708788.7312784
+      ],
+      "first_worker_output": 9708788.731176749,
+      "last_worker_output": 9708789.080267336,
+      "first_client_output": 9708788.7312784,
+      "last_client_output": 9708789.08051606
+    },
+    {
+      "request_id": "q15",
+      "prompt_id": "longbench_repobench-p_436c9931e94d5bfdd09bfa54e471f6598ea0963e409ec765_L8000",
+      "input_IDs_SHA256": "4e298c9ea58556dd782fa52fcc00b9a13c14cd99f7014f792dc8c92941578980",
+      "input_tokens": 8000,
+      "output_tokens": 16,
+      "TTFT_ms": 318.39222833514214,
+      "TPOT_ms": 23.79852943122387,
+      "E2E_ms": 675.3701698035002,
+      "first_ITL_ms": 23.833200335502625,
+      "steady_ITL_p99_ms": 24.072050992399454,
+      "maximum_ITL_ms": 24.088161066174507,
+      "SLO_passes": {
+        "TTFT": true,
+        "ITL": true,
+        "TPOT": true
+      },
+      "joint_pass": true,
+      "actual_layer_cut": 32,
+      "host_boundaries_monotonic": [
+        9708789.584215526,
+        9708789.588759625,
+        9708789.850371312,
+        9708789.854297884,
+        9708789.902367909,
+        9708789.902607754
+      ],
+      "first_worker_output": 9708789.902367909,
+      "last_worker_output": 9708790.259391043,
+      "first_client_output": 9708789.902607754,
+      "last_client_output": 9708790.259585695
+    },
+    {
+      "request_id": "q16",
+      "prompt_id": "longbench_lcc_cf6d3d1f0f07aeb719a37db4e37a1cd437cb894df0b12bdd_L8000",
+      "input_IDs_SHA256": "a6165034fd19ab50cb6bd61ffd9b8b8bdd39b51aaf61c57bc11b0eec07d702e1",
+      "input_tokens": 8000,
+      "output_tokens": 16,
+      "TTFT_ms": 460.3777937591076,
+      "TPOT_ms": 23.003685598572094,
+      "E2E_ms": 805.433077737689,
+      "first_ITL_ms": 23.183105513453484,
+      "steady_ITL_p99_ms": 23.407718054950237,
+      "maximum_ITL_ms": 23.439623415470123,
+      "SLO_passes": {
+        "TTFT": true,
+        "ITL": true,
+        "TPOT": true
+      },
+      "joint_pass": true,
+      "actual_layer_cut": 32,
+      "host_boundaries_monotonic": [
+        9708789.846251475,
+        9708789.853122111,
+        9708790.119337194,
+        9708790.26025293,
+        9708790.30644821,
+        9708790.306629268
+      ],
+      "first_worker_output": 9708790.30644821,
+      "last_worker_output": 9708790.651488677,
+      "first_client_output": 9708790.306629268,
+      "last_client_output": 9708790.651684552
+    },
+    {
+      "request_id": "q17",
+      "prompt_id": "longbench_repobench-p_ad9d8c2284a0cc93200c15ce99e1eb5b6de7cde40376c3e4_L8000",
+      "input_IDs_SHA256": "eb779c05a8fc8b94820dc75b23306bf2fff4ab898a4cc5257dfe4d5fc76604a1",
+      "input_tokens": 8000,
+      "output_tokens": 16,
+      "TTFT_ms": 316.9624023139477,
+      "TPOT_ms": 23.355222617586453,
+      "E2E_ms": 667.2907415777445,
+      "first_ITL_ms": 23.308800533413887,
+      "steady_ITL_p99_ms": 23.6738951690495,
+      "maximum_ITL_ms": 23.6807931214571,
+      "SLO_passes": {
+        "TTFT": true,
+        "ITL": true,
+        "TPOT": true
+      },
+      "joint_pass": true,
+      "actual_layer_cut": 32,
+      "host_boundaries_monotonic": [
+        9708791.068269802,
+        9708791.072601017,
+        9708791.334278783,
+        9708791.337288482,
+        9708791.38507582,
+        9708791.385232205
+      ],
+      "first_worker_output": 9708791.38507582,
+      "last_worker_output": 9708791.73522128,
+      "first_client_output": 9708791.385232205,
+      "last_client_output": 9708791.735560544
+    },
+    {
+      "request_id": "q18",
+      "prompt_id": "longbench_repobench-p_17a6d9f4a9555f0e7e8dde26126d75fae60c7b549617b301_L8000",
+      "input_IDs_SHA256": "da9b2154bc6fb1716152e93aadc935ce4ceb7be97e7737ab38b4f23d4045745e",
+      "input_tokens": 8000,
+      "output_tokens": 16,
+      "TTFT_ms": 316.5427204221487,
+      "TPOT_ms": 23.021188005805016,
+      "E2E_ms": 661.8605405092239,
+      "first_ITL_ms": 23.130835965275764,
+      "steady_ITL_p99_ms": 23.32200525328517,
+      "maximum_ITL_ms": 23.327533155679703,
+      "SLO_passes": {
+        "TTFT": true,
+        "ITL": true,
+        "TPOT": true
+      },
+      "joint_pass": true,
+      "actual_layer_cut": 32,
+      "host_boundaries_monotonic": [
+        9708792.177915415,
+        9708792.182232264,
+        9708792.444168912,
+        9708792.4473081,
+        9708792.494155444,
+        9708792.494458135
+      ],
+      "first_worker_output": 9708792.494155444,
+      "last_worker_output": 9708792.83956172,
+      "first_client_output": 9708792.494458135,
+      "last_client_output": 9708792.839775955
+    },
+    {
+      "request_id": "q19",
+      "prompt_id": "longbench_repobench-p_5bcc3fe9d8bd1b4038e801a4e1e1f588a41096de2d7bbb07_L8000",
+      "input_IDs_SHA256": "fec21af4ba44407cb945cc78f28144f1fbcc290a28709cbe85a39de4abac1ddb",
+      "input_tokens": 8000,
+      "output_tokens": 16,
+      "TTFT_ms": 322.01589085161686,
+      "TPOT_ms": 23.23407468696435,
+      "E2E_ms": 670.5270111560822,
+      "first_ITL_ms": 23.242350667715073,
+      "steady_ITL_p99_ms": 23.52276984602213,
+      "maximum_ITL_ms": 23.525886237621307,
+      "SLO_passes": {
+        "TTFT": true,
+        "ITL": true,
+        "TPOT": true
+      },
+      "joint_pass": true,
+      "actual_layer_cut": 32,
+      "host_boundaries_monotonic": [
+        9708795.958007101,
+        9708795.962171923,
+        9708796.226120617,
+        9708796.229318546,
+        9708796.279707337,
+        9708796.280022992
+      ],
+      "first_worker_output": 9708796.279707337,
+      "last_worker_output": 9708796.628269805,
+      "first_client_output": 9708796.280022992,
+      "last_client_output": 9708796.628534112
+    },
+    {
+      "request_id": "q20",
+      "prompt_id": "longbench_repobench-p_7abdb12c3b4e4f5e4839ed86f80a549757d753c16078bf0f_L8000",
+      "input_IDs_SHA256": "bd58eac86032b0be102547a99d357ce4d6d0117d8046a394511c56801de41ae4",
+      "input_tokens": 8000,
+      "output_tokens": 16,
+      "TTFT_ms": 321.65916450321674,
+      "TPOT_ms": 23.34486556549867,
+      "E2E_ms": 671.8321479856968,
+      "first_ITL_ms": 23.490428924560547,
+      "steady_ITL_p99_ms": 23.70593924075365,
+      "maximum_ITL_ms": 23.714149370789528,
+      "SLO_passes": {
+        "TTFT": true,
+        "ITL": true,
+        "TPOT": true
+      },
+      "joint_pass": true,
+      "actual_layer_cut": 32,
+      "host_boundaries_monotonic": [
+        9708797.328346195,
+        9708797.33256253,
+        9708797.596515223,
+        9708797.599529533,
+        9708797.649607353,
+        9708797.65000536
+      ],
+      "first_worker_output": 9708797.649607353,
+      "last_worker_output": 9708797.999821696,
+      "first_client_output": 9708797.65000536,
+      "last_client_output": 9708798.000178343
+    },
+    {
+      "request_id": "q21",
+      "prompt_id": "longbench_repobench-p_c83b473786c40913e5feb0ebccd624ec4e8882b6e2493bea_L8000",
+      "input_IDs_SHA256": "5f4c73fa423b40c2499d46468b76a380607e1b9209f57d7955a0c75d27443205",
+      "input_tokens": 8000,
+      "output_tokens": 16,
+      "TTFT_ms": 316.91779009997845,
+      "TPOT_ms": 23.483171438177425,
+      "E2E_ms": 669.1653616726398,
+      "first_ITL_ms": 23.783737793564796,
+      "steady_ITL_p99_ms": 23.772091884166002,
+      "maximum_ITL_ms": 23.783737793564796,
+      "SLO_passes": {
+        "TTFT": true,
+        "ITL": true,
+        "TPOT": true
+      },
+      "joint_pass": true,
+      "actual_layer_cut": 32,
+      "host_boundaries_monotonic": [
+        9708798.724345742,
+        9708798.72803339,
+        9708798.990271604,
+        9708798.993545404,
+        9708799.041158712,
+        9708799.041263532
+      ],
+      "first_worker_output": 9708799.041158712,
+      "last_worker_output": 9708799.393087097,
+      "first_client_output": 9708799.041263532,
+      "last_client_output": 9708799.393511103
+    },
+    {
+      "request_id": "q22",
+      "prompt_id": "longbench_repobench-p_f05594c41ea6a06569eb8aac317c34f7c28bfb5d2b2b3177_L8000",
+      "input_IDs_SHA256": "59b384b8b00fdb359044253fd15feade807892ca2a6a4dbb338ff5fa95d6624a",
+      "input_tokens": 8000,
+      "output_tokens": 16,
+      "TTFT_ms": 308.1022594124079,
+      "TPOT_ms": 22.971711307764053,
+      "E2E_ms": 652.6779290288687,
+      "first_ITL_ms": 22.988008335232735,
+      "steady_ITL_p99_ms": 23.29209018498659,
+      "maximum_ITL_ms": 23.312335833907127,
+      "SLO_passes": {
+        "TTFT": true,
+        "ITL": true,
+        "TPOT": true
+      },
+      "joint_pass": true,
+      "actual_layer_cut": 32,
+      "host_boundaries_monotonic": [
+        9708803.60756352,
+        9708803.61210032,
+        9708803.865120783,
+        9708803.868139831,
+        9708803.915301654,
+        9708803.91566578
+      ],
+      "first_worker_output": 9708803.915301654,
+      "last_worker_output": 9708804.25995764,
+      "first_client_output": 9708803.91566578,
+      "last_client_output": 9708804.260241449
+    },
+    {
+      "request_id": "q23",
+      "prompt_id": "longbench_repobench-p_3ddf5be265df219b628fb23e585586981804cd220fc25ef2_L8000",
+      "input_IDs_SHA256": "f1704c1c7b667712af2a7fe3981ccea18204daf1a67d6f31828ef563f5a5293e",
+      "input_tokens": 8000,
+      "output_tokens": 16,
+      "TTFT_ms": 321.4012682437897,
+      "TPOT_ms": 23.844037825862568,
+      "E2E_ms": 679.0618356317282,
+      "first_ITL_ms": 24.021103978157043,
+      "steady_ITL_p99_ms": 24.17969301342964,
+      "maximum_ITL_ms": 24.192800745368004,
+      "SLO_passes": {
+        "TTFT": true,
+        "ITL": true,
+        "TPOT": true
+      },
+      "joint_pass": true,
+      "actual_layer_cut": 32,
+      "host_boundaries_monotonic": [
+        9708804.208571304,
+        9708804.21496642,
+        9708804.47836179,
+        9708804.481604887,
+        9708804.529839495,
+        9708804.529972572
+      ],
+      "first_worker_output": 9708804.529839495,
+      "last_worker_output": 9708804.887250807,
+      "first_client_output": 9708804.529972572,
+      "last_client_output": 9708804.88763314
+    },
+    {
+      "request_id": "q24",
+      "prompt_id": "longbench_repobench-p_d476e905ec97f8bf948a0b1c766874e2964af8b204c96728_L8000",
+      "input_IDs_SHA256": "b6af9de78d449b5a1bd2fee2a8720a3f863d9352d264a5770dff6afc6a333090",
+      "input_tokens": 8000,
+      "output_tokens": 16,
+      "TTFT_ms": 323.13226722180843,
+      "TPOT_ms": 23.77958633005619,
+      "E2E_ms": 679.8260621726513,
+      "first_ITL_ms": 23.983296006917953,
+      "steady_ITL_p99_ms": 24.109808430075645,
+      "maximum_ITL_ms": 24.112964048981667,
+      "SLO_passes": {
+        "TTFT": true,
+        "ITL": true,
+        "TPOT": true
+      },
+      "joint_pass": true,
+      "actual_layer_cut": 32,
+      "host_boundaries_monotonic": [
+        9708804.687618509,
+        9708804.698488204,
+        9708804.961078908,
+        9708804.964358425,
+        9708805.010420091,
+        9708805.010750776
+      ],
+      "first_worker_output": 9708805.010420091,
+      "last_worker_output": 9708805.367175505,
+      "first_client_output": 9708805.010750776,
+      "last_client_output": 9708805.367444571
+    },
+    {
+      "request_id": "q25",
+      "prompt_id": "longbench_repobench-p_f96bf9c1df521b55bd0cdb0753e88f19069d16ccfc08bcd5_L8000",
+      "input_IDs_SHA256": "9a82e027832302441faf919e63094485fa0c4332354eec41193089da91ffba3a",
+      "input_tokens": 8000,
+      "output_tokens": 16,
+      "TTFT_ms": 311.25964783132076,
+      "TPOT_ms": 23.312097042798996,
+      "E2E_ms": 660.9411034733057,
+      "first_ITL_ms": 23.28389510512352,
+      "steady_ITL_p99_ms": 23.513510562479496,
+      "maximum_ITL_ms": 23.52132648229599,
+      "SLO_passes": {
+        "TTFT": true,
+        "ITL": true,
+        "TPOT": true
+      },
+      "joint_pass": true,
+      "actual_layer_cut": 32,
+      "host_boundaries_monotonic": [
+        9708807.715175545,
+        9708807.719199874,
+        9708807.97542892,
+        9708807.978707444,
+        9708808.026291348,
+        9708808.026435193
+      ],
+      "first_worker_output": 9708808.026291348,
+      "last_worker_output": 9708808.375831166,
+      "first_client_output": 9708808.026435193,
+      "last_client_output": 9708808.376116648
+    },
+    {
+      "request_id": "q26",
+      "prompt_id": "longbench_repobench-p_91022391de0eedf010ff341a8545ccb7b9735f7ce690aa48_L8000",
+      "input_IDs_SHA256": "20de80fdd1a68847491a8f0264ed073bdd216ff1b33e5a7b6c304780dd2f6c33",
+      "input_tokens": 8000,
+      "output_tokens": 16,
+      "TTFT_ms": 308.155057951808,
+      "TPOT_ms": 23.22847458223502,
+      "E2E_ms": 656.5821766853333,
+      "first_ITL_ms": 23.260995745658875,
+      "steady_ITL_p99_ms": 23.49222419783473,
+      "maximum_ITL_ms": 23.501936346292496,
+      "SLO_passes": {
+        "TTFT": true,
+        "ITL": true,
+        "TPOT": true
+      },
+      "joint_pass": true,
+      "actual_layer_cut": 32,
+      "host_boundaries_monotonic": [
+        9708809.418081759,
+        9708809.422813732,
+        9708809.675536752,
+        9708809.678908344,
+        9708809.72601516,
+        9708809.726236816
+      ],
+      "first_worker_output": 9708809.72601516,
+      "last_worker_output": 9708810.0743823,
+      "first_client_output": 9708809.726236816,
+      "last_client_output": 9708810.074663935
+    },
+    {
+      "request_id": "q27",
+      "prompt_id": "longbench_repobench-p_2a29bee9974c0a24bdfc137468538105d273d3ff3be13a28_L8000",
+      "input_IDs_SHA256": "10e000a198dd2bfc9dd621ea7ccc9121d4cc873358468901d7dc6239cf5b1890",
+      "input_tokens": 8000,
+      "output_tokens": 16,
+      "TTFT_ms": 315.96372835338116,
+      "TPOT_ms": 23.70700476070245,
+      "E2E_ms": 671.5687997639179,
+      "first_ITL_ms": 23.694360628724098,
+      "steady_ITL_p99_ms": 24.083207305520773,
+      "maximum_ITL_ms": 24.121582508087158,
+      "SLO_passes": {
+        "TTFT": true,
+        "ITL": true,
+        "TPOT": true
+      },
+      "joint_pass": true,
+      "actual_layer_cut": 32,
+      "host_boundaries_monotonic": [
+        9708811.400032982,
+        9708811.404497372,
+        9708811.664635876,
+        9708811.667815303,
+        9708811.715648841,
+        9708811.71599671
+      ],
+      "first_worker_output": 9708811.715648841,
+      "last_worker_output": 9708812.071508609,
+      "first_client_output": 9708811.71599671,
+      "last_client_output": 9708812.071601782
+    },
+    {
+      "request_id": "q28",
+      "prompt_id": "longbench_repobench-p_c278905d2277be2d864087bc7d5204f2e66fcec6905a1ccd_L8000",
+      "input_IDs_SHA256": "b571bbc352e2ed9a93385d01ec81e373f6e7bba0a5555a77a06e00115aa23fee",
+      "input_tokens": 8000,
+      "output_tokens": 16,
+      "TTFT_ms": 316.59395806491375,
+      "TPOT_ms": 23.261205479502678,
+      "E2E_ms": 665.5120402574539,
+      "first_ITL_ms": 23.205678910017014,
+      "steady_ITL_p99_ms": 23.450770992785692,
+      "maximum_ITL_ms": 23.452965542674065,
+      "SLO_passes": {
+        "TTFT": true,
+        "ITL": true,
+        "TPOT": true
+      },
+      "joint_pass": true,
+      "actual_layer_cut": 32,
+      "host_boundaries_monotonic": [
+        9708814.328007342,
+        9708814.331536714,
+        9708814.593878929,
+        9708814.597086532,
+        9708814.6443942,
+        9708814.6446013
+      ],
+      "first_worker_output": 9708814.6443942,
+      "last_worker_output": 9708814.99331512,
+      "first_client_output": 9708814.6446013,
+      "last_client_output": 9708814.993519383
+    },
+    {
+      "request_id": "q29",
+      "prompt_id": "longbench_repobench-p_bcda19c5cfa1e974aa46fb06e03d0bdb937c6afcd12f921b_L8000",
+      "input_IDs_SHA256": "eedaf018fb49f4612824464695347875ca21c2351637a92fb3db6f04ecd716cb",
+      "input_tokens": 8000,
+      "output_tokens": 16,
+      "TTFT_ms": 316.9264476746321,
+      "TPOT_ms": 23.219722509384155,
+      "E2E_ms": 665.2222853153944,
+      "first_ITL_ms": 23.486319929361343,
+      "steady_ITL_p99_ms": 23.453631103038788,
+      "maximum_ITL_ms": 23.486319929361343,
+      "SLO_passes": {
+        "TTFT": true,
+        "ITL": true,
+        "TPOT": true
+      },
+      "joint_pass": true,
+      "actual_layer_cut": 32,
+      "host_boundaries_monotonic": [
+        9708816.631269729,
+        9708816.635295983,
+        9708816.89711784,
+        9708816.900192007,
+        9708816.948075509,
+        9708816.948196176
+      ],
+      "first_worker_output": 9708816.948075509,
+      "last_worker_output": 9708817.296388129,
+      "first_client_output": 9708816.948196176,
+      "last_client_output": 9708817.296492014
+    },
+    {
+      "request_id": "q30",
+      "prompt_id": "longbench_repobench-p_c7bd116848b3434031e6aff0ff9b68ef1d8213572198f01d_L8000",
+      "input_IDs_SHA256": "308f13c0c1d3ab6c044baba7250563417b004e405b1a7c43e43d000ba641a76f",
+      "input_tokens": 8000,
+      "output_tokens": 16,
+      "TTFT_ms": 317.1445932239294,
+      "TPOT_ms": 23.771124581495922,
+      "E2E_ms": 673.7114619463682,
+      "first_ITL_ms": 23.945948109030724,
+      "steady_ITL_p99_ms": 24.01313427835703,
+      "maximum_ITL_ms": 24.016255512833595,
+      "SLO_passes": {
+        "TTFT": true,
+        "ITL": true,
+        "TPOT": true
+      },
+      "joint_pass": true,
+      "actual_layer_cut": 32,
+      "host_boundaries_monotonic": [
+        9708818.90197361,
+        9708818.906128224,
+        9708819.168624107,
+        9708819.171661368,
+        9708819.219022356,
+        9708819.219118204
+      ],
+      "first_worker_output": 9708819.219022356,
+      "last_worker_output": 9708819.575589942,
+      "first_client_output": 9708819.219118204,
+      "last_client_output": 9708819.575685073
+    },
+    {
+      "request_id": "q31",
+      "prompt_id": "longbench_repobench-p_5ad43567f7b002883926c62eee4d7212617c9cf9feedf0e7_L8000",
+      "input_IDs_SHA256": "48685c99351a344d330a029fc80195c439fa08646f6714fc00b56cb04c6e40a5",
+      "input_tokens": 8000,
+      "output_tokens": 16,
+      "TTFT_ms": 317.9680351167917,
+      "TPOT_ms": 22.985709955294926,
+      "E2E_ms": 662.7536844462156,
+      "first_ITL_ms": 23.23213219642639,
+      "steady_ITL_p99_ms": 23.20749720558524,
+      "maximum_ITL_ms": 23.23213219642639,
+      "SLO_passes": {
+        "TTFT": true,
+        "ITL": true,
+        "TPOT": true
+      },
+      "joint_pass": true,
+      "actual_layer_cut": 32,
+      "host_boundaries_monotonic": [
+        9708820.532480288,
+        9708820.536381504,
+        9708820.799457883,
+        9708820.802563837,
+        9708820.850255474,
+        9708820.850448323
+      ],
+      "first_worker_output": 9708820.850255474,
+      "last_worker_output": 9708821.194952838,
+      "first_client_output": 9708820.850448323,
+      "last_client_output": 9708821.195233973
+    },
+    {
+      "request_id": "q32",
+      "prompt_id": "longbench_repobench-p_0d636fecb69537fc669049ad8e62bf32f3c0d90a9054a8a1_L8000",
+      "input_IDs_SHA256": "1f3faa9820f304841ae0d34f0d492200045057683ad52d2a4db584fbf272109a",
+      "input_tokens": 8000,
+      "output_tokens": 16,
+      "TTFT_ms": 316.07528775930405,
+      "TPOT_ms": 23.7258513768514,
+      "E2E_ms": 671.963058412075,
+      "first_ITL_ms": 23.907450959086418,
+      "steady_ITL_p99_ms": 23.95764460787177,
+      "maximum_ITL_ms": 23.965096101164818,
+      "SLO_passes": {
+        "TTFT": true,
+        "ITL": true,
+        "TPOT": true
+      },
+      "joint_pass": true,
+      "actual_layer_cut": 32,
+      "host_boundaries_monotonic": [
+        9708821.604654897,
+        9708821.608562527,
+        9708821.870959291,
+        9708821.874007069,
+        9708821.92062782,
+        9708821.920730185
+      ],
+      "first_worker_output": 9708821.92062782,
+      "last_worker_output": 9708822.276450573,
+      "first_client_output": 9708821.920730185,
+      "last_client_output": 9708822.276617955
+    },
+    {
+      "request_id": "q33",
+      "prompt_id": "longbench_repobench-p_fb3b6309cd6ab41ea9b398d8beb6e4ac5130c90d5aa1164d_L8000",
+      "input_IDs_SHA256": "e334e11d2a89f963c7475086fbdaedaf72dc4dc3697edf4628c6e32e6103ede9",
+      "input_tokens": 8000,
+      "output_tokens": 16,
+      "TTFT_ms": 317.23340414464474,
+      "TPOT_ms": 23.32906114558379,
+      "E2E_ms": 667.1693213284016,
+      "first_ITL_ms": 22.85195142030716,
+      "steady_ITL_p99_ms": 23.6306893825531,
+      "maximum_ITL_ms": 23.640532046556473,
+      "SLO_passes": {
+        "TTFT": true,
+        "ITL": true,
+        "TPOT": true
+      },
+      "joint_pass": true,
+      "actual_layer_cut": 32,
+      "host_boundaries_monotonic": [
+        9708823.207803525,
+        9708823.21159896,
+        9708823.473781647,
+        9708823.476942068,
+        9708823.524424436,
+        9708823.52503693
+      ],
+      "first_worker_output": 9708823.524424436,
+      "last_worker_output": 9708823.874706808,
+      "first_client_output": 9708823.52503693,
+      "last_client_output": 9708823.874972846
+    },
+    {
+      "request_id": "q34",
+      "prompt_id": "longbench_repobench-p_db0b44af2303e91a7cc86217c859e31889b4abab7592cba6_L8000",
+      "input_IDs_SHA256": "ef4c95aa21c5c177e891977d42d540427fce69ae6f97635f6226effdc09380e1",
+      "input_tokens": 8000,
+      "output_tokens": 16,
+      "TTFT_ms": 315.57569466531277,
+      "TPOT_ms": 23.471665134032566,
+      "E2E_ms": 667.6506716758013,
+      "first_ITL_ms": 23.699412122368813,
+      "steady_ITL_p99_ms": 23.70467970147729,
+      "maximum_ITL_ms": 23.708269000053406,
+      "SLO_passes": {
+        "TTFT": true,
+        "ITL": true,
+        "TPOT": true
+      },
+      "joint_pass": true,
+      "actual_layer_cut": 32,
+      "host_boundaries_monotonic": [
+        9708824.272298789,
+        9708824.276223637,
+        9708824.53765437,
+        9708824.541005999,
+        9708824.587754373,
+        9708824.587874483
+      ],
+      "first_worker_output": 9708824.587754373,
+      "last_worker_output": 9708824.939844888,
+      "first_client_output": 9708824.587874483,
+      "last_client_output": 9708824.93994946
+    },
+    {
+      "request_id": "q35",
+      "prompt_id": "longbench_repobench-p_d60990d706853cd274c7ff6b8b766fcccca25dc8de5ae49c_L8000",
+      "input_IDs_SHA256": "795bc488e7f03d6ac63312d91018d8c1e49266a4ba1faa72e1c5768e50d9e502",
+      "input_tokens": 8000,
+      "output_tokens": 16,
+      "TTFT_ms": 333.17188359797,
+      "TPOT_ms": 23.03815757234891,
+      "E2E_ms": 678.7442471832037,
+      "first_ITL_ms": 23.54385145008564,
+      "steady_ITL_p99_ms": 23.26564434915781,
+      "maximum_ITL_ms": 23.54385145008564,
+      "SLO_passes": {
+        "TTFT": true,
+        "ITL": true,
+        "TPOT": true
+      },
+      "joint_pass": true,
+      "actual_layer_cut": 32,
+      "host_boundaries_monotonic": [
+        9708824.687249158,
+        9708824.706548445,
+        9708824.968275795,
+        9708824.97144134,
+        9708825.020296892,
+        9708825.020421041
+      ],
+      "first_worker_output": 9708825.020296892,
+      "last_worker_output": 9708825.365715517,
+      "first_client_output": 9708825.020421041,
+      "last_client_output": 9708825.365993405
+    }
+  ],
+  "provenance": {
+    "model_revision": "b968826d9c46dd6066d109eabc6255188de91218",
+    "configuration_SHA256": "aa9c39a0c442882226f8b0815858a29ea87b95144db8927ee0749872fa38913c",
+    "source_archive_SHA256": "573d78bbd04908a4a551ebe6c579ceed5e444b0c285e4500b143cda10d420860",
+    "request_log_SHA256": "ed55a2adaab54caa637a8aa327b384474ab40c02aed55c7935a56adaeef74bb3",
+    "arrival_offsets_SHA256": "68eb416fe697bbdbdb27de9a81c3ad87ec50ccf8573728816e9a91834bef8e8f"
+  },
+  "evidence": "MEASURED_ONLINE",
+  "scope": "Client-visible finite-cohort metrics. First ITL is included. Worker clocks are separate diagnostic boundaries. Source ZIP and dispatcher logs retain the exact command, runtime and GPU mapping. Full state witnesses are separate correctness runs. No GPU busy, exclusive kernel or sustainable capacity claim follows."
+}
