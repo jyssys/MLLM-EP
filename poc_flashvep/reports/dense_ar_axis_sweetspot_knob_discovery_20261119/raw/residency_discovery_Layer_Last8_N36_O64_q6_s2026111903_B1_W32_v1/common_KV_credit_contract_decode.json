@@ -1,0 +1,8 @@
+{
+  "common_prospective_reservation": true,
+  "full_context_blocks": true,
+  "original_SHA256": "0846ca1bab1805363fbbdefa94f6ec13947035882bc307d2c68fd73073bc4fda",
+  "executed_SHA256": "cc0f29f0085f747ec7a6071a91955de6f996d9a92c41078f2b954555da7b04b5",
+  "source": "def reserve(self,generation,cut,requests,blocks_each,free,decode_reserve=0,max_pending=16):\n    assert generation not in self.reservations and cut in (24,28,32,34,36)\n    assert requests and len(set(requests))==len(requests) and blocks_each>0\n    live={rid for r in self.reservations.values() for rid in r.blocks}\n    assert not live.intersection(requests),'A request cannot own two reservations'\n    pending=sum(len(r.blocks)-len(r.allocated) for r in self.reservations.values())\n    if free<self.outstanding()+decode_reserve+blocks_each*len(requests):return False\n    if pending+len(requests)>max_pending:return False\n    self.reservations[generation]=Reservation(generation,cut,dict.fromkeys(requests,blocks_each))\n    self.history.append(dict(action='RESERVE',generation=generation,cut=cut,requests=list(requests)))\n    return True\n",
+  "scope": "Keep the existing reservation, commit, allocator exclusion, request mapping and retirement code. Only permit cut36 in the existing cut assertion. No new KV manager. All PD methods reserve the full destination prompt/output block demand before P work."
+}
