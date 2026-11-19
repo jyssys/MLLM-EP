@@ -1,0 +1,51 @@
+{
+  "time": 1795021288.9373379,
+  "design": {
+    "target": "Explain client-visible axis differences. Forward speedup is not the target label.",
+    "cost_scope": "Empirical fixed-action host costs from discovery/calibration only. Keep Original model, B/S, exact rows and actual Batch fixed.",
+    "candidates": [
+      {
+        "name": "ISOLATED_D_COST_RATIO",
+        "observable_count": 0,
+        "definition": "Calibrated D service ratio only. This is action metadata, not a measured online queue state.",
+        "failure_test": "It must explain why a lower D Forward cost can still produce higher online TTFT."
+      },
+      {
+        "name": "EFFECTIVE_PIPELINE_CYCLE_RATIO",
+        "observable_count": 0,
+        "definition": "max(P_L,D_L/b) / max(P_T,D_T/b), including calibrated host gaps.",
+        "failure_test": "Low load may follow P+D rather than the saturated cycle. It cannot prove sustainable capacity."
+      },
+      {
+        "name": "SINGLE_PRESSURE_RATIO",
+        "observable_count": 1,
+        "definition": "R = (1 + ready_D_count/b + estimated_active_D_remaining/reference_D_cohort_cost) / (1 + pending_P_count).",
+        "rule": "Minimize (1+pending_P_count)*P_action + kappa*(1+ready_D_count/b+active_fraction)*D_action_per_request.",
+        "known_information": "Pending request IDs and actual completed-token counts exist before P submission. Active remaining time uses calibrated costs. No future completion is read.",
+        "kappa_grid": [
+          0.25,
+          0.5,
+          1.0,
+          2.0,
+          4.0
+        ]
+      },
+      {
+        "name": "TWO_QUEUE_WORK_CLOCKS",
+        "observable_count": 2,
+        "definition": "Q_P is calibrated work for already-arrived pending P requests. Q_D is active residual plus already-ready D cohort work.",
+        "rule": "Compare action-dependent predicted first-token completion and queue-work penalty. Start with the single-ratio rule. Add a second independent clock only if discovery shows a necessary counterexample."
+      }
+    ],
+    "calibration_split": "Use new q0.5 calibration and mechanism/residency discovery. Historical discovery is a separately labeled fallback, not new GPU evidence.",
+    "evaluation_split": "Freeze chosen rule and costs before reading heldout_confirmation metrics. Evaluate new arrival seeds, QPS and batch separately. Reused prompts are not an unseen prompt distribution.",
+    "winner_labels": "Require paired independent-start95% CI to exclude1. Uncertain cells stay UNRESOLVED. Also report continuous TTFT/goodput regret.",
+    "replay_action_boundary": "18-request blocks, divisible by9 and Decode2. This preserves exact aggregate Token/Layer work within every selected block.",
+    "oracle_scope": "Search Layer/Token at the same cut first. Compare the best fixed axis across all cuts separately. A restricted action grid is not a global systems upper bound.",
+    "replay_scope": "Update FIFO P queue, D whole-cohort guard, source outstanding window and fixed-request KV reservations. Validate fixed traces before counterfactual claims.",
+    "model_gate": "The frozen replay gate requires TTFTp95 error<=10%, Token/s error<=5%, Ready-D mean error<=max(10ms,20%).",
+    "stop_rule": "If model validation fails or oracle headroom is below5% or uncertain, do not implement an online dynamic scheduler.",
+    "evidence": "RESEARCH_PROTOCOL",
+    "physical_GPU_idle": "NOT_MEASURED"
+  }
+}

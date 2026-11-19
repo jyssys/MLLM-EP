@@ -1,0 +1,21 @@
+{
+  "time": 1795025724.0708547,
+  "name": "SERVICE_DEMAND_AND_TOTAL_BACKLOG",
+  "Decode_demand": "d=calibrated common Decode cohort residency / actual batch",
+  "backlog": "All already-arrived unfinished requests, regardless of whether they wait before P or D",
+  "cycle": "C_a=max(P_effective_a,D_suffix_effective_a+d)",
+  "unqueued": "F_a=P_effective_a+D_suffix_effective_a",
+  "weight": "alpha=clip((unfinished-b)/(b+1),0,1)",
+  "score": "alpha*C_a+(1-alpha)*F_a",
+  "fit_parameters": "None. Action costs are separate empirical metadata.",
+  "revision_reason": "The measured source-window intervention relocated about1second of waiting without a matching E2E change. Compare queue-location-sensitive pressure with a service-demand model.",
+  "predeclared_tests": [
+    "Last8 Decode2→4 at Output16/QPS6",
+    "Last4 Output16→64 at Decode2/QPS6",
+    "Last4 newQPS3"
+  ],
+  "timing": "Before new Batch4, output-residency confirmation and newQPS3 results. Core Source-window discovery is known.",
+  "block_geometry": "lcm(18,actual_Decode_batch):18 forBatch1/2,36 forBatch4. Every block matches exact token-layer work.",
+  "evidence": "RESEARCH_PROTOCOL",
+  "limit": "Mean-cost surrogate only. No future arrival or completion enters a rule decision. No SLO/WCET guarantee or implemented online scheduler."
+}
