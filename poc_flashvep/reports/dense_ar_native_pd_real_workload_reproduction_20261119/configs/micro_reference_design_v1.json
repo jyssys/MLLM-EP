@@ -1,0 +1,31 @@
+{
+  "time": 1795088405.5392544,
+  "model_revision": "b968826d9c46dd6066d109eabc6255188de91218",
+  "lengths": [
+    4096,
+    8192,
+    16384
+  ],
+  "output": 16,
+  "concurrency": 1,
+  "GPU": 1,
+  "hypotheses": [
+    "H1: Batch-invariant kernel selection explains a large part of decode latency. Changing only that flag changes the standard-engine time.",
+    "H2: Graph/Eager or compile settings dominate. The flag-only comparison is small but stock execution defaults differ.",
+    "H3: Custom PD host/control or transfer dominates. The same standard-engine numerical path remains materially faster than Custom Native."
+  ],
+  "methods": [
+    "standard_matched_BI0",
+    "standard_matched_BI1",
+    "standard_stock_BI0"
+  ],
+  "actual_B_S": [
+    8192,
+    1024
+  ],
+  "KV_GiB": 42,
+  "warmup_per_length": 2,
+  "measured_per_length": 6,
+  "boundary_sync": "Matched BI0/BI1 synchronize only before request, at first sample, and after final output. Stock default omits the first-sample barrier.",
+  "scope": "Fixed lengths are diagnostic controls only. No Layer/Token measurement or QPS sweep. Stock-default differences are not a flag-only causal comparison."
+}

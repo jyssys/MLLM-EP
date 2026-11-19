@@ -1,0 +1,65 @@
+{
+  "build": {
+    "source": "/home/esjung/MLLM-EP-github/poc_flashvep/reports/dense_ar_native_pd_real_workload_reproduction_20261119/references/CUPTI_collector/preallocated_activity.cc",
+    "source_SHA256": "75e49c8e9f5e6428235544bf888ac5b153114177c08b815724559c138e930a40",
+    "library": "/home/esjung/MLLM-EP-github/poc_flashvep/reports/dense_ar_native_pd_real_workload_reproduction_20261119/references/CUPTI_collector/activity_api28_kernel_only.so",
+    "library_SHA256": "e09b785a652cb26b1a6cd6b6fc8e55d7bf428e716f908d57c43c909a31443afd",
+    "CUPTI_library": "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/nvidia/cuda_cupti/lib/libcupti.so.12",
+    "CUPTI_library_SHA256": "2fdab19dc3fccdd4b2f5eba137aabefc68e685f6497bb38eea649866c5672a2a",
+    "command": [
+      "g++",
+      "-O2",
+      "-std=c++17",
+      "-fPIC",
+      "-shared",
+      "-pthread",
+      "/home/esjung/MLLM-EP-github/poc_flashvep/prefill_heavy_decode_safe/preallocated_activity.cc",
+      "-I/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/nvidia/cuda_cupti/include",
+      "-I/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/nvidia/cuda_runtime/include",
+      "-I/usr/local/cuda-12.8/include",
+      "-L/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/nvidia/cuda_cupti/lib",
+      "-Wl,-rpath,/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/nvidia/cuda_cupti/lib",
+      "-l:libcupti.so.12",
+      "-o",
+      "/home/esjung/MLLM-EP-github/poc_flashvep/reports/dense_ar_decode_safe_layer_token_offloading_20261119/tools/activity_api28_kernel_only.so"
+    ],
+    "scope": "Verbatim previous precontext fixed-buffer concurrent-kernel collector. No API callback tracing. No installed runtime modification."
+  },
+  "witness": {
+    "passed": true,
+    "CUPTI_API_version": 28,
+    "code": 0,
+    "kernels": 200,
+    "expected_kernels": 200,
+    "graph_kernels": 100,
+    "expected_graph_kernels": 100,
+    "counters": {
+      "dropped": 0,
+      "invalid": 0,
+      "count": 200,
+      "all_kernels": 223
+    },
+    "begin": {
+      "cupti_ns": 1795078874262050392,
+      "host_lower_ns": 9766177628618629,
+      "host_upper_ns": 9766177628631231
+    },
+    "end": {
+      "cupti_ns": 1795078874263407380,
+      "host_lower_ns": 9766177629983681,
+      "host_upper_ns": 9766177629987536
+    },
+    "GPU_uuid": "f217c8a0-1142-20f4-d84b-af29f3a47a0d",
+    "pid": 1219830,
+    "CUPTI_mappings": [
+      "7f0fe6e17000-7f0fe6ecd000 r--p 00000000 fc:01 469397570                  /home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/nvidia/cuda_cupti/lib/libcupti.so.12",
+      "7f0fe6ecd000-7f0fe72d6000 r-xp 000b6000 fc:01 469397570                  /home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/nvidia/cuda_cupti/lib/libcupti.so.12",
+      "7f0fe72d6000-7f0fe742d000 r--p 004bf000 fc:01 469397570                  /home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/nvidia/cuda_cupti/lib/libcupti.so.12",
+      "7f0fe742d000-7f0fe7478000 r--p 00616000 fc:01 469397570                  /home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/nvidia/cuda_cupti/lib/libcupti.so.12",
+      "7f0fe7478000-7f0fe7558000 rw-p 00661000 fc:01 469397570                  /home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/nvidia/cuda_cupti/lib/libcupti.so.12"
+    ],
+    "evidence": "CORRECTNESS_ONLY",
+    "scope": "Collector coverage witness with100 eager and100 graph-launched kernels. No serving workload, speedup, idle-capacity, or overhead claim follows from this witness."
+  },
+  "unchanged_collector": true
+}

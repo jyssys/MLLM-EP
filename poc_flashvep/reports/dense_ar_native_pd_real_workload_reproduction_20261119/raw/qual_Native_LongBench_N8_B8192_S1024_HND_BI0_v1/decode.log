@@ -1,0 +1,151 @@
+INFO 11-19 21:17:35 [api_utils.py:273] non-default args: {'tokenizer': '/home/esjung/.cache/huggingface/hub/models--Qwen--Qwen3-8B/snapshots/b968826d9c46dd6066d109eabc6255188de91218', 'dtype': 'bfloat16', 'seed': 2026111901, 'max_model_len': 40960, 'enable_prefix_caching': False, 'kv_cache_memory_bytes': 45097156608, 'max_num_batched_tokens': 8192, 'max_num_seqs': 1024, 'disable_log_stats': True, 'enable_chunked_prefill': True, 'attention_config': AttentionConfig(backend=<AttentionBackendEnum.FLASH_ATTN: 'vllm.v1.attention.backends.flash_attn.FlashAttentionBackend'>, backend_per_kind={}, flash_attn_version=None, use_prefill_decode_attention=False, flash_attn_max_num_splits_for_cuda_graph=32, tq_max_kv_splits_for_cuda_graph=32, use_trtllm_attention=None, disable_flashinfer_q_quantization=False, mla_prefill_backend=None, use_prefill_query_quantization=False, use_fp4_indexer_cache=False, indexer_kv_dtype='bf16', use_non_causal=False, sparse_mla_force_mqa=False, flex_attn_block_m=None, flex_attn_block_n=None, flex_attn_q_block_size=None, flex_attn_kv_block_size=None), 'kv_transfer_config': KVTransferConfig(kv_connector='NixlConnector', engine_id='b7d7edf2-1bd7-44ec-941f-20006c0d6508', kv_buffer_device='cuda', kv_buffer_size=1000000000.0, kv_role='kv_consumer', kv_rank=None, kv_parallel_size=1, kv_ip='127.0.0.1', kv_port=14579, kv_connector_extra_config={}, kv_connector_module_path=None, enable_permute_local_kv=False, kv_load_failure_policy='fail'), 'async_scheduling': True, 'model': '/home/esjung/.cache/huggingface/hub/models--Qwen--Qwen3-8B/snapshots/b968826d9c46dd6066d109eabc6255188de91218'}
+WARNING 11-19 21:17:35 [arg_utils.py:1631] The global random seed is set to 2026111901. Since VLLM_ENABLE_V1_MULTIPROCESSING is set to False, this may affect the random state of the Python process that launched vLLM.
+INFO 11-19 21:17:35 [model.py:623] Resolved architecture: Qwen3ForCausalLM
+INFO 11-19 21:17:35 [model.py:1788] Using max model len 40960
+INFO 11-19 21:17:35 [scheduler.py:252] Chunked prefill is enabled with max_num_batched_tokens=8192.
+INFO 11-19 21:17:35 [vllm.py:1109] Asynchronous scheduling is enabled.
+INFO 11-19 21:17:35 [kernel.py:295] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native'])
+INFO 11-19 21:17:35 [nixl_utils.py:32] Setting UCX_RCACHE_MAX_UNRELEASED to '1024' to avoid a rare memory leak in UCX when using NIXL.
+INFO 11-19 21:17:35 [nixl_utils.py:68] NIXL is available
+INFO 11-19 21:17:37 [core.py:116] Initializing a V1 LLM engine (v0.26.0) with config: model='/home/esjung/.cache/huggingface/hub/models--Qwen--Qwen3-8B/snapshots/b968826d9c46dd6066d109eabc6255188de91218', speculative_config=None, tokenizer='/home/esjung/.cache/huggingface/hub/models--Qwen--Qwen3-8B/snapshots/b968826d9c46dd6066d109eabc6255188de91218', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, tokenizer_revision=None, trust_remote_code=False, dtype=torch.bfloat16, max_seq_len=40960, download_dir=None, load_format=auto, tensor_parallel_size=1, pipeline_parallel_size=1, data_parallel_size=1, decode_context_parallel_size=1, dcp_comm_backend=ag_rs, disable_custom_all_reduce=False, quantization=None, quantization_config=None, enforce_eager=False, enable_return_routed_experts=False, kv_cache_dtype=auto, device_config=cuda, structured_outputs_config=StructuredOutputsConfig(backend='auto', disable_any_whitespace=False, disable_additional_properties=False, reasoning_parser='', reasoning_parser_plugin='', enable_in_reasoning=False), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None, kv_cache_metrics=False, kv_cache_metrics_sample=0.01, cudagraph_metrics=False, enable_layerwise_nvtx_tracing=False, enable_mfu_metrics=False, enable_mm_processor_stats=False, enable_logging_iteration_details=False, jit_monitor_mode='warn', jit_monitor_verbose=False), seed=2026111901, served_model_name=/home/esjung/.cache/huggingface/hub/models--Qwen--Qwen3-8B/snapshots/b968826d9c46dd6066d109eabc6255188de91218, enable_prefix_caching=False, enable_chunked_prefill=True, pooler_config=None, compilation_config={'mode': <CompilationMode.VLLM_COMPILE: 3>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', 'custom_ops': ['none'], 'ir_enable_torch_wrap': True, 'splitting_ops': ['vllm::unified_attention_with_output', 'vllm::unified_mla_attention_with_output', 'vllm::mamba_mixer2', 'vllm::mamba_mixer', 'vllm::short_conv', 'vllm::linear_attention', 'vllm::plamo2_mamba_mixer', 'vllm::qwen_gdn_attention_core', 'vllm::gdn_attention_core_xpu', 'vllm::olmo_hybrid_gdn_full_forward', 'vllm::kda_attention', 'vllm::sparse_attn_indexer', 'vllm::rocm_aiter_sparse_attn_indexer', 'vllm::deepseek_v4_attention', 'vllm::hpc_rope_norm_forward', 'vllm::unified_kv_cache_update', 'vllm::unified_mla_kv_cache_update'], 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'compile_sizes': [], 'compile_ranges_endpoints': [8192], 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'size_asserts': False, 'alignment_asserts': False, 'scalar_asserts': False, 'combo_kernels': True, 'benchmark_combo_kernel': True}, 'inductor_passes': {}, 'cudagraph_mode': <CUDAGraphMode.FULL_AND_PIECEWISE: (2, 1)>, 'cudagraph_num_of_warmups': 1, 'cudagraph_capture_sizes': [1, 2, 4, 8, 16, 24, 32, 40, 48, 56, 64, 72, 80, 88, 96, 104, 112, 120, 128, 136, 144, 152, 160, 168, 176, 184, 192, 200, 208, 216, 224, 232, 240, 248, 256, 272, 288, 304, 320, 336, 352, 368, 384, 400, 416, 432, 448, 464, 480, 496, 512], 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': False, 'pass_config': {'fuse_norm_quant': False, 'fuse_act_quant': False, 'fuse_attn_quant': False, 'enable_sp': False, 'fuse_gemm_comms': False, 'fuse_allreduce_rms': False, 'enable_qk_norm_rope_fusion': False, 'fuse_rope_kvcache_cat_mla': False, 'fuse_act_padding': False, 'fuse_qk_norm_rope_kvcache': False}, 'max_cudagraph_capture_size': 512, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': False, 'static_all_moe_layers': []}, kernel_config=KernelConfig(ir_op_priority=IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native']), enable_flashinfer_autotune=True, enable_cutedsl_warmup=True, enable_bf16x3_router_gemm=False, moe_backend='auto', linear_backend='auto')
+INFO 11-19 21:17:38 [parallel_state.py:1615] world_size=1 rank=0 local_rank=0 distributed_init_method=tcp://192.168.0.2:41347 backend=nccl
+INFO 11-19 21:17:38 [parallel_state.py:1946] rank 0 in world size 1 is assigned as DP rank 0, PP rank 0, PCP rank 0, TP rank 0, EP rank N/A, EPLB rank N/A
+INFO 11-19 21:17:38 [gpu_worker.py:378] Using V2 Model Runner
+INFO 11-19 21:17:39 [model_runner.py:284] Loading model from scratch...
+INFO 11-19 21:17:39 [cuda.py:422] Using AttentionBackendEnum.FLASH_ATTN backend.
+INFO 11-19 21:17:39 [flash_attn.py:776] Using FlashAttention version 3
+<frozen importlib._bootstrap_external>:1061: FutureWarning: The cuda.cudart module is deprecated and will be removed in a future release, please switch to use the cuda.bindings.runtime module instead.
+<frozen importlib._bootstrap_external>:1061: FutureWarning: The cuda.nvrtc module is deprecated and will be removed in a future release, please switch to use the cuda.bindings.nvrtc module instead.
+INFO 11-19 21:17:41 [weight_utils.py:869] Filesystem type for checkpoints: EXT4. Checkpoint size: 15.26 GiB. Available RAM: 1851.92 GiB.
+INFO 11-19 21:17:41 [weight_utils.py:892] Auto-prefetch is disabled because the filesystem (EXT4) is not a recognized network FS (NFS/Lustre). If you want to force prefetching, start vLLM with --safetensors-load-strategy=prefetch.
+Loading safetensors checkpoint shards:   0% Completed | 0/5 [00:00<?, ?it/s]
+Loading safetensors checkpoint shards:  20% Completed | 1/5 [00:00<00:03,  1.30it/s]
+Loading safetensors checkpoint shards:  40% Completed | 2/5 [00:01<00:02,  1.20it/s]
+Loading safetensors checkpoint shards:  60% Completed | 3/5 [00:02<00:01,  1.18it/s]
+Loading safetensors checkpoint shards:  80% Completed | 4/5 [00:03<00:00,  1.25it/s]
+Loading safetensors checkpoint shards: 100% Completed | 5/5 [00:03<00:00,  1.59it/s]
+Loading safetensors checkpoint shards: 100% Completed | 5/5 [00:03<00:00,  1.40it/s]
+
+INFO 11-19 21:17:44 [default_loader.py:430] Loading weights took 3.60 seconds
+INFO 11-19 21:17:45 [model_runner.py:305] Model loading took 15.27 GiB and 6.283325 seconds
+INFO 11-19 21:17:45 [topk_topp_sampler.py:55] Using FlashInfer for top-p & top-k sampling.
+INFO 11-19 21:17:45 [utils.py:104] `VLLM_KV_CACHE_LAYOUT` environment variable detected. Setting KV cache layout to HND.
+INFO 11-19 21:17:51 [backends.py:1094] Using cache directory: /home/esjung/.cache/vllm/torch_compile_cache/cb88416611/rank_0_0/backbone for vLLM's torch.compile
+INFO 11-19 21:17:51 [backends.py:1155] Dynamo bytecode transform time: 6.08 s
+INFO 11-19 21:17:59 [backends.py:378] Cache the graph of compile range (1, 8192) for later use
+INFO 11-19 21:18:04 [backends.py:393] Compiling a graph for compile range (1, 8192) takes 12.34 s
+INFO 11-19 21:18:08 [decorators.py:708] saved AOT compiled function to /home/esjung/.cache/vllm/torch_compile_cache/torch_aot_compile/d67bbb0a3650bc4603d93ff33f5708c168946f1cdae7887934cd90fe1ae26dc1/rank_0_0/model
+INFO 11-19 21:18:08 [monitor.py:53] torch.compile took 22.50 s in total
+INFO 11-19 21:18:08 [monitor.py:81] Initial profiling/warmup run took 0.60 s
+INFO 11-19 21:18:10 [gpu_worker.py:479] Initial free memory 78.68 GiB, reserved 42.0 GiB memory for KV Cache as specified by kv_cache_memory_bytes config and skipped memory profiling. This does not respect the gpu_memory_utilization config. Only use kv_cache_memory_bytes config when you want manual control of KV cache memory size. If OOM'ed, check the difference of initial free memory between the current run and the previous run where kv_cache_memory_bytes is suggested and update it correspondingly.
+INFO 11-19 21:18:10 [kv_cache_utils.py:2177] GPU KV cache size: 305,824 tokens
+INFO 11-19 21:18:10 [kv_cache_utils.py:2178] Maximum concurrency for 40,960 tokens per request: 7.47x
+INFO 11-19 21:18:10 [factory.py:62] Creating v1 connector with name: NixlPullConnector and engine_id: b7d7edf2-1bd7-44ec-941f-20006c0d6508
+WARNING 11-19 21:18:10 [base.py:190] Initializing KVConnectorBase_V1. This API is experimental and subject to change in the future as we iterate the design.
+INFO 11-19 21:18:10 [base_worker.py:249] Initializing NIXL wrapper
+INFO 11-19 21:18:10 [base_worker.py:250] Initializing NIXL worker b7d7edf2-1bd7-44ec-941f-20006c0d6508
+W1119 21:18:10.429892 1536360 telemetry.cpp:114] telemetry: no invariant CPU counter available; per-transfer timing falls back to steady_clock (higher overhead)
+2026-11-19 21:18:13 NIXL INFO    _api.py:407 Backend UCX was instantiated
+2026-11-19 21:18:13 NIXL INFO    _api.py:285 Initialized NIXL agent: 153007dd-2890-4c54-96a3-725219a8c72d
+INFO 11-19 21:18:13 [base_worker.py:506] Detected attention backend(s) ['FLASH_ATTN']
+INFO 11-19 21:18:13 [base_worker.py:510] Detected kv cache layout HND
+INFO 11-19 21:18:13 [base_worker.py:1073] Registering KV_Caches. use_mla: False, kv_buffer_device: cuda, use_host_buffer: False
+INFO 11-19 21:18:14 [kernel_warmup.py:65] Warming up ll_bf16 router GEMM kernels.
+INFO 11-19 21:18:20 [cutedsl_warmup.py:101] Skipping CuTeDSL warmup because no compile units were requested.
+Capturing CUDA graphs (PIECEWISE):   0%|          | 0/51 [00:00<?, ?it/s]Capturing CUDA graphs (PIECEWISE):   6%|▌         | 3/51 [00:00<00:02, 23.47it/s]Capturing CUDA graphs (PIECEWISE):  12%|█▏        | 6/51 [00:00<00:01, 23.65it/s]Capturing CUDA graphs (PIECEWISE):  18%|█▊        | 9/51 [00:00<00:01, 22.77it/s]Capturing CUDA graphs (PIECEWISE):  24%|██▎       | 12/51 [00:00<00:01, 23.32it/s]Capturing CUDA graphs (PIECEWISE):  29%|██▉       | 15/51 [00:00<00:01, 23.13it/s]Capturing CUDA graphs (PIECEWISE):  35%|███▌      | 18/51 [00:00<00:01, 23.32it/s]Capturing CUDA graphs (PIECEWISE):  41%|████      | 21/51 [00:00<00:01, 23.06it/s]Capturing CUDA graphs (PIECEWISE):  47%|████▋     | 24/51 [00:01<00:01, 23.44it/s]Capturing CUDA graphs (PIECEWISE):  53%|█████▎    | 27/51 [00:01<00:01, 23.34it/s]Capturing CUDA graphs (PIECEWISE):  59%|█████▉    | 30/51 [00:01<00:00, 22.21it/s]Capturing CUDA graphs (PIECEWISE):  65%|██████▍   | 33/51 [00:01<00:00, 22.20it/s]Capturing CUDA graphs (PIECEWISE):  71%|███████   | 36/51 [00:01<00:00, 21.89it/s]Capturing CUDA graphs (PIECEWISE):  76%|███████▋  | 39/51 [00:01<00:00, 21.44it/s]Capturing CUDA graphs (PIECEWISE):  82%|████████▏ | 42/51 [00:01<00:00, 21.29it/s]Capturing CUDA graphs (PIECEWISE):  88%|████████▊ | 45/51 [00:02<00:00, 21.11it/s]Capturing CUDA graphs (PIECEWISE):  94%|█████████▍| 48/51 [00:02<00:00, 21.05it/s]Capturing CUDA graphs (PIECEWISE): 100%|██████████| 51/51 [00:02<00:00, 21.95it/s]Capturing CUDA graphs (PIECEWISE): 100%|██████████| 51/51 [00:02<00:00, 22.29it/s]
+Capturing CUDA graphs (FULL):   0%|          | 0/51 [00:00<?, ?it/s]Capturing CUDA graphs (FULL):   6%|▌         | 3/51 [00:00<00:01, 28.72it/s]Capturing CUDA graphs (FULL):  14%|█▎        | 7/51 [00:00<00:01, 30.26it/s]Capturing CUDA graphs (FULL):  22%|██▏       | 11/51 [00:00<00:01, 31.54it/s]Capturing CUDA graphs (FULL):  29%|██▉       | 15/51 [00:00<00:01, 31.90it/s]Capturing CUDA graphs (FULL):  37%|███▋      | 19/51 [00:00<00:00, 32.50it/s]Capturing CUDA graphs (FULL):  45%|████▌     | 23/51 [00:00<00:00, 32.74it/s]Capturing CUDA graphs (FULL):  53%|█████▎    | 27/51 [00:00<00:00, 32.99it/s]Capturing CUDA graphs (FULL):  61%|██████    | 31/51 [00:00<00:00, 33.13it/s]Capturing CUDA graphs (FULL):  69%|██████▊   | 35/51 [00:01<00:00, 31.54it/s]Capturing CUDA graphs (FULL):  76%|███████▋  | 39/51 [00:01<00:00, 31.98it/s]Capturing CUDA graphs (FULL):  84%|████████▍ | 43/51 [00:01<00:00, 32.37it/s]Capturing CUDA graphs (FULL):  92%|█████████▏| 47/51 [00:01<00:00, 32.84it/s]Capturing CUDA graphs (FULL): 100%|██████████| 51/51 [00:01<00:00, 33.45it/s]Capturing CUDA graphs (FULL): 100%|██████████| 51/51 [00:01<00:00, 32.49it/s]
+INFO 11-19 21:18:25 [model_runner.py:747] Graph capturing finished in 4 secs, took 1.30 GiB
+[WARNING] Field "span" in type "ir.TupleType" duplicates an ancestor field in "ir.Type". Child types should not re-register inherited fields.
+[WARNING] Field "span" in type "ir.FuncType" duplicates an ancestor field in "ir.Type". Child types should not re-register inherited fields.
+[WARNING] Field "span" in type "ir.TensorMapType" duplicates an ancestor field in "ir.Type". Child types should not re-register inherited fields.
+[WARNING] Field "binding_blocks" in type "script.ir_builder.relax.FunctionFrame" duplicates an ancestor field in "script.ir_builder.relax.SeqExprFrame". Child types should not re-register inherited fields.
+[WARNING] Field "output" in type "script.ir_builder.relax.FunctionFrame" duplicates an ancestor field in "script.ir_builder.relax.SeqExprFrame". Child types should not re-register inherited fields.
+INFO 11-19 21:18:34 [jit_monitor.py:79] Kernel JIT monitor activated; monitored JIT compilations during inference will use mode=warn.
+INFO 11-19 21:18:34 [core.py:340] init engine (profile, create kv cache, warmup model) took 49.31 s (compilation: 22.50 s)
+INFO 11-19 21:18:34 [factory.py:62] Creating v1 connector with name: NixlPullConnector and engine_id: b7d7edf2-1bd7-44ec-941f-20006c0d6508
+WARNING 11-19 21:18:34 [base.py:190] Initializing KVConnectorBase_V1. This API is experimental and subject to change in the future as we iterate the design.
+INFO 11-19 21:18:34 [base_scheduler.py:96] Initializing NIXL Scheduler b7d7edf2-1bd7-44ec-941f-20006c0d6508
+WARNING 11-19 21:18:49 [input_processor.py:282] Passing raw prompts to InputProcessor is deprecated and will be removed in v0.18. You should instead pass the outputs of Renderer.render_cmpl() or Renderer.render_chat().
+INFO 11-19 21:18:49 [base_worker.py:668] NIXL compatibility check passed (hash: 610558e3f58d7219e55976391648bc600d4f26f420a68e00cb39a723a81c9214)
+INFO 11-19 21:18:49 [base_worker.py:1565] Transfer plan: TransferTopology(tp_ratio=1, num_kv_heads=8, local_tp=1, remote_tp=1, remote_pp=0, local_rank=0, remote_block_len=65536)
+ERROR 11-19 21:18:49 [dump_input.py:72] Dumping input data for V1 LLM engine (v0.26.0) with config: model='/home/esjung/.cache/huggingface/hub/models--Qwen--Qwen3-8B/snapshots/b968826d9c46dd6066d109eabc6255188de91218', speculative_config=None, tokenizer='/home/esjung/.cache/huggingface/hub/models--Qwen--Qwen3-8B/snapshots/b968826d9c46dd6066d109eabc6255188de91218', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, tokenizer_revision=None, trust_remote_code=False, dtype=torch.bfloat16, max_seq_len=40960, download_dir=None, load_format=auto, tensor_parallel_size=1, pipeline_parallel_size=1, data_parallel_size=1, decode_context_parallel_size=1, dcp_comm_backend=ag_rs, disable_custom_all_reduce=False, quantization=None, quantization_config=None, enforce_eager=False, enable_return_routed_experts=False, kv_cache_dtype=auto, device_config=cuda, structured_outputs_config=StructuredOutputsConfig(backend='auto', disable_any_whitespace=False, disable_additional_properties=False, reasoning_parser='', reasoning_parser_plugin='', enable_in_reasoning=False), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None, kv_cache_metrics=False, kv_cache_metrics_sample=0.01, cudagraph_metrics=False, enable_layerwise_nvtx_tracing=False, enable_mfu_metrics=False, enable_mm_processor_stats=False, enable_logging_iteration_details=False, jit_monitor_mode='warn', jit_monitor_verbose=False), seed=2026111901, served_model_name=/home/esjung/.cache/huggingface/hub/models--Qwen--Qwen3-8B/snapshots/b968826d9c46dd6066d109eabc6255188de91218, enable_prefix_caching=False, enable_chunked_prefill=True, pooler_config=None, compilation_config={'mode': <CompilationMode.VLLM_COMPILE: 3>, 'debug_dump_path': None, 'cache_dir': '/home/esjung/.cache/vllm/torch_compile_cache/cb88416611', 'compile_cache_save_format': 'binary', 'backend': 'inductor', 'custom_ops': ['none'], 'ir_enable_torch_wrap': True, 'splitting_ops': ['vllm::unified_attention_with_output', 'vllm::unified_mla_attention_with_output', 'vllm::mamba_mixer2', 'vllm::mamba_mixer', 'vllm::short_conv', 'vllm::linear_attention', 'vllm::plamo2_mamba_mixer', 'vllm::qwen_gdn_attention_core', 'vllm::gdn_attention_core_xpu', 'vllm::olmo_hybrid_gdn_full_forward', 'vllm::kda_attention', 'vllm::sparse_attn_indexer', 'vllm::rocm_aiter_sparse_attn_indexer', 'vllm::deepseek_v4_attention', 'vllm::hpc_rope_norm_forward', 'vllm::unified_kv_cache_update', 'vllm::unified_mla_kv_cache_update'], 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'compile_sizes': [], 'compile_ranges_endpoints': [8192], 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'size_asserts': False, 'alignment_asserts': False, 'scalar_asserts': False, 'combo_kernels': True, 'benchmark_combo_kernel': True}, 'inductor_passes': {}, 'cudagraph_mode': <CUDAGraphMode.FULL_AND_PIECEWISE: (2, 1)>, 'cudagraph_num_of_warmups': 1, 'cudagraph_capture_sizes': [1, 2, 4, 8, 16, 24, 32, 40, 48, 56, 64, 72, 80, 88, 96, 104, 112, 120, 128, 136, 144, 152, 160, 168, 176, 184, 192, 200, 208, 216, 224, 232, 240, 248, 256, 272, 288, 304, 320, 336, 352, 368, 384, 400, 416, 432, 448, 464, 480, 496, 512], 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': False, 'pass_config': {'fuse_norm_quant': False, 'fuse_act_quant': False, 'fuse_attn_quant': False, 'enable_sp': False, 'fuse_gemm_comms': False, 'fuse_allreduce_rms': False, 'enable_qk_norm_rope_fusion': False, 'fuse_rope_kvcache_cat_mla': False, 'fuse_act_padding': False, 'fuse_qk_norm_rope_kvcache': False}, 'max_cudagraph_capture_size': 512, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': '/home/esjung/.cache/vllm/torch_compile_cache/cb88416611/rank_0_0/backbone', 'fast_moe_cold_start': False, 'static_all_moe_layers': []}, kernel_config=KernelConfig(ir_op_priority=IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native']), enable_flashinfer_autotune=True, enable_cutedsl_warmup=True, enable_bf16x3_router_gemm=False, moe_backend='auto', linear_backend='auto'), 
+ERROR 11-19 21:18:49 [dump_input.py:79] Dumping scheduler output for model execution: SchedulerOutput(scheduled_new_reqs=[], scheduled_cached_reqs=CachedRequestData(req_ids=[],resumed_req_ids=set(),new_token_ids_lens=[],all_token_ids_lens={},new_block_ids=[],num_computed_tokens=[],num_output_tokens=[]), num_scheduled_tokens={}, total_num_scheduled_tokens=0, scheduled_spec_decode_tokens={}, scheduled_encoder_inputs={}, num_common_prefix_blocks=[0], finished_req_ids=[], free_encoder_mm_hashes=[], scheduled_encoder_input_stats=null, preempted_req_ids=[], has_structured_output_requests=false, pending_structured_output_tokens=false, num_invalid_spec_tokens=null, kv_connector_metadata=NixlConnectorMetadata(reqs_to_recv={}, reqs_to_save={}, reqs_to_send={}, reqs_in_batch=[], reqs_not_processed=[], heartbeat_by_engine={}, push_registrations={}, push_finished_blocks={}), ec_connector_metadata=null, new_block_ids_to_zero=null, kv_cache_block_copies=null, num_spec_tokens_to_schedule=0)
+[rank0]: Traceback (most recent call last):
+[rank0]:   File "<frozen runpy>", line 203, in _run_module_as_main
+[rank0]:   File "<frozen runpy>", line 88, in _run_code
+[rank0]:   File "/home/esjung/MLLM-EP-github/poc_flashvep/reports/dense_ar_native_pd_real_workload_reproduction_20261119/raw/qual_Native_LongBench_N8_B8192_S1024_HND_BI0_v1/worker_source/poc_flashvep/dense_ar_native_reproduction/standard_worker.py", line 145, in <module>
+[rank0]:     if __name__=='__main__':main()
+[rank0]:                             ~~~~^^
+[rank0]:   File "/home/esjung/MLLM-EP-github/poc_flashvep/reports/dense_ar_native_pd_real_workload_reproduction_20261119/raw/qual_Native_LongBench_N8_B8192_S1024_HND_BI0_v1/worker_source/poc_flashvep/dense_ar_native_reproduction/standard_worker.py", line 112, in main
+[rank0]:     busy=engine.has_unfinished_requests();begin=time.monotonic();outputs=engine.step();end=time.monotonic()
+[rank0]:                                                                          ~~~~~~~~~~~^^
+[rank0]:   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/v1/engine/llm_engine.py", line 304, in step
+[rank0]:     outputs = self.engine_core.get_output()
+[rank0]:   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/v1/engine/core_client.py", line 290, in get_output
+[rank0]:     outputs, model_executed = self.engine_core.step_fn()
+[rank0]:                               ~~~~~~~~~~~~~~~~~~~~~~~~^^
+[rank0]:   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/v1/engine/core.py", line 647, in step_with_batch_queue
+[rank0]:     exec_future = self.model_executor.execute_model(
+[rank0]:         scheduler_output, non_block=True
+[rank0]:     )
+[rank0]:   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/v1/executor/uniproc_executor.py", line 120, in execute_model
+[rank0]:     output.result()
+[rank0]:     ~~~~~~~~~~~~~^^
+[rank0]:   File "/home/esjung/anaconda3/lib/python3.14/concurrent/futures/_base.py", line 447, in result
+[rank0]:     return self.__get_result()
+[rank0]:            ~~~~~~~~~~~~~~~~~^^
+[rank0]:   File "/home/esjung/anaconda3/lib/python3.14/concurrent/futures/_base.py", line 396, in __get_result
+[rank0]:     raise self._exception
+[rank0]:   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/v1/executor/uniproc_executor.py", line 98, in collective_rpc
+[rank0]:     result = run_method(self.driver_worker, method, args, kwargs)
+[rank0]:   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/v1/serial_utils.py", line 510, in run_method
+[rank0]:     return func(*args, **kwargs)
+[rank0]:   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/v1/worker/worker_base.py", line 351, in execute_model
+[rank0]:     return self.worker.execute_model(scheduler_output)
+[rank0]:            ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/utils/_contextlib.py", line 124, in decorate_context
+[rank0]:     return func(*args, **kwargs)
+[rank0]:   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/v1/worker/gpu_worker.py", line 1147, in execute_model
+[rank0]:     output = self.model_runner.execute_model(
+[rank0]:         scheduler_output, intermediate_tensors
+[rank0]:     )
+[rank0]:   File "/home/esjung/MLLM-EP-github/poc_flashvep/reports/dense_ar_native_pd_real_workload_reproduction_20261119/raw/qual_Native_LongBench_N8_B8192_S1024_HND_BI0_v1/worker_source/poc_flashvep/dense_ar_native_reproduction/standard_worker.py", line 43, in execute
+[rank0]:     result=original_execute(self,*a,**kw)
+[rank0]:   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/utils/_contextlib.py", line 124, in decorate_context
+[rank0]:     return func(*args, **kwargs)
+[rank0]:   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/v1/worker/gpu/model_runner.py", line 1169, in execute_model
+[rank0]:     empty_output = self.kv_connector.no_forward(scheduler_output)
+[rank0]:   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/v1/worker/gpu/kv_connector.py", line 102, in no_forward
+[rank0]:     self.pre_forward(scheduler_output)
+[rank0]:     ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/v1/worker/gpu/kv_connector.py", line 75, in pre_forward
+[rank0]:     self.kv_connector.start_load_kv(get_forward_context())
+[rank0]:     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/distributed/kv_transfer/kv_connector/v1/nixl/connector.py", line 347, in start_load_kv
+[rank0]:     self.connector_worker.start_load_kv(self._connector_metadata)
+[rank0]:     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/distributed/kv_transfer/kv_connector/v1/nixl/pull_worker.py", line 79, in start_load_kv
+[rank0]:     self._read_blocks_for_req(*self._ready_requests.get_nowait())
+[rank0]:     ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/distributed/kv_transfer/kv_connector/v1/nixl/pull_worker.py", line 197, in _read_blocks_for_req
+[rank0]:     self._read_blocks(
+[rank0]:     ~~~~~~~~~~~~~~~~~^
+[rank0]:         read_spec=spec,
+[rank0]:         ^^^^^^^^^^^^^^^
+[rank0]:     ...<4 lines>...
+[rank0]:         remote_xfer_side_handle=remote_xfer_side_handle,
+[rank0]:         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:     )
+[rank0]:     ^
+[rank0]:   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/distributed/kv_transfer/kv_connector/v1/nixl/pull_worker.py", line 302, in _read_blocks
+[rank0]:     local_block_ids, remote_block_ids = self._apply_prefix_caching(
+[rank0]:                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~^
+[rank0]:         local_block_ids, remote_block_ids, remote_physical_per_logical
+[rank0]:         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:     )
+[rank0]:     ^
+[rank0]:   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/distributed/kv_transfer/kv_connector/v1/nixl/base_worker.py", line 2263, in _apply_prefix_caching
+[rank0]:     assert num_local_blocks <= len(remote_group)
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]: AssertionError
+[1795090734.662928] [cloud-0n58xq:1536360:0]        cuda_ctx.c:23   UCX  ERROR cuDevicePrimaryCtxGetState(cuda_device, &flags, &active) failed: unrecognized error code 4
