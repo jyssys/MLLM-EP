@@ -1,0 +1,94 @@
+{
+  "name": "CostHarness_BI0_L4608_m1_start0_v1",
+  "rows": [
+    {
+      "input_tokens": 4608,
+      "cut": 1,
+      "axis": "Layer",
+      "actual_batch": 1,
+      "valid_GEMM_rows": 4608,
+      "actual_queries": 4608,
+      "valid_queries": 4608,
+      "strict_hidden_equal": true,
+      "clean_CUDA_enclosure_ms": {
+        "p50": 3.1469119787216187,
+        "p95": 3.2776960492134095,
+        "p99": 3.279155237674713
+      },
+      "observer_relative_change": {
+        "p50": -0.021542143420958615,
+        "p95": 0.00016011662511594693
+      },
+      "observer_gate_passed": true,
+      "kernel_union_ms": 3.0605941999999997,
+      "named_categories_exclusive_ms": {
+        "GEMM_named": 0.322806,
+        "KV_RoPE_named": 0.0908126,
+        "Normalization_named": 0.270035,
+        "Other_unclassified": 2.3769405999999997
+      },
+      "evidence": "ISOLATED_KERNEL_MEASUREMENT",
+      "scope": "Event enclosure is not kernel-exclusive time. Named categories use disclosed regex rules. Cross-category overlap is a separate bucket. This excludes transfer, queues and online scheduling."
+    },
+    {
+      "input_tokens": 4608,
+      "cut": 1,
+      "axis": "Token",
+      "actual_batch": 1,
+      "valid_GEMM_rows": 4608,
+      "actual_queries": 128,
+      "valid_queries": 128,
+      "strict_hidden_equal": true,
+      "clean_CUDA_enclosure_ms": {
+        "p50": 14.915120124816895,
+        "p95": 15.109545469284058,
+        "p99": 15.25853018760681
+      },
+      "observer_relative_change": {
+        "p50": 0.05484534545017761,
+        "p95": 0.04754799615722227
+      },
+      "observer_gate_passed": false,
+      "kernel_union_ms": 7.949972900000001,
+      "named_categories_exclusive_ms": {
+        "GEMM_named": 1.2487369000000001,
+        "KV_RoPE_named": 0.25143020000000005,
+        "Normalization_named": 0.5467029,
+        "Other_unclassified": 5.9031028999999995
+      },
+      "evidence": "DIAGNOSTIC_OBSERVER_GATE_FAILED",
+      "scope": "Event enclosure is not kernel-exclusive time. Named categories use disclosed regex rules. Cross-category overlap is a separate bucket. This excludes transfer, queues and online scheduling."
+    }
+  ],
+  "independent_server_starts": 1,
+  "category_rules": {
+    "_ZN4vllm25fused_add_rms_norm_kernelIN3c108BFloat16ELi8ELb1EEENSt9enable_ifIXaagtT0_Li0Esr4vllm12_typeConvertIT_EE6existsEvE4typeEPS4_lS7_PKS4_fii": "Normalization_named",
+    "nvjet_tst_192x192_64x4_2x1_v_bz_coopB_TNN": "Other_unclassified",
+    "_ZN4vllm15rms_norm_kernelIN3c108BFloat16ELi8ELi3ELb1EEEvPT_PKS3_lllllS6_lfii": "Normalization_named",
+    "_ZN4vllm23rotary_embedding_kernelIN3c108BFloat16ES2_Lb1EEEvPKlPT_S6_PKT0_illliiilb": "KV_RoPE_named",
+    "_ZN4vllm30reshape_and_cache_flash_kernelI13__nv_bfloat16S1_LNS_18Fp8KVCacheDataTypeE0EEEvPKT_S5_PT0_S7_PKlllllliiiPKfSB_i": "KV_RoPE_named",
+    "_ZN7cutlass13device_kernelIN5flash20enable_sm90_or_laterINS1_16FlashAttnFwdSm90INS1_25CollectiveMainloopFwdSm90ILi2EN4cute5tupleIJNS5_1CILi1EEES8_S8_EEENS6_IJNS7_ILi128EEESA_SA_EEELi128ENS_10bfloat16_tEfNS_4arch4Sm90ELb1ELb0ELb0ELb1ELb1ELb0ELb0ELb1ELb1ELb1ELb0ELb0ESC_Li4EEENS1_21CollectiveEpilogueFwdISB_S9_SC_SE_Li256ELb1ELb1ELb0ELb0ELi4EEENS1_36VarlenDynamicPersistentTileSchedulerILi128ELi128ELi256ELi128ELb0ELb1ELb1ELb1ELb0ELb1EEEEEEEEEvNT_6ParamsE": "GEMM_named",
+    "_ZN2at6native29vectorized_elementwise_kernelILi4ENS0_11FillFunctorIiEESt5arrayIPcLm1EEEEviT0_T1_": "Other_unclassified",
+    "nvjet_tst_320x128_64x3_1x2_h_bz_coopB_TNT": "Other_unclassified",
+    "_ZN4vllm18act_and_mul_kernelIN3c108BFloat16E14__nv_bfloat162XadL_ZNS_11silu_kernelIS2_EET_RKS5_fEEXadL_ZNS_18packed_silu_kernelIS3_EES5_S7_fEELb1ELb1ELb0ELb0EEEvPS5_PS6_ifff": "Other_unclassified",
+    "_ZN2at6native29vectorized_elementwise_kernelILi4ENS0_13BinaryFunctorIN3c108BFloat16ES4_bNS0_51_GLOBAL__N__28ce311f_18_CompareEQKernel_cu_d8008c9616CompareEqFunctorIS4_EEEESt5arrayIPcLm3EEEEviT0_T1_": "Other_unclassified",
+    "_ZN2at6native13reduce_kernelILi512ELi1ENS0_8ReduceOpIbNS0_14func_wrapper_tIbZZZNS0_15and_kernel_cudaERNS_14TensorIteratorEENKUlvE_clEvENKUlvE10_clEvEUlbbE_EEjbLi4ELi4EEEEEvT1_": "Other_unclassified",
+    "_ZN2at6native27unrolled_elementwise_kernelIZZZNS0_23direct_copy_kernel_cudaERNS_18TensorIteratorBaseEENKUlvE1_clEvENKUlvE2_clEvEUllE_St5arrayIPcLm2EELi4E23TrivialOffsetCalculatorILi1EjESB_NS0_6memory12LoadWithCastILi1EEENSC_13StoreWithCastILi1EEEEEviT_T0_T2_T3_T4_T5_": "Other_unclassified",
+    "_ZN2at6native24vectorized_gather_kernelILi16ElEEvPcS2_PT0_illllb": "Other_unclassified",
+    "_ZN4vllm15rms_norm_kernelIN3c108BFloat16ELi8ELi2ELb1EEEvPT_PKS3_lllllS6_lfii": "Normalization_named",
+    "nvjet_tst_96x64_64x10_1x2_h_bz_TNN": "Other_unclassified",
+    "_ZN7cutlass13device_kernelIN5flash20enable_sm90_or_laterINS1_16FlashAttnFwdSm90INS1_25CollectiveMainloopFwdSm90ILi2EN4cute5tupleIJNS5_1CILi1EEES8_S8_EEENS6_IJNS7_ILi128EEESA_SA_EEELi128ENS_10bfloat16_tEfNS_4arch4Sm90ELb1ELb0ELb0ELb1ELb1ELb0ELb0ELb1ELb1ELb1ELb1ELb0ESC_Li1EEENS1_21CollectiveEpilogueFwdISB_S9_SC_SE_Li256ELb1ELb1ELb1ELb0ELi1EEENS1_36VarlenDynamicPersistentTileSchedulerILi128ELi128ELi256ELi128ELb1ELb1ELb1ELb1ELb0ELb1EEEEEEEEEvNT_6ParamsE": "GEMM_named",
+    "_ZN7cutlass13device_kernelIN5flash19FlashAttnFwdCombineIN4cute5tupleIJNS3_1CILi8EEENS5_ILi128EEEEEELi5ELi256ELi1ELb0ELb1ENS_10bfloat16_tEfNS_4arch4Sm90EEEEEvNT_6ParamsE": "GEMM_named",
+    "nvjet_tst_64x64_64x13_2x1_v_bz_TNT": "Other_unclassified",
+    "nvjet_tst_192x128_64x5_2x1_v_bz_coopB_TNT": "Other_unclassified"
+  },
+  "counters": {
+    "counters": {
+      "dropped": 0,
+      "invalid": 0,
+      "count": 5868,
+      "all_kernels": 5868
+    },
+    "passed": true
+  }
+}
