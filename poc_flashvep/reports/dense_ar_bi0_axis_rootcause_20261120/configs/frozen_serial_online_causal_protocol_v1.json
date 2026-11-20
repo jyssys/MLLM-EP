@@ -1,0 +1,60 @@
+{
+  "time": 1795150833.0938225,
+  "cut": 4,
+  "seed": 2026112082,
+  "QPS": 2.35,
+  "N": 200,
+  "actual_batch": [
+    1,
+    1,
+    1
+  ],
+  "source_credit": 4,
+  "hidden_source_slots": 4,
+  "KV_block": 128,
+  "output_contract": "DIAGNOSTIC_FIXED_LENGTH_REPLAY",
+  "total_output_tokens": 4723,
+  "reference_SHA256": "930745cf78e0f76bc9be33bdb8e1446f534b92b0340ee4568ba0efc84d33aa87",
+  "modes": [
+    "ONLINE",
+    "SERIAL_ADMISSION"
+  ],
+  "arrival": "Both modes enqueue the same full Poisson trace. Serial admission does not reset arrival timestamps.",
+  "serial": "Wait for the prior D request to finish before the next P dispatch. Source credit is still4. This admission barrier differs from source credit1.",
+  "credit_intervention": "Repeat online Layer/Token with credit1 and the same hidden pool4. The separate Last8 sweep retains the full1/4/8/16/32 design.",
+  "service_intervention": "Use a state-updating FIFO replay to exchange per-request source, destination suffix and decode service vectors. This is an offline counterfactual, not a measured GPU speedup.",
+  "validation": "Before attributing modeled effects, require online p95 relative error <=10% and request TTFT MAE <=max(100ms,10% of observed mean). Do not fit to the online result.",
+  "order": [
+    [
+      "Layer",
+      "SERIAL_ADMISSION",
+      4
+    ],
+    [
+      "Token",
+      "ONLINE",
+      4
+    ],
+    [
+      "Token",
+      "SERIAL_ADMISSION",
+      4
+    ],
+    [
+      "Layer",
+      "ONLINE",
+      4
+    ],
+    [
+      "Layer",
+      "ONLINE",
+      1
+    ],
+    [
+      "Token",
+      "ONLINE",
+      1
+    ]
+  ],
+  "scope": "Same request IDs, input hashes, arrival trace and exact output counts within the causal diagnostic. No frozen production SLO or Natural200 main result is replaced."
+}
