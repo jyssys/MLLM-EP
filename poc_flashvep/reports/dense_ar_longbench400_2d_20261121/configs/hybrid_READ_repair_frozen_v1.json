@@ -1,0 +1,155 @@
+{
+  "time": 1795287336.5953748,
+  "source_capsule": "final_continuous_strong_confirmation_v1_20261121.zip",
+  "source_capsule_SHA256": "a2d5ebc4cb39eff66a8fbba3b4c0b83a8957d79e50c11ff94a529b2cdb2ca6e3",
+  "original_main_plan_SHA256": "b249fc9c962c300cb4ad5002f063f483f7b0cf555b6a13f19beed9e8dca696d0",
+  "observed_symptom": {
+    "name": "FinalC3_Main400_q1.8_s2_BestHybrid_v1",
+    "TTFT_p95_ms": 2737.016609124839,
+    "ITL_p99_ms": 14.449713546782851,
+    "TPOT_p95_ms": 9.572241723071784,
+    "independent_starts": 1
+  },
+  "hypotheses": [
+    "Large remote READ setup delays decode submission even when large prefill compute is deferred.",
+    "Actual decode batching or runtime host gaps explain the symptom without a READ-specific effect.",
+    "The apparent regression is start/trace variation and does not persist on three new seeds."
+  ],
+  "proof_jobs": [
+    "RepairQ_FusedHybridREAD_Natural32_v1",
+    "RepairQ_FusedHybridREAD_Natural400_v1"
+  ],
+  "composition_gate": "Final_composition_e092ca8608b0_v1.json",
+  "signature": {
+    "method": "Hybrid",
+    "axis_kind": "Hybrid",
+    "axis_cut": 4,
+    "token_stock_model": false,
+    "preserve_compiled_full_model": false,
+    "fuse_short_hybrid": true,
+    "hybrid_suffix_fraction": 0.125,
+    "fractional_token_work": null,
+    "partition_aligned_chunks": true,
+    "whole_prefill_deflection": false,
+    "d_compute_throttle": true,
+    "defer_D_remote_setup": true,
+    "d_quiescent_admission": false,
+    "D_running_admission_cap": null,
+    "execution_family": "MATCHED_NO_COMPILE",
+    "continuous_source_credit_limit": 4,
+    "token_budget": 8192,
+    "max_num_seqs": 1024,
+    "KV_block_tokens": 128,
+    "hidden_source_slots": 4,
+    "hidden_destination_slots": 4,
+    "hidden_pool_free_reserve_bytes": null,
+    "hidden_pool_reclaim_unused_cache": false,
+    "D_prefill_completion_guard": false
+  },
+  "cells": [
+    {
+      "stage": "OBSERVED_TRACE_DIAGNOSTIC",
+      "QPS": 1.8,
+      "start": 2,
+      "seed": 2026112413,
+      "GPU_pair": [
+        4,
+        5
+      ],
+      "dataset": "longbench_balanced400_v1.json",
+      "jobs": {
+        "HybridREAD": "RepairPilot_Main400_q1.8_FusedHybridREAD_ObservedTrace_v1",
+        "HybridCompute": "FinalC3_Main400_q1.8_s2_BestHybrid_v1",
+        "NativeStrong": "FinalC3_Main400_q1.8_s2_NativeStrong_v1",
+        "NativeCompute": "FinalC3_Main400_q1.8_s2_NativeCommon0_v1",
+        "NativeREAD": "FinalC3_Main400_q1.8_s2_NativeCommon2_v1"
+      }
+    },
+    {
+      "stage": "INDEPENDENT_REPAIR_CONFIRMATION",
+      "QPS": 1.8,
+      "start": 0,
+      "seed": 2026112661,
+      "GPU_pair": [
+        6,
+        7
+      ],
+      "dataset": "longbench_balanced400_v1.json",
+      "jobs": {
+        "NativeStrong": "RepairConfirm_Main400_q1.8_s0_NativeStrong_v1",
+        "NativeCompute": "RepairConfirm_Main400_q1.8_s0_NativeCompute_v1",
+        "NativeREAD": "RepairConfirm_Main400_q1.8_s0_NativeREAD_v1",
+        "NativeCompletion": "RepairConfirm_Main400_q1.8_s0_NativeCompletion_v1",
+        "HybridCompute": "RepairConfirm_Main400_q1.8_s0_HybridCompute_v1",
+        "HybridREAD": "RepairConfirm_Main400_q1.8_s0_HybridREAD_v1",
+        "StockToken": "RepairConfirm_Main400_q1.8_s0_StockToken_v1"
+      }
+    },
+    {
+      "stage": "INDEPENDENT_REPAIR_CONFIRMATION",
+      "QPS": 1.8,
+      "start": 1,
+      "seed": 2026112662,
+      "GPU_pair": [
+        6,
+        7
+      ],
+      "dataset": "longbench_balanced400_v1.json",
+      "jobs": {
+        "NativeStrong": "RepairConfirm_Main400_q1.8_s1_NativeStrong_v1",
+        "NativeCompute": "RepairConfirm_Main400_q1.8_s1_NativeCompute_v1",
+        "NativeREAD": "RepairConfirm_Main400_q1.8_s1_NativeREAD_v1",
+        "NativeCompletion": "RepairConfirm_Main400_q1.8_s1_NativeCompletion_v1",
+        "HybridCompute": "RepairConfirm_Main400_q1.8_s1_HybridCompute_v1",
+        "HybridREAD": "RepairConfirm_Main400_q1.8_s1_HybridREAD_v1",
+        "StockToken": "RepairConfirm_Main400_q1.8_s1_StockToken_v1"
+      }
+    },
+    {
+      "stage": "INDEPENDENT_REPAIR_CONFIRMATION",
+      "QPS": 1.8,
+      "start": 2,
+      "seed": 2026112663,
+      "GPU_pair": [
+        6,
+        7
+      ],
+      "dataset": "longbench_balanced400_v1.json",
+      "jobs": {
+        "NativeStrong": "RepairConfirm_Main400_q1.8_s2_NativeStrong_v1",
+        "NativeCompute": "RepairConfirm_Main400_q1.8_s2_NativeCompute_v1",
+        "NativeREAD": "RepairConfirm_Main400_q1.8_s2_NativeREAD_v1",
+        "NativeCompletion": "RepairConfirm_Main400_q1.8_s2_NativeCompletion_v1",
+        "HybridCompute": "RepairConfirm_Main400_q1.8_s2_HybridCompute_v1",
+        "HybridREAD": "RepairConfirm_Main400_q1.8_s2_HybridREAD_v1",
+        "StockToken": "RepairConfirm_Main400_q1.8_s2_StockToken_v1"
+      }
+    }
+  ],
+  "performance_jobs": [
+    "RepairPilot_Main400_q1.8_FusedHybridREAD_ObservedTrace_v1",
+    "RepairConfirm_Main400_q1.8_s0_NativeStrong_v1",
+    "RepairConfirm_Main400_q1.8_s0_StockToken_v1",
+    "RepairConfirm_Main400_q1.8_s0_NativeREAD_v1",
+    "RepairConfirm_Main400_q1.8_s0_NativeCompletion_v1",
+    "RepairConfirm_Main400_q1.8_s0_HybridCompute_v1",
+    "RepairConfirm_Main400_q1.8_s0_NativeCompute_v1",
+    "RepairConfirm_Main400_q1.8_s0_HybridREAD_v1",
+    "RepairConfirm_Main400_q1.8_s1_NativeStrong_v1",
+    "RepairConfirm_Main400_q1.8_s1_NativeCompute_v1",
+    "RepairConfirm_Main400_q1.8_s1_HybridCompute_v1",
+    "RepairConfirm_Main400_q1.8_s1_StockToken_v1",
+    "RepairConfirm_Main400_q1.8_s1_NativeCompletion_v1",
+    "RepairConfirm_Main400_q1.8_s1_HybridREAD_v1",
+    "RepairConfirm_Main400_q1.8_s1_NativeREAD_v1",
+    "RepairConfirm_Main400_q1.8_s2_NativeCompletion_v1",
+    "RepairConfirm_Main400_q1.8_s2_NativeREAD_v1",
+    "RepairConfirm_Main400_q1.8_s2_NativeCompute_v1",
+    "RepairConfirm_Main400_q1.8_s2_StockToken_v1",
+    "RepairConfirm_Main400_q1.8_s2_HybridCompute_v1",
+    "RepairConfirm_Main400_q1.8_s2_HybridREAD_v1",
+    "RepairConfirm_Main400_q1.8_s2_NativeStrong_v1"
+  ],
+  "evidence": "ADAPTIVE_REPAIR_DESIGN_FROZEN_BEFORE_NEW_TIMINGS",
+  "scope": "No original main cell is removed or renamed. This is a separate adaptive follow-up,not the original blind test. Change only READ setup deferral within fused Hybrid. No model,output,timestamp,SLO,credit,pool or cut change. Fresh Natural32/400 combined-policy proof precedes timing. Failed proof means NOT_RUN performance. All future confirmation seeds and all controls are fixed before the pilot. Run them regardless of the pilot direction. READ timing also changes associated transfer/stream timing. A benefit is not exclusive host or DMA attribution. No repeated search until a preferred confidence interval appears."
+}

@@ -1,0 +1,123 @@
+{
+  "time": 1795187377.5196345,
+  "base": "23525199eaff164184ed39e6280cd6896b350e77",
+  "branch": "flashvep/dense-ar-longbench400-2d-pd-20261121",
+  "dataset_name": "LongBench-Balanced400-v1",
+  "dataset_revision": "5e628be450b7e67fb7ae6e201bd6d8f7056f7672",
+  "input_buckets": [
+    [
+      3000,
+      6000
+    ],
+    [
+      6000,
+      10000
+    ],
+    [
+      10000,
+      20000
+    ],
+    [
+      20000,
+      36000
+    ]
+  ],
+  "input_boundaries": "Lower inclusive and upper exclusive, except final upper36000 inclusive.",
+  "natural_output_buckets": [
+    [
+      1,
+      8
+    ],
+    [
+      9,
+      24
+    ],
+    [
+      25,
+      49
+    ],
+    [
+      50,
+      99
+    ]
+  ],
+  "target_per_cell": 25,
+  "natural_output_cap": 2048,
+  "natural_generation": "Greedy BI0,thinking disabled,EOS allowed. No forced short answers.",
+  "candidate_tasks_initial": [
+    "qasper",
+    "multifieldqa_en",
+    "2wikimqa",
+    "hotpotqa",
+    "musique",
+    "narrativeqa",
+    "qmsum"
+  ],
+  "candidate_expansion_order": [
+    "triviaqa",
+    "multifieldqa_zh",
+    "dureader",
+    "samsum",
+    "multi_news",
+    "gov_report"
+  ],
+  "selection_seed": 2026112101,
+  "selection": "Audit every feasible original prompt in the declared tasks. Generate natural lengths before selection. Select by frozen deterministic ordering within cells,not serving performance. No duplicates,filler or new context truncation. If a cell is short,allocate remaining requests within its input bucket by adjacent output-bin distance,then globally by input-bin distance. Keep shortages and pool/selected distribution shifts visible.",
+  "model_revision": "b968826d9c46dd6066d109eabc6255188de91218",
+  "BI": 0,
+  "precision": "Original BF16",
+  "B": 8192,
+  "S": 1024,
+  "KV_bytes_per_GPU": 45097156608,
+  "controlled_outputs": [
+    8,
+    16,
+    64,
+    128
+  ],
+  "primary_cuts": [
+    2,
+    4,
+    8,
+    12
+  ],
+  "hybrid": {
+    "m": [
+      0,
+      2,
+      4,
+      8,
+      12
+    ],
+    "suffix_fractions": [
+      0,
+      0.0625,
+      0.125,
+      0.25,
+      0.3333333333333333
+    ],
+    "P": "Prefix tokens0:L-s through lower36-m layers.",
+    "D": "Prefix upper m layers and suffix all36 layers with exact causal dependencies.",
+    "no_duplicate_token_layer_work": true
+  },
+  "SLO": {
+    "TTFT_ms": 5000,
+    "every_client_ITL_ms": 34,
+    "request_TPOT_ms": 33
+  },
+  "native_relative_decode_CI_upper_bound": 1.05,
+  "observer_interference_limit": 0.05,
+  "parallel_pair_interference_limit": 0.05,
+  "confirmation": "Three independent server starts. Up to five for predeclared uncertain representative cells. Include Layer candidates,Token winners,boundaries and native/no-offload controls. Never repeat until a preferred sign appears.",
+  "phase_statuses": {
+    "dataset": "NOT_RUN",
+    "motivation": "NOT_RUN",
+    "axis_map": "NOT_RUN",
+    "hybrid": "NOT_RUN",
+    "continuous": "NOT_RUN",
+    "dynamic": "NOT_RUN",
+    "heldout": "NOT_RUN",
+    "publication": "NOT_RUN"
+  },
+  "scope": "A new campaign. Previous HOLD and NO-GO results retain their original model/workload/runtime scope. No online dynamic insertion before correctness and deadline gates."
+}

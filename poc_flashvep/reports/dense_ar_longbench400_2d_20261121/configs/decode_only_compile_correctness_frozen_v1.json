@@ -1,0 +1,117 @@
+{
+  "time": 1795312060.2934535,
+  "source_capsule": "decode_only_compile_overlay_v1.zip",
+  "source_capsule_SHA256": "49e494730ff48f3682d476d993122b4ba5b610b44e84621f484b4e207787bf87",
+  "parent_plan_SHA256": "dec802384ef75a618aa55c6957fcf4b2f8a082c06aecb66e22c5539e7021e43e",
+  "teacher_audits": [
+    {
+      "name": "Q18_OriginalStageTeacher_Layer4_N8_v1",
+      "configuration_SHA256": "dde653b617ae5d4662099f1fdfc30b636ad985ff2675761ef6c83d6470d912c9",
+      "source_SHA256": "d08c37db279c9d06bfff08c3a022ad237c64db3b3d63062181a088e623e83276",
+      "dataset_SHA256": "4b32ed3d9dd8501e05fa6eeffa29ed0e5c33500b75fddd2454f39de24b6beed7",
+      "scope": "Independent original full36 model. Eager prefix and compiled suffix/decode. Teacher source is older. Only its legal state/output is reused,not performance."
+    },
+    {
+      "name": "Q18_OriginalStageTeacher_Hybrid4_N8_v1",
+      "configuration_SHA256": "63f5046b6a12f423c3a88043a77d46a1c31bf37cbee51668f1b70f8f505646c7",
+      "source_SHA256": "d08c37db279c9d06bfff08c3a022ad237c64db3b3d63062181a088e623e83276",
+      "dataset_SHA256": "4b32ed3d9dd8501e05fa6eeffa29ed0e5c33500b75fddd2454f39de24b6beed7",
+      "scope": "Independent original full36 model. Eager prefix and compiled suffix/decode. Teacher source is older. Only its legal state/output is reused,not performance."
+    }
+  ],
+  "qualification": {
+    "Layer": {
+      "lane": 0,
+      "teacher": "Q18_OriginalStageTeacher_Layer4_N8_v1",
+      "jobs": [
+        "DecodeCompileQ_Layer_StrictN1_v1",
+        "DecodeCompileQ_Layer_StrictN8_v1",
+        "DecodeCompileQ_Layer_Natural32_v1",
+        "DecodeCompileQ_Layer_Natural400_v1"
+      ],
+      "signature": {
+        "method": "Layer",
+        "axis_kind": "Layer",
+        "axis_cut": 8,
+        "token_stock_model": false,
+        "preserve_compiled_full_model": false,
+        "fuse_short_hybrid": false,
+        "hybrid_suffix_fraction": null,
+        "fractional_token_work": null,
+        "partition_aligned_chunks": false,
+        "whole_prefill_deflection": false,
+        "d_compute_throttle": true,
+        "defer_D_remote_setup": true,
+        "d_quiescent_admission": false,
+        "D_running_admission_cap": 1,
+        "execution_family": "MATCHED_NO_COMPILE",
+        "continuous_source_credit_limit": 8,
+        "token_budget": 8192,
+        "max_num_seqs": 1024,
+        "KV_block_tokens": 128,
+        "hidden_source_slots": 16,
+        "hidden_destination_slots": 16,
+        "hidden_pool_free_reserve_bytes": 2147483648,
+        "hidden_pool_reclaim_unused_cache": false,
+        "D_prefill_completion_guard": false,
+        "defer_D_request_registration": true,
+        "D_execution_family_override": "INSTALLED_DEFAULT_COMPILE",
+        "preserve_compiled_decode_only": true
+      },
+      "gate": "Decode_compile_Layer_gate_v1.json"
+    },
+    "Hybrid": {
+      "lane": 1,
+      "teacher": "Q18_OriginalStageTeacher_Hybrid4_N8_v1",
+      "jobs": [
+        "DecodeCompileQ_Hybrid_StrictN1_v1",
+        "DecodeCompileQ_Hybrid_StrictN8_v1",
+        "DecodeCompileQ_Hybrid_Natural32_v1",
+        "DecodeCompileQ_Hybrid_Natural400_v1"
+      ],
+      "signature": {
+        "method": "Hybrid",
+        "axis_kind": "Hybrid",
+        "axis_cut": 4,
+        "token_stock_model": false,
+        "preserve_compiled_full_model": false,
+        "fuse_short_hybrid": false,
+        "hybrid_suffix_fraction": 0.125,
+        "fractional_token_work": null,
+        "partition_aligned_chunks": true,
+        "whole_prefill_deflection": false,
+        "d_compute_throttle": true,
+        "defer_D_remote_setup": true,
+        "d_quiescent_admission": false,
+        "D_running_admission_cap": 1,
+        "execution_family": "MATCHED_NO_COMPILE",
+        "continuous_source_credit_limit": 8,
+        "token_budget": 8192,
+        "max_num_seqs": 1024,
+        "KV_block_tokens": 128,
+        "hidden_source_slots": 16,
+        "hidden_destination_slots": 16,
+        "hidden_pool_free_reserve_bytes": 2147483648,
+        "hidden_pool_reclaim_unused_cache": false,
+        "D_prefill_completion_guard": false,
+        "defer_D_request_registration": true,
+        "D_execution_family_override": "INSTALLED_DEFAULT_COMPILE",
+        "preserve_compiled_decode_only": true
+      },
+      "gate": "Decode_compile_Hybrid_gate_v1.json"
+    }
+  },
+  "symptom": {
+    "output": 16,
+    "cap": 1,
+    "starts": 3,
+    "Layer_NativeStrong_ITL_CI_upper": 1.0636997704981743,
+    "Hybrid_NativeStrong_ITL_CI_upper": 1.0776688800981993
+  },
+  "hypotheses": [
+    "H1: Mode0 D full-model dispatch contributes the remaining decode tail. Restore only D compiled full36 calls while retaining the P path.",
+    "H2: Adapter ownership/graph safety dominates. Keeping these hooks will retain the tail.",
+    "H3: Client delivery dominates. D compile changes will not consistently reduce client tails."
+  ],
+  "scope": "Adaptive role-local compiler intervention. Do not alter or interrupt the frozen54 bridge starts. StrictN1/N8,then Natural32/400 state/lifetime/quality. No timing claim from these observer-heavy proofs. A failed strict gate blocks subsequent stages and performance. No tensor correction or assertion removal."
+}

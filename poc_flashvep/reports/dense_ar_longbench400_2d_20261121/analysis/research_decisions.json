@@ -1,0 +1,606 @@
+{
+  "rows": [
+    {
+      "id": "R001",
+      "time": 1795190738.8925376,
+      "observation": "The archived C3 adapter rejects a batch with partial-prefill and decode requests.",
+      "hypotheses": [
+        "A batch-wide intermediate tensor is applied to rows that need different starting layers.",
+        "The first request action is reused for all requests.",
+        "Hidden/KV lifetimes do not follow each request progress."
+      ],
+      "discriminating_test": "Execute the actual archived prepared_inputs body with one partial request and one decode request.",
+      "result": "The exact archived assertion fails. The fixture is CPU-only. The new implementation uses per-row layer intervals and fresh subset attention metadata.",
+      "next_step": "Require real N1,N8,N32 and Natural400 GPU coverage,teacher and lifetime gates.",
+      "evidence": "CPU_MINIMAL_REPRODUCTION"
+    },
+    {
+      "id": "R002",
+      "time": 1795190738.892821,
+      "observation": "All eight natural-reference workers fail before generation because ninja is absent from PATH.",
+      "hypotheses": [
+        "The selected Python environment contains ninja,but the inherited executable search path does not."
+      ],
+      "discriminating_test": "Execute the environment ninja binary. Repeat initialization with that environment bin directory first in PATH.",
+      "result": "The binary reports version1.13.2.git.kitware.jobserver-pipe-1. All eight v2 workers complete2165 natural outputs.",
+      "next_step": "Preserve failed v1 logs and use the completed v2 reference.",
+      "evidence": "MEASURED_EXECUTION"
+    },
+    {
+      "id": "R003",
+      "time": 1795190738.893111,
+      "observation": "The declared candidate universe has only3 long-input/output25–49 and16 long-input/output50–99 requests.",
+      "hypotheses": [
+        "The full16-cell balance is infeasible in this natural-output candidate population."
+      ],
+      "discriminating_test": "Generate every declared feasible original prompt before selection and count all16 cells.",
+      "result": "Select400 original requests with100 per input bin. The long-input selected row is52/29/3/16. No serving metric selects requests.",
+      "next_step": "Report the declared-universe limit and the population shift. Audit additional source coverage separately without changing frozen requests.",
+      "evidence": "MEASURED_NATURAL_OUTPUT_REFERENCE"
+    },
+    {
+      "id": "R004",
+      "time": 1795190738.897697,
+      "observation": "Token and Hybrid differ from a full-query single-GPU teacher at many BF16 KV tensors.",
+      "hypotheses": [
+        "Different legal query geometry changes BI0 numerics.",
+        "The imported prefix KV is wrong.",
+        "A causal suffix dependency is missing."
+      ],
+      "discriminating_test": "Use an original full36 single-GPU token-boundary teacher and an independent local three-wave hybrid teacher.",
+      "result": "N1 Token and Hybrid each match their geometry teacher in all36 full valid KV hashes,greedy16 tokens,and last hidden. N8 imported-prefix hashes and coverage pass. This does not qualify Natural400.",
+      "next_step": "Extend to mixed/variable requests and task-quality gates.",
+      "evidence": "CORRECTNESS_ONLY"
+    },
+    {
+      "id": "R005",
+      "time": 1795190738.901323,
+      "observation": "Prior destination profiling ends with a collector API error.",
+      "hypotheses": [
+        "An empty completed buffer causes GetNextRecord to reject validSize0.",
+        "Warmup/capture records differ from steady serving records.",
+        "The callback completion counter becomes visible before its buffer record is stored.",
+        "Graph/kernel record parsing or a dropped-record query fails."
+      ],
+      "discriminating_test": "Call the installed CUPTI GetNextRecord API with a non-null empty buffer. Export per-buffer parser diagnostics in the new collector.",
+      "result": "The empty-buffer API returns CUPTI_ERROR_MAX_LIMIT_REACHED12. The first hypothesis is falsified. Do not suppress that error by assumption.",
+      "next_step": "Test a short destination capture after warmup. Preserve parser return codes and validate graph-kernel coverage.",
+      "evidence": "CPU_API_DIAGNOSTIC"
+    },
+    {
+      "id": "R006",
+      "time": 1795197166.5942512,
+      "observation": "GRAPH_TRACE activity crashes at cudaGraphLaunch. Driver-only records do not map all decode graph kernels.",
+      "hypotheses": [
+        "Runtime API IDs can identify graph replay kernels without GRAPH_TRACE.",
+        "Graph trace activity is required for graph attribution."
+      ],
+      "discriminating_test": "Repeat a short warmed decode capture with runtime activity and no graph trace.",
+      "result": "All71848 kernel records map to actual engine frames. No dropped or invalid records occur. Graph trace is not required for this attribution.",
+      "next_step": "Preserve the crash and use runtime correlation only. Require an observer gate.",
+      "evidence": "DIAGNOSTIC"
+    },
+    {
+      "id": "R007",
+      "time": 1795197166.5966496,
+      "observation": "The v3 destination capture perturbs TTFT p95 by more than5%.",
+      "hypotheses": [
+        "Copy activity overhead contributes to the perturbation.",
+        "Normal start variance or concurrent host work dominates."
+      ],
+      "discriminating_test": "Use a new predeclared clean/profile/clean triplet with copy activity disabled.",
+      "result": "v4 ratios are TTFT p951.02169,ITL p991.00467,TPOT p951.01763,meanTBT1.02131,meanTTFT1.02964. All are below1.05. One triplet does not prove copy activity caused the v3 difference.",
+      "next_step": "Use qualified Native C0 decode-kernel attribution only in this measured scope. Test new profiles separately.",
+      "evidence": "MEASURED_OBSERVER_GATE"
+    },
+    {
+      "id": "R008",
+      "time": 1795197166.5978332,
+      "observation": "An actual full36 shape dispatcher accepts a partial-prefill tail with one query.",
+      "hypotheses": [
+        "Shape-only CUDA graph selection bypasses partial-layer execution.",
+        "A missing remote Hidden notification is an independent transport failure."
+      ],
+      "discriminating_test": "Run a real8193-query Layer4 request with the old frozen source. Repeat with an eager guard for partial-prefill rows only.",
+      "result": "The old source fails because the final one-query tail does not publish complete hidden state. The guarded run matches a full36 teacher in all36 valid KV hashes,last hidden and16 greedy tokens. Token9217 and Hybrid9361 boundary controls also match their teachers.",
+      "next_step": "Keep full36 decode graphs enabled. Extend to variable natural400 and mixed rows.",
+      "evidence": "GPU_CORRECTNESS_COUNTERFACTUAL"
+    },
+    {
+      "id": "R009",
+      "time": 1795197166.5991614,
+      "observation": "The first guardian process exits after a termination signal while pair jobs remain active.",
+      "hypotheses": [
+        "The interactive execution lifetime ends the guardian session.",
+        "A campaign STOP file or research deadline triggers shutdown."
+      ],
+      "discriminating_test": "Inspect the completed guardian session,STOP files,deadline and owned pair leases.",
+      "result": "No STOP_GUARDIAN file exists. The deadline remains in the future. The exit follows the signal path. The external signal source is not identified. Two new dispatches fail before GPU execution. Existing GPU jobs finish.",
+      "next_step": "Restore the owned global lease. Detach long-lived checkpointed processes. Preserve failed dispatch records and resume only jobs without raw results.",
+      "evidence": "OPERATIONAL_FAILURE_ANALYSIS"
+    },
+    {
+      "id": "R010",
+      "time": 1795201926.664422,
+      "observation": "Full400 CPU-hash Layer qualification reaches237 requests before the2100second serving timeout.",
+      "hypotheses": [
+        "A read-only full-state observer transfers and hashes several GB per request.",
+        "A model or transport deadlock prevents completion."
+      ],
+      "discriminating_test": "Verify a GPU SHA256-leaf observer against CPU hashlib on every byte of N8 original-model and hybrid state tensors.",
+      "result": "Q9v2 completes. All36 valid KV digests,last hidden,and16 greedy tokens match. Imported-prefix and H/R consumption checks pass. Q9v1 fails an observer-only packed-KV shape assumption. Actual packed values are L×8×256 BF16. Earlier raw valid-KV hashing already uses all4096 bytes per token.",
+      "next_step": "Preserve the237-request failure. Repeat full400 with the separately validated observer. No timing claim from either observer run.",
+      "evidence": "CORRECTNESS_ONLY"
+    },
+    {
+      "id": "R011",
+      "time": 1795201926.6650362,
+      "observation": "C0 family qualification covers26 actions with8 unmodified calibration prompts each.",
+      "hypotheses": [
+        "The genuine2D DAG conserves causal dependencies at all declared interior and pure boundaries."
+      ],
+      "discriminating_test": "Compare208 action executions with48 independent original-full36 boundary cases. Audit every valid KV byte,last hidden,greedy16 tokens,and ownership.",
+      "result": "All208 executions pass. They are not208 independent source prompts or server starts. The gate is C0 only.",
+      "next_step": "Require separate mixed-row and full400 continuous gates before continuous performance claims.",
+      "evidence": "CORRECTNESS_ONLY"
+    },
+    {
+      "id": "R012",
+      "time": 1795201926.6663277,
+      "observation": "One-start short-input online ratios change irregularly after warming all16 measured query shapes.",
+      "hypotheses": [
+        "Cold query shapes explain the whole host-service gap.",
+        "Hidden handoff or other host work remains important.",
+        "GPU forward cost differs."
+      ],
+      "discriminating_test": "Warm all measured prompts before the same final max/min controls. Keep the measured prompts,arrival trace,credit4,and1/1/1 unchanged.",
+      "result": "Mean P service falls for most cuts but rises for Layer8. Mean-TTFT winner signs change for cuts2 and4. One start does not identify a cause. Uniform cold-shape explanation is not supported.",
+      "next_step": "Retain the foreknowledge intervention as diagnostic. Use frozen-source held-out independent starts and profile gates for causal decomposition.",
+      "evidence": "DIAGNOSTIC"
+    },
+    {
+      "id": "R_ITL_ADMISSION_CAUSAL_CONTROL_20261121",
+      "time": 1795250727.3863778,
+      "observation": "At q1.8,NativeMatched ITLp99 is16.656ms. Layer4 is35.587ms,Token4 is35.196ms,and Hybrid4/f.125 is48.587ms. All three fail the unchanged decode point limit.",
+      "hypotheses": [
+        "If mixed prefill/decode and synchronous import cause the tails,admitting D work only after prior completion will reduce ITL. TTFT may worsen.",
+        "If full-model compile alone causes the problem,the unmodified default-compiled Token path should remove the tails.",
+        "If hidden transfers dominate,Token without hidden state should avoid the large tails."
+      ],
+      "discriminating_test": "Keep the same model,B/S,source credit,arrival and output contract. Change D admission only. Require N1,N8,N32,full400 correctness before timing. Keep unrestricted Native as the strong baseline.",
+      "result": "The stronger compiled Token discovery does not remove the tails. At q1.8,cut2/4/8/12 ITLp99 is19.283/35.408/46.631/124.884ms. Guard correctness is in progress. Temporal overlap alone does not prove causality.",
+      "next_step": "Finish the admission gate. Then compare original and guarded paths on the same frozen trace. Retain every TTFT,goodput and batch change.",
+      "evidence": "TRACE_ANALYSIS_AND_MEASURED_DISCOVERY"
+    },
+    {
+      "id": "R_OUTPUT_ONLY_EXACT_QPS",
+      "time": 1795272542.202472,
+      "observation": "The exact-work long-input Hybrid beats both pure axes at Output64 but loses to Token at Output16. The two existing QPS values differ by0.16percent.",
+      "hypotheses": [
+        "Longer decode residency shifts the bottleneck toward the destination.",
+        "The apparent output difference can depend on the slightly different arrival trace or runtime noise."
+      ],
+      "discriminating_test": "Retain the three Output64 starts. Run Output16 with their exact source,GPU pair,request IDs,arrival offsets and seeds. Keep actual1/1/1 and credit4.",
+      "result": "Planned twelve starts. No new result is assumed.",
+      "next_step": "Compare paired start-level TTFT,decode gates and additive mean host boundaries. Do not transfer the result to C3 without testing.",
+      "evidence": "FROZEN_COUNTERFACTUAL_DESIGN"
+    },
+    {
+      "id": "R_COMPLETION_ADMISSION",
+      "time": 1795272542.2061074,
+      "observation": "Hybrid D prefill calls have host gaps between chunks. Many gaps overlap another request decode step. The observation is not exclusive GPU time or causal slowdown.",
+      "hypotheses": [
+        "Admitting another incomplete prefill near a chunk tail can postpone completion.",
+        "An earlier first prepare merely includes existing waiting inside the host enclosure.",
+        "Conservative admission can reduce useful packing and worsen TTFT."
+      ],
+      "discriminating_test": "Apply one pre-allocation whole-completion estimate to Native,Layer8,StockToken8 and Hybrid4/f1/8. Keep B8192,S1024,source credit,compute rule and READ deferral fixed. Validate Natural32/400 first.",
+      "result": "CPU exception restoration passed. GPU qualification and paired n1 discovery are pending.",
+      "next_step": "Keep every regression. Audit actual queries and host gaps. Freeze static choices only after the common-policy test.",
+      "evidence": "CPU_REGRESSION_AND_FROZEN_INTERVENTION"
+    },
+    {
+      "id": "R_READ_RECOVERY_THREE_STARTS",
+      "time": 1795281060.3444567,
+      "observation": "The compute-only rule does not remove every client decode tail. New READ setup can occur while decode is active.",
+      "hypotheses": [
+        "Compute mixing alone explains the tail.",
+        "Remote READ setup and its associated stream/transfer timing contribute.",
+        "Admission concurrency changes tail behavior."
+      ],
+      "discriminating_test": "Use the common compute/READ policy in five arms with three new paired arrival seeds at q2.8. Retain the unmodified Native and common-policy Native.",
+      "result": "Discovery200,cut4: NativeREAD/Layer/StockToken/Hybrid mean ITLp99 are9.371477/8.812412/9.098622/9.004169ms. Both unchanged ITL/TPOT5percent CI gates pass for all three offloads. Normal-completion scope only.",
+      "next_step": "Do not tune static cuts on these safety-confirmation timings. Require frozen strong choices and final-source Full400 proofs before held-out/Main400 confirmation.",
+      "evidence": "MEASURED_ONLINE"
+    },
+    {
+      "id": "R_COMPLETION_GUARD_FALSIFICATION",
+      "time": 1795281060.3452303,
+      "observation": "Host chunk gaps overlap other requests decode steps. This overlap alone does not identify their effect on TTFT.",
+      "hypotheses": [
+        "Preventing an additional partial-prefill admission shortens useful completion.",
+        "It removes useful packing and can worsen latency."
+      ],
+      "discriminating_test": "Apply the same pre-allocation completion rule to Native,Layer8,Token8,Hybrid4/f1/8. Keep each within-axis source,pair,trace,credit,B/S and sampling fixed.",
+      "result": "At q2.8 n1,Layer TTFTp95 increases7626.870→9399.778ms while mean interchunk host gap decreases57.506→22.305ms. Hybrid TTFTp95 increases9086.934→10813.237ms while gap decreases104.498→43.321ms. The simple gap-removal explanation is not supported.",
+      "next_step": "Keep these regressions. Finish q1.8 and targeted credit/cap discovery before static freezing. Do not call host gaps exclusive GPU time.",
+      "evidence": "MEASURED_ONLINE_WITH_TRACE_ANALYSIS"
+    },
+    {
+      "id": "R_EXACT_OUTPUT_COUNTERFACTUAL_RESULT",
+      "time": 1795281060.3465254,
+      "observation": "An iso-work long-input Hybrid win at output64 coexists with a Token win at output16.",
+      "hypotheses": [
+        "Output residency changes the queue bottleneck.",
+        "The previous small QPS difference caused the sign change."
+      ],
+      "discriminating_test": "Repeat output16 at exactly the output64 q1.253873 with the same source,pair,requests,arrivals,cuts,credit,actual1/1/1 and three seeds. Reuse all original output64 starts.",
+      "result": "Hybrid/Token TTFTp95 is1.070249CI[1.054657,1.081369] at output16 and0.980561CI[0.971238,0.990277] at output64. The contract reversal persists. This is C0,not natural C3.",
+      "next_step": "Use host boundary records to locate the queue difference. Do not assert exclusive GPU or best-tuned continuous gain.",
+      "evidence": "MEASURED_ONLINE_WITH_TRACE_ANALYSIS"
+    },
+    {
+      "id": "R_LOAD_ONLY_REVERSAL_INCONCLUSIVE",
+      "time": 1795281060.3475828,
+      "observation": "A low-load small-cut Layer winner need not persist at a higher offered load.",
+      "hypotheses": [
+        "The source queue can amplify Token source saving.",
+        "The apparent winner changes only within start variance."
+      ],
+      "discriminating_test": "Change only q0.910229→8.292124 at I0/output8/cut2. Preserve source,pair,requests,normalized Poisson draws,credit4 and actual1/1/1. Use three declared new high-load starts.",
+      "result": "Layer/Token is0.943712CI[0.924118,0.965350] at low load and1.055811CI[0.948638,1.139639] at high load. The high-load CI includes1. A load-only reversal is not confirmed.",
+      "next_step": "Keep the inconclusive outcome. Do not repeat until a preferred crossover appears.",
+      "evidence": "MEASURED_ONLINE_WITH_TRACE_ANALYSIS"
+    },
+    {
+      "id": "R_FUSED_HYBRID_READ_RECURRENT_TAIL",
+      "time": 1795287441.163205,
+      "observation": "The frozen q1.8 fused Hybrid compute-only arm shows ITL14.450ms and TPOT9.572ms in Main400 start2. NativeStrong on the same trace shows13.095ms and8.212ms. This is one start,not a final safety CI.",
+      "hypotheses": [
+        "Remote READ setup still interrupts decode when only large prefill compute is deferred.",
+        "Actual decode geometry or host gaps dominate without a READ-specific effect.",
+        "The single-start difference does not repeat on new seeds."
+      ],
+      "discriminating_test": "Preserve the original140 starts. Freeze a READ-only fused-Hybrid composition plus Natural32/400 proof,one same-trace pilot,and seven-arm n3 confirmation on new arrival seeds.",
+      "result": "Design frozen;timings pending. No inference file changed from sourcea2d5ebc4.",
+      "next_step": "Complete original and adaptive confirmation. Keep all adverse outcomes. Do not label the adaptive follow-up the original blind main test.",
+      "evidence": "FROZEN_ADAPTIVE_DIAGNOSTIC_DESIGN"
+    },
+    {
+      "id": "R_C3_LONG_CONTROL_RESIDUAL_TAIL",
+      "time": 1795291987.1978457,
+      "observation": "The first C3 long-input output16/cap1 control has240 delivered intervals per arm. Layer/Hybrid p99 9.324674/9.356153ms exceed same-trace NativeCommon point bound9.165999ms. All absolute34ms intervals pass. This is n1,not a CI result.",
+      "hypotheses": [
+        "Residual hidden-state READ setup overlaps the remaining tail.",
+        "Runtime-family,decode-step or host-loop cost produces a small residual difference.",
+        "The small-interval-count quantile fluctuates across new starts."
+      ],
+      "discriminating_test": "Run the unchanged per-interval host-overlap diagnostic on all four offloading arms against the same NativeCommon trace.",
+      "result": "Layer4 and Hybrid7 intervals exceed the native point bound. None overlap mixed prefill/decode steps,offload prefill,NIXL host spans or hidden READ spans. The recorded-overlap prediction of the first hypothesis is not supported in this case. Strong StockToken and diagnostic Mode0 Token pass their point checks. No exclusive GPU cause is identified.",
+      "next_step": "Complete all planned n3 bridge blocks. Keep any failed5percent CI as invalid. Do not weaken the strong compiled Token or change SLO to force a pass.",
+      "evidence": "TRACE_ANALYSIS_SINGLE_START_COUNTEREXAMPLE"
+    },
+    {
+      "id": "R_FIRST_DECODE_HOST_REGISTRATION",
+      "time": 1795292946.9683971,
+      "observation": "Heldout200 q1.8 s0 strong compiled Token has 6.778,11.726,8.262,3.874ms first-output inter-step host gaps for requests195,170,122,108. Corresponding NativeCompletion gaps are0.257,0.247,0.208,0.220ms. Other D registration completions occur inside all four Token gaps. No JIT or recorded NIXL/hidden overlap.",
+      "hypotheses": [
+        "H1: engine.add_request input processing delays the next decode submission.",
+        "H2: IPC receive/unpickling dominates. Registration deferral keeps IPC receive and should retain the delay.",
+        "H3: first-decode preparation or batch variation dominates. Registration-only intervention should not consistently improve independent tails."
+      ],
+      "discriminating_test": "New source overlay07cdfb84 changes only the standard-worker connection wrapper and a new FIFO helper. Freeze ten Natural32/400 proofs,three same-request pilot starts and seven arms across three new seeds on2/3. Original140 and READ repair remain unchanged.",
+      "result": "CPU FIFO,cleanup-control,stop-drain and output-identity tests pass. GPU proof and performance pending. Overlap alone is not causal attribution.",
+      "next_step": "Complete all declared controls regardless of pilot direction,subject to state/lifetime/quality gates. Compare against unmodified NativeStrong and exact common-registration Native. No SLO or timestamp edits.",
+      "evidence": "TRACE_ANALYSIS_AND_FROZEN_ADAPTIVE_INTERVENTION"
+    },
+    {
+      "id": "R_FINAL_ANALYSIS_INTERMEDIATE_CACHE",
+      "time": 1795293418.995088,
+      "observation": "The final analysis-only coordinator stopped with KeyError runtime_source_archive_SHA256 while independent GPU lane controllers continued. The inherited writer publishes a base metric record before the wrapper adds provenance and geometry.",
+      "hypotheses": [
+        "A concurrent reader observed the valid intermediate cache schema.",
+        "Raw data or source provenance changed."
+      ],
+      "discriminating_test": "Inspect the unchanged raw/source hashes and rerun the reader. Add a CPU regression that supplies the intermediate schema and requires reconstruction from raw events.",
+      "result": "The original traceback is preserved. Manual analysis succeeds. The CPU schema-reconstruction test passes. Only a new analysis watcher1977727 resumes; no GPU start is repeated.",
+      "next_step": "Keep the same frozen main plan. Continue live-PID and terminal-marker checks,then recalculate all raw metrics at closeout.",
+      "evidence": "CPU_RUNTIME_ANALYSIS_RACE_NOT_GPU_FAILURE"
+    },
+    {
+      "id": "R_FROZEN_HELDOUT_Q18_COMPLETE",
+      "time": 1795294257.330718,
+      "observation": "All ten original Heldout200 q1.8 arms now have three paired independent starts. BestLayer,BestToken and compute-only BestHybrid do not pass both unchanged Native safety controls. Whole-prefill Deflection Cap1 passes both controls and TTFT/goodput CIs.",
+      "hypotheses": [
+        "The original main candidates do not generalize their discovery decode point gate.",
+        "Residual Host request registration and READ setup explain different parts of the safety failure."
+      ],
+      "discriminating_test": "Retain all original starts and NativeStrong/common controls. Complete the already frozen READ-only and registration-only follow-ups without replacing main outcomes.",
+      "result": "Original means: NativeStrong ITL14.315ms,TPOT8.165ms; Layer9.263/8.369; Token9.309/8.457; Hybrid15.520/9.727. Fast policy-Native ITLs8.629–8.770ms. Layer/common CI uppers1.06450/1.05879;Token/common1.10558/1.09696. Whole deflection/common1.01892/1.00835.",
+      "next_step": "Finish remaining original QPS blocks and independent adaptive fixes. A fast TTFT or a slow Native-only reference cannot qualify an unsafe arm. Keep deflection as a strong baseline.",
+      "evidence": "MEASURED_ONLINE_THREE_START_FROZEN_TEST"
+    },
+    {
+      "id": "R_REGISTRATION_PILOT_RED_GREEN",
+      "time": 1795296447.7665586,
+      "observation": "The three predeclared same-source/pair/trace Heldout200 pilot arms are complete. Old Token ITLp99=9.547355ms,TPOTp95=8.4342ms. Registration-deferred Token=8.822829/8.013300ms. Exact common Native=8.911229/7.9944ms.",
+      "hypotheses": [
+        "Host request registration contributes to the first-decode delivery tail.",
+        "IPC receive alone explains the entire tail.",
+        "Only GPU execution changes explain the tail."
+      ],
+      "discriminating_test": "Run decode_tail_audit on both Token arms against NativeCompletionRegistration. The old-path unchanged5percent point assertion fails;new-path assertion passes. No GPU job is repeated. All use overlay07cdfb84,2/3,the same200 requests and seed2026112411.",
+      "result": "Old point bound9.356790ms has53 tail intervals among4770;new has11 among4810. Both have0 recorded mixed/offload/NIXL/hidden overlap. OldMax224.528ms,new47.234ms;absolute34ms violations2→1. Natural actual output work differs and task quality passes. TTFTnew/old=.994604,not a claimed significant speedup. This isN1,not an independent-start CI.",
+      "next_step": "Complete all predeclared seven-arm new-seed confirmations atq1.8 and the already frozen q2.8 extension. Measure the separate deferred-host registration queue. Admission/batch timing also changes,so do not assign an exclusive Python or GPU operator share.",
+      "evidence": "MEASURED_ONLINE_ADAPTIVE_PILOT_AND_RED_CAPABLE_TRACE_TEST"
+    },
+    {
+      "id": "R_C3_LONG_OUTPUT_BRIDGE_64_COMPLETE",
+      "time": 1795297999.204372,
+      "observation": "The original-source long-input O64/cap1 controlled C3 bridge now has three independent starts for all six arms. Hybrid does not beat strong compiled StockToken in TTFT and does not pass both Native decode gates.",
+      "hypotheses": [
+        "The small C0 hybrid gain does not survive the stronger continuous runtime.",
+        "Replacing compiled Token with Mode0 can change the apparent relative result.",
+        "Residual host registration creates decode tails independently of mixed-prefill or recorded READ overlap."
+      ],
+      "discriminating_test": "Keep the frozen O16/O64/cap1 and O64/cap2 design,all source and seeds. Finish cap2. Compare Hybrid to both compiled Token and diagnostic Mode0;also compute pure Layer/Token paired ratios.",
+      "result": "O64 means: HybridTTFT4335.582ms,StockToken4117.758ms,Mode0Token4405.102ms,Layer4153.714ms. Hybrid/StockTokenTTFTCI[1.016506,1.088930]. Hybrid/Mode0CI[.967055,1.000025] includes1. Every offload arm in this cell fails a Native-relative5percent gate. No qualified C3 hybrid win is established.",
+      "next_step": "Do not remove compiled Token or relabel the near-boundary Mode0 result. Complete existing registration-only natural400 safety confirmation and cap2 counterfactual. No new favorable-cell search.",
+      "evidence": "MEASURED_ONLINE_CONTROLLED_OUTPUT_THREE_STARTS"
+    },
+    {
+      "id": "R_CLIENT_ONLY_DELIVERY_TAIL_LIMIT",
+      "time": 1795298497.761053,
+      "observation": "One original C3Bridge I3/O64/cap1 StockToken start has clientITL384.483039ms but the same worker notification gap8.083349ms. No recorded mixed/offload/NIXL/hidden overlap explains it.",
+      "hypotheses": [
+        "Coordinator delivery delay contributes independently of GPU execution.",
+        "Synchronous socket send directly blocks the coordinator.",
+        "A host scheduling or storage event causes the rare gap."
+      ],
+      "discriminating_test": "Inspect exact token pairs,other completion/handoff timestamps and the source Ingress implementation. Read current CPU throttling/pressure and memory without changing runtime.",
+      "result": "The large excess is client-side observed. Ingress uses per-role queue/sender threads,so direct synchronous-send explanation is contradicted by source. Current nr_throttled0 andlow pressure do not identify a historical rare event. Exact cause remainsNOT_IDENTIFIED. Original interval remains in allSLOmetrics.",
+      "next_step": "Do not label it GPU compute or delete it. Complete predeclared registration confirmations against unchanged client metrics. State residual maximum-tail and small-N16 absolute-attainment limits explicitly.",
+      "evidence": "TRACE_ANALYSIS_AND_SOURCE_COUNTEREVIDENCE"
+    },
+    {
+      "id": "R_FIXED_BRIDGE_COMMON_REGISTRATION_REPAIR",
+      "time": 1795300699.739394,
+      "observation": "The completed original54 C3 bridge starts retain Native-relative safety failures in all O64 offload arms. Natural400 host-registration repair does not by itself qualify that controlled C0 candidate.",
+      "hypotheses": [
+        "H1: Host registration/admission feedback is a residual source of bridge tails.",
+        "H2: Strong Stock Token forward/packing remains better even after tail repair.",
+        "H3: Rare client-only delivery delay is independent of this policy."
+      ],
+      "discriminating_test": "Retain all54 starts across O16/cap1,O64/cap1,O64/cap2. Use the same original4/5,prompt IDs,cuts,arrival seeds and fixed output counts. Reuse source071 and exact-signature proofs. New proof starts use6/7 after READ+Layer drain. Do not select a favorable cell or new SLO.",
+      "result": "Frozen54 serving starts and16 new Natural32/400 proof starts. Two exact-signature proof families are reused only after their q2.8 gates exist. New controller2159024 waits safely. Original54 and all main/READ/registration results remain unchanged.",
+      "next_step": "Run all planned conditions subject to correctness. Analyze both Native gates and unchanged NativeStrong drift. Original versus repaired starts are separate time blocks. Re-run the final analyze CLI to generate the added report because the live controller loaded an earlier CPU reporter.",
+      "evidence": "ADAPTIVE_COMMON_RUNTIME_INTERVENTION_FROZEN_BEFORE_NEW_TIMINGS"
+    },
+    {
+      "id": "R_FROZEN_HELDOUT_Q28_COMPLETE",
+      "time": 1795301100.3083284,
+      "observation": "The original Heldout200 QPS2.8 now has all ten arms and all three independent starts. Mean NativeStrong ITL14.334080ms,TPOT8.100971ms. Exact common-policy Natives are faster.",
+      "hypotheses": [
+        "H1: Compute+READ alone still leaves first-transition host-registration delay.",
+        "H2: Mode0 versus compiled decode and batch/credit feedback contribute to residual TPOT differences."
+      ],
+      "discriminating_test": "Keep all original frozen arms and apply both NativeStrong and exact common-policy Native gates. Analyze the independently frozen source071 registration interventions at both loads. Do not replace the old test with repaired results.",
+      "result": "BestLayer,BestToken,BestHybrid and TokenCap2Control fail at least one required Native decode gate. Whole-prefill deflection passes both Native NI gates. Layer/Token/Hybrid mean TTFTp95 are18081.957986/12704.611650/16267.208981ms. These finite200-request results are not sustainable capacity.",
+      "next_step": "Complete Main400 start0 and all frozen repair confirmations. Retain the strong deflection baseline and all unfavorable outcomes.",
+      "evidence": "MEASURED_ONLINE_PAIRED_N3"
+    },
+    {
+      "id": "R_ROUTE_AWARE_DEFLECTION_HOST_ACCOUNTING",
+      "time": 1795301608.5384247,
+      "observation": "The pending final CPU service decomposition attempts a P stage for a direct-D deflected request. The real frozen Heldout200 q2.8 s0 raw reproduces KeyError(q1,prefill). GPU serving and primary metrics are complete and unaffected.",
+      "hypotheses": [
+        "H1: The CPU analyzer incorrectly assumes every request visits P.",
+        "H2: Request logs were truncated despite a complete receipt.",
+        "H3: A request-ID mapping mismatch hides a real P submission."
+      ],
+      "discriminating_test": "Add an actual-raw CPU regression. Verify the deflection ID log and every route. Require all route intervals to sum to real client TTFT. Compare the same IDs against Native without fabricating absent P intervals.",
+      "result": "Old test exits1 with KeyError. A temporary CPU syntax error was caught and corrected. The new regression exits0:141 P-to-D and59 D-local requests out of200. All paths sum exactly to TTFT. Separate route-aware reporting preserves the strong deflection baseline. No model/output/timestamp or GPU process changed.",
+      "next_step": "Keep six-stage P-to-D decomposition for Layer/Token/Hybrid. Publish a separate route-specific deflection table. Rerun the full CPU suite and final source-bound checks. The red/green record is in analysis/deflection_host_cpu_red_green_v1.json.",
+      "evidence": "CPU_RAW_TRACE_REGRESSION"
+    },
+    {
+      "id": "R_READ_ONLY_REPAIR_N3_COMPLETE",
+      "time": 1795302104.0595312,
+      "observation": "All22 original READ-repair starts and all3 separately frozen Layer controls are complete. The CPU report and four figure pairs reconstructed without errors.",
+      "hypotheses": [
+        "H1: Remote READ setup contributes to Hybrid decode tails even without mixed prefill/decoding.",
+        "H2: READ deferral alone is insufficient for the exact common-Native TPOT5percent requirement."
+      ],
+      "discriminating_test": "Compare same-source HybridCompute versus HybridREAD on new seeds2026112661/62/63. Keep NativeStrong,NativeCompute,NativeREAD,NativeCompletion,strong StockToken and separate-time-block Layer controls.",
+      "result": "N3 Hybrid ITLp99 drops11.007910→9.158424ms and TPOTp95 drops9.209552→8.319373ms. Hybrid/NativeREAD TPOT CIupper1.053354 fails1.05. LayerControl/NativeREAD TPOT CIupper1.058397 also fails. StockToken passes both Native controls. Hybrid/StockToken TTFT1.230969 CI[1.132285,1.326660]. All original failures and natural-output differences remain.",
+      "next_step": "Judge the already frozen registration repair at both loads and controlled bridge. Do not loosen the bound or repeat a favorable seed. READ changes admission/transfer timing; it is not an exclusive DMA or Python-cost attribution.",
+      "evidence": "MEASURED_ONLINE_ADAPTIVE_REPAIR_N3"
+    },
+    {
+      "id": "R_REGISTRATION_REPAIR_Q18_N3_COMPLETE",
+      "time": 1795304299.4689846,
+      "observation": "The q1.8 common-registration repair completed seven arms and three independent starts. Original main and READ failures remain.",
+      "hypotheses": [
+        "H1: Common admission timing repairs first-decode tails without requiring a weaker Native.",
+        "H2: Repairing safety does not reverse strong Token TTFT advantage."
+      ],
+      "discriminating_test": "Use the predeclared same071 source,seeds2026112771/72/73,Main400 and both NativeStrong and exact common-policy Native. Preserve every client interval.",
+      "result": "All Layer/Token/Hybrid pass both ITLp99 and TPOTp95 paired CIupper<=1.05 and each-start absolute decode attainment>=.95. Hybrid/Token TTFT1.096645 CI[1.036991,1.147475],goodput.979117 CI[.967172,.988945]. Layer/Common goodput.980929 CI[.976739,.986437]. Maxima remain as large as641.203169ms for Layer. Quantile non-inferiority is not an all-interval bound.",
+      "next_step": "Finish frozen q2.8 and all original controlled bridge conditions after the same repair. No new favorable-cell search or dynamic insertion.",
+      "evidence": "MEASURED_ONLINE_ADAPTIVE_REPAIR; analysis/request_registration_deferral_results_v1.json"
+    },
+    {
+      "id": "R_FROZEN_MAIN_Q18_COMPLETE",
+      "time": 1795304771.4548683,
+      "observation": "Main400 q1.8 has all ten frozen arms and three independent starts. This is sourcea2,not the adaptive registration repair.",
+      "hypotheses": [
+        "A lower TTFT than Native does not establish a Layer-specific win over strong Token.",
+        "READ/compute/completion controls can already protect some main-distribution arms without protecting every Heldout arm."
+      ],
+      "discriminating_test": "Read paired sourcea2 Main400 q1.8 results against both NativeStrong and the exact common policy. Keep Heldout and adaptive source071 separate.",
+      "result": "Layer,Token,WholeDeflection pass both Native decode and absolute gates. Hybrid fails. Layer/Token TTFT1.146158 CI[1.139623,1.155887]. Layer wins Native TTFT but its common-Native goodput CI includes1. Token and deflection win both Native TTFT and goodput CIs. No Layer-specific or Hybrid serving GO.",
+      "next_step": "Finish the remaining Main400 q2.8 start0 and the separately frozen common-registration repair and controlled bridge. Preserve every original failure.",
+      "evidence": "MEASURED_ONLINE; analysis/final_continuous_strong_confirmation_v1.json"
+    },
+    {
+      "id": "R_FROZEN_MAIN_Q28_COMPLETE",
+      "time": 1795307786.7101328,
+      "observation": "All140 original frozen C3 starts are complete. Main400 q2.8 has three independent starts for all11arms.",
+      "hypotheses": [
+        "Strong compiled Token can retain a Native-relative serving gain while Layer/Hybrid fail fast-common-Native decode gates.",
+        "A point estimate below1.05 does not qualify a CI upper above1.05."
+      ],
+      "discriminating_test": "Inspect same-sourcea2 Main400 q2.8 against NativeStrong and every exact common D-policy Native. Retain uncapped strong Token and capped Token control.",
+      "result": "BestToken TTFT5579.425988ms,ITL8.919498ms,TPOT8.193915ms,goodput66.922743. It passes both Native safety controls and wins both TTFT and goodput. Layer/Token TTFT1.974698 CI[1.505425,2.495660];Hybrid/Token1.651744 CI[1.482651,1.868662]. Layer fails common ITLupper1.092160/TPOTupper1.062689. Hybrid common TPOTupper1.050312 fails strictly. TokenCap2 also fails. WholeDeflection passes both. All absolute decode attainments are>=.95. Separate adaptive071 results remain pending.",
+      "next_step": "Complete q28 registration confirmation and all54 original controlled conditions after that repair. Do not round away a failed safety gate or replace the original140.",
+      "evidence": "MEASURED_ONLINE; analysis/final_continuous_strong_confirmation_v1.json"
+    },
+    {
+      "id": "R_REGISTRATION_REPAIR_Q28_N3_COMPLETE",
+      "time": 1795308761.185884,
+      "observation": "The separate q2.8 registration extension completed all21 serving starts and exact-source proof families.",
+      "hypotheses": [
+        "The common registration/admission fix can protect both Native decode controls at higher load.",
+        "Decode recovery alone does not make Layer or Hybrid faster than strong Token."
+      ],
+      "discriminating_test": "Use frozen source071,seeds2026112781/82/83,Main400 andGPU4/5. Preserve originalsourcea2,uncapped strong Token and the same-source TokenOldControl. Evaluate both NativeStrong and exact common policy without changing any threshold.",
+      "result": "All Layer/Token/Hybrid pass both Native ITLp99/TPOTp95 paired CIupper<=1.05 and every-start request decode attainment>=.95. Common CIupper ITL/TPOT:Layer1.026533/1.036656,Token1.031733/1.011719,Hybrid1.009701/1.035706. Layer/Token TTFT1.499375 CI[1.437462,1.573933];Hybrid/Token1.344281 CI[1.312721,1.378300]. Hybrid improves Layer TTFT(.896561 CI[.837692,.941169]) but loses Token goodput(.845429 CI[.698429,.953074]). All three improve both Native TTFT and goodput at this finite load. The registration-only Token A/B improves decode tails and goodput but TTFT CI includes1. Same400requests,new arrivals,not new-request generalization or dynamic safe-window proof.",
+      "next_step": "Run every frozen controlled fixed-output condition after the same repair. No new favorable-cut search. Finish scientific and operational closeout after those54 outcomes.",
+      "evidence": "MEASURED_ONLINE_ADAPTIVE_REPAIR; analysis/request_registration_deferral_q28_results_v1.json"
+    },
+    {
+      "id": "R_PUBLICATION_LEDGER_SCALE_RED_GREEN",
+      "time": 1795309565.7294524,
+      "observation": "The raw/data/reference preflight found over442000 files. The local member ledger alone can exceed the100MiB Git blob limit.",
+      "hypotheses": [
+        "H1: Expanded ledger metadata exceeds the blob limit even after raw streams are split.",
+        "H2: A nonraw analysis file exceeds the same limit. The largest observed analysis is100279340bytes,below104857600.",
+        "H3: Duplicate source archives cause unnecessary public payload. Existing canonical-source dedup remains separate."
+      ],
+      "discriminating_test": "Run publication_scale_repro through the actual publication.prepare selector. The CPU fixture uses real path/count scale but synthetic path-string digests. It creates no real archive or scientific proof.",
+      "result": "Red:442276 records,118099980byte expanded fixture,actual selector assertion. Green:442404 records,118134097byte expanded fixture,largest selected file20576930bytes. Preserve expanded ledger locally,publish a verified byte-identical gzip and small index. Verify compressed and decompressed SHA256. Keep the104857600byte limit unchanged. A small regression test is added. All15CPU tests now pass. The initial missing-state test-fixture failure is preserved separately.",
+      "next_step": "Continue the frozen54 repaired bridge starts. Create real archives only after GPU/controller drain and scientific closeout. Recheck the final expanded/gzip hashes and private-index publication at actual scale.",
+      "evidence": "CPU_OPERATIONAL_REPRODUCTION; analysis/publication_manifest_scale_red_v1.json; analysis/publication_manifest_scale_green_v1.json"
+    },
+    {
+      "id": "R_D_ONLY_COMPILE_NUMERICAL_INTERVENTION",
+      "time": 1795312487.405931,
+      "observation": "Repaired O16/Cap1 N3 passes common Native but Layer/Hybrid ITL fail unmodified NativeStrong: upper1.06369977/1.07766888. Strong Token upper1.04448636 passes.",
+      "hypotheses": [
+        "D compiler/adapter cost",
+        "Host adapter overhead",
+        "Delivery delay"
+      ],
+      "discriminating_test": "Replay exact fixed O16 N3 safety(red). Restore only D compiler,then preserve explicit official custom_ops all. Strict N1/N8 before Natural32/400 and performance.",
+      "result": "D-only V1 harness was blocked before LLM init by a continuous-window/C0 conflict. V2 corrected only that harness field. Layer P lower28 KV match original Mode0 teacher. D upper8 differ. Hybrid differs from its legal teacher. Layer greedy16 matches;Hybrid does not. No performance from failed strict gates.",
+      "next_step": "V3 explicitly preserves all custom ops on D. Keep P Mode0 and both failed versions. Test original independent Mode0 full-state teacher. Do not change old54 bridge.",
+      "evidence": "CORRECTNESS_ONLY_AND_TRACE_ANALYSIS"
+    },
+    {
+      "id": "R_D_COMPILE_STRICT_NEGATIVE_CONTROL_COMPLETE",
+      "time": 1795312920.443087,
+      "observation": "Both unchanged current Mode0 controls match independent original boundary teachers in full KV,last hidden and greedy16. D-only compiled paths do not match state.",
+      "hypotheses": [
+        "An unrelated old-teacher mismatch already exists in current Mode0",
+        "D compilation/custom-op dispatch changes partial-prefill numerics",
+        "Transport/ownership breaks under the new compiler"
+      ],
+      "discriminating_test": "Run the identical fresh-source N1 harness with every new D flag disabled. Compare exact full-state hashes and actual hidden/KV samples.",
+      "result": "Old-teacher mismatch hypothesis is falsified. Both controls pass strict and coverage. D-only Layer differences start at D-owned layer28. V3 all-custom-ops does not restore state: hidden relativeL2 Layer0.0073263,Hybrid0.0107804. Greedy16 matches both controls. State/import/coverage observations do not identify an individual numerical operator or prove an arithmetic/transport error.",
+      "next_step": "Keep V1–V3 failures and later stages NOT_RUN(BLOCKED_CORRECTNESS). No new performance plan. Finish frozen54 with qualified Source071,then CPU audits/reports/closeout/publication.",
+      "evidence": "DIAGNOSTIC_CORRECTNESS_ONLY"
+    },
+    {
+      "id": "R_SCOPED_TEACHER_WARM_STATE_CPU_CHECK",
+      "time": 1795315922.0938644,
+      "observation": "The first new original-model teacher completed all8 measured requests. Its CPU collector asserted len(prompt_states)==8.",
+      "hypotheses": [
+        "The teacher generated extra measured requests",
+        "The state observer retains a separate warmup entry"
+      ],
+      "discriminating_test": "Read immutable measured IDs and prompt-state keys. Require measured IDs0–7 and all36 KV planes for q0–q7.",
+      "result": "The state dict has warm0 plusq0–q7. The dispatcher completed8 requests and source hash93b1 matches. The CPU count assertion is wrong,not model execution. Keep the failed controller log.",
+      "next_step": "Resume CPU collection of the completed Layer teacher without a new GPU start. Execute the still-unrun Hybrid teacher once. Preserve warm state and all raw files.",
+      "evidence": "CPU_ANALYSIS_FIX_WITH_EXISTING_MEASURED_EVIDENCE"
+    },
+    {
+      "id": "R_D_IR_NORMALIZATION_PROVIDER_INTERVENTION",
+      "time": 1795318507.983143,
+      "observation": "D-only compile changes strict KV/hidden. Disabled controls pass. Actual Mode0 versus Mode3 logs select different IR Norm providers.",
+      "hypotheses": [
+        "The IR Norm provider bundle causes the observed strict divergence.",
+        "Custom-op all alone restores the state.",
+        "KV ownership differs independently of the numerical path."
+      ],
+      "discriminating_test": "Keep the D compiler and every other option. Set both D IR Norm priorities to the Mode0 vllm_c,native order.",
+      "result": "Layer and Hybrid both pass strict N1/N8,real mixed32,guarded32 and Natural400. Custom-op all alone failed. This supports the provider bundle for the tested divergence. Individual norm contributions are not separated.",
+      "next_step": "Do not infer serving speedup. Test a stage-scoped path with an independent full36 teacher.",
+      "evidence": "CORRECTNESS_ONLY_CONTROLLED_KERNEL_PROVIDER_INTERVENTION"
+    },
+    {
+      "id": "R_PARTIAL_ONLY_IR_HYBRID_STRICT_FAILURE",
+      "time": 1795318507.9861617,
+      "observation": "Scoping CUDA normalization only to partial prefills passes Layer proofs but fails Hybrid strict N1 KV/hidden. Greedy16 agrees.",
+      "hypotheses": [
+        "Hybrid full36 suffix still uses a different numerical path.",
+        "The compiled suffix or adapter boundary has another state-sensitive difference."
+      ],
+      "discriminating_test": "Use an original full36 legal-boundary teacher with the declared eager-prefix/compiled-suffix path. Preserve the strict mismatch.",
+      "result": "Layer passes all proof stages. Hybrid fails strict N1. All21 old serving starts stay NOT_RUN before any timing.",
+      "next_step": "One final bounded repair keeps ALL prompt work eager/CUDA and preserves only native compiled decode. No new SLO or tolerance.",
+      "evidence": "CORRECTNESS_ONLY_AND_EXPLICIT_NOT_RUN"
+    },
+    {
+      "id": "R_FINAL_EAGER_COLD_DISPATCH_CPU_PREFLIGHT",
+      "time": 1795318507.9969058,
+      "observation": "The actual nested dispatch from the V1 capsule reads dispatch_schedule before cold initialization creates it.",
+      "hypotheses": [
+        "A cold-start attribute guard is missing."
+      ],
+      "discriminating_test": "Execute the immutable nested dispatch AST on a cold CPU stub before any GPU launch.",
+      "result": "The V1 harness raises AttributeError. A getattr-based pending-prompt helper passes. All38 V1 starts remain NOT_RUN.",
+      "next_step": "Freeze corrected V2,then require N1,N8,mixed32,Natural32 and Natural400 before the unchanged21 paired serving starts.",
+      "evidence": "CPU_MINIMAL_RED_GREEN_NO_GPU_PERFORMANCE"
+    },
+    {
+      "id": "R_REGISTRATION_CONTROLLED_BRIDGE54_COMPLETE",
+      "time": 1795318507.9995043,
+      "observation": "All54 original fixed-condition bridge starts have their common-registration repaired counterparts.",
+      "hypotheses": [
+        "Registration/admission feedback explains every residual tail.",
+        "Compiler,adapter or client-delivery paths leave condition-specific tails."
+      ],
+      "discriminating_test": "Keep all three original output/cap conditions,strong Token,IDs,arrival and pair4/5. Apply only the common registration source change.",
+      "result": "O16/Cap1 Layer/Hybrid fail the fast NativeStrong gate. O64/Cap1 both fail an ITL gate. O64/Cap2 Layer passes both Native references but L/T TTFT CI includes1. Hybrid still fails. Strong Token passes all three.",
+      "next_step": "Keep every failure. Do not transfer Natural400 safety to the fixed-output bridge or weaken the strong Token baseline.",
+      "evidence": "MEASURED_ONLINE_ADAPTIVE_COMMON_RUNTIME_REPAIR"
+    },
+    {
+      "id": "R_FINAL_EAGER_PREFILL_NATIVE_DECODE_N3_COMPLETE",
+      "time": 1795321730.6569705,
+      "observation": "All21 frozen fixed-condition starts completed. Both new axes passed strict,mixed32 and Natural400 first.",
+      "hypotheses": [
+        "D full-model compiler/numerical dispatch explains the residual tail.",
+        "Adapter,host or scheduling feedback leaves an additional condition-specific tail."
+      ],
+      "discriminating_test": "Same new source,pair0/1,three paired seeds,I3/Output16/Cap1. Retain legacy Layer/Hybrid,strong compiled Token and BOTH Native references.",
+      "result": "New Hybrid passes both Native5% and every-start absolute decode gates. H/legacyH ITL ratio0.979221,TPOT0.980672. New Layer passes NativeStrong but fails Common Native ITL CIupper1.065921. New H/T TTFT1.121429 CI[1.050122,1.179215],goodput0.965898 CI[0.949395,0.988077]. Thus partial tail repair does not establish a strong-Token serving win.",
+      "next_step": "End this bounded GPU campaign. Preserve failures,unmeasured C3 operator shares and unverified safe windows. Finish review,resource restoration,archive and publication.",
+      "evidence": "MEASURED_ONLINE_ADAPTIVE_COMPILER_PATH_ABLATION"
+    },
+    {
+      "id": "R_FINAL_FIRST_EMISSION_HOST_SCOPE_RED_GREEN",
+      "time": 1795322076.0684674,
+      "observation": "A real StockToken step has DECODE query rows but starts before the first worker output. Its host wall is321.881566ms.",
+      "hypotheses": [
+        "An asynchronous pre-first-output wait belongs to that host enclosure.",
+        "Every subsequent decode step is actually similarly slow.",
+        "Query labels alone do not identify the client streaming phase."
+      ],
+      "discriminating_test": "The actual raw-step assertion start>=first worker output fails. Add an offline one-query,post-prompt,post-first-output subset and preserve the old labeled-step table.",
+      "result": "The new CPU regression passes. All seven arms have672 selected host steps/three starts and48 labeled steps outside that subset. Post-emission host p99 is8.247261ms NativeStrong,8.336188ms StockToken and8.523289ms new Hybrid. These remain host walls,not exclusive GPU times. Primary client intervals,CI and safety verdicts are unchanged.",
+      "next_step": "Bind both diagnostic denominators. Do not classify a query-labeled pre-first step as an exclusive subsequent decode kernel.",
+      "evidence": "TRACE_ANALYSIS_AND_CPU_ACTUAL_RAW_REGRESSION"
+    }
+  ]
+}

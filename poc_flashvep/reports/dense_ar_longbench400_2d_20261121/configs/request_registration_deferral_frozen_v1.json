@@ -1,0 +1,290 @@
+{
+  "time": 1795292760.3116362,
+  "source_capsule": "request_registration_deferral_overlay_v1.zip",
+  "source_capsule_SHA256": "07cdfb84be94fc4ae3b1e778d58c8c1d03ff7a99452b0cd3ee667966600447cd",
+  "original_main_plan_SHA256": "b249fc9c962c300cb4ad5002f063f483f7b0cf555b6a13f19beed9e8dca696d0",
+  "symptom": "Heldout200 q1.8 s0 strong Token: first-output inter-step host gaps6.778/11.726/8.262/3.874ms for requests195/170/122/108. Other D registrations complete inside all four gaps. The corresponding Native gaps are0.257/0.247/0.208/0.220ms. No JIT event or recorded READ overlap.",
+  "hypotheses": [
+    "H1: New request registration and input processing delay the next decode submission. Deferring registration should reduce first-transition host gaps and TPOT tails.",
+    "H2: IPC receive/unpickling dominates the gap. Registration deferral retains IPC reads,so large gaps should persist.",
+    "H3: First-decode GPU/graph preparation or natural batch variation dominates. Registration-only intervention should not consistently improve the independent paired metric tails."
+  ],
+  "qualification": {
+    "NativeRegistration": {
+      "jobs": [
+        "RegistrationQ_NativeRegistration_Natural32_v1",
+        "RegistrationQ_NativeRegistration_Natural400_v1"
+      ],
+      "gate": "request_registration_NativeRegistration_gate_v1.json",
+      "signature": {
+        "method": "Native",
+        "axis_kind": null,
+        "axis_cut": 0,
+        "token_stock_model": false,
+        "preserve_compiled_full_model": false,
+        "fuse_short_hybrid": false,
+        "hybrid_suffix_fraction": null,
+        "fractional_token_work": null,
+        "partition_aligned_chunks": false,
+        "whole_prefill_deflection": false,
+        "d_compute_throttle": true,
+        "defer_D_remote_setup": true,
+        "d_quiescent_admission": false,
+        "D_running_admission_cap": null,
+        "execution_family": "INSTALLED_DEFAULT_COMPILE",
+        "continuous_source_credit_limit": 0,
+        "token_budget": 8192,
+        "max_num_seqs": 1024,
+        "KV_block_tokens": 128,
+        "hidden_source_slots": null,
+        "hidden_destination_slots": null,
+        "hidden_pool_free_reserve_bytes": null,
+        "hidden_pool_reclaim_unused_cache": null,
+        "D_prefill_completion_guard": false,
+        "defer_D_request_registration": true
+      }
+    },
+    "NativeCompletionRegistration": {
+      "jobs": [
+        "RegistrationQ_NativeCompletionRegistration_Natural32_v1",
+        "RegistrationQ_NativeCompletionRegistration_Natural400_v1"
+      ],
+      "gate": "request_registration_NativeCompletionRegistration_gate_v1.json",
+      "signature": {
+        "method": "Native",
+        "axis_kind": null,
+        "axis_cut": 0,
+        "token_stock_model": false,
+        "preserve_compiled_full_model": false,
+        "fuse_short_hybrid": false,
+        "hybrid_suffix_fraction": null,
+        "fractional_token_work": null,
+        "partition_aligned_chunks": false,
+        "whole_prefill_deflection": false,
+        "d_compute_throttle": true,
+        "defer_D_remote_setup": true,
+        "d_quiescent_admission": false,
+        "D_running_admission_cap": null,
+        "execution_family": "INSTALLED_DEFAULT_COMPILE",
+        "continuous_source_credit_limit": 0,
+        "token_budget": 8192,
+        "max_num_seqs": 1024,
+        "KV_block_tokens": 128,
+        "hidden_source_slots": null,
+        "hidden_destination_slots": null,
+        "hidden_pool_free_reserve_bytes": null,
+        "hidden_pool_reclaim_unused_cache": null,
+        "D_prefill_completion_guard": true,
+        "defer_D_request_registration": true
+      }
+    },
+    "LayerRegistration": {
+      "jobs": [
+        "RegistrationQ_LayerRegistration_Natural32_v1",
+        "RegistrationQ_LayerRegistration_Natural400_v1"
+      ],
+      "gate": "request_registration_LayerRegistration_gate_v1.json",
+      "signature": {
+        "method": "Layer",
+        "axis_kind": "Layer",
+        "axis_cut": 8,
+        "token_stock_model": false,
+        "preserve_compiled_full_model": false,
+        "fuse_short_hybrid": false,
+        "hybrid_suffix_fraction": null,
+        "fractional_token_work": null,
+        "partition_aligned_chunks": false,
+        "whole_prefill_deflection": false,
+        "d_compute_throttle": true,
+        "defer_D_remote_setup": true,
+        "d_quiescent_admission": false,
+        "D_running_admission_cap": null,
+        "execution_family": "MATCHED_NO_COMPILE",
+        "continuous_source_credit_limit": 4,
+        "token_budget": 8192,
+        "max_num_seqs": 1024,
+        "KV_block_tokens": 128,
+        "hidden_source_slots": 4,
+        "hidden_destination_slots": 4,
+        "hidden_pool_free_reserve_bytes": null,
+        "hidden_pool_reclaim_unused_cache": false,
+        "D_prefill_completion_guard": false,
+        "defer_D_request_registration": true
+      }
+    },
+    "TokenRegistration": {
+      "jobs": [
+        "RegistrationQ_TokenRegistration_Natural32_v1",
+        "RegistrationQ_TokenRegistration_Natural400_v1"
+      ],
+      "gate": "request_registration_TokenRegistration_gate_v1.json",
+      "signature": {
+        "method": "Token",
+        "axis_kind": "Token",
+        "axis_cut": 8,
+        "token_stock_model": true,
+        "preserve_compiled_full_model": false,
+        "fuse_short_hybrid": false,
+        "hybrid_suffix_fraction": null,
+        "fractional_token_work": null,
+        "partition_aligned_chunks": false,
+        "whole_prefill_deflection": false,
+        "d_compute_throttle": true,
+        "defer_D_remote_setup": true,
+        "d_quiescent_admission": false,
+        "D_running_admission_cap": null,
+        "execution_family": "INSTALLED_DEFAULT_COMPILE",
+        "continuous_source_credit_limit": 0,
+        "token_budget": 8192,
+        "max_num_seqs": 1024,
+        "KV_block_tokens": 128,
+        "hidden_source_slots": null,
+        "hidden_destination_slots": null,
+        "hidden_pool_free_reserve_bytes": null,
+        "hidden_pool_reclaim_unused_cache": null,
+        "D_prefill_completion_guard": true,
+        "defer_D_request_registration": true
+      }
+    },
+    "HybridRegistration": {
+      "jobs": [
+        "RegistrationQ_HybridRegistration_Natural32_v1",
+        "RegistrationQ_HybridRegistration_Natural400_v1"
+      ],
+      "gate": "request_registration_HybridRegistration_gate_v1.json",
+      "signature": {
+        "method": "Hybrid",
+        "axis_kind": "Hybrid",
+        "axis_cut": 4,
+        "token_stock_model": false,
+        "preserve_compiled_full_model": false,
+        "fuse_short_hybrid": true,
+        "hybrid_suffix_fraction": 0.125,
+        "fractional_token_work": null,
+        "partition_aligned_chunks": true,
+        "whole_prefill_deflection": false,
+        "d_compute_throttle": true,
+        "defer_D_remote_setup": true,
+        "d_quiescent_admission": false,
+        "D_running_admission_cap": null,
+        "execution_family": "MATCHED_NO_COMPILE",
+        "continuous_source_credit_limit": 4,
+        "token_budget": 8192,
+        "max_num_seqs": 1024,
+        "KV_block_tokens": 128,
+        "hidden_source_slots": 4,
+        "hidden_destination_slots": 4,
+        "hidden_pool_free_reserve_bytes": null,
+        "hidden_pool_reclaim_unused_cache": false,
+        "D_prefill_completion_guard": false,
+        "defer_D_request_registration": true
+      }
+    }
+  },
+  "cells": [
+    {
+      "stage": "OBSERVED_TRACE_DIAGNOSTIC",
+      "dataset": "balanced400_heldout.json",
+      "QPS": 1.8,
+      "seed": 2026112411,
+      "start": 0,
+      "GPU_pair": [
+        2,
+        3
+      ],
+      "jobs": {
+        "NativeCompletionRegistration": "RegistrationPilot_Heldout200_q1.8_s0_NativeCompletionRegistration_v1",
+        "TokenRegistration": "RegistrationPilot_Heldout200_q1.8_s0_TokenRegistration_v1",
+        "TokenOldControl": "RegistrationPilot_Heldout200_q1.8_s0_TokenOldControl_v1"
+      }
+    },
+    {
+      "stage": "INDEPENDENT_CONFIRMATION",
+      "dataset": "longbench_balanced400_v1.json",
+      "QPS": 1.8,
+      "seed": 2026112771,
+      "start": 0,
+      "GPU_pair": [
+        2,
+        3
+      ],
+      "jobs": {
+        "NativeStrong": "RegistrationConfirm_Main400_q1.8_s0_NativeStrong_v1",
+        "NativeRegistration": "RegistrationConfirm_Main400_q1.8_s0_NativeRegistration_v1",
+        "NativeCompletionRegistration": "RegistrationConfirm_Main400_q1.8_s0_NativeCompletionRegistration_v1",
+        "LayerRegistration": "RegistrationConfirm_Main400_q1.8_s0_LayerRegistration_v1",
+        "TokenRegistration": "RegistrationConfirm_Main400_q1.8_s0_TokenRegistration_v1",
+        "HybridRegistration": "RegistrationConfirm_Main400_q1.8_s0_HybridRegistration_v1",
+        "TokenOldControl": "RegistrationConfirm_Main400_q1.8_s0_TokenOldControl_v1"
+      }
+    },
+    {
+      "stage": "INDEPENDENT_CONFIRMATION",
+      "dataset": "longbench_balanced400_v1.json",
+      "QPS": 1.8,
+      "seed": 2026112772,
+      "start": 1,
+      "GPU_pair": [
+        2,
+        3
+      ],
+      "jobs": {
+        "NativeStrong": "RegistrationConfirm_Main400_q1.8_s1_NativeStrong_v1",
+        "NativeRegistration": "RegistrationConfirm_Main400_q1.8_s1_NativeRegistration_v1",
+        "NativeCompletionRegistration": "RegistrationConfirm_Main400_q1.8_s1_NativeCompletionRegistration_v1",
+        "LayerRegistration": "RegistrationConfirm_Main400_q1.8_s1_LayerRegistration_v1",
+        "TokenRegistration": "RegistrationConfirm_Main400_q1.8_s1_TokenRegistration_v1",
+        "HybridRegistration": "RegistrationConfirm_Main400_q1.8_s1_HybridRegistration_v1",
+        "TokenOldControl": "RegistrationConfirm_Main400_q1.8_s1_TokenOldControl_v1"
+      }
+    },
+    {
+      "stage": "INDEPENDENT_CONFIRMATION",
+      "dataset": "longbench_balanced400_v1.json",
+      "QPS": 1.8,
+      "seed": 2026112773,
+      "start": 2,
+      "GPU_pair": [
+        2,
+        3
+      ],
+      "jobs": {
+        "NativeStrong": "RegistrationConfirm_Main400_q1.8_s2_NativeStrong_v1",
+        "NativeRegistration": "RegistrationConfirm_Main400_q1.8_s2_NativeRegistration_v1",
+        "NativeCompletionRegistration": "RegistrationConfirm_Main400_q1.8_s2_NativeCompletionRegistration_v1",
+        "LayerRegistration": "RegistrationConfirm_Main400_q1.8_s2_LayerRegistration_v1",
+        "TokenRegistration": "RegistrationConfirm_Main400_q1.8_s2_TokenRegistration_v1",
+        "HybridRegistration": "RegistrationConfirm_Main400_q1.8_s2_HybridRegistration_v1",
+        "TokenOldControl": "RegistrationConfirm_Main400_q1.8_s2_TokenOldControl_v1"
+      }
+    }
+  ],
+  "performance_jobs": [
+    "RegistrationPilot_Heldout200_q1.8_s0_TokenRegistration_v1",
+    "RegistrationPilot_Heldout200_q1.8_s0_TokenOldControl_v1",
+    "RegistrationPilot_Heldout200_q1.8_s0_NativeCompletionRegistration_v1",
+    "RegistrationConfirm_Main400_q1.8_s0_TokenRegistration_v1",
+    "RegistrationConfirm_Main400_q1.8_s0_TokenOldControl_v1",
+    "RegistrationConfirm_Main400_q1.8_s0_NativeCompletionRegistration_v1",
+    "RegistrationConfirm_Main400_q1.8_s0_HybridRegistration_v1",
+    "RegistrationConfirm_Main400_q1.8_s0_LayerRegistration_v1",
+    "RegistrationConfirm_Main400_q1.8_s0_NativeRegistration_v1",
+    "RegistrationConfirm_Main400_q1.8_s0_NativeStrong_v1",
+    "RegistrationConfirm_Main400_q1.8_s1_LayerRegistration_v1",
+    "RegistrationConfirm_Main400_q1.8_s1_NativeRegistration_v1",
+    "RegistrationConfirm_Main400_q1.8_s1_TokenOldControl_v1",
+    "RegistrationConfirm_Main400_q1.8_s1_NativeStrong_v1",
+    "RegistrationConfirm_Main400_q1.8_s1_HybridRegistration_v1",
+    "RegistrationConfirm_Main400_q1.8_s1_TokenRegistration_v1",
+    "RegistrationConfirm_Main400_q1.8_s1_NativeCompletionRegistration_v1",
+    "RegistrationConfirm_Main400_q1.8_s2_TokenOldControl_v1",
+    "RegistrationConfirm_Main400_q1.8_s2_NativeCompletionRegistration_v1",
+    "RegistrationConfirm_Main400_q1.8_s2_LayerRegistration_v1",
+    "RegistrationConfirm_Main400_q1.8_s2_NativeStrong_v1",
+    "RegistrationConfirm_Main400_q1.8_s2_HybridRegistration_v1",
+    "RegistrationConfirm_Main400_q1.8_s2_NativeRegistration_v1",
+    "RegistrationConfirm_Main400_q1.8_s2_TokenRegistration_v1"
+  ],
+  "evidence": "ADAPTIVE_HOST_ADMISSION_INTERVENTION_FROZEN_BEFORE_NEW_TIMINGS",
+  "scope": "Ten Natural32/400 proof starts and24 serving starts. All use2/3 after its original main lane drains. Only request registration is delayed within each action. The shared READ/compute/completion policies remain explicit. No active-decode prefill insertion,no future EOS knowledge,no changed SLO,no modified timestamp or output. This policy also changes request admission timing and subsequent batching. It is not exclusive Python-cost attribution. The pilot repeats an observed request trace on a different pair. It has no independent-start CI. Confirmation uses three new arrival seeds on the same400 requests,not globally new request generalization."
+}

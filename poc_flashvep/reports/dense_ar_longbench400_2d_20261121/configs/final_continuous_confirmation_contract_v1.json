@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "freeze_epoch": 1795259736.9661937,
+  "source_mode": "One new immutable source capsule for every final paired arm. Record all numerical and compile-path differences.",
+  "selection_dataset": "balanced400_discovery.json",
+  "heldout_dataset": "balanced400_heldout.json",
+  "main_dataset": "longbench_balanced400_v1.json",
+  "offered_QPS": [
+    1.0,
+    1.8,
+    2.8,
+    4.5
+  ],
+  "heldout_QPS": [
+    1.8,
+    2.8
+  ],
+  "independent_confirmation_seeds": [
+    2026112411,
+    2026112412,
+    2026112413
+  ],
+  "main_starts_by_QPS": {
+    "1.0": 1,
+    "1.8": 3,
+    "2.8": 3,
+    "4.5": 1
+  },
+  "arms": [
+    "Agg DP2",
+    "NativeStrong",
+    "NativeCommonPolicy",
+    "BestStaticLayer",
+    "BestStaticToken",
+    "BestStaticHybrid",
+    "WholePrefillDeflection"
+  ],
+  "selector": "At each discovery QPS,retain every family/action/policy outcome. Require action and runtime correctness and task quality. Require both ITLp99 and TPOTp95 point ratios<=1.05 against NativeStrong and common-policy Native. Select minimum TTFTp95 within each pure/interior family. Break exact ties by SLO-goodput. Freeze each choice before any new held-out latency run. Native is a no-offload competitor,not excluded from serving conclusions.",
+  "unmeasured_QPS_policy": "Use the QPS1.8-frozen action at QPS1.0. Use the QPS2.8-frozen action at QPS4.5. No new cut selection from test outcomes.",
+  "safety": "The final paired start-level95percent CI upper bound must be<=1.05 for both ITLp99 and TPOTp95. Check NativeStrong and common-policy Native separately. Absolute TTFT5000/everyITL34/TPOT33 thresholds remain frozen.",
+  "uncertain_cell_rule": "Retain three starts as the main evidence. Do not repeat until a preferred sign appears. Any five-start extension needs a new explicit pre-run reason and must retain all three original starts.",
+  "correctness": "Selected static actions and every new runtime composition need full400 state/lifetime stress before final performance.",
+  "limitations": "Held-out means not used for static latency tuning. Dataset natural generation,quality gates and some baseline pilots already observed parts of these contexts. Finite-cohort drain throughput is not sustainable capacity. Agg batching is not the same geometry as1P1D. The C0 iso-work mechanism confirmation remains separate from C3 best-versus-best serving.",
+  "evidence": "FROZEN_FINAL_CONFIRMATION_DESIGN"
+}

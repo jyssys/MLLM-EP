@@ -1,0 +1,99 @@
+{
+  "time": 1795314456.82469,
+  "source_capsule": "decode_IR_priority_overlay_v1.zip",
+  "source_capsule_SHA256": "5ce9ea892fc8dab87df9c480f51a9cf27aab44d83d7bf55a9a4b5d33b36c7fc1",
+  "qualification": {
+    "Layer": {
+      "lane": 0,
+      "jobs": [
+        "DecodeIRQ_Layer_StrictN1_v1",
+        "DecodeIRQ_Layer_StrictN8_v1",
+        "DecodeIRQ_Layer_MixedNatural32_v1",
+        "DecodeIRQ_Layer_Natural32_v1",
+        "DecodeIRQ_Layer_Natural400_v1"
+      ],
+      "teacher": "Q4_Full36_Teacher_N8",
+      "gate": "Decode_IR_Layer_gate_v1.json",
+      "signature": {
+        "method": "Layer",
+        "axis_kind": "Layer",
+        "axis_cut": 8,
+        "token_stock_model": false,
+        "preserve_compiled_full_model": false,
+        "fuse_short_hybrid": false,
+        "hybrid_suffix_fraction": null,
+        "fractional_token_work": null,
+        "partition_aligned_chunks": false,
+        "whole_prefill_deflection": false,
+        "d_compute_throttle": true,
+        "defer_D_remote_setup": true,
+        "d_quiescent_admission": false,
+        "D_running_admission_cap": 1,
+        "execution_family": "MATCHED_NO_COMPILE",
+        "continuous_source_credit_limit": 8,
+        "token_budget": 8192,
+        "max_num_seqs": 1024,
+        "KV_block_tokens": 128,
+        "hidden_source_slots": 16,
+        "hidden_destination_slots": 16,
+        "hidden_pool_free_reserve_bytes": 2147483648,
+        "hidden_pool_reclaim_unused_cache": false,
+        "D_prefill_completion_guard": false,
+        "defer_D_request_registration": true,
+        "D_execution_family_override": "INSTALLED_DEFAULT_COMPILE",
+        "preserve_compiled_decode_only": true,
+        "D_compiled_custom_ops_all": true,
+        "D_mode0_IR_norm_priority": true
+      }
+    },
+    "Hybrid": {
+      "lane": 1,
+      "jobs": [
+        "DecodeIRQ_Hybrid_StrictN1_v1",
+        "DecodeIRQ_Hybrid_StrictN8_v1",
+        "DecodeIRQ_Hybrid_MixedNatural32_v1",
+        "DecodeIRQ_Hybrid_Natural32_v1",
+        "DecodeIRQ_Hybrid_Natural400_v1"
+      ],
+      "teacher": "Q4_HybridBoundaryTeacher_f0125_N8",
+      "gate": "Decode_IR_Hybrid_gate_v1.json",
+      "signature": {
+        "method": "Hybrid",
+        "axis_kind": "Hybrid",
+        "axis_cut": 4,
+        "token_stock_model": false,
+        "preserve_compiled_full_model": false,
+        "fuse_short_hybrid": false,
+        "hybrid_suffix_fraction": 0.125,
+        "fractional_token_work": null,
+        "partition_aligned_chunks": true,
+        "whole_prefill_deflection": false,
+        "d_compute_throttle": true,
+        "defer_D_remote_setup": true,
+        "d_quiescent_admission": false,
+        "D_running_admission_cap": 1,
+        "execution_family": "MATCHED_NO_COMPILE",
+        "continuous_source_credit_limit": 8,
+        "token_budget": 8192,
+        "max_num_seqs": 1024,
+        "KV_block_tokens": 128,
+        "hidden_source_slots": 16,
+        "hidden_destination_slots": 16,
+        "hidden_pool_free_reserve_bytes": 2147483648,
+        "hidden_pool_reclaim_unused_cache": false,
+        "D_prefill_completion_guard": false,
+        "defer_D_request_registration": true,
+        "D_execution_family_override": "INSTALLED_DEFAULT_COMPILE",
+        "preserve_compiled_decode_only": true,
+        "D_compiled_custom_ops_all": true,
+        "D_mode0_IR_norm_priority": true
+      }
+    }
+  },
+  "observation": "Actual Mode0 logs choose IR rms_norm/fused_add_rms_norm [vllm_c,native]. Actual compiled V3 logs choose [native],even with custom_ops all.",
+  "hypotheses": [
+    "H1: IR normalization priority causes the strict D-state difference. Explicit Mode0 priority should restore exact prompt KV/hidden.",
+    "H2: Other compiled-model dispatch differences remain. State will still differ after this single intervention."
+  ],
+  "scope": "A separate prospective correctness plan. All V1–V3 failures and the frozen54 remain. StrictN1/N8,unthrottled Mixed32,then exact guarded Natural32/400 composition. Require strict state and actual mixed-row coverage before any performance plan. No new tolerance selected after observation. A strict failure blocks remaining stages."
+}

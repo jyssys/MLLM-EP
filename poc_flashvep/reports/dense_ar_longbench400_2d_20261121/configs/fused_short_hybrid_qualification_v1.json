@@ -1,0 +1,13 @@
+{
+  "jobs": [
+    "Q23_IndependentThreeWave_Hybrid4_ShortN8_v1",
+    "Q23_FusedShort_Hybrid4_N1_v1",
+    "Q23_FusedShort_Hybrid4_N8_v1",
+    "Q23_FusedShort_Hybrid4_C3_ShortNatural32_v1",
+    "Q23_FusedShort_Hybrid4_C3_MixedNatural400_v1"
+  ],
+  "evidence": "FROZEN_CORRECTNESS_DESIGN",
+  "DAG": "P prefix lower layers -> D suffix lower layers -> D upper layers for the complete legal query frame.",
+  "original_DAG": "P prefix lower -> D prefix upper -> D suffix full36.",
+  "scope": "The existing row-aware forward already supports the fused topological order. Do not force a boundary at the prefix/suffix split when total prompt length<=B8192. Every scheduler iteration still respects B8192. Long prompts retain the original aligned path. No token-layer operation is omitted or repeated. Numeric execution geometry changes and needs its own teacher."
+}
