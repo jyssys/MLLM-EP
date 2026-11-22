@@ -49,7 +49,10 @@ def plan(selection,heldout=False,replay=False):
     # Important points run first. This order is frozen before Main results.
     order=keys+[q for q in qpss if q not in keys]
     for qps in order:
-        lane=grid['QPS_grid'].index(qps)%2;pair=[2*lane,2*lane+1]
+        priority=json.loads((ROOT/'configs/c3_budget_priority_amendment_v4.json').read_text())
+        lane=priority['heldout_point_lanes'][str(qps)] if heldout else grid['QPS_grid'].index(qps)%2
+        if heldout and replay and qps==priority['primary_confirmation_QPS']:lane=priority['primary_replay_lane']
+        pair=[2*lane,2*lane+1]
         nstarts=3 if heldout or qps in keys else 1
         for start in range(nstarts):
             seed=(2026112281 if heldout else 2026112271)+start
@@ -72,6 +75,7 @@ def plan(selection,heldout=False,replay=False):
     write(path,dict(time=time.time(),lanes=lanes,blocks=blocks,stop_on_failure=False,important_QPS=keys,
         dataset_SHA256=digest(ROOT/'data'/dataset),selection_SHA256=digest(ROOT/'configs/c3_final_static_selection_v2.json'),
         capacity_refinement_SHA256=digest(ROOT/'configs/c3_confirmation_knee_refinement_v3.json'),
+        budget_priority_SHA256=digest(ROOT/'configs/c3_budget_priority_amendment_v4.json'),
         scope='Natural EOS Main400 includes both discovery and heldout requests. Heldout192 excludes C3 tuning contexts. '
             'All methods within a paired block use the same pair,original requests,order,arrival offsets and output contract. '
             'Independent starts initialize fresh actor processes. Compiler caches may persist. '
@@ -79,6 +83,35 @@ def plan(selection,heldout=False,replay=False):
             'NativeStrong remains unchanged. Important QPS are fixed from the capacity pilot,not selected for an axis win. '
             'Replay,when requested,is an explicitly separate fixed-output diagnostic with independent compiled C1 lengths.'))
     return filename
+
+def phased_worklists(main_name,heldout_name):
+    main=json.loads((ROOT/'jobs'/main_name).read_text());heldout=json.loads((ROOT/'jobs'/heldout_name).read_text())
+    priority=json.loads((ROOT/'configs/c3_budget_priority_amendment_v4.json').read_text());qps=priority['primary_confirmation_QPS']
+    allblocks=main['blocks']+heldout['blocks']
+    first=[b for b in main['blocks'] if b['qps']==qps]
+    first += [b for b in heldout['blocks'] if b['qps']==qps]
+    other=[b for b in main['blocks'] if b['start']==0 and b['qps']!=qps]
+    # Preserve all points. Reserve the slowest low-load trace until the knee
+    # has independent confirmation on both unchanged request sets.
+    first += sorted(other,key=lambda b:(b['qps']==min(x['qps'] for x in main['blocks']),b['qps']))
+    names={name for b in first for name in b['arms'].values()}
+    remaining=[b for b in allblocks if not any(n in names for n in b['arms'].values())]
+    assert names|{n for b in remaining for n in b['arms'].values()}=={n for b in allblocks for n in b['arms'].values()}
+    targets=[]
+    for filename,blocks in (('c3_main_grid_and_primary_knee_v4.json',first),('c3_main_overload_confirmation_v4.json',remaining)):
+        lanes=[[],[],[],[]]
+        for b in blocks:
+            lane=b['pair'][0]//2
+            for name in b['arms'].values():
+                assert json.loads((ROOT/'configs'/(name+'.json')).read_text())['gpus']==[2*lane,2*lane+1]
+                lanes[lane].append(name)
+        write(ROOT/'jobs'/filename,dict(time=time.time(),lanes=lanes,blocks=blocks,stop_on_failure=False,
+            parent_plans=[main_name,heldout_name],budget_priority_SHA256=digest(ROOT/'configs/c3_budget_priority_amendment_v4.json'),
+            scope='Keep every frozen Main and heldout job. Confirm the prespecified knee before the rest of the8-point Main sweep. '
+                'Confirm the Native-only knee with3 Main400 starts and3 heldout192 starts on separate fixed pairs. '
+                'Never pool these request counts or pairs into one CI. Remaining overload confirmations retain their own fixed pairs.'))
+        targets.append(filename)
+    return targets
 
 def replay_needed(heldout=True):
     stem='c3_heldout_serving_v2' if heldout else 'c3_main_serving_v2'
@@ -103,16 +136,19 @@ def analyze(name):
 
 def run():
     wait_file(ROOT/'state/c3_policy_tuning_complete_v2.json');selection=select()
-    name=plan(selection);launch(name);analyze(name)
-    name=plan(selection,heldout=True);launch(name);analyze(name)
-    if replay_needed() and dispatch_allowed():
-        name=plan(selection,heldout=True,replay=True);launch(name)
-        # Task quality is inherited,not re-scored after forced post-EOS generation.
-        analyze(name)
-        write(ROOT/'state/c3_heldout_replay_complete_v2.json',dict(time=time.time(),plan=name,complete=True,evidence='DIAGNOSTIC'))
-    if replay_needed(heldout=False) and dispatch_allowed():
-        name=plan(selection,replay=True);launch(name);analyze(name)
-    write(ROOT/'state/c3_main_and_heldout_complete_v2.json',dict(time=time.time(),complete=True))
+    main=plan(selection);heldout=plan(selection,heldout=True)
+    initial,remainder=phased_worklists(main,heldout)
+    first=launch(initial,allow_partial_budget=True);analyze(main);analyze(heldout)
+    # The separate watcher can start the prespecified knee replay as soon as
+    # all knee natural starts finish. It does not wait for slow low-load runs.
+    replay='c3_heldout_replay_v2.json' if (ROOT/'jobs/c3_heldout_replay_v2.json').exists() else None
+    second=launch(remainder,allow_partial_budget=True) if dispatch_allowed() else dict(complete=False,reason='DISPATCH_BUDGET_ENDED')
+    analyze(main);analyze(heldout)
+    if (ROOT/'jobs/c3_heldout_replay_v2.json').exists():
+        replay='c3_heldout_replay_v2.json';analyze(replay)
+    write(ROOT/'state/c3_main_and_heldout_complete_v2.json',dict(time=time.time(),complete=first['complete'] and second['complete'],
+        initial_plan=initial,remainder_plan=remainder,replay_plan=replay,
+        status='COMPLETE' if first['complete'] and second['complete'] else 'BUDGET_LIMITED_PARTIAL'))
 
 if __name__=='__main__':
     p=argparse.ArgumentParser();p.add_argument('action',choices=('run','select'));args=p.parse_args();result=globals()[args.action]()

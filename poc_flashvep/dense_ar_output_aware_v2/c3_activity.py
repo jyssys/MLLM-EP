@@ -15,15 +15,21 @@ def prepare():
     loads=grid['QPS_grid']
     tests=[];lanes=[[],[],[],[]]
     cases=[]
-    for qps in loads:cases.append(('NativeStrong',original['NativeStrong'],qps))
+    primary=json.loads((ROOT/'configs/c3_budget_priority_amendment_v4.json').read_text())['primary_confirmation_QPS']
+    qps=json.loads((ROOT/'configs/c3_confirmation_knee_refinement_v3.json').read_text())['important_confirmation_QPS'][-1]
+    for load in (primary,qps):cases.append(('NativeStrong',original['NativeStrong'],load))
     qps=json.loads((ROOT/'configs/c3_confirmation_knee_refinement_v3.json').read_text())['important_confirmation_QPS'][-1]
     for axis,value in selection['chosen'].items():
         if axis=='Deflection':continue
         cases.append((axis,value['item'],qps))
     for cap in sorted({v['item']['cap'] for v in selection['chosen'].values()}):
         key=f'NativeCommon_Cap{cap}_Credit0';cases.append(('NativeCommon'+str(cap),registry[key],qps))
+    for load in sorted((v for v in loads if v not in (primary,qps)),key=lambda v:(v==min(loads),v)):
+        cases.append(('NativeStrong',original['NativeStrong'],load))
     for index,(label,item,qps) in enumerate(cases):
-        lane=2+index%2;pair=[2*lane,2*lane+1];jobs=[]
+        # Reserve the other secondary pair for controlled knob interventions
+        # and the prospectively triggered primary-knee equal-output replay.
+        lane=3;pair=[6,7];jobs=[]
         for stage in ('Clean1','Profile','Clean2'):
             name=f'V2_C3Activity_q{qps}_{label}_{stage}'
             flags=dict(kernel_activity=stage=='Profile',kernel_activity_roles=['prefill','decode'],
@@ -37,6 +43,7 @@ def prepare():
         tests.append(dict(label=label,qps=qps,jobs=jobs,pair=pair))
     filename='c3_kernel_copy_cpc_v2.json';write(ROOT/'jobs'/filename,dict(time=time.time(),lanes=lanes,tests=tests,stop_on_failure=False,
         limits=[.95,1.05],output_work_difference_limit=.05,
+        secondary_priority_SHA256=digest(ROOT/'configs/c3_secondary_resource_priority_v6.json'),
         scope='One independent clean/profile/clean triplet per method/load initially. '
             'The full-trace gate and matched ROI-exposed-request gate must both pass. '
             'Zero dropped/invalid CUPTI records are mandatory. A failed capture remains diagnostic. '

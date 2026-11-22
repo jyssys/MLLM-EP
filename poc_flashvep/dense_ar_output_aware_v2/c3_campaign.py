@@ -43,7 +43,7 @@ def performance(item,name,dataset,pair,qps,seed,output=None,replay_lengths=None,
     cfg=get(item['jobs'][-1]);rows=json.loads((ROOT/'data'/dataset).read_text());n=len(rows)
     cfg.update(name=name,dataset=dataset,dataset_SHA256=digest(ROOT/'data'/dataset),count=n,gpus=list(pair),qps=qps,seed=seed,
         arrival_offsets=np.r_[0.,np.cumsum(np.random.default_rng(seed).exponential(1/qps,n-1))].tolist(),
-        correctness_only=False,axis_state_capture=False,state_capture=False,gpu_state_digest=False,
+        correctness_only=False,axis_state_capture=False,state_capture=False,gpu_state_digest=False,gpu_digest_selftest=False,
         numerical_probe=False,numerical_probe_sync=False,kernel_activity=False,serial=False,qualification_gate_v2=item['gate'])
     if output is not None:cfg.update(output_cap=output,ignore_eos=True)
     if replay_lengths is not None:cfg.update(diagnostic_controlled_output_replay=True,replay_output_lengths=replay_lengths,ignore_eos=True)
@@ -54,8 +54,9 @@ def performance(item,name,dataset,pair,qps,seed,output=None,replay_lengths=None,
     assert signature(cfg)==json.loads((ROOT/'state'/item['gate']).read_text())['signature']
     save(cfg);return name
 
-def launch(plan_name):
+def launch(plan_name,allow_partial_budget=False):
     processes=[];plan=json.loads((ROOT/'jobs'/plan_name).read_text())
+    results=[]
     for lane,jobs in enumerate(plan['lanes']):
         if not jobs:continue
         log=ROOT/'logs'/f'{plan_name.removesuffix(".json")}_lane{lane}.log'
@@ -71,7 +72,12 @@ def launch(plan_name):
     for lane,jobs in enumerate(plan['lanes']):
         if not jobs:continue
         receipt=json.loads((ROOT/'state'/f'{plan_name.removesuffix(".json")}_lane{lane}_complete.json').read_text())
-        assert receipt['complete'] and all(r['status']=='COMPLETE' for r in receipt['results']),receipt
+        assert receipt['complete'],receipt
+        results+=receipt['results']
+    complete=all(r['status']=='COMPLETE' for r in results)
+    if not complete:
+        assert allow_partial_budget and not dispatch_allowed() and all(r['status'] in ('COMPLETE','NOT_RUN') for r in results),results
+    return dict(complete=complete,results=results)
 
 def pilots():
     contract=json.loads((ROOT/'configs/c3_clean_performance_contract_v2.json').read_text());registry=qualified_registry()

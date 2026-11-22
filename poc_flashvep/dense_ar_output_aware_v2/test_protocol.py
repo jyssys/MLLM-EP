@@ -41,11 +41,37 @@ class ProtocolTests(unittest.TestCase):
         self.assertEqual(output_contract(dict(ignore_eos=True)),'CONTROLLED_FIXED_OUTPUT')
         self.assertEqual(output_contract(dict(ignore_eos=True,diagnostic_controlled_output_replay=True,replay_output_lengths=[5])),
             'DIAGNOSTIC_FIXED_LENGTH_REPLAY')
+    def test_main_knee_worklists_preserve_all_jobs_and_pair_identity(self):
+        import json,tempfile
+        from pathlib import Path
+        from unittest.mock import patch
+        from . import c3_main
+        from .common import write
+        with tempfile.TemporaryDirectory(prefix='v2-phased-plan-test-') as folder:
+            root=Path(folder);write(root/'configs/c3_budget_priority_amendment_v4.json',dict(primary_confirmation_QPS=2.0))
+            plans=[]
+            for heldout in (False,True):
+                blocks=[]
+                for qps in (2.0,4.0):
+                    lane=1 if heldout and qps==2 else 2 if heldout else 0 if qps==2 else 1
+                    for start in range(3):
+                        names={label:f'{heldout}_{qps}_{start}_{label}' for label in ('Layer','StockToken')}
+                        for name in names.values():write(root/'configs'/(name+'.json'),dict(gpus=[2*lane,2*lane+1]))
+                        blocks.append(dict(qps=qps,start=start,pair=[2*lane,2*lane+1],arms=names))
+                filename='heldout.json' if heldout else 'main.json';write(root/'jobs'/filename,dict(blocks=blocks));plans.append(filename)
+            with patch.object(c3_main,'ROOT',root):first,second=c3_main.phased_worklists(*plans)
+            a=json.loads((root/'jobs'/first).read_text());b=json.loads((root/'jobs'/second).read_text())
+            aa={n for lane in a['lanes'] for n in lane};bb={n for lane in b['lanes'] for n in lane}
+            self.assertFalse(aa&bb);self.assertEqual(len(aa|bb),24)
+            self.assertEqual(sum(x['qps']==2 for x in a['blocks']),6)
+            self.assertEqual(sum(x['qps']==4 and x['start']==0 for x in a['blocks']),1)
+            self.assertEqual(len(a['lanes'][2]),0)
     def test_unknown_runtime_switch_needs_new_proof(self):
         a=dict(method='Layer',axis_cut=8,P_compile_prefix=False,name='q1')
         b=dict(a,P_compile_prefix=True,name='q2')
         self.assertNotEqual(signature(a),signature(b))
         self.assertEqual(signature(a),signature(dict(a,name='q3',qps=3)))
+        self.assertNotEqual(signature(a),signature(dict(a,D_compile_partial=True)))
     def test_both_native_references_are_required(self):
         row=dict(ITL_p99_ms=8,TPOT_p95_ms=8,decode_SLO_attainment=1,every_ITL_SLO_attainment=1,max_ITL_ms=9)
         self.assertFalse(safety([row]*3,{'NativeStrong':[row]*3})['qualified'])

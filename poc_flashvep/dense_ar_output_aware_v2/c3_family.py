@@ -129,7 +129,7 @@ def run(lane,plan_name=PLAN):
                         score=quality(name);assert state['passed'] and score['passed'],score
                         stages.append(dict(name=name,state=state,quality=score))
                     proof=dict(time=time.time(),passed=True,full400_passed=True,quality_passed=True,strict=strict,stages=stages,
-                        signature=item['signature'],source_capsule_SHA256=plan['source_capsule_SHA256'],evidence='CORRECTNESS_ONLY')
+                        signature=item['signature'],source_capsule_SHA256=item.get('source_capsule_SHA256',plan['source_capsule_SHA256']),evidence='CORRECTNESS_ONLY')
                 except Exception as error:
                     proof=dict(time=time.time(),passed=False,error=repr(error),label=item['label'],evidence='FAILED')
                 write(ROOT/'state'/item['gate'],proof);results.append(dict(label=item['label'],passed=proof['passed'],error=proof.get('error')))

@@ -17,6 +17,14 @@ def prepare():
         write(ROOT/'state/c3_knob_confirmation_complete_v2.json',dict(time=time.time(),complete=False,status='NOT_RUN',
             reason='Required intervention failed its composition gate',missing=missing));return None
     actions={k:registry[v] for k,v in mapping.items()};actions['NativeStrong']=original['NativeStrong']
+    optional={label:f'{prefix}_{variant}_Cap2_Credit8' for label,variant in
+        (('DCompiled','DCompiledInterval'),('DEager','DEagerInterval'),('DFused','FusedShort_DCompiledInterval'))}
+    extra_comparisons=[]
+    if all(optional[k] in registry for k in ('DCompiled','DEager')):
+        actions.update({k:registry[optional[k]] for k in ('DCompiled','DEager')})
+        extra_comparisons.append(['DCompiled','DEager'])
+        if optional['DFused'] in registry:
+            actions['DFused']=registry[optional['DFused']];extra_comparisons.append(['DFused','DCompiled'])
     grid=json.loads((ROOT/'configs/c3_common_qps_grid_v2.json').read_text());qps=min(grid['QPS_grid'],key=lambda q:abs(q-1.2*grid['reference_knee']))
     state=json.loads((ROOT/'state/official_compiled_c1_reference_complete_v2.json').read_text())
     lengths={r['prompt_id']:r['output_tokens'] for r in map(json.loads,(ROOT/'raw'/state['name']/'requests.jsonl').read_text().splitlines())}
@@ -32,11 +40,13 @@ def prepare():
         blocks.append(dict(start=start,seed=seed,qps=qps,arms=arms,pair=[4,5]))
     filename='c3_knob_independent_confirmation_v2.json'
     write(ROOT/'jobs'/filename,dict(time=time.time(),lanes=lanes,blocks=blocks,stop_on_failure=False,
-        comparisons=[['PCompiled','PEager'],['Credit16','PCompiled'],['Cap4','Cap1']],
+        comparisons=[['PCompiled','PEager'],['Credit16','PCompiled'],['Cap4','Cap1']]+extra_comparisons,
         scope='Three fresh paired starts on the same pair and heldout192 originals. '
             'Each request gets the same independent compiled-C1 output length in every arm. This is controlled replay,not natural serving. '
             'Compiler on/off uses the same source5 and changes only the P compiler flag. D execution remains unchanged. '
             'Credit8/16 uses the same cut,cap2 and compiled prefix. Cap1/4 uses the same cut,credit8 and compiler. '
+            'If both D interval variants pass their composition gates,include their same-source compiler-only intervention. '
+            'If its fused-short combination also passes,include that one-flag intervention. '
             'Future EOS is experimental output control,not an online feature. Preserve failed safety and negative latency outcomes.'))
     return filename
 

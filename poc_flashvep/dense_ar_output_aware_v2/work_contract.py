@@ -59,10 +59,11 @@ def executed_prompt_work(cfg,folder,rows):
         path=folder/f'actual_queries_{role}.json'
         if not path.exists():continue
         queries=[r for r in json.loads(path.read_text())['rows'] if r['request_id'] in lengths]
-        chunks={rid:0 for rid in lengths};prompt_tokens=0;batches={}
+        chunks={rid:0 for rid in lengths};prompt_tokens=0;post_prompt=0;batches={}
         for row in queries:
             rid=row['request_id'];valid=max(0,min(row['start']+row['count'],lengths[rid])-row['start'])
             prompt_tokens+=valid;chunks[rid]+=int(valid>0);batches.setdefault(row['batch_id'],row)
+            post_prompt+=max(0,row['start']+row['count']-max(row['start'],lengths[rid]))
         axis=folder/f'axis_events_{role}.json'
         if cfg.get('axis_kind') and axis.exists():
             visits=[r for r in json.loads(axis.read_text())['rows'] if r.get('event')=='MODEL_VISIT' and r['request_id'] in lengths]
@@ -72,6 +73,7 @@ def executed_prompt_work(cfg,folder,rows):
             token_layer_rows=36*prompt_tokens
             observation='Unmodified full36 model and actual runner query intervals.'
         result[role]=dict(valid_prompt_query_tokens=prompt_tokens,valid_executed_prompt_token_layer_rows=token_layer_rows,
+            actual_post_prompt_token_queries=post_prompt,
             per_request_prompt_query_chunks=chunks,
             batch_valid_query_rows_including_decode=sum(r['actual_batch_queries'] for r in batches.values()),
             batch_padded_query_rows_including_decode=sum(r['padded_queries'] for r in batches.values()),observation=observation)

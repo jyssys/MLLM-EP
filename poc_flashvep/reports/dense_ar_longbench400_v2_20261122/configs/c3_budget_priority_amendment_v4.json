@@ -1,0 +1,35 @@
+{
+  "time": 1795350168.5287766,
+  "policy_dataset": "c3_policy_calibration96_v4.json",
+  "policy_dataset_SHA256": "c3dc9bd6d4093332de4f0e73e42a2107d6884111684167676a9212ad86fa68f3",
+  "policy_requests": 96,
+  "policy_input_counts": [
+    24,
+    24,
+    24,
+    24
+  ],
+  "selection_uses_performance_or_EOS": false,
+  "main400_dataset_unchanged": true,
+  "geometry_discovery208_unchanged": true,
+  "primary_confirmation_QPS": 2.0,
+  "heldout_point_lanes": {
+    "2.0": 1,
+    "4.0": 2,
+    "4.8": 3
+  },
+  "primary_replay_lane": 2,
+  "natural_state_observer": {
+    "N32": "GPU SHA256 leaf tree with CPU verification over every observed byte",
+    "N400": "Same full-byte GPU SHA256 leaf tree",
+    "strict_N8": "Unchanged raw CPU SHA256"
+  },
+  "execution_order": [
+    "Main400 N1 at all8 frozen QPS points",
+    "Main400 knee additional2 starts and heldout192 knee3 starts on separate pairs",
+    "Original overload confirmations on all available pairs",
+    "Triggered primary-knee controlled replay before optional overload replay"
+  ],
+  "reason": "Fresh compiled C3 actors require substantial initialization. Preserve the full Main400 and all frozen QPS. Use the same deterministic discovery-only96 calibration requests for every policy at all3 tuning loads. Keep every N8/N32/N400 correctness gate. GPU SHA256 is a validated full-byte observer,not a weaker sample hash. Prioritize independent knee confirmation before repeated overload points. Retain every planned point and report any budget-limited NOT_RUN.",
+  "scope": "This changes calibration size and execution order before policy timing or heldout performance. It does not change client metrics,SLO,Main400,model,precision or any candidate execution limit. The96-request calibration is not the Main workload. Do not pool different pairs or request counts as independent starts."
+}

@@ -83,15 +83,16 @@ def raw_snapshot():
     preserve();print('NEW_EVIDENCE_ARCHIVES',done,flush=True)
 
 def dataset_snapshot():
-    preserve();target=ROOT/'publication/dataset/longbench400_v2_data.tar.zst'
+    preserve();target=ROOT/'local_dataset_archives/longbench400_v2_data.tar.zst'
     if target.exists():raise AssertionError('Dataset snapshot already exists')
     paths=sorted(p for p in (ROOT/'data').glob('*.json') if p.name!='combined_original_candidate_pool_v2.json')
     records=[dict(path=str(p.relative_to(ROOT)),bytes=p.stat().st_size,SHA256=digest(p)) for p in paths]
     parts=compress(paths,target,ROOT)
-    write(ROOT/'publication/dataset/dataset_archive_manifest_v2.json',dict(time=time.time(),files=records,parts=parts,
+    write(ROOT/'local_dataset_archives/dataset_archive_manifest_v2.json',dict(time=time.time(),files=records,parts=parts,
         scope='Lossless snapshot of frozen data artifacts. The original full candidate text pool remains local. '
             'Official source revisions,selection IDs and candidate natural outputs permit reconstruction. '
-            'This archive does not replace dataset provenance or grant new rights to source texts.'))
+            'This archive does not replace dataset provenance or grant new rights to source texts. '
+            'Keep this bulk-text archive local. Publish the identity/hash rosters and the reconstruction code instead.'))
     preserve();print('DATASET_ARCHIVE_VERIFIED',len(paths),flush=True)
 
 def tensor_snapshot():

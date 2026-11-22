@@ -1,7 +1,7 @@
 """Test a completion fence without copying or correcting model tensors."""
 import atexit
 import time
-from .common import ROOT,write
+from poc_flashvep.dense_ar_longbench400_pd.common import ROOT,write
 
 def install(cfg,role):
     if role not in cfg.get('stock_sync_after_forward_roles',[]):return

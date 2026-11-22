@@ -59,6 +59,8 @@ def analyze(plan_name='c3_main_serving_v2.json'):
                 GPU_pair=cfg['gpus'],dataset_SHA256=cfg['dataset_SHA256'],B=8192,S=1024,actual_geometry=m['actual_geometry'],
                 source_SHA256=m['runtime_source_archive_SHA256'],source_credit=m['Source_credit'],KV_block=cfg['KV_block_tokens'],
                 D_running_admission_cap=cfg.get('D_running_admission_cap'),P_compile_prefix=cfg.get('P_compile_prefix',False),
+                D_compile_partial=cfg.get('D_compile_partial',False),fuse_short_hybrid=cfg.get('fuse_short_hybrid',False),
+                hidden_source_slots=cfg.get('hidden_source_slots'),hidden_destination_slots=cfg.get('hidden_destination_slots'),
                 token_stock_model=cfg.get('token_stock_model',False),quality_passed=q['passed'],
                 fractional_token_work=cfg.get('fractional_token_work'),aggregate_work_audit=cfg.get('aggregate_work_audit'),
                 quality_CI95_percentage_points=q['CI95_percentage_points'],quality_exact_greedy_requests=q['exact_greedy_requests'],
@@ -166,6 +168,9 @@ def figures(result,prefix='c3_main_serving_v2',include_labels=None):
             if field=='TPOT_p95_ms':ax.axhline(33,color='#999999',linestyle=':',label='Absolute TPOT limit33ms')
             if field=='TTFT_p95_ms':ax.axhline(5000,color='#999999',linestyle=':',label='TTFT limit5000ms')
             ax.set(xlabel='Offered QPS (requests/s)',ylabel=ylabel,title=f'LongBench400-v2 | BI0 C3 | {split}')
+            if field.endswith('SLO_attainment'):
+                from matplotlib.ticker import PercentFormatter
+                ax.yaxis.set_major_formatter(PercentFormatter(1.0))
             ax.grid(alpha=.2);ax.legend(fontsize=8,ncol=2)
             fig.text(.02,.015,'MEASURED_ONLINE. Marks are raw measured QPS points. Bars: start-level95%CI,only N≥3.\n'
                 'Black ×: decode gate unqualified. Hollow gray squares: quality failure. Request count and output contract: CSV.\n'
