@@ -1,0 +1,66 @@
+{
+  "time": 1795331829.983758,
+  "name": "LongBench-Balanced400-v2",
+  "source_revision": "5e628be450b7e67fb7ae6e201bd6d8f7056f7672",
+  "input_bins": [
+    [
+      3000,
+      5999
+    ],
+    [
+      6000,
+      9999
+    ],
+    [
+      10000,
+      19999
+    ],
+    [
+      20000,
+      36000
+    ]
+  ],
+  "output_bins": [
+    [
+      1,
+      10
+    ],
+    [
+      11,
+      50
+    ],
+    [
+      51,
+      100
+    ],
+    [
+      101,
+      200
+    ]
+  ],
+  "target_per_cell": 25,
+  "target_per_input": 100,
+  "selection_seed": 2026112201,
+  "prior_pool_SHA256": "b9edd8c661f3f4e98a40eb861f98e4f755cfb1e5503a758223b86903b3c2a80e",
+  "prior_reference_SHA256": "ada391de6a1b34411c4464709d1ccb9844e57c7f1ef73621af85f9bdb30501ec",
+  "inventory_SHA256": "a1389d428bab1afcaf612d6e59285049ed409937e8c27135f5e2250b605eb581",
+  "expansion_order": [
+    "vcsum",
+    "lcc",
+    "repobench-p",
+    "trec",
+    "lsht",
+    "passage_count",
+    "passage_retrieval_en",
+    "passage_retrieval_zh"
+  ],
+  "expansion": "All feasible original prompts in all eight remaining non-E official tasks. No outcome-based stopping within a task.",
+  "reference": "Reuse BI0 C1 original full36 Mode0 prompt plus native decode graph natural EOS references. Generate expansion with the same contract. C3 compiled lengths may differ.",
+  "output_cap": 2048,
+  "ignore_eos": false,
+  "thinking_disabled": true,
+  "ranking": "Initial13 tasks before expansion,then expansion order,then SHA256(seed+prompt_id). No quality-score or serving-speed filtering.",
+  "shortage": "Within each input bin take up to25 in every output bin. For each deficient output bin,fill from remaining original requests in the same input bin by output-bin distance,then deterministic rank. Never borrow from another input bin unless fewer than100 eligible originals remain; report a dataset shortfall instead.",
+  "split": "Context-disjoint hash split. Original candidates have prior C1 exposure and may have prior C0/C3 exposure. Do not call the entire dataset globally unseen.",
+  "quality": "Official task metrics are reported separately. Classification,code and Chinese tasks can enter the expanded pool; task mix and bias remain explicit."
+}
