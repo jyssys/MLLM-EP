@@ -105,11 +105,19 @@ def phased_worklists(main_name,heldout_name):
             for name in b['arms'].values():
                 assert json.loads((ROOT/'configs'/(name+'.json')).read_text())['gpus']==[2*lane,2*lane+1]
                 lanes[lane].append(name)
+        motivation_priority=ROOT/'configs/c3_main_motivation_priority_v8.json'
+        if filename=='c3_main_grid_and_primary_knee_v4.json' and motivation_priority.exists():
+            primary={name for b in blocks if b['qps']==qps for name in b['arms'].values()}
+            motivation={name for b in blocks if b['qps']!=qps for label,name in b['arms'].items() if label in ('NativeStrong','Agg')}
+            for jobs in lanes:jobs.sort(key=lambda name:0 if name in primary else 1 if name in motivation else 2)
         write(ROOT/'jobs'/filename,dict(time=time.time(),lanes=lanes,blocks=blocks,stop_on_failure=False,
             parent_plans=[main_name,heldout_name],budget_priority_SHA256=digest(ROOT/'configs/c3_budget_priority_amendment_v4.json'),
+            motivation_priority_SHA256=digest(motivation_priority) if motivation_priority.exists() else None,
             scope='Keep every frozen Main and heldout job. Confirm the prespecified knee before the rest of the8-point Main sweep. '
                 'Confirm the Native-only knee with3 Main400 starts and3 heldout192 starts on separate fixed pairs. '
-                'Never pool these request counts or pairs into one CI. Remaining overload confirmations retain their own fixed pairs.'))
+                'Never pool these request counts or pairs into one CI. Remaining overload confirmations retain their own fixed pairs. '
+                'After primary confirmation,complete all Agg/Native motivation points before the remaining single-start axis points. '
+                'Every original job and pair stays unchanged. Missing points remain NOT_RUN.'))
         targets.append(filename)
     return targets
 

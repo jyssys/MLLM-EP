@@ -34,6 +34,7 @@ def prepare():
             name=f'V2_C3Activity_q{qps}_{label}_{stage}'
             flags=dict(kernel_activity=stage=='Profile',kernel_activity_roles=['prefill','decode'],
                 collector_namespace='kernel_only_collector_v3',runtime_api_activity=False,activity_copies=True,
+                quiescent_witness=stage=='Profile',
                 operator_correlation=False,graph_enclosures=False,activity_delay_seconds=30,activity_ROI_seconds=20,
                 observer_scope='Kernel/copy-only20-second ROI after30 seconds. No operator hooks or CUDA API tracing. '
                     'Require clean/profile/clean latency ratios within5% on the full trace and ROI-exposed request IDs. '
@@ -73,6 +74,19 @@ def analyze():
                 role['scope']='Kernel/copy activity uses the actual collector ROI. Host observations remain separate. '
                 role['scope']+='A gap does not establish a ready partition,a free stream,KV credit or a future deadline. '
                 role['scope']+='NIXL host overlap does not establish the cause of a gap.'
+                if role['role']=='decode':
+                    folder=ROOT/'raw'/test['jobs'][1]
+                    roi=json.loads((folder/'activity_decode/actual_ROI.json').read_text())
+                    left=roi['left']['host_lower_ns']/1e9;right=roi['right']['host_upper_ns']/1e9
+                    snapshots=json.loads((folder/'scheduler_queues_decode.json').read_text())['rows']
+                    samples=[r for r in snapshots if left<=r['time']<=right]
+                    role['deadline_proxy_samples']=[dict(time=r['time'],
+                        residual_budget_ms=1000*(r['earliest_worker_decode_deadline']-r['time']),
+                        output_started_requests=r['output_started_requests'],active_decode=r['active_decode'])
+                        for r in samples if r.get('earliest_worker_decode_deadline') is not None]
+                    role['deadline_proxy_scope']='Observed scheduler snapshots only. Use the last worker emission plus34ms. '
+                    role['deadline_proxy_scope']+='No future EOS or arrival is used. This proxy does not establish candidate readiness,stream availability or executable safety.'
+                    role['no_known_active_deadline_snapshots']=sum(r.get('earliest_worker_decode_deadline') is None for r in samples)
                 flat.append(dict(label=test['label'],QPS=test['qps'],role=role['role'],evidence=evidence,observer_passed=gate['passed'],
                     qualified_kernel_busy_fraction=role['kernel_busy_fraction'] if gate['passed'] else None,
                     diagnostic_raw_kernel_busy_fraction=role['kernel_busy_fraction'],ROI_seconds=role['ROI_seconds'],
@@ -129,6 +143,16 @@ def figures(results):
         fig.tight_layout(rect=(0,.06,1,1));stem=f'c3_kernel_gap_CDF_q{test["qps"]}_{test["label"]}'
         for ext in ('png','pdf'):fig.savefig(ROOT/'figures'/f'{stem}.{ext}',dpi=170)
         csv_save(ROOT/'figures'/f'{stem}.csv',gap_records);plt.close(fig)
+        deadline=next((r.get('deadline_proxy_samples',[]) for r in test['roles'] if r['role']=='decode'),[])
+        if deadline:
+            fig,ax=plt.subplots(figsize=(7.5,4.8));ax.hist([r['residual_budget_ms'] for r in deadline],bins=30)
+            ax.set(xlabel='Observed worker-deadline residual (ms)',ylabel='Scheduler snapshots',
+                title=f'{test["label"]} | QPS{test["qps"]} | {test["evidence"]}')
+            fig.text(.02,.015,'Last worker emission+34ms proxy. Snapshot counts are not a time-weighted window distribution.\n'
+                'No validated candidate-ready executable window or future-arrival protection follows from this histogram.',fontsize=8)
+            fig.tight_layout(rect=(0,.09,1,1));stem=f'c3_worker_deadline_residual_q{test["qps"]}_{test["label"]}'
+            for ext in ('png','pdf'):fig.savefig(ROOT/'figures'/f'{stem}.{ext}',dpi=170)
+            csv_save(ROOT/'figures'/f'{stem}.csv',deadline);plt.close(fig)
     overview=[]
     for test in results:
         for role in test.get('roles',[]):

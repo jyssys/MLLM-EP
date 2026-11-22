@@ -1,11 +1,22 @@
 """Plot conserved work separately from measured kernel costs."""
 import json
 import math
-from .common import ROOT,write
+from pathlib import Path
+from .common import ROOT,write,MODEL,digest
 from .c0_analysis import csv_save,INPUTS
 from ..dense_ar_longbench400_pd.geometry import Partition,matched_suffixes
 
 def main():
+    model_path=Path(MODEL)/'config.json';model=json.loads(model_path.read_text())
+    hidden=model['hidden_size'];intermediate=model['intermediate_size']
+    kv=model['num_key_value_heads']*model['head_dim']
+    write(ROOT/'analysis/model_gemm_dimension_contract_v2.json',dict(
+        model_config_SHA256=digest(model_path),model_layers=model['num_hidden_layers'],
+        hidden_size=hidden,intermediate_size=intermediate,
+        expected_weight_N_K=dict(QKV=[hidden+2*kv,hidden],O=[hidden,hidden],
+            GateUp=[2*intermediate,hidden],Down=[hidden,intermediate]),
+        M_scope='Valid query rows depend on actual chunk,batch and partition. These dimensions do not measure kernel padding or dispatch.',
+        evidence='STRUCTURAL_ACCOUNTING',actual_operator_kernel_cost='NOT_MEASURED'))
     rows=[]
     for bucket in range(4):
         data=json.loads((ROOT/'data'/f'input{bucket}_heldout_exact16.json').read_text());lengths=[r['input_tokens'] for r in data]

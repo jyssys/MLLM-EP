@@ -19,6 +19,8 @@ def prepare():
     actions={k:registry[v] for k,v in mapping.items()};actions['NativeStrong']=original['NativeStrong']
     optional={label:f'{prefix}_{variant}_Cap2_Credit8' for label,variant in
         (('DCompiled','DCompiledInterval'),('DEager','DEagerInterval'),('DFused','FusedShort_DCompiledInterval'))}
+    if optional['DFused'] not in registry and optional['DFused']+'_ContextFixV15' in registry:
+        optional['DFused']+='_ContextFixV15'
     extra_comparisons=[]
     if all(optional[k] in registry for k in ('DCompiled','DEager')):
         actions.update({k:registry[optional[k]] for k in ('DCompiled','DEager')})

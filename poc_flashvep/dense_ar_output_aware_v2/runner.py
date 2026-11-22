@@ -23,6 +23,7 @@ VARIABLE_FIELDS.update({'axis_hash_workers','axis_capture_hidden_last_only','axi
 VARIABLE_FIELDS.update({'diagnostic_controlled_output_replay','replay_output_lengths'})
 VARIABLE_FIELDS.update({'kernel_activity_roles','collector_namespace','runtime_api_activity','activity_copies',
     'operator_correlation','graph_enclosures','activity_delay_seconds','activity_ROI_seconds','observer_scope'})
+VARIABLE_FIELDS.add('quiescent_witness')
 
 def signature(cfg):
     # Every unrecognized runtime flag enters the signature. A new optimization

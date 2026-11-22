@@ -307,3 +307,113 @@ LongBench Code의 MIT License만으로 모든 제3자 Context의 재배포 권�
 전체 원문 Dataset과 무손실 Archive는 로컬 Evidence에 보존한다.
 공개 Commit에는 재구성 Code와 ID·Hash Roster를 포함한다.
 이 구분은 Dataset 선정이나 성능 결과를 변경하지 않는다.
+
+## 17. Calibration 부하와 Main Confirmation 예산
+
+기존 Geometry 실행의 평균 Actor 실행시간은 QPS2.0에서 260.73초였다.
+QPS4.8에서는 254.71초였다. 각 값은 15개 실행의 평균이다.
+초기화 비용 때문에 Policy 36개를 세 부하에서 모두 측정하면 Main 확인 시간이 줄어든다.
+
+Policy 성능과 Held-out 성능을 보기 전에 Calibration 우선순위를 변경했다.
+모든 Policy를 QPS2.0과 QPS4.8에서 같은 방식으로 측정한다.
+두 부하는 각각 Native Knee 후보와 Overload 대조군이다.
+중간 QPS2.6의 Policy Sensitivity는 `NOT_RUN`으로 남긴다.
+이미 측정한 QPS2.6 Geometry 결과는 그대로 유지한다.
+
+31개 새 Policy의 N8/N32/N400 정합성 검사는 모두 유지한다.
+원문 96개, 모든 후보, Strong Stock Token 및 SLO는 변경하지 않는다.
+Main400과 Held-out192의 독립 Confirmation을 우선한다.
+Main의 기존 8개 QPS도 변경하지 않는다.
+동결 근거는 `configs/c3_policy_load_budget_v7.json`에 있다.
+
+진행 중인 두 GPU Lane Controller는 계속 실행했다.
+기존 CPU 대기 Parent만 새 Orchestrator로 교체했다.
+GPU Actor, 실행 중인 Request 및 Raw Log는 중단하거나 초기화하지 않았다.
+
+## 18. Stock Token의 추가 Strict 실패
+
+`StockToken_Cap2_Credit16`의 N8 실행은 정상 종료했다.
+하지만 8개 요청 모두 Full KV 및 Final Hidden의 Strict 비교에서 실패했다.
+8개 요청의 Greedy Output은 모두 일치했다.
+해당 후보의 N32/N400 및 성능 실행은 정합성 Gate로 차단한다.
+
+이 실패를 Source Credit16의 인과 효과라고 표현하지 않는다.
+Strict Probe는 Coordinator Credit을 0으로 설정한다.
+통과한 Credit8 Probe와 실패한 Probe의 실제 Config 차이는 이름과 GPU Pair뿐이다.
+통과 Probe는 GPU2/3을 사용했다. 실패 Probe는 GPU0/1을 사용했다.
+
+전체 P Prefix KV는 두 Probe에서 일치했다.
+유효 Prompt Query Geometry와 P/D FX 계산 그래프도 일치했다.
+D Full KV의 첫 불일치는 8개 요청 모두 Layer1에서 관측됐다.
+보존된 Final Hidden의 상대 RMS 차이는 약 0.00910–0.01827이었다.
+이 수치는 전체 Suffix KV의 허용 오차를 검증한 결과가 아니다.
+
+현재 판정은 `STRICT_STATE_MISMATCH_ROOT_CAUSE_NOT_IDENTIFIED`다.
+Compiler, GPU Pair 또는 실행 순서 중 하나를 원인으로 확정하지 않는다.
+실패 Gate와 Raw Evidence는 그대로 유지한다.
+Source Credit0의 무제한 Window와 통과한 Credit8 후보는 Strong Stock Token 탐색에 계속 포함한다.
+
+## 19. Main 실행 순서와 Motivation Point
+
+Main 성능을 보기 전에 실행 순서를 구체화했다.
+먼저 QPS2.0의 Main400 및 Held-out192 독립 N3를 완료한다.
+그다음 기존 8개 QPS의 Agg/Native Motivation Point를 우선한다.
+나머지 Axis Point와 기존 Overload 반복도 그대로 계획에 남긴다.
+데이터, 설정, Pair, Seed 및 QPS는 변경하지 않는다.
+실행하지 못한 Point는 `NOT_RUN`으로 표시한다.
+
+## 20. 추가 정합성 진단의 범위
+
+Stock Token 실패에 대해 Control → Pre-forward Fence → Control 검사를 사전에 고정했다.
+세 실행은 같은 Source와 GPU0/1을 사용한다.
+Fence는 Tensor를 복사하거나 교정하지 않는다.
+기존 정합성 Lane이 모두 끝난 뒤 실행한다.
+검사 결과와 무관하게 기존 실패 Gate를 성공으로 바꾸지 않는다.
+
+추가 Cache 감사에서 P/D FX Graph는 같았지만 일부 Autotune 선택은 달랐다.
+한 Reduction의 `R0_BLOCK`은 2048 또는 4096이었다.
+Generated Code의 Kernel Path Comment를 제외하면 해당 Source는 일치했다.
+이 관측은 Reduction 실행 구성의 차이를 보여준다.
+그러나 그것이 Full State 불일치의 원인임을 입증하지는 않는다.
+Cache를 실행하거나 원래 Runtime Package를 수정하지 않았다.
+
+## 21. Fused Hybrid의 독립 Teacher 경로
+
+Fused Hybrid의 첫 N8 비교는 Full KV와 Hidden에서 실패했다.
+8개 중 1개 요청은 Greedy Output도 달랐다.
+이 결과를 성능에 사용하지 않는다.
+
+Source 감사에서 Teacher의 필수 Dispatch Flag가 빠진 것을 확인했다.
+`teacher_eager_all_prompt=True`만으로는 Eager Wrapper가 활성화되지 않는다.
+Installer는 `teacher_eager_prefix_compiled_suffix`가 없으면 즉시 반환한다.
+실제 실패 Teacher에도 해당 실행 경로의 Log가 없었다.
+
+새 Version은 이 Dispatch Flag만 복구한다.
+독립 Teacher는 원래 Qwen Layer와 전체 로컬 KV를 그대로 사용한다.
+Teacher는 Partition Adapter 또는 NIXL을 사용하지 않는다.
+Candidate의 모델 실행, Sampling 및 허용 오차는 바꾸지 않는다.
+기존 실패와 잘못된 Teacher 경로도 그대로 보존한다.
+
+Fused Eager 및 Fused D-Compiled 조합에 새 N8/N32/N400 Gate를 적용한다.
+새 Teacher의 Eager 경로가 실제로 실행됐는지도 검사한다.
+GPU 재검증 전에는 이 수정이 정합성을 해결했다고 선언하지 않는다.
+
+## 22. C0 전체 Output Map 완료
+
+C0의 720개 실행을 완료했다. Discovery 80개 Cell과 Held-out 80개 Cell을 확보했다.
+Held-out의 각 Cell은 독립 Server Start 3회를 사용한다.
+실제 Batch1/1/1, Source Credit4 및 정확한 Aggregate GEMM Rows 검사를 통과했다.
+
+Output8/16/64/128/192에서 Layer Point Win은 각각 3/5/8/10/13개였다.
+각 Output의 분모는 같은 16개 Input×Cut Cell이다.
+Layer의 CI 확정 Cell은 각각 1/2/5/8/11개였다.
+양쪽 Axis의 C0 Decode Gate 통과 Cell은 각각 16/16/9/4/7개였다.
+따라서 긴 Output의 Point Win 증가를 Decode-safe Serving 성공으로 표현하지 않는다.
+
+같은 Prompt와 Arrival에서 Output8→192의 Endpoint Contrast도 계산했다.
+이 Intervention은 D Residency, Queue 및 Capacity-relative Load를 함께 바꾼다.
+Host Stage는 Mean TTFT에 더해지는 경계다. TTFT p95의 Operator 분해가 아니다.
+C0의 Mode0 Token과 C3의 Compiled Stock Token도 계속 구분한다.
+
+새 C3 Bridge는 원래 Held-out Prompt와 실제 Continuous Scheduler를 사용한다.
+C0의 결과를 C3 결과로 재사용하지 않는다.

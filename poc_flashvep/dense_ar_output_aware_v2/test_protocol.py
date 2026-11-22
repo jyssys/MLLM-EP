@@ -102,5 +102,38 @@ class ProtocolTests(unittest.TestCase):
             self.assertEqual(value['actual_P_minus_nominal_rows'],0)
             self.assertEqual(value['actual_D_minus_nominal_rows'],0)
             self.assertEqual(value['observed_total_minus_ideal_rows'],0)
+    def test_raw_metric_validator_rejects_a_changed_actual_ITL(self):
+        import json,shutil,tempfile
+        from pathlib import Path
+        from unittest.mock import patch
+        from . import validation
+        from .common import ROOT,write
+        name='V2_C0_discovery_I0_O8_C2_s0_Layer'
+        with tempfile.TemporaryDirectory(prefix='v2-client-metric-red-green-') as folder:
+            root=Path(folder);run=root/'raw'/name;run.mkdir(parents=True)
+            for filename in ('configuration.json','requests.jsonl','window.json'):
+                shutil.copyfile(ROOT/'raw'/name/filename,run/filename)
+            actual=json.loads((ROOT/'analysis'/(name+'_metrics.json')).read_text())
+            altered=dict(actual,ITL_p99_ms=actual['ITL_p99_ms']+1)
+            write(root/'analysis'/(name+'_metrics.json'),altered)
+            with patch.object(validation,'ROOT',root):
+                with self.assertRaises(AssertionError):validation.one(run)
+                write(root/'analysis'/(name+'_metrics.json'),actual)
+                self.assertEqual(validation.one(run)['status'],'PASS')
+    def test_preforward_fence_hook_keeps_the_arithmetic_call_and_order(self):
+        import types,sys
+        from unittest.mock import patch
+        from . import stock_prefence_probe
+        for enabled,expected in ((False,['forward']),(True,['fence','forward'])):
+            events=[]
+            class Runner:
+                def execute_model(self,*args,**kwargs):events.append('forward');return 17
+            fake=types.SimpleNamespace(cuda=types.SimpleNamespace(is_current_stream_capturing=lambda:False,
+                synchronize=lambda:events.append('fence')))
+            module=types.SimpleNamespace(GPUModelRunner=Runner)
+            with patch.dict(sys.modules,{'torch':fake,'vllm.v1.worker.gpu.model_runner':module}),patch.object(stock_prefence_probe.atexit,'register'):
+                stock_prefence_probe.install(dict(diagnostic_D_pre_forward_fence=enabled,name='fixture'),'decode')
+                self.assertEqual(Runner().execute_model(),17)
+            self.assertEqual(events,expected)
 
 if __name__=='__main__':unittest.main()

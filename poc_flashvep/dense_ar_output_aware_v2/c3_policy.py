@@ -165,12 +165,19 @@ def policy_registry():
     for item in plan['items']:
         gate=ROOT/'state'/item['gate']
         if gate.exists() and json.loads(gate.read_text())['passed']:registry[item['label']]=item
+    supplement=ROOT/'configs/c3_fused_teacher_context_supplement_v15.json'
+    if supplement.exists():
+        for item in json.loads(supplement.read_text())['items']:
+            gate=ROOT/'state'/item['gate']
+            if gate.exists() and json.loads(gate.read_text())['passed']:registry[item['label']]=item
     return registry
 
 def discovery():
     registry=policy_registry();original=qualified_registry();grid=json.loads((ROOT/'configs/c3_common_qps_grid_v2.json').read_text())
     lanes=[[],[],[],[]];blocks=[]
-    loads=json.loads((ROOT/'configs/c3_confirmation_knee_refinement_v3.json').read_text())['effective_discovery_QPS']
+    original_loads=json.loads((ROOT/'configs/c3_confirmation_knee_refinement_v3.json').read_text())['effective_discovery_QPS']
+    priority=ROOT/'configs/c3_policy_load_budget_v7.json'
+    loads=json.loads(priority.read_text())['active_policy_QPS'] if priority.exists() else original_loads
     dataset=json.loads((ROOT/'configs/c3_budget_priority_amendment_v4.json').read_text())['policy_dataset']
     for index,qps in enumerate(loads):
         lane=index%2
@@ -186,9 +193,13 @@ def discovery():
     write(target,dict(time=time.time(),lanes=lanes,blocks=blocks,stop_on_failure=False,
         capacity_refinement_SHA256=digest(ROOT/'configs/c3_confirmation_knee_refinement_v3.json'),
         budget_priority_SHA256=digest(ROOT/'configs/c3_budget_priority_amendment_v4.json'),
+        policy_load_budget_SHA256=digest(priority) if priority.exists() else None,
+        original_policy_QPS=original_loads,deferred_policy_QPS=[q for q in original_loads if q not in loads],
         scope='Same deterministic original discovery-only96 and trace for every policy within each load. '
             'Geometry tuning retains discovery208. Main400 and heldout192 are unchanged. '
-            'Cap controls are not actual-batch guarantees. No heldout data enter tuning.'))
+            'Cap controls are not actual-batch guarantees. No heldout data enter tuning. '
+            'The prospective time-budget amendment keeps every policy at the Native knee and overload. '
+            'The intermediate load remains an explicit deferred sensitivity,not a measured result.'))
     return target.name
 
 def run():
@@ -198,6 +209,12 @@ def run():
     selection=freeze_geometry();policies(selection);run_qualification();launch(discovery())
     write(ROOT/'state/c3_policy_tuning_complete_v2.json',dict(time=time.time(),complete=True))
 
+def resume_after_qualification():
+    for lane in (0,1):wait_file(ROOT/'state'/f'c3_policy_qualification_v2_lane{lane}_complete_v4.json')
+    launch(discovery())
+    write(ROOT/'state/c3_policy_tuning_complete_v2.json',dict(time=time.time(),complete=True,
+        policy_load_budget_SHA256=digest(ROOT/'configs/c3_policy_load_budget_v7.json')))
+
 if __name__=='__main__':
-    p=argparse.ArgumentParser();p.add_argument('action',choices=('run','freeze_geometry','discovery'));args=p.parse_args();result=globals()[args.action]()
+    p=argparse.ArgumentParser();p.add_argument('action',choices=('run','freeze_geometry','discovery','resume_after_qualification'));args=p.parse_args();result=globals()[args.action]()
     if result is not None:print(result,flush=True)
