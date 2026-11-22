@@ -1,0 +1,108 @@
+{
+  "time_KST": "2026-11-22 10:08, checkpoint label1010",
+  "status": "ACTIVE_PROGRESS_AND_VERIFIED_WAIT",
+  "read_previous": "resume_checkpoint_20261122_0855.json",
+  "objective": "Finish scientific and operational closeout. There is no fixed deadline. Keep all frozen safety gates. Do not mark the goal complete yet.",
+  "terminal_stages": {
+    "original_main": "All140 starts completed. All6 result groups are valid. Four groups haveN3. Main q1.0/q4.5 haveN1.",
+    "original_bridge": "54/54 completed. Keep every original failure.",
+    "READ_repair": "22/22 plus3/3 Layer controls completed.",
+    "registration_q18": "24/24 completed. Updated latest CPU reporter and all5figures.",
+    "registration_q28": "21/21 completed. Updated latest CPU reporter and all5figures.",
+    "repaired_bridge_proofs": "All10 exact071 signature families passed Natural32/400. Eight new families used16new starts6/7. Two exact proofs were reused."
+  },
+  "only_live_GPU_controller": {
+    "PID": 2159024,
+    "module": "registration_controlled_bridge run",
+    "plan": "configs/request_registration_controlled_bridge_frozen_v1.json",
+    "pair": [4,5],
+    "latest_performance_count": [7,54],
+    "latest_count_time_KST": "10:06:07",
+    "scope": "All original three conditions,sixarms,three seeds remain. No favorable-cut search. Same original4/5,prompts,arrivals,outputs and cuts."
+  },
+  "other_processes": {
+    "guardian": 910895,
+    "watcher": 910918,
+    "normally_completed_do_not_restart": [1783341,1977727,2008610,1959605,2042353,1746670,1842157,1878456],
+    "read_only_monitor_sessions": "All sessions45444,6226,50095 completed normally. None is a GPU job."
+  },
+  "q28_registration_N3": {
+    "source": "071 overlay. Separate adaptive repair. Originala2 failures remain.",
+    "seeds": [2026112781,2026112782,2026112783],
+    "pair": [4,5],
+    "means_TTFT_ITL_TPOT_goodput": {
+      "NativeStrong": [26484.191104,16.938246,8.475937,9.755980],
+      "NativeRegistration": [26649.548378,8.925276,8.004097,10.172318],
+      "NativeCap2Registration": [26709.308993,8.779906,7.957054,10.083014],
+      "LayerRegistration": [6583.601082,8.948487,8.239755,52.488352],
+      "TokenRegistration": [4390.895747,8.947635,8.050413,67.709592],
+      "HybridRegistration": [5902.597826,8.943290,8.231843,57.243633]
+    },
+    "safety": "ALL Layer,Token,Hybrid pass BOTH NativeStrong and exact common-policy Native ITLp99/TPOTp95 paired CIupper<=1.05. Every-start absolute decode attainment>=.95 also passes.",
+    "common_CI_upper_ITL_TPOT": {
+      "Layer": [1.026533,1.036656],
+      "Token": [1.031733,1.011719],
+      "Hybrid": [1.009701,1.035706]
+    },
+    "strong_Token_comparison": "Layer/Token TTFT1.499375 CI[1.437462,1.573933]. Hybrid/Token1.344281 CI[1.312721,1.378300]. Hybrid/Token goodput.845429 CI[.698429,.953074]. Hybrid improves Layer TTFT and goodput,but not strong Token.",
+    "Native_comparison": "All three improve both Native TTFT and goodput at this finite load. This is not a sustainable-capacity ratio.",
+    "raw_output_tokens_per_second": {"NativeStrong":61.686933,"NativeRegistration":61.867057,"Layer":70.345654,"Token":71.526013,"Hybrid":70.387073},
+    "mean_joint_SLO": {"NativeStrong":0.1775,"NativeRegistration":0.175833,"Layer":0.761667,"Token":0.959167,"Hybrid":0.825833},
+    "SLO_limit": "Decode protection is not Joint>=95%. A start-mean Joint>=.95 does not imply every start passes. Do not omit TTFT violations or large intervals.",
+    "host_decomposition": "Layer-minus-Token meanTTFT+1389.413ms CI[1224.063,1598.965]. FrontPprepare+1278.653;Pprepare->ready+44.002;Dsubmit->prepare+75.529;Dprepare->firstworker-9.694ms. The last CI includes0. These are same-ID host boundaries,not exclusive GPU costs or TTFTp95 decomposition.",
+    "decision": "R_REGISTRATION_REPAIR_Q28_N3_COMPLETE saved. Both-load safety milestone was briefly reported to the user."
+  },
+  "original_Main400_q28_N3": {
+    "source": "a2 frozen main. Never replace it with071 results.",
+    "means_TTFT_ITL_TPOT_goodput": {
+      "NativeStrong": [34932.248686,14.844949,8.327879,7.021338],
+      "Layer": [11017.682784,9.779264,8.449652,25.421326],
+      "Token": [5579.425988,8.919498,8.193915,66.922743],
+      "Hybrid": [9215.782076,9.125977,8.335438,35.503208],
+      "WholeDeflection": [7119.071647,8.702015,7.941099,58.279573]
+    },
+    "gates": "Strong Token and WholeDeflection pass both Native safety controls and win TTFT+goodput CIs. Layer,Hybrid,TokenCap2Control fail. Hybrid/common TPOT CIupper1.050312 fails strictly. Do not round it into a pass.",
+    "ratios": "Layer/Token TTFT1.974698 CI[1.505425,2.495660]. Hybrid/Token1.651744 CI[1.482651,1.868662]. Token/commonNative goodput8.952670 CI[8.039871,10.135779]. The large goodput ratio reflects baseline TTFT SLO failures.",
+    "decision": "R_FROZEN_MAIN_Q28_COMPLETE saved."
+  },
+  "CPU_main_reconstruction": {
+    "status": "CPU_RECONSTRUCTED for all four postprocessor stages. Controllers exited normally.",
+    "host_decomposition": "63 regular comparisons and12 route-aware deflection comparisons are complete. The real deflection KeyError fix now passes the entire final dataset. No fabricated P stages for D-local requests.",
+    "figures": "Main10 figures generated. Both-Native caption clarified. Common-policy NI figure was visually reviewed.",
+    "reports": "The final summary is still an explicit draft. It now includes both original Main400 loads and both repaired Natural400 loads. It preserves all failed gates. Remaining scientific data are the repaired fixed-output54.",
+    "reporter_change": "Registration reports now include raw output throughput and mean Joint SLO. They distinguish mean Joint from every-start attainment. No primary metric definition changed."
+  },
+  "publication_scale_bug_fixed": {
+    "observed_preflight": "442152 raw/data/reference files,194263461750bytes. Tensors174025868317bytes. Largest nonraw analysis100279340bytes remains below104857600.",
+    "red_command": "python -m poc_flashvep.dense_ar_longbench400_pd.publication_scale_repro",
+    "red": "Actual publication.prepare rejected an118099980byte ledger fixture with442276 records. This is a CPU metadata-size fixture,not a real archive or raw-content hash proof.",
+    "fix": "publication.archive_metadata_payload keeps the full JSON local. It publishes an exact gzip and a small index when needed. It verifies compressed and decompressed SHA256. The100MiB limit is unchanged. Coverage points to the published index.",
+    "green": "Same command passed at442404records and118134097expanded bytes. Largest selected file20576930bytes. Expanded original is unchanged and excluded from Git. Fixture digests hash path strings,not raw evidence.",
+    "new_CPU_module": "publication_scale_repro.py. No real archive is created before CAMPAIGN_CLOSED.",
+    "regression": "All15CPU tests PASS with current source hashes. Includes a small metadata-limit regression. The first fixture lacked its state directory. Its failed CPU receipt is preserved as cpu_publication_fixture_missing_state_failure_v1.json. Test setup was corrected.",
+    "private_index": "publication --selftest PASS after the fix. Expected/observed tree3642a046fd450b32340ea41d08f3acfb135b2531. User checkout/index preserved.",
+    "documentation": "figure_catalog now explains gzip/index reconstruction. Expanded member records and failure logs are not discarded. The real final archive and push remain NOT_RUN.",
+    "decision": "R_PUBLICATION_LEDGER_SCALE_RED_GREEN saved."
+  },
+  "latest_partial_audits": {
+    "protocol": "265verified,53pending,0failed. Rerun after bridge54.",
+    "raw_metrics": "2210verified,53pending,0failed. Historical dispatcher failures remain separate. Rerun after bridge54.",
+    "CPU": "15PASS and source-bound. All13a2 actor files and071 helper are unchanged by the CPU-only fixes.",
+    "figures": "61 PNG/PDF pairs exist. Required stems61. Expected final total66 including5historical. Five repaired bridge figures remain pending. Catalog refreshed.",
+    "preservation": "PASS repeatedly. Original main plan hash remains unchanged."
+  },
+  "remaining_in_order": [
+    "Monitor controller2159024 and every frozen bridge condition. Check first18 and36 outcomes if useful. Do not tune cuts,seeds,SLO or remove failures.",
+    "ROOT MUST run registration_controlled_bridge analyze after terminal. The live controller loaded an older analyze() before the full report helper existed.",
+    "All other GPU stages and CPU postprocessing are complete. Burners run on released0/1,2/3,6/7. Never burn leased4/5 during initialization or kernel gaps.",
+    "After all controllers drain,stop only owned watch_analysis normally through STOP_ANALYSIS_WATCHER.json. Keep guardian until closeout.",
+    "The watcher rewrites r2 matrix timestamps. Freeze it before final digest binding. Rerun confirmation_analysis,axis_joint_safety_audit and dependent final figures/catalog once afterward.",
+    "Recompute raw metrics,budget,protocol,model/runtime integrity,CPU tests and figures. Review both Native CI gates and every failure. Do not extrapolate Natural400 safety to fixed-output16/64.",
+    "Finish all12 final-summary answers and SHA-bound scientific review. Explicitly justify NOT_RUN stops. No Dynamic GO without a validated executable safe window.",
+    "Require final_work_accounting green. Drain closeout and restore fresh approved all8 burners. Verify owner,presence and utilization.",
+    "Create and verify actual lossless local/public archives. Large member metadata may publish as .json.gz plus .index.json. Keep local expanded JSON.",
+    "If operational facts update reports after closeout,rebind review report hashes and refresh accounting. Do not keep a stale green review.",
+    "Commit/push through the private index. Verify remote SHA. Verify all8 burners and preservation again after push. Only then mark the goal complete."
+  ],
+  "hard_limits": "No new agents. No forced token corrections,timestamp changes,SLO changes,baseline weakening or failure deletion. No unsafe dynamic insertion. Do not claim exclusive C3 operator shares,SM/HBM or measured safe-fit rates. No real archive,closeout,commit,push or remote receipt exists yet."
+}

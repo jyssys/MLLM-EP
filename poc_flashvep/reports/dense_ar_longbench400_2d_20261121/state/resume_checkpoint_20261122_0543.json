@@ -1,0 +1,39 @@
+{
+  "time_KST": "2026-11-22 05:43",
+  "status": "ACTIVE_WITH_NEW_CONTROLLED_HOST_REGISTRATION_INTERVENTION",
+  "read_first": "resume_checkpoint_20261122_0445.json",
+  "goal": "No fixed deadline. Keep all original results,complete scientific gates,archive,push and restore all8 burners. No publication yet.",
+  "latest_counts": {"main_lanes": [28,20,17,14], "main_total": 140, "controlled_bridge": [11,54], "READ_repair": [7,22], "Layer_extension": [0,3]},
+  "live_controllers": {"main_lanes_0_2_3":[1783341,1783345,1783347],"bridge":1746670,"READ_repair":1842157,"Layer_extension":1878456,"registration":1959605,"analysis_resume":1977727,"guardian":910895,"watcher":910918},
+  "lane1": "All20 original starts completed. Its GPU2/3 is now used by the new registration intervention,not duplicated main starts.",
+  "analysis_only_failure_and_fix": {
+    "old_transition_PID":1689400,
+    "state":"Stopped on an intermediate metric-cache schema. GPU lane controllers continued normally.",
+    "cause":"The inherited metric implementation atomically writes a base record before the wrapper adds runtime_source_archive_SHA256,dataset_SHA256 and actual_geometry. A concurrent final reader encountered that intermediate record.",
+    "evidence":"logs/background_final_transition_wait_and_execute_v1.log retains KeyError runtime_source_archive_SHA256. Manual raw-derived analysis succeeds.",
+    "fix":"final_confirmation_analysis.complete_metric reconstructs missing provenance/geometry from immutable raw events. CPU regression passes. hybrid_read_repair_analysis uses this helper too. No raw,metric definition or old source file changed.",
+    "resume":"Only new final_results_watch controller1977727 resumed. It never dispatches a GPU job and writes final_transition_complete after the four main lanes drain. Do not restart1689400 or repeat GPU jobs."
+  },
+  "new_host_registration_diagnosis": {
+    "observed":"Heldout200 q1.8 s0 strong Token has first-output inter-step Host gaps6.778,11.726,8.262,3.874ms on requests195,170,122,108. The same requests in NativeCompletion have0.257,0.247,0.208,0.220ms gaps. Other D registration completions occur inside all four Token gaps. No JIT or recorded READ overlap. This is not exclusive GPU timing or causal proof by overlap.",
+    "hypotheses":["engine.add_request/input registration delays next decode","IPC receive dominates and persists after deferring registration","First-decode preparation or batch variation dominates"],
+    "source":"request_registration_deferral_overlay_v1.zip",
+    "source_SHA256":"07cdfb84be94fc4ae3b1e778d58c8c1d03ff7a99452b0cd3ee667966600447cd",
+    "derivation":"Exact frozen a2 capsule plus one standard_worker connection-wrapper replacement and added request_admission_deferral.py. All13 original live inference files remain byte-identical to a2. Existing140/54/25 starts still use a2. Root run.py gets a new policy-specific correctness check,not an inference change to old actors.",
+    "policy":"Receive and queue new add commands while an output-started request remains running. Do not call adapter.command,SamplingParams or engine.add_request for those additions until no active decode. IPC receive,decode steps,NIXL ACK/heartbeat/retirement continue. FIFO additions drain before stop. Disabled policy returns original connection. CPU tests preserve requests,cleanup controls,stop order and output object identity.",
+    "plan":"configs/request_registration_deferral_frozen_v1.json",
+    "proofs":"Ten Natural32/400 starts: NativeRegistration,NativeCompletionRegistration,LayerRegistration,TokenRegistration,HybridRegistration. First Native32/400 gate PASS. Others pending. Normal completion only.",
+    "performance":"24 starts. Three observed-trace Heldout200 pilots plus seven arms × three new Main400 seeds2026112771/2772/2773. Every new start uses2/3. Arms: NativeStrong,NativeRegistration,NativeCompletionRegistration,LayerRegistration,TokenRegistration,HybridRegistration,TokenOldControl. All fixed before pilot. Run all independent confirmations regardless of pilot direction,subject to correctness.",
+    "contracts":"q1.8,Natural EOS,cap2048,BI0,B8192/S1024,KV42GiB block128. Layer8 and StockToken8 source4. Hybrid4 f.125 fused-short path source4 with READ+compute. All use same declared optional registration rule except unmodified NativeStrong and TokenOldControl. Token retains completion guard; exact NativeCompletionRegistration is its common control.",
+    "safety":"Both NativeStrong and exact common-registration Native,ITLp99 andTPOTp95 paired95percent CI upper<=1.05. Original main and READ repair are not replaced. Registration deferral changes admission/batching too,not isolated Python cost. New arrival seeds on known400 requests,not new-request generalization.",
+    "analysis":"registration_deferral_analysis.py ready. It writes full paired metrics,first-transition/IPC diagnostic and same-ID host boundaries. After all valid starts it writes dense_ar_longbench400_request_registration_tail.md and five PNG/PDF pairs registration_repair_confirmed_{ttft,itl,tpot,goodput,decode_gates}. Not generated yet."
+  },
+  "new_partial_original_main_evidence": "Heldout200 q1.8 Hybrid3 already fails original5percent gate against NativeStrong and compute-only common Native; TPOT ratioabout1.19. Layer3 passes NativeStrong but fails fast READ-common: ITL CIupper1.06450,TPOTupper1.05879. These are original unmodified results,not final repaired-method results. Strong Token and other common arms still pending in this cell. Do not hide them or call all arms safe.",
+  "other_new_helpers": [
+    "controlled_bridge_report.py ready after all54: actual metrics/gates,geometry,padding,mean same-ID host stages,separate Output64/16 and cap2/1 interventions. Does not label Output intervention pure residency,or C0->C3 an isolated policy effect.",
+    "quality_dependency_audit.py recorded4 local versions and94 hashes: fuzzywuzzy0.18.0,jieba0.42.1,rouge1.0.1,six1.17.0,SequenceMatcher=difflib. Read-only during-final audit,not an initial-timestamp claim. Metadata under references/quality_dependency_audit_v1.json. Final environment recheck reruns it.",
+    "evidence_archive.py now deduplicates only byte-identical raw source ZIPs in the public archive. Full local lossless archive still includes originals. Public canonical capsule path and equal SHA are recorded per omitted ZIP. Real stream selftest and sample canonical-reference test pass. No archive created yet.",
+    "Final work accounting includes registration terminal outcomes and5 new figures. Final protocol audit supports the a2-derived overlay with per-plan source hashes. Independent metric audit includes the24 new planned starts. Environment check waits registration completion and verifies only1 old file changed plus1 helper added in overlay. CPU tests now13 in suite; rerun after final edits."
+  ],
+  "operational_notes": "Bounded read-only monitor session26109 prints every50seconds through20 cycles and ends around05:47. Unknown session after completion is not GPU failure. All observed analysis errors0. preserve() passes. Do not query broad git status. No GPU/source/SLO changes to frozen original jobs. Need final summary,all reports/figures,independent raw audit,budget/protocol audit,current-source CPU tests,model/runtime hashes,SHA-bound12-question review,closeout all8 burners,archive,private-index commit/push and remoteSHA. Goal remains ACTIVE."
+}

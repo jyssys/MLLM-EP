@@ -1,0 +1,163 @@
+{
+  "time": 1795257776.6681352,
+  "passed": true,
+  "full400_passed": true,
+  "results": [
+    {
+      "name": "Q25_WholeDeflection_Continuous_Natural32_v2",
+      "n": 32,
+      "deflections": 10,
+      "Native_handoffs": 22,
+      "all36_full_valid_prompt_states": true,
+      "Native_valid_prefix_exact": true,
+      "compute_deferral": {
+        "meaningful_mixed_batches": 0,
+        "maximum_D_batch": 5,
+        "batches": 660,
+        "scope": "Native one-query prompt recomputation is not a large suffix prefill. This coverage test does not assign GPU-exclusive cost or prove decode noninferiority."
+      },
+      "quality": {
+        "name": "Q25_WholeDeflection_Continuous_Natural32_v2",
+        "n": 32,
+        "task_count": 10,
+        "task_macro_delta_percentage_points": 0.00604197624275119,
+        "CI95_percentage_points": [
+          -0.03955731993178718,
+          0.040241448373654974
+        ],
+        "exact_greedy_requests": 29,
+        "cap_hits": 0,
+        "empty_text": 0,
+        "passed": true,
+        "margin_percentage_points": 2.0,
+        "resamples": 4000,
+        "bootstrap_unit": "Within-task context cluster",
+        "dataset_SHA256": "08b44c07d63323f3b56bd1ccfc4253d7888c21f9c8851c776a6563e5f184d68d",
+        "contract_SHA256": "870db1df885ebbcf6dc62a38cef26fba4b93ddeb557d0ed5cb3ecd77f7ec6edc",
+        "evidence": "TASK_QUALITY_NONINFERIORITY",
+        "scope": "This gate compares actual natural outputs with the frozen BI0 single-GPU reference. It does not prove KV correctness. Its request-cluster CI is not a server-start performance CI."
+      }
+    },
+    {
+      "name": "Q25_WholeDeflection_Continuous_Natural400_v2",
+      "n": 400,
+      "deflections": 162,
+      "Native_handoffs": 238,
+      "all36_full_valid_prompt_states": true,
+      "Native_valid_prefix_exact": true,
+      "compute_deferral": {
+        "meaningful_mixed_batches": 0,
+        "maximum_D_batch": 5,
+        "batches": 8000,
+        "scope": "Native one-query prompt recomputation is not a large suffix prefill. This coverage test does not assign GPU-exclusive cost or prove decode noninferiority."
+      },
+      "quality": {
+        "name": "Q25_WholeDeflection_Continuous_Natural400_v2",
+        "n": 400,
+        "task_count": 11,
+        "task_macro_delta_percentage_points": 0.022908541273994484,
+        "CI95_percentage_points": [
+          -0.1812726364176358,
+          0.25037333100842185
+        ],
+        "exact_greedy_requests": 327,
+        "cap_hits": 0,
+        "empty_text": 0,
+        "passed": true,
+        "margin_percentage_points": 2.0,
+        "resamples": 4000,
+        "bootstrap_unit": "Within-task context cluster",
+        "dataset_SHA256": "2c67ccb92835ec2ca308ba745d52247e809be1d3012bd100843d954272787f67",
+        "contract_SHA256": "870db1df885ebbcf6dc62a38cef26fba4b93ddeb557d0ed5cb3ecd77f7ec6edc",
+        "evidence": "TASK_QUALITY_NONINFERIORITY",
+        "scope": "This gate compares actual natural outputs with the frozen BI0 single-GPU reference. It does not prove KV correctness. Its request-cluster CI is not a server-start performance CI."
+      }
+    }
+  ],
+  "inherited_N1_N8_strict_proof": [
+    {
+      "name": "Q21_DirectD_Full36_N1_v1",
+      "strict": {
+        "rows": [
+          {
+            "request_id": "q0",
+            "KV_exact": true,
+            "hidden_exact": true,
+            "greedy_exact": true
+          }
+        ],
+        "passed": true
+      },
+      "lifetime": {
+        "passed": true,
+        "n": 1,
+        "deflections": 1,
+        "D_local_full_KV_states": 1
+      }
+    },
+    {
+      "name": "Q21_DirectD_Full36_N8_v1",
+      "strict": {
+        "rows": [
+          {
+            "request_id": "q0",
+            "KV_exact": true,
+            "hidden_exact": true,
+            "greedy_exact": true
+          },
+          {
+            "request_id": "q1",
+            "KV_exact": true,
+            "hidden_exact": true,
+            "greedy_exact": true
+          },
+          {
+            "request_id": "q2",
+            "KV_exact": true,
+            "hidden_exact": true,
+            "greedy_exact": true
+          },
+          {
+            "request_id": "q3",
+            "KV_exact": true,
+            "hidden_exact": true,
+            "greedy_exact": true
+          },
+          {
+            "request_id": "q4",
+            "KV_exact": true,
+            "hidden_exact": true,
+            "greedy_exact": true
+          },
+          {
+            "request_id": "q5",
+            "KV_exact": true,
+            "hidden_exact": true,
+            "greedy_exact": true
+          },
+          {
+            "request_id": "q6",
+            "KV_exact": true,
+            "hidden_exact": true,
+            "greedy_exact": true
+          },
+          {
+            "request_id": "q7",
+            "KV_exact": true,
+            "hidden_exact": true,
+            "greedy_exact": true
+          }
+        ],
+        "passed": true
+      },
+      "lifetime": {
+        "passed": true,
+        "n": 8,
+        "deflections": 8,
+        "D_local_full_KV_states": 8
+      }
+    }
+  ],
+  "evidence": "CORRECTNESS_ONLY",
+  "scope": "The D-local full36 numerical path retains its independent strict N1/N8 proof. The new policy admits normal Native one-query continuations and decode continuously. Large D-local prefill chunks use the installed compute-throttle path. This is stronger than whole-request serial D admission. All native imports exclude the uncomputed last position before comparison. No speed or client-ITL success follows from correctness."
+}

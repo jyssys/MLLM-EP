@@ -1,0 +1,181 @@
+INFO 11-21 00:16:25 [api_utils.py:273] non-default args: {'tokenizer': '/home/esjung/.cache/huggingface/hub/models--Qwen--Qwen3-8B/snapshots/b968826d9c46dd6066d109eabc6255188de91218', 'dtype': 'bfloat16', 'seed': 2026112101, 'max_model_len': 40960, 'block_size': 128, 'enable_prefix_caching': False, 'kv_cache_memory_bytes': 45097156608, 'max_num_batched_tokens': 8192, 'max_num_seqs': 1024, 'disable_log_stats': True, 'enable_chunked_prefill': True, 'compilation_config': {'mode': <CompilationMode.NONE: 0>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', 'custom_ops': [], 'ir_enable_torch_wrap': None, 'splitting_ops': None, 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'compile_sizes': None, 'compile_ranges_endpoints': None, 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'size_asserts': False, 'alignment_asserts': False, 'scalar_asserts': False, 'combo_kernels': True, 'benchmark_combo_kernel': True}, 'inductor_passes': {}, 'cudagraph_mode': <CUDAGraphMode.FULL_DECODE_ONLY: (2, 0)>, 'cudagraph_num_of_warmups': 0, 'cudagraph_capture_sizes': [1, 2, 4, 8, 16, 32], 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': None, 'pass_config': {}, 'max_cudagraph_capture_size': None, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': None, 'static_all_moe_layers': []}, 'attention_config': AttentionConfig(backend=<AttentionBackendEnum.FLASH_ATTN: 'vllm.v1.attention.backends.flash_attn.FlashAttentionBackend'>, backend_per_kind={}, flash_attn_version=None, use_prefill_decode_attention=False, flash_attn_max_num_splits_for_cuda_graph=32, tq_max_kv_splits_for_cuda_graph=32, use_trtllm_attention=None, disable_flashinfer_q_quantization=False, mla_prefill_backend=None, use_prefill_query_quantization=False, use_fp4_indexer_cache=False, indexer_kv_dtype='bf16', use_non_causal=False, sparse_mla_force_mqa=False, flex_attn_block_m=None, flex_attn_block_n=None, flex_attn_q_block_size=None, flex_attn_kv_block_size=None), 'async_scheduling': True, 'model': '/home/esjung/.cache/huggingface/hub/models--Qwen--Qwen3-8B/snapshots/b968826d9c46dd6066d109eabc6255188de91218'}
+WARNING 11-21 00:16:25 [arg_utils.py:1631] The global random seed is set to 2026112101. Since VLLM_ENABLE_V1_MULTIPROCESSING is set to False, this may affect the random state of the Python process that launched vLLM.
+INFO 11-21 00:16:25 [model.py:623] Resolved architecture: Qwen3ForCausalLM
+INFO 11-21 00:16:25 [model.py:1788] Using max model len 40960
+INFO 11-21 00:16:25 [scheduler.py:252] Chunked prefill is enabled with max_num_batched_tokens=8192.
+INFO 11-21 00:16:25 [vllm.py:1109] Asynchronous scheduling is enabled.
+WARNING 11-21 00:16:25 [vllm.py:1213] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+INFO 11-21 00:16:25 [kernel.py:295] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+INFO 11-21 00:16:25 [compilation.py:329] Enabled custom fusions: norm_quant, act_quant
+INFO 11-21 00:16:29 [core.py:116] Initializing a V1 LLM engine (v0.26.0) with config: model='/home/esjung/.cache/huggingface/hub/models--Qwen--Qwen3-8B/snapshots/b968826d9c46dd6066d109eabc6255188de91218', speculative_config=None, tokenizer='/home/esjung/.cache/huggingface/hub/models--Qwen--Qwen3-8B/snapshots/b968826d9c46dd6066d109eabc6255188de91218', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, tokenizer_revision=None, trust_remote_code=False, dtype=torch.bfloat16, max_seq_len=40960, download_dir=None, load_format=auto, tensor_parallel_size=1, pipeline_parallel_size=1, data_parallel_size=1, decode_context_parallel_size=1, dcp_comm_backend=ag_rs, disable_custom_all_reduce=False, quantization=None, quantization_config=None, enforce_eager=False, enable_return_routed_experts=False, kv_cache_dtype=auto, device_config=cuda, structured_outputs_config=StructuredOutputsConfig(backend='auto', disable_any_whitespace=False, disable_additional_properties=False, reasoning_parser='', reasoning_parser_plugin='', enable_in_reasoning=False), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None, kv_cache_metrics=False, kv_cache_metrics_sample=0.01, cudagraph_metrics=False, enable_layerwise_nvtx_tracing=False, enable_mfu_metrics=False, enable_mm_processor_stats=False, enable_logging_iteration_details=False, jit_monitor_mode='warn', jit_monitor_verbose=False), seed=2026112101, served_model_name=/home/esjung/.cache/huggingface/hub/models--Qwen--Qwen3-8B/snapshots/b968826d9c46dd6066d109eabc6255188de91218, enable_prefix_caching=False, enable_chunked_prefill=True, pooler_config=None, compilation_config={'mode': <CompilationMode.NONE: 0>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', 'custom_ops': ['all'], 'ir_enable_torch_wrap': False, 'splitting_ops': [], 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'compile_sizes': [], 'compile_ranges_endpoints': [8192], 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'size_asserts': False, 'alignment_asserts': False, 'scalar_asserts': False, 'combo_kernels': True, 'benchmark_combo_kernel': True}, 'inductor_passes': {}, 'cudagraph_mode': <CUDAGraphMode.FULL_DECODE_ONLY: (2, 0)>, 'cudagraph_num_of_warmups': 1, 'cudagraph_capture_sizes': [1, 2, 4, 8, 16, 32], 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': False, 'pass_config': {'fuse_norm_quant': True, 'fuse_act_quant': True, 'fuse_attn_quant': False, 'enable_sp': False, 'fuse_gemm_comms': False, 'fuse_allreduce_rms': False, 'enable_qk_norm_rope_fusion': False, 'fuse_rope_kvcache_cat_mla': False, 'fuse_act_padding': False, 'fuse_qk_norm_rope_kvcache': False}, 'max_cudagraph_capture_size': 32, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': False, 'static_all_moe_layers': []}, kernel_config=KernelConfig(ir_op_priority=IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native']), enable_flashinfer_autotune=True, enable_cutedsl_warmup=True, enable_bf16x3_router_gemm=False, moe_backend='auto', linear_backend='auto')
+INFO 11-21 00:16:32 [parallel_state.py:1615] world_size=1 rank=0 local_rank=0 distributed_init_method=tcp://192.168.0.2:50279 backend=nccl
+INFO 11-21 00:16:32 [parallel_state.py:1946] rank 0 in world size 1 is assigned as DP rank 0, PP rank 0, PCP rank 0, TP rank 0, EP rank N/A, EPLB rank N/A
+INFO 11-21 00:16:32 [gpu_worker.py:378] Using V2 Model Runner
+INFO 11-21 00:16:34 [model_runner.py:284] Loading model from scratch...
+INFO 11-21 00:16:34 [cuda.py:422] Using AttentionBackendEnum.FLASH_ATTN backend.
+INFO 11-21 00:16:34 [flash_attn.py:776] Using FlashAttention version 3
+INFO 11-21 00:16:34 [weight_utils.py:869] Filesystem type for checkpoints: EXT4. Checkpoint size: 15.26 GiB. Available RAM: 1844.03 GiB.
+INFO 11-21 00:16:34 [weight_utils.py:892] Auto-prefetch is disabled because the filesystem (EXT4) is not a recognized network FS (NFS/Lustre). If you want to force prefetching, start vLLM with --safetensors-load-strategy=prefetch.
+Loading safetensors checkpoint shards:   0% Completed | 0/5 [00:00<?, ?it/s]
+Loading safetensors checkpoint shards:  20% Completed | 1/5 [00:01<00:04,  1.04s/it]
+Loading safetensors checkpoint shards:  40% Completed | 2/5 [00:02<00:03,  1.07s/it]
+Loading safetensors checkpoint shards:  60% Completed | 3/5 [00:03<00:02,  1.08s/it]
+Loading safetensors checkpoint shards:  80% Completed | 4/5 [00:04<00:01,  1.01s/it]
+Loading safetensors checkpoint shards: 100% Completed | 5/5 [00:04<00:00,  1.26it/s]
+Loading safetensors checkpoint shards: 100% Completed | 5/5 [00:04<00:00,  1.10it/s]
+
+INFO 11-21 00:16:39 [default_loader.py:430] Loading weights took 4.58 seconds
+INFO 11-21 00:16:40 [model_runner.py:305] Model loading took 15.27 GiB and 6.037934 seconds
+INFO 11-21 00:16:40 [topk_topp_sampler.py:55] Using FlashInfer for top-p & top-k sampling.
+INFO 11-21 00:16:42 [gpu_worker.py:479] Initial free memory 78.68 GiB, reserved 42.0 GiB memory for KV Cache as specified by kv_cache_memory_bytes config and skipped memory profiling. This does not respect the gpu_memory_utilization config. Only use kv_cache_memory_bytes config when you want manual control of KV cache memory size. If OOM'ed, check the difference of initial free memory between the current run and the previous run where kv_cache_memory_bytes is suggested and update it correspondingly.
+INFO 11-21 00:16:42 [kv_cache_utils.py:2177] GPU KV cache size: 305,792 tokens
+INFO 11-21 00:16:42 [kv_cache_utils.py:2178] Maximum concurrency for 40,960 tokens per request: 7.47x
+<frozen importlib._bootstrap_external>:1061: FutureWarning: The cuda.cudart module is deprecated and will be removed in a future release, please switch to use the cuda.bindings.runtime module instead.
+<frozen importlib._bootstrap_external>:1061: FutureWarning: The cuda.nvrtc module is deprecated and will be removed in a future release, please switch to use the cuda.bindings.nvrtc module instead.
+INFO 11-21 00:16:42 [kernel_warmup.py:65] Warming up ll_bf16 router GEMM kernels.
+INFO 11-21 00:16:48 [cutedsl_warmup.py:101] Skipping CuTeDSL warmup because no compile units were requested.
+Capturing CUDA graphs (FULL):   0%|          | 0/6 [00:00<?, ?it/s]Capturing CUDA graphs (FULL):  33%|███▎      | 2/6 [00:00<00:00, 13.04it/s]Capturing CUDA graphs (FULL):  83%|████████▎ | 5/6 [00:00<00:00, 20.13it/s]Capturing CUDA graphs (FULL): 100%|██████████| 6/6 [00:00<00:00, 20.09it/s]
+INFO 11-21 00:16:49 [model_runner.py:747] Graph capturing finished in 1 secs, took 0.12 GiB
+[rank0]: Traceback (most recent call last):
+[rank0]:   File "<frozen runpy>", line 203, in _run_module_as_main
+[rank0]:   File "<frozen runpy>", line 88, in _run_code
+[rank0]:   File "/home/esjung/MLLM-EP-github/poc_flashvep/dense_ar_longbench400_pd/reference_worker.py", line 66, in <module>
+[rank0]:     if __name__=='__main__':main()
+[rank0]:                             ~~~~^^
+[rank0]:   File "/home/esjung/MLLM-EP-github/poc_flashvep/dense_ar_longbench400_pd/reference_worker.py", line 30, in main
+[rank0]:     llm=LLM(**options);engine=llm.llm_engine
+[rank0]:   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/entrypoints/llm.py", line 338, in __init__
+[rank0]:     self.llm_engine = LLMEngine.from_engine_args(
+[rank0]:                       ~~~~~~~~~~~~~~~~~~~~~~~~~~^
+[rank0]:         engine_args=engine_args, usage_context=UsageContext.LLM_CLASS
+[rank0]:         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:     )
+[rank0]:     ^
+[rank0]:   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/v1/engine/llm_engine.py", line 179, in from_engine_args
+[rank0]:     return cls(
+[rank0]:         vllm_config=vllm_config,
+[rank0]:     ...<4 lines>...
+[rank0]:         multiprocess_mode=enable_multiprocessing,
+[rank0]:     )
+[rank0]:   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/v1/engine/llm_engine.py", line 105, in __init__
+[rank0]:     self.engine_core = EngineCoreClient.make_client(
+[rank0]:                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+[rank0]:         multiprocess_mode=multiprocess_mode,
+[rank0]:         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:     ...<3 lines>...
+[rank0]:         log_stats=self.log_stats,
+[rank0]:         ^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:     )
+[rank0]:     ^
+[rank0]:   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/v1/engine/core_client.py", line 105, in make_client
+[rank0]:     return InprocClient(vllm_config, executor_class, log_stats)
+[rank0]:   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/v1/engine/core_client.py", line 287, in __init__
+[rank0]:     self.engine_core = EngineCore(*args, **kwargs)
+[rank0]:                        ~~~~~~~~~~^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/v1/engine/core.py", line 136, in __init__
+[rank0]:     kv_cache_config = self._initialize_kv_caches(vllm_config)
+[rank0]:   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+[rank0]:     return func(*args, **kwargs)
+[rank0]:   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/v1/engine/core.py", line 324, in _initialize_kv_caches
+[rank0]:     self.model_executor.initialize_from_config(kv_cache_configs)
+[rank0]:     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/v1/executor/abstract.py", line 124, in initialize_from_config
+[rank0]:     compilation_times: list[CompilationTimes] = self.collective_rpc(
+[rank0]:                                                 ~~~~~~~~~~~~~~~~~~~^
+[rank0]:         "compile_or_warm_up_model"
+[rank0]:         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:     )
+[rank0]:     ^
+[rank0]:   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/v1/executor/uniproc_executor.py", line 92, in collective_rpc
+[rank0]:     result = run_method(self.driver_worker, method, args, kwargs)
+[rank0]:   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/v1/serial_utils.py", line 510, in run_method
+[rank0]:     return func(*args, **kwargs)
+[rank0]:   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+[rank0]:     return func(*args, **kwargs)
+[rank0]:   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/v1/worker/gpu_worker.py", line 863, in compile_or_warm_up_model
+[rank0]:     warmup_kernels(self.model_runner, self.execute_model, self.sample_tokens)
+[rank0]:     ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/utils/_contextlib.py", line 124, in decorate_context
+[rank0]:     return func(*args, **kwargs)
+[rank0]:   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/v1/worker/gpu/warmup.py", line 283, in warmup_kernels
+[rank0]:     worker_sample_tokens(grammar_output)
+[rank0]:     ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/utils/_contextlib.py", line 124, in decorate_context
+[rank0]:     return func(*args, **kwargs)
+[rank0]:   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/v1/worker/gpu_worker.py", line 1083, in sample_tokens
+[rank0]:     return self.model_runner.sample_tokens(grammar_output)
+[rank0]:            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/utils/_contextlib.py", line 124, in decorate_context
+[rank0]:     return func(*args, **kwargs)
+[rank0]:   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/v1/worker/gpu/eplb_utils.py", line 38, in wrapper
+[rank0]:     result = fn(self, *args, **kwargs)
+[rank0]:   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/v1/worker/gpu/model_runner.py", line 1433, in sample_tokens
+[rank0]:     sampler_output, num_sampled, num_rejected = self.sample(
+[rank0]:                                                 ~~~~~~~~~~~^
+[rank0]:         hidden_states, input_batch, grammar_output
+[rank0]:         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:     )
+[rank0]:     ^
+[rank0]:   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/v1/worker/gpu/model_runner.py", line 1105, in sample
+[rank0]:     sampler_output = self.sampler(logits, input_batch)
+[rank0]:   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/v1/worker/gpu/sample/sampler.py", line 88, in __call__
+[rank0]:     sampled, processed_logits = self.sample(
+[rank0]:                                 ~~~~~~~~~~~^
+[rank0]:         logits,
+[rank0]:         ^^^^^^^
+[rank0]:     ...<5 lines>...
+[rank0]:         return_logprobs=return_logprobs,
+[rank0]:         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:     )
+[rank0]:     ^
+[rank0]:   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/v1/worker/gpu/sample/sampler.py", line 246, in sample
+[rank0]:     sampled = flashinfer_sample(processed_logits, top_k, top_p).to(torch.int64)
+[rank0]:               ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/vllm/v1/sample/ops/topk_topp_sampler.py", line 506, in flashinfer_sample
+[rank0]:     next_token_ids = flashinfer.sampling.top_k_top_p_sampling_from_logits(
+[rank0]:         logits.float().contiguous(), k, p, deterministic=True
+[rank0]:     )
+[rank0]:   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/flashinfer/api_logging.py", line 2333, in _auto_dump_wrapper
+[rank0]:     return _inner(*args, **kwargs)
+[rank0]:   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/flashinfer/sampling.py", line 1547, in top_k_top_p_sampling_from_logits
+[rank0]:     masked_logits = top_k_mask_logits(logits, top_k)
+[rank0]:   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/flashinfer/api_logging.py", line 2333, in _auto_dump_wrapper
+[rank0]:     return _inner(*args, **kwargs)
+[rank0]:   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/flashinfer/sampling.py", line 1974, in top_k_mask_logits
+[rank0]:     return get_sampling_module().top_k_mask_logits(
+[rank0]:            ~~~~~~~~~~~~~~~~~~~^^
+[rank0]:   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/flashinfer/sampling.py", line 68, in get_sampling_module
+[rank0]:     module = gen_sampling_module().build_and_load()
+[rank0]:   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/flashinfer/jit/core.py", line 316, in build_and_load
+[rank0]:     self.build(verbose, need_lock=False)
+[rank0]:     ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/flashinfer/jit/core.py", line 302, in build
+[rank0]:     run_ninja(self.build_dir, self.ninja_path, verbose)
+[rank0]:     ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/flashinfer/jit/cpp_ext.py", line 368, in run_ninja
+[rank0]:     subprocess.run(
+[rank0]:     ~~~~~~~~~~~~~~^
+[rank0]:         command,
+[rank0]:         ^^^^^^^^
+[rank0]:     ...<4 lines>...
+[rank0]:         text=True,
+[rank0]:         ^^^^^^^^^^
+[rank0]:     )
+[rank0]:     ^
+[rank0]:   File "/home/esjung/anaconda3/lib/python3.14/subprocess.py", line 555, in run
+[rank0]:     with Popen(*popenargs, **kwargs) as process:
+[rank0]:          ~~~~~^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/esjung/anaconda3/lib/python3.14/subprocess.py", line 1039, in __init__
+[rank0]:     self._execute_child(args, executable, preexec_fn, close_fds,
+[rank0]:     ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:                         pass_fds, cwd, env,
+[rank0]:                         ^^^^^^^^^^^^^^^^^^^
+[rank0]:     ...<5 lines>...
+[rank0]:                         gid, gids, uid, umask,
+[rank0]:                         ^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:                         start_new_session, process_group)
+[rank0]:                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/esjung/anaconda3/lib/python3.14/subprocess.py", line 1990, in _execute_child
+[rank0]:     raise child_exception_type(errno_num, err_msg, err_filename)
+[rank0]: FileNotFoundError: [Errno 2] No such file or directory: 'ninja'
+[rank0]:[W1121 00:16:51.614991509 ProcessGroupNCCL.cpp:1575] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())

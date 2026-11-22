@@ -1,0 +1,40 @@
+{
+  "time_KST":"2026-11-22 06:23",
+  "status":"ACTIVE_PROGRESS",
+  "read_first":"resume_checkpoint_20261122_0543.json",
+  "main_counts":[38,20,20,17],
+  "main_expected":[80,20,20,20],
+  "other_counts":{"bridge":[23,54],"READ_repair":[11,22],"READ_Layer_extension":[0,3]},
+  "main_lanes1_and2":"Completed normally. Do not restart them. Lane0 and3 remain live1783341/1783347.",
+  "registration_q18":{
+    "controller":1959605,
+    "all5_N32_N400_gates":"PASS: NativeRegistration,NativeCompletionRegistration,LayerRegistration,TokenRegistration,HybridRegistration. These are correctness proofs,not performance CIs.",
+    "pilot_new":"RegistrationPilot_Heldout200_q1.8_s0_TokenRegistration_v1: ITLp99=8.822829ms,TPOTp95=8.013300ms,TTFTp95=2559.712617ms,task quality PASS. One start.",
+    "pilot_old_same_source_pair_trace":"RegistrationPilot_Heldout200_q1.8_s0_TokenOldControl_v1: ITLp99=9.5474ms,TPOTp95=8.4342ms. One start. NativeCompletionRegistration pilot still pending at06:22. Do not claim paired-N3 safety yet.",
+    "transition_diagnostic":"New Token first-transition preceding Host gaps on requests108/122/170/195 are0.803/0.967/1.070/1.406ms. No new D registration completes inside these gaps. First-worker to next-token-step-start p99=1.220424ms,max1.878748ms. IPC receive p99=2.744521ms. Normal registration lifetime PASS. This is not exclusive GPU time.",
+    "independent":"Seven arms ×3 seeds2026112771/72/73,Main400,q1.8,GPU2/3. All fixed before pilot. No confirmation results yet. Complete regardless of pilot direction subject to correctness."
+  },
+  "new_q28_extension":{
+    "controller":2042353,
+    "module":"registration_q28_extension.py",
+    "plan":"configs/request_registration_q28_extension_frozen_v1.json",
+    "source":"Same07cdfb84 overlay. No inference code changed. Original a2 main140,bridge54 andREAD25 remain unchanged.",
+    "wait":"Do not use4/5 until controlled_continuous_bridge_complete_v1.json exists. Controller waits itself.",
+    "proofs":"Reuse exact-source/signature NativeRegistration proof. Eight new Natural32/400 proof starts forNativeCap2Registration,LayerRegistration,TokenRegistration,HybridRegistration. No performance before corresponding pass.",
+    "confirmation":"Twenty-one starts:7 arms ×3 new seeds2026112781/82/83 on4/5,Main400,q2.8. NativeStrong,NativeRegistration(noCap),NativeCap2Registration,LayerRegistration,TokenRegistration,HybridRegistration,TokenOldControl. Keep original q2.8 frozen choices:alloffloadsource8,L8pool16cap2,T8noCompletion/noCap,H4f.125pool16noCap(non-fused). No retuning after outcomes.",
+    "controls":"L exact common NativeCap2Registration; T/H exact common NativeRegistration. Both must also pass NativeStrong. Unchanged CI upper<=1.05 for bothITLp99/TPOTp95. Token registration-only A/B retains old control.",
+    "limits":"QPS-specific source credit/cap/fusion differ fromq1.8 because choices were frozen originally. Do not call cross-QPS differences pure load causality. This is an adaptive safety validation,not replacing original main or new-request generalization.",
+    "end":"Controller automatically calls registration_deferral_analysis.main(PLAN,_q28) after serving. Resultanalysis/request_registration_deferral_q28_results_v1.json;reportdense_ar_longbench400_request_registration_tail_q28.md;fivefiguresregistration_repair_q28_confirmed_{ttft,itl,tpot,goodput,decode_gates}. Pending."
+  },
+  "analysis_refactor":"registration_deferral_campaign.run_plan now accepts an explicit plan/prefix. The already runningq1.8 controller keeps its loaded original loop. registration_deferral_analysis accepts plan_name/suffix and common_native mappings. Default q1.8 output paths stay unchanged. Q28 uses separate files. Syntax and every frozen q28 job/gate signature passed. Full13 CPU tests rerunning in exec session68440 at06:22; poll it or read cpu_final_regression_v1.json. Source edits after the prior CPU pass require a fresh source-bound pass.",
+  "new_CPU_automation":{
+    "controller":2008610,
+    "module":"postprocess_wait.py",
+    "scope":"CPU only. Waits terminal markers for original main,bridge,READ+Layer andq1.8registration. Then regenerates analyses,tables,paired host decomposition,reports andfigures. It never dispatches,retries or tunes GPU work. A terminal invalid data group records ROOT_REVIEW_REQUIRED rather than normal figures. Q28 controller runs its own analysis. Root still must review and publish.",
+    "state":"state/CPU_terminal_postprocessing_progress_v1.json andcomplete marker. Nothing processed yet at06:05."
+  },
+  "new_confirmed_bridge_cell":"Original a2 C3 I3/O16/cap1 is nowN3 complete. TTFTmeansNativeStrong5990.935,NativeCommon5998.110,Layer3827.558,StockToken3090.122,Hybrid3462.432,Mode0Token3245.819ms. StockToken andMode0 pass both Native decode gates. Layer andHybrid fail fast-common NI. H/StockTokenTTFTCI[1.053338,1.174115];H/Mode0[1.020771,1.102865],so no Hybrid win here even against Mode0. O64/cap1 andcap2 still running. Never replace StockToken with Mode0.",
+  "original_heldout_q18_N3":"All10 original arms complete. Layer/Token/Hybrid fail both-control serving qualification. WholeDeflectionCap1 passes both Native controls and TTFT/goodput CIs. Detailed decisionR_FROZEN_HELDOUT_Q18_COMPLETE and final_continuous_strong_confirmation_v1.json. Keep these failed original results,even after adaptive repair.",
+  "verification_changes":"Final work accounting,independent raw metrics,protocol/GPU UUID audit andenvironment check now also require q28 extension. Publisher DOCUMENTS adds separate q28 report. Five extra q28 figures required. New SOURCE files total~185. Every original13 a2 inference file again matched; preservation passed. No archive,commit or push yet.",
+  "remaining":"Complete all live controllers. Judge every NI against unmodified NativeStrong AND exact common policy with unchanged1.05. No final success from single pilot. Generate/review original andboth adaptive results separately. Write final summary and update required reports. Rerun raw metrics,budget,protocol,current-source CPU,model/runtime/overlay integrity. Build SHA-bound scientific12-question review,then closeout all8 freshburners,losslessarchive,private-indexpublication,remoteSHA andpostpushburner check. Goal active with no fixed deadline. Do not create more large experiments unless a concrete remaining safety failure warrants a discriminating intervention."
+}

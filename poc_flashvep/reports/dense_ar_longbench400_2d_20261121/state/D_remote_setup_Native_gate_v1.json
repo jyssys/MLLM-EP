@@ -1,0 +1,126 @@
+{
+  "time": 1795263157.2644606,
+  "passed": true,
+  "full400_passed": true,
+  "results": [
+    {
+      "name": "Q28_RemoteSetup_Native_N1_v1",
+      "numerical": {
+        "passed": true,
+        "n": 1,
+        "valid_prefix_exact": true,
+        "full_prompt_states_observed": true,
+        "strict_teacher": "Q22_NativeValidPrefix_N8_FullState_v2"
+      },
+      "numerical_context": "Original path A"
+    },
+    {
+      "name": "Q28_RemoteSetup_Native_N8_v1",
+      "numerical": {
+        "passed": true,
+        "n": 8,
+        "valid_prefix_exact": true,
+        "full_prompt_states_observed": true,
+        "strict_teacher": "Q31_OriginalCompiledNative_AlternatePath_N8_v1"
+      },
+      "numerical_context": "Original path B"
+    },
+    {
+      "name": "Q28_RemoteSetup_Native_N32_v1",
+      "state": {
+        "passed": true,
+        "n": 32,
+        "valid_prefix_exact": true,
+        "full_prompt_states_observed": true,
+        "strict_teacher": null
+      },
+      "numerical": {
+        "name": "Q28_RemoteSetup_Native_N32_v1",
+        "n": 32,
+        "task_count": 10,
+        "task_macro_delta_percentage_points": 0.023259784255548664,
+        "CI95_percentage_points": [
+          -0.041487696875321355,
+          0.10339934183374737
+        ],
+        "exact_greedy_requests": 27,
+        "cap_hits": 0,
+        "empty_text": 0,
+        "passed": true,
+        "margin_percentage_points": 2.0,
+        "resamples": 4000,
+        "bootstrap_unit": "Within-task context cluster",
+        "dataset_SHA256": "08b44c07d63323f3b56bd1ccfc4253d7888c21f9c8851c776a6563e5f184d68d",
+        "contract_SHA256": "870db1df885ebbcf6dc62a38cef26fba4b93ddeb557d0ed5cb3ecd77f7ec6edc",
+        "evidence": "TASK_QUALITY_NONINFERIORITY",
+        "scope": "This gate compares actual natural outputs with the frozen BI0 single-GPU reference. It does not prove KV correctness. Its request-cluster CI is not a server-start performance CI."
+      },
+      "compute_deferral": {
+        "meaningful_mixed_batches": 0,
+        "maximum_D_batch": 2,
+        "batches": 989,
+        "scope": "Native one-query prompt recomputation is not a large suffix prefill. This coverage test does not assign GPU-exclusive cost or prove decode noninferiority."
+      }
+    },
+    {
+      "name": "Q28_RemoteSetup_Native_N400_v1",
+      "state": {
+        "passed": true,
+        "n": 400,
+        "valid_prefix_exact": true,
+        "full_prompt_states_observed": true,
+        "strict_teacher": null
+      },
+      "numerical": {
+        "name": "Q28_RemoteSetup_Native_N400_v1",
+        "n": 400,
+        "task_count": 11,
+        "task_macro_delta_percentage_points": 0.4161394025455248,
+        "CI95_percentage_points": [
+          -0.047199982197361656,
+          1.1018978769789165
+        ],
+        "exact_greedy_requests": 323,
+        "cap_hits": 0,
+        "empty_text": 0,
+        "passed": true,
+        "margin_percentage_points": 2.0,
+        "resamples": 4000,
+        "bootstrap_unit": "Within-task context cluster",
+        "dataset_SHA256": "2c67ccb92835ec2ca308ba745d52247e809be1d3012bd100843d954272787f67",
+        "contract_SHA256": "870db1df885ebbcf6dc62a38cef26fba4b93ddeb557d0ed5cb3ecd77f7ec6edc",
+        "evidence": "TASK_QUALITY_NONINFERIORITY",
+        "scope": "This gate compares actual natural outputs with the frozen BI0 single-GPU reference. It does not prove KV correctness. Its request-cluster CI is not a server-start performance CI."
+      },
+      "compute_deferral": {
+        "meaningful_mixed_batches": 0,
+        "maximum_D_batch": 4,
+        "batches": 10728,
+        "scope": "Native one-query prompt recomputation is not a large suffix prefill. This coverage test does not assign GPU-exclusive cost or prove decode noninferiority."
+      }
+    }
+  ],
+  "original_numerical_paths": {
+    "path_A_teacher": "Q22_NativeValidPrefix_N8_FullState_v2",
+    "path_B_teacher": "Q31_OriginalCompiledNative_AlternatePath_N8_v1",
+    "N1_strict": {
+      "passed": true,
+      "n": 1,
+      "valid_prefix_exact": true,
+      "full_prompt_states_observed": true,
+      "strict_teacher": "Q22_NativeValidPrefix_N8_FullState_v2"
+    },
+    "N8_strict": {
+      "passed": true,
+      "n": 8,
+      "valid_prefix_exact": true,
+      "full_prompt_states_observed": true,
+      "strict_teacher": "Q31_OriginalCompiledNative_AlternatePath_N8_v1"
+    },
+    "historical_strict_comparison_failed": true,
+    "cross_path_bitwise_invariance": false,
+    "scope": "The original compiled model produces two distinct BF16 tensor paths. The N8 changed-policy tensors match an independent original-model teacher for the second path exactly. The teacher uses the original full36 layers and weights. It performs no tensor or token correction. Its kernel capture is an accuracy diagnostic,not a latency reference. The exact operator that selects these paths is NOT_IDENTIFIED. FP32 diagnostic errors do not replace the separate task-quality gate. Do not claim strict equality between paths or all independent BI0 starts."
+  },
+  "evidence": "CORRECTNESS_ONLY",
+  "scope": "State transport,execution coverage and task quality pass under the declared BI0 path contract. N1 and N8 have separate path-matched original teachers. Historical strict failures remain failures across paths. No cross-path bitwise or performance guarantee. Normal completion only."
+}

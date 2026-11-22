@@ -1,0 +1,44 @@
+{
+  "time_KST":"2026-11-22 07:10",
+  "status":"ACTIVE_PROGRESS_AND_VERIFIED_WAIT",
+  "read_first":"resume_checkpoint_20261122_0630.json",
+  "counts_last_verified":{"main_lanes":[50,20,20,20],"main_expected":[80,20,20,20],"bridge":[43,54],"READ_repair":[16,22],"Layer_extension":[0,3],"registration_q18":[9,24],"q28_extension":"Controller2042353 waits for bridge54 to release4/5. No q28 GPU start yet."},
+  "main_only_lane0_remaining":"Lanes1/2/3 completed normally. Never restart them. Lane0 PID1783341 still runs remaining Heldout200 q2.8 and Main400 q1.8/2.8 blocks on0/1. Frozen140 unchanged.",
+  "new_registration_first_confirm_block":{
+    "scope":"Main400,q1.8,newseed2026112771,pair2/3. Six ofseven arms completed,NativeStrong still pending. One independent start per arm,not a safety CI.",
+    "TokenRegistration":{"ITL_p99_ms":8.686126098036764,"TPOT_p95_ms":8.004262431059033,"TTFT_p95_ms":2454.3896234594267},
+    "TokenOldControl":{"ITL_p99_ms":8.874350152909756,"TPOT_p95_ms":8.233264297808683,"TTFT_p95_ms":2509.263663180172},
+    "NativeCompletionRegistration":{"ITL_p99_ms":8.76918479800224,"TPOT_p95_ms":7.9540275765630675,"TTFT_p95_ms":3805.44540695846},
+    "HybridRegistration":{"ITL_p99_ms":8.883744478225708,"TPOT_p95_ms":8.229730501770973,"TTFT_p95_ms":2778.7905648350716},
+    "LayerRegistration":{"ITL_p99_ms":8.855315744876862,"TPOT_p95_ms":8.214010235760327,"TTFT_p95_ms":2830.5352493189266},
+    "NativeRegistration":{"ITL_p99_ms":8.73284367844463,"TPOT_p95_ms":7.932939616894913,"TTFT_p95_ms":3806.466074939817},
+    "gate":"These points are close,but final safety requires three paired starts against NativeStrong AND exact common Native. No threshold change,no favorable-seed repeat,no replacement of old failures.",
+    "Source_credit":"q1.8Token0,Layer4,Hybrid4,allNative0. q2.8alloffload8. This is best-versus-best C3,not batch/credit-matched mechanism control."
+  },
+  "controlled_C3_O64_cap1_N3":{
+    "status":"All six armsN3 complete. Cap2 still pending.",
+    "TTFT_means_ms":{"Layer":4153.7144,"StockToken":4117.7576,"Hybrid":4335.5822,"Mode0Token":4405.1019},
+    "Layer_over_StockToken_TTFT":"1.008732,CI[.991199,1.030300]. No confirmed Layer win.",
+    "Hybrid_over_StockToken_TTFT":"1.052899,CI[1.016506,1.088930]. Hybrid is slower.",
+    "Hybrid_over_Mode0_TTFT":".984218,CI[.967055,1.000025]. It includes1. Do not round it into a win or replace StockToken with Mode0.",
+    "safety":"All offload arms in this O64/cap1 cell fail a Native-relative5percent gate. No qualified hybrid/Layer serving win. DecisionR_C3_LONG_OUTPUT_BRIDGE_64_COMPLETE saved.",
+    "analysis_change":"controlled_bridge_analysis now also computes Layer/StockToken and Layer/Mode0 comparisons. The automatic bridge report will include them. This is CPU-only,not an inference change."
+  },
+  "rare_delivery_tail_limit":{
+    "case":"C3Bridge_I3_O64_Cap1_s1_StockToken_v1,q1 has clientITL384.483039ms while same worker notification gap is8.083349ms. No recorded mixed/offload/NIXL/hidden overlap.",
+    "source_counterevidence":"Ingress already uses per-role sender queues/threads. Direct synchronous socket send blocking the coordinator is not supported by source. Current CPU nr_throttled0,low pressure and ample memory do not identify a historical rare event.",
+    "decision":"Exact causeNOT_IDENTIFIED. All intervals remain in Primary client metrics. Do not relabel this as GPU compute or use worker timestamps instead. N16 one bad request means at most15/16 absolute attainment. Added limitations to continuous report and decisionR_CLIENT_ONLY_DELIVERY_TAIL_LIMIT. No speculative runtime change or extra GPU job.",
+    "records":"All six O64/cap1 StockToken/Hybrid starts have decode_tail_audit JSONs. Their tails have0 mixed/offload/NIXL/hidden overlap. Large first-transition host registration remains the separately tested policy hypothesis; maximum-client-delay cause is not fully explained."
+  },
+  "new_audits_and_docs":{
+    "protocol":"final_protocol_integrity_audit additionally checks new non-borrowed start_epoch>=plan.freeze_time and reports source_capsules_by_plan. Latest151 verified,113 pending,0 failed at06:41. Root main sourcea2 and overlay071 remain separate. Rerun at final.",
+    "Layer_freeze":"Verified extra Layer control froze04:23:16 before first READ repair confirmation start04:30:11. Its later execution block is still not jointly randomized.",
+    "dataset_order":"Verified actual400 manifest equals SHA256(arrival-order-+seed+prompt_id) sort,seed2026112101. Input-quarter means13730.36/14912.83/13708.55/13006.66 tokens. RR0/1 each200 requests;inputs2832232/2703608 tokens;C1 outputs5298/5670. Added dataset-contract section. These are not actual generated Agg output totals or stationarity proof.",
+    "dynamic":"Changed report status to HOLD_DECODE_SAFE_WINDOW_NOT_IDENTIFIED. Added separate pre-vLLM host registration queue accounting. Static confidence and safe-window gates remain distinct. No dynamic-size or axis gain claimed.",
+    "registration_report":"Now explicitly says best-versus-best C3,not actual1/1/1 or credit/iso-work matched. It records actual credits,compile families,caps,geometry,source/model/dataset hashes and proxy queue. Added source-only clarification,not inference edits.",
+    "CPU":"Source helpers changed after last13-test pass. Rerun source-bound CPU tests at final. Original13 a2 inference files and071 helper have not changed."
+  },
+  "controllers_still_required":{"main0":1783341,"bridge":1746670,"READ":1842157,"Layer_extension":1878456,"registration_q18":1959605,"registration_q28":2042353,"analysis_only":1977727,"CPU_postprocess":2008610,"guardian":910895,"watcher":910918},
+  "not_done":"No archive,commit,push or final all8 burner closeout. Final summary missing. All manual12-question review,report/figure inspection,rawmetric/budget/protocol/CPU/model-runtime audits and publication remain. Do not mark complete. Wait for all controllers,including q28 and Layer extension.",
+  "next":"Monitor actual PIDs/markers and finish all frozen starts. Judge unchanged both-Native5percent CI andabsolute gates. Only a concrete residual failure justifies another discriminating intervention. No new favorable-cell search. CPU postprocess handles main/bridge/READ/q18 terminal analyses; q28 controller handles its own report. Root must review,write final12answers,closeout,burners,archive,private-indexpush,remoteSHA andpostpush resource verification. Goal active,no fixed deadline."
+}

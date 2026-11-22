@@ -1,0 +1,85 @@
+{
+  "passed": true,
+  "full400_passed": true,
+  "variant": "Native",
+  "axis": "Native",
+  "cut": 0,
+  "proofs": [
+    {
+      "name": "Q38_CompletionGuard_Native_Natural32_v1",
+      "state": {
+        "passed": true,
+        "n": 32,
+        "valid_prefix_exact": true,
+        "full_prompt_states_observed": true,
+        "strict_teacher": null
+      },
+      "quality": {
+        "name": "Q38_CompletionGuard_Native_Natural32_v1",
+        "n": 32,
+        "task_count": 10,
+        "task_macro_delta_percentage_points": -0.01093968787535512,
+        "CI95_percentage_points": [
+          -0.12128646518076351,
+          0.10339934183374737
+        ],
+        "exact_greedy_requests": 28,
+        "cap_hits": 0,
+        "empty_text": 0,
+        "passed": true,
+        "margin_percentage_points": 2.0,
+        "resamples": 4000,
+        "bootstrap_unit": "Within-task context cluster",
+        "dataset_SHA256": "08b44c07d63323f3b56bd1ccfc4253d7888c21f9c8851c776a6563e5f184d68d",
+        "contract_SHA256": "870db1df885ebbcf6dc62a38cef26fba4b93ddeb557d0ed5cb3ecd77f7ec6edc",
+        "evidence": "TASK_QUALITY_NONINFERIORITY",
+        "scope": "This gate compares actual natural outputs with the frozen BI0 single-GPU reference. It does not prove KV correctness. Its request-cluster CI is not a server-start performance CI."
+      },
+      "compute_rule": {
+        "meaningful_mixed_batches": 0,
+        "maximum_D_batch": 2,
+        "batches": 980,
+        "scope": "Native one-query prompt recomputation is not a large suffix prefill. This coverage test does not assign GPU-exclusive cost or prove decode noninferiority."
+      }
+    },
+    {
+      "name": "Q38_CompletionGuard_Native_Natural400_v1",
+      "state": {
+        "passed": true,
+        "n": 400,
+        "valid_prefix_exact": true,
+        "full_prompt_states_observed": true,
+        "strict_teacher": null
+      },
+      "quality": {
+        "name": "Q38_CompletionGuard_Native_Natural400_v1",
+        "n": 400,
+        "task_count": 11,
+        "task_macro_delta_percentage_points": 0.41109263987265815,
+        "CI95_percentage_points": [
+          -0.048260546430235515,
+          1.0772886979107863
+        ],
+        "exact_greedy_requests": 325,
+        "cap_hits": 0,
+        "empty_text": 0,
+        "passed": true,
+        "margin_percentage_points": 2.0,
+        "resamples": 4000,
+        "bootstrap_unit": "Within-task context cluster",
+        "dataset_SHA256": "2c67ccb92835ec2ca308ba745d52247e809be1d3012bd100843d954272787f67",
+        "contract_SHA256": "870db1df885ebbcf6dc62a38cef26fba4b93ddeb557d0ed5cb3ecd77f7ec6edc",
+        "evidence": "TASK_QUALITY_NONINFERIORITY",
+        "scope": "This gate compares actual natural outputs with the frozen BI0 single-GPU reference. It does not prove KV correctness. Its request-cluster CI is not a server-start performance CI."
+      },
+      "compute_rule": {
+        "meaningful_mixed_batches": 0,
+        "maximum_D_batch": 4,
+        "batches": 10729,
+        "scope": "Native one-query prompt recomputation is not a large suffix prefill. This coverage test does not assign GPU-exclusive cost or prove decode noninferiority."
+      }
+    }
+  ],
+  "evidence": "CORRECTNESS_ONLY",
+  "scope": "Inherited independent N1/N8 action-state proofs plus new policy-specific Natural32/400 checks. The rule changes pre-allocation admission only. Model forward and state-transfer functions are unchanged. Natural batching can change BI0 outputs. No performance or universal safety claim."
+}

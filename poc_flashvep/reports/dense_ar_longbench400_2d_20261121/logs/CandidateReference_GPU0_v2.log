@@ -1,0 +1,316 @@
+INFO 11-21 00:19:47 [api_utils.py:273] non-default args: {'tokenizer': '/home/esjung/.cache/huggingface/hub/models--Qwen--Qwen3-8B/snapshots/b968826d9c46dd6066d109eabc6255188de91218', 'dtype': 'bfloat16', 'seed': 2026112101, 'max_model_len': 40960, 'block_size': 128, 'enable_prefix_caching': False, 'kv_cache_memory_bytes': 45097156608, 'max_num_batched_tokens': 8192, 'max_num_seqs': 1024, 'disable_log_stats': True, 'enable_chunked_prefill': True, 'compilation_config': {'mode': <CompilationMode.NONE: 0>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', 'custom_ops': [], 'ir_enable_torch_wrap': None, 'splitting_ops': None, 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'compile_sizes': None, 'compile_ranges_endpoints': None, 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'size_asserts': False, 'alignment_asserts': False, 'scalar_asserts': False, 'combo_kernels': True, 'benchmark_combo_kernel': True}, 'inductor_passes': {}, 'cudagraph_mode': <CUDAGraphMode.FULL_DECODE_ONLY: (2, 0)>, 'cudagraph_num_of_warmups': 0, 'cudagraph_capture_sizes': [1, 2, 4, 8, 16, 32], 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': None, 'pass_config': {}, 'max_cudagraph_capture_size': None, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': None, 'static_all_moe_layers': []}, 'attention_config': AttentionConfig(backend=<AttentionBackendEnum.FLASH_ATTN: 'vllm.v1.attention.backends.flash_attn.FlashAttentionBackend'>, backend_per_kind={}, flash_attn_version=None, use_prefill_decode_attention=False, flash_attn_max_num_splits_for_cuda_graph=32, tq_max_kv_splits_for_cuda_graph=32, use_trtllm_attention=None, disable_flashinfer_q_quantization=False, mla_prefill_backend=None, use_prefill_query_quantization=False, use_fp4_indexer_cache=False, indexer_kv_dtype='bf16', use_non_causal=False, sparse_mla_force_mqa=False, flex_attn_block_m=None, flex_attn_block_n=None, flex_attn_q_block_size=None, flex_attn_kv_block_size=None), 'async_scheduling': True, 'model': '/home/esjung/.cache/huggingface/hub/models--Qwen--Qwen3-8B/snapshots/b968826d9c46dd6066d109eabc6255188de91218'}
+WARNING 11-21 00:19:47 [arg_utils.py:1631] The global random seed is set to 2026112101. Since VLLM_ENABLE_V1_MULTIPROCESSING is set to False, this may affect the random state of the Python process that launched vLLM.
+INFO 11-21 00:19:47 [model.py:623] Resolved architecture: Qwen3ForCausalLM
+INFO 11-21 00:19:47 [model.py:1788] Using max model len 40960
+INFO 11-21 00:19:47 [scheduler.py:252] Chunked prefill is enabled with max_num_batched_tokens=8192.
+INFO 11-21 00:19:47 [vllm.py:1109] Asynchronous scheduling is enabled.
+WARNING 11-21 00:19:47 [vllm.py:1213] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+INFO 11-21 00:19:47 [kernel.py:295] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+INFO 11-21 00:19:47 [compilation.py:329] Enabled custom fusions: norm_quant, act_quant
+INFO 11-21 00:19:51 [core.py:116] Initializing a V1 LLM engine (v0.26.0) with config: model='/home/esjung/.cache/huggingface/hub/models--Qwen--Qwen3-8B/snapshots/b968826d9c46dd6066d109eabc6255188de91218', speculative_config=None, tokenizer='/home/esjung/.cache/huggingface/hub/models--Qwen--Qwen3-8B/snapshots/b968826d9c46dd6066d109eabc6255188de91218', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, tokenizer_revision=None, trust_remote_code=False, dtype=torch.bfloat16, max_seq_len=40960, download_dir=None, load_format=auto, tensor_parallel_size=1, pipeline_parallel_size=1, data_parallel_size=1, decode_context_parallel_size=1, dcp_comm_backend=ag_rs, disable_custom_all_reduce=False, quantization=None, quantization_config=None, enforce_eager=False, enable_return_routed_experts=False, kv_cache_dtype=auto, device_config=cuda, structured_outputs_config=StructuredOutputsConfig(backend='auto', disable_any_whitespace=False, disable_additional_properties=False, reasoning_parser='', reasoning_parser_plugin='', enable_in_reasoning=False), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None, kv_cache_metrics=False, kv_cache_metrics_sample=0.01, cudagraph_metrics=False, enable_layerwise_nvtx_tracing=False, enable_mfu_metrics=False, enable_mm_processor_stats=False, enable_logging_iteration_details=False, jit_monitor_mode='warn', jit_monitor_verbose=False), seed=2026112101, served_model_name=/home/esjung/.cache/huggingface/hub/models--Qwen--Qwen3-8B/snapshots/b968826d9c46dd6066d109eabc6255188de91218, enable_prefix_caching=False, enable_chunked_prefill=True, pooler_config=None, compilation_config={'mode': <CompilationMode.NONE: 0>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', 'custom_ops': ['all'], 'ir_enable_torch_wrap': False, 'splitting_ops': [], 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'compile_sizes': [], 'compile_ranges_endpoints': [8192], 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'size_asserts': False, 'alignment_asserts': False, 'scalar_asserts': False, 'combo_kernels': True, 'benchmark_combo_kernel': True}, 'inductor_passes': {}, 'cudagraph_mode': <CUDAGraphMode.FULL_DECODE_ONLY: (2, 0)>, 'cudagraph_num_of_warmups': 1, 'cudagraph_capture_sizes': [1, 2, 4, 8, 16, 32], 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': False, 'pass_config': {'fuse_norm_quant': True, 'fuse_act_quant': True, 'fuse_attn_quant': False, 'enable_sp': False, 'fuse_gemm_comms': False, 'fuse_allreduce_rms': False, 'enable_qk_norm_rope_fusion': False, 'fuse_rope_kvcache_cat_mla': False, 'fuse_act_padding': False, 'fuse_qk_norm_rope_kvcache': False}, 'max_cudagraph_capture_size': 32, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': False, 'static_all_moe_layers': []}, kernel_config=KernelConfig(ir_op_priority=IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native']), enable_flashinfer_autotune=True, enable_cutedsl_warmup=True, enable_bf16x3_router_gemm=False, moe_backend='auto', linear_backend='auto')
+INFO 11-21 00:19:52 [parallel_state.py:1615] world_size=1 rank=0 local_rank=0 distributed_init_method=tcp://192.168.0.2:33565 backend=nccl
+INFO 11-21 00:19:52 [parallel_state.py:1946] rank 0 in world size 1 is assigned as DP rank 0, PP rank 0, PCP rank 0, TP rank 0, EP rank N/A, EPLB rank N/A
+INFO 11-21 00:19:52 [gpu_worker.py:378] Using V2 Model Runner
+INFO 11-21 00:19:54 [model_runner.py:284] Loading model from scratch...
+INFO 11-21 00:19:54 [cuda.py:422] Using AttentionBackendEnum.FLASH_ATTN backend.
+INFO 11-21 00:19:54 [flash_attn.py:776] Using FlashAttention version 3
+INFO 11-21 00:19:56 [weight_utils.py:869] Filesystem type for checkpoints: EXT4. Checkpoint size: 15.26 GiB. Available RAM: 1844.09 GiB.
+INFO 11-21 00:19:56 [weight_utils.py:892] Auto-prefetch is disabled because the filesystem (EXT4) is not a recognized network FS (NFS/Lustre). If you want to force prefetching, start vLLM with --safetensors-load-strategy=prefetch.
+Loading safetensors checkpoint shards:   0% Completed | 0/5 [00:00<?, ?it/s]
+Loading safetensors checkpoint shards:  20% Completed | 1/5 [00:01<00:04,  1.07s/it]
+Loading safetensors checkpoint shards:  40% Completed | 2/5 [00:02<00:03,  1.17s/it]
+Loading safetensors checkpoint shards:  60% Completed | 3/5 [00:03<00:02,  1.15s/it]
+Loading safetensors checkpoint shards:  80% Completed | 4/5 [00:04<00:01,  1.04s/it]
+Loading safetensors checkpoint shards: 100% Completed | 5/5 [00:04<00:00,  1.23it/s]
+Loading safetensors checkpoint shards: 100% Completed | 5/5 [00:04<00:00,  1.06it/s]
+
+INFO 11-21 00:20:01 [default_loader.py:430] Loading weights took 4.77 seconds
+INFO 11-21 00:20:02 [model_runner.py:305] Model loading took 15.27 GiB and 8.227481 seconds
+INFO 11-21 00:20:03 [topk_topp_sampler.py:55] Using FlashInfer for top-p & top-k sampling.
+INFO 11-21 00:20:04 [gpu_worker.py:479] Initial free memory 78.68 GiB, reserved 42.0 GiB memory for KV Cache as specified by kv_cache_memory_bytes config and skipped memory profiling. This does not respect the gpu_memory_utilization config. Only use kv_cache_memory_bytes config when you want manual control of KV cache memory size. If OOM'ed, check the difference of initial free memory between the current run and the previous run where kv_cache_memory_bytes is suggested and update it correspondingly.
+INFO 11-21 00:20:04 [kv_cache_utils.py:2177] GPU KV cache size: 305,792 tokens
+INFO 11-21 00:20:04 [kv_cache_utils.py:2178] Maximum concurrency for 40,960 tokens per request: 7.47x
+<frozen importlib._bootstrap_external>:1061: FutureWarning: The cuda.cudart module is deprecated and will be removed in a future release, please switch to use the cuda.bindings.runtime module instead.
+<frozen importlib._bootstrap_external>:1061: FutureWarning: The cuda.nvrtc module is deprecated and will be removed in a future release, please switch to use the cuda.bindings.nvrtc module instead.
+INFO 11-21 00:20:04 [kernel_warmup.py:65] Warming up ll_bf16 router GEMM kernels.
+INFO 11-21 00:20:15 [cutedsl_warmup.py:101] Skipping CuTeDSL warmup because no compile units were requested.
+Capturing CUDA graphs (FULL):   0%|          | 0/6 [00:00<?, ?it/s]Capturing CUDA graphs (FULL):  33%|███▎      | 2/6 [00:00<00:00, 11.34it/s]Capturing CUDA graphs (FULL):  67%|██████▋   | 4/6 [00:00<00:00, 14.44it/s]Capturing CUDA graphs (FULL): 100%|██████████| 6/6 [00:00<00:00, 15.75it/s]
+INFO 11-21 00:20:16 [model_runner.py:747] Graph capturing finished in 1 secs, took 0.12 GiB
+[WARNING] Field "span" in type "ir.TupleType" duplicates an ancestor field in "ir.Type". Child types should not re-register inherited fields.
+[WARNING] Field "span" in type "ir.FuncType" duplicates an ancestor field in "ir.Type". Child types should not re-register inherited fields.
+[WARNING] Field "span" in type "ir.TensorMapType" duplicates an ancestor field in "ir.Type". Child types should not re-register inherited fields.
+[WARNING] Field "binding_blocks" in type "script.ir_builder.relax.FunctionFrame" duplicates an ancestor field in "script.ir_builder.relax.SeqExprFrame". Child types should not re-register inherited fields.
+[WARNING] Field "output" in type "script.ir_builder.relax.FunctionFrame" duplicates an ancestor field in "script.ir_builder.relax.SeqExprFrame". Child types should not re-register inherited fields.
+INFO 11-21 00:20:17 [jit_monitor.py:79] Kernel JIT monitor activated; monitored JIT compilations during inference will use mode=warn.
+INFO 11-21 00:20:17 [core.py:347] init engine (profile, create kv cache, warmup model) took 14.43 s
+NATURAL_REFERENCE 0 1 271 multifieldqa_en 3
+NATURAL_REFERENCE 0 2 271 multifieldqa_en 3
+NATURAL_REFERENCE 0 3 271 multifieldqa_en 4
+NATURAL_REFERENCE 0 4 271 multifieldqa_en 9
+NATURAL_REFERENCE 0 5 271 multifieldqa_en 72
+NATURAL_REFERENCE 0 6 271 multifieldqa_en 16
+NATURAL_REFERENCE 0 7 271 multifieldqa_en 4
+NATURAL_REFERENCE 0 8 271 multifieldqa_en 8
+NATURAL_REFERENCE 0 9 271 multifieldqa_en 55
+NATURAL_REFERENCE 0 10 271 multifieldqa_en 3
+NATURAL_REFERENCE 0 11 271 multifieldqa_en 34
+NATURAL_REFERENCE 0 12 271 multifieldqa_en 41
+NATURAL_REFERENCE 0 13 271 multifieldqa_en 22
+NATURAL_REFERENCE 0 14 271 multifieldqa_en 10
+NATURAL_REFERENCE 0 15 271 multifieldqa_en 5
+NATURAL_REFERENCE 0 16 271 multifieldqa_en 24
+NATURAL_REFERENCE 0 17 271 multifieldqa_en 38
+NATURAL_REFERENCE 0 18 271 qasper 16
+NATURAL_REFERENCE 0 19 271 qasper 65
+NATURAL_REFERENCE 0 20 271 qasper 18
+NATURAL_REFERENCE 0 21 271 qasper 4
+NATURAL_REFERENCE 0 22 271 qasper 2
+NATURAL_REFERENCE 0 23 271 qasper 2
+NATURAL_REFERENCE 0 24 271 qasper 34
+NATURAL_REFERENCE 0 25 271 qasper 8
+NATURAL_REFERENCE 0 26 271 qasper 7
+NATURAL_REFERENCE 0 27 271 qasper 11
+NATURAL_REFERENCE 0 28 271 qasper 29
+NATURAL_REFERENCE 0 29 271 qasper 4
+NATURAL_REFERENCE 0 30 271 qasper 3
+NATURAL_REFERENCE 0 31 271 qasper 16
+NATURAL_REFERENCE 0 32 271 qasper 32
+NATURAL_REFERENCE 0 33 271 qasper 24
+NATURAL_REFERENCE 0 34 271 qasper 29
+NATURAL_REFERENCE 0 35 271 qasper 17
+NATURAL_REFERENCE 0 36 271 qasper 5
+NATURAL_REFERENCE 0 37 271 qasper 18
+NATURAL_REFERENCE 0 38 271 qasper 5
+NATURAL_REFERENCE 0 39 271 samsum 27
+NATURAL_REFERENCE 0 40 271 samsum 27
+NATURAL_REFERENCE 0 41 271 samsum 32
+NATURAL_REFERENCE 0 42 271 samsum 34
+NATURAL_REFERENCE 0 43 271 samsum 21
+NATURAL_REFERENCE 0 44 271 samsum 29
+NATURAL_REFERENCE 0 45 271 samsum 24
+NATURAL_REFERENCE 0 46 271 samsum 20
+NATURAL_REFERENCE 0 47 271 samsum 38
+NATURAL_REFERENCE 0 48 271 samsum 58
+NATURAL_REFERENCE 0 49 271 samsum 74
+NATURAL_REFERENCE 0 50 271 samsum 19
+NATURAL_REFERENCE 0 51 271 samsum 49
+NATURAL_REFERENCE 0 52 271 samsum 61
+NATURAL_REFERENCE 0 53 271 samsum 46
+NATURAL_REFERENCE 0 54 271 samsum 27
+NATURAL_REFERENCE 0 55 271 samsum 22
+NATURAL_REFERENCE 0 56 271 samsum 27
+NATURAL_REFERENCE 0 57 271 samsum 51
+NATURAL_REFERENCE 0 58 271 samsum 66
+NATURAL_REFERENCE 0 59 271 samsum 42
+NATURAL_REFERENCE 0 60 271 samsum 75
+NATURAL_REFERENCE 0 61 271 samsum 25
+NATURAL_REFERENCE 0 62 271 gov_report 590
+NATURAL_REFERENCE 0 63 271 gov_report 452
+NATURAL_REFERENCE 0 64 271 gov_report 661
+NATURAL_REFERENCE 0 65 271 gov_report 576
+NATURAL_REFERENCE 0 66 271 gov_report 421
+NATURAL_REFERENCE 0 67 271 gov_report 518
+NATURAL_REFERENCE 0 68 271 gov_report 449
+NATURAL_REFERENCE 0 69 271 gov_report 445
+NATURAL_REFERENCE 0 70 271 gov_report 531
+NATURAL_REFERENCE 0 71 271 gov_report 545
+NATURAL_REFERENCE 0 72 271 gov_report 609
+NATURAL_REFERENCE 0 73 271 gov_report 434
+NATURAL_REFERENCE 0 74 271 gov_report 471
+NATURAL_REFERENCE 0 75 271 gov_report 590
+NATURAL_REFERENCE 0 76 271 gov_report 470
+NATURAL_REFERENCE 0 77 271 gov_report 601
+NATURAL_REFERENCE 0 78 271 gov_report 600
+NATURAL_REFERENCE 0 79 271 gov_report 470
+NATURAL_REFERENCE 0 80 271 gov_report 603
+NATURAL_REFERENCE 0 81 271 gov_report 530
+NATURAL_REFERENCE 0 82 271 gov_report 629
+NATURAL_REFERENCE 0 83 271 gov_report 426
+NATURAL_REFERENCE 0 84 271 gov_report 635
+NATURAL_REFERENCE 0 85 271 gov_report 512
+NATURAL_REFERENCE 0 86 271 triviaqa 4
+NATURAL_REFERENCE 0 87 271 triviaqa 4
+NATURAL_REFERENCE 0 88 271 triviaqa 8
+NATURAL_REFERENCE 0 89 271 triviaqa 7
+NATURAL_REFERENCE 0 90 271 triviaqa 5
+NATURAL_REFERENCE 0 91 271 triviaqa 3
+NATURAL_REFERENCE 0 92 271 triviaqa 4
+NATURAL_REFERENCE 0 93 271 triviaqa 3
+NATURAL_REFERENCE 0 94 271 triviaqa 3
+NATURAL_REFERENCE 0 95 271 triviaqa 4
+NATURAL_REFERENCE 0 96 271 triviaqa 5
+NATURAL_REFERENCE 0 97 271 triviaqa 5
+NATURAL_REFERENCE 0 98 271 triviaqa 3
+NATURAL_REFERENCE 0 99 271 triviaqa 3
+NATURAL_REFERENCE 0 100 271 triviaqa 5
+NATURAL_REFERENCE 0 101 271 triviaqa 5
+NATURAL_REFERENCE 0 102 271 triviaqa 4
+NATURAL_REFERENCE 0 103 271 triviaqa 7
+NATURAL_REFERENCE 0 104 271 triviaqa 3
+NATURAL_REFERENCE 0 105 271 triviaqa 4
+NATURAL_REFERENCE 0 106 271 triviaqa 4
+NATURAL_REFERENCE 0 107 271 triviaqa 4
+NATURAL_REFERENCE 0 108 271 triviaqa 3
+NATURAL_REFERENCE 0 109 271 qmsum 86
+NATURAL_REFERENCE 0 110 271 qmsum 91
+NATURAL_REFERENCE 0 111 271 qmsum 130
+NATURAL_REFERENCE 0 112 271 qmsum 52
+NATURAL_REFERENCE 0 113 271 qmsum 72
+NATURAL_REFERENCE 0 114 271 qmsum 123
+NATURAL_REFERENCE 0 115 271 qmsum 131
+NATURAL_REFERENCE 0 116 271 qmsum 42
+NATURAL_REFERENCE 0 117 271 qmsum 113
+NATURAL_REFERENCE 0 118 271 qmsum 54
+NATURAL_REFERENCE 0 119 271 qmsum 71
+NATURAL_REFERENCE 0 120 271 qmsum 85
+NATURAL_REFERENCE 0 121 271 qmsum 139
+NATURAL_REFERENCE 0 122 271 qmsum 110
+NATURAL_REFERENCE 0 123 271 qmsum 83
+NATURAL_REFERENCE 0 124 271 qmsum 79
+NATURAL_REFERENCE 0 125 271 qmsum 67
+NATURAL_REFERENCE 0 126 271 qmsum 64
+NATURAL_REFERENCE 0 127 271 qmsum 53
+NATURAL_REFERENCE 0 128 271 qmsum 98
+NATURAL_REFERENCE 0 129 271 qmsum 74
+NATURAL_REFERENCE 0 130 271 qmsum 70
+NATURAL_REFERENCE 0 131 271 qmsum 113
+NATURAL_REFERENCE 0 132 271 qmsum 129
+NATURAL_REFERENCE 0 133 271 qmsum 135
+NATURAL_REFERENCE 0 134 271 2wikimqa 2
+NATURAL_REFERENCE 0 135 271 2wikimqa 6
+NATURAL_REFERENCE 0 136 271 2wikimqa 5
+NATURAL_REFERENCE 0 137 271 2wikimqa 6
+NATURAL_REFERENCE 0 138 271 2wikimqa 6
+NATURAL_REFERENCE 0 139 271 2wikimqa 7
+NATURAL_REFERENCE 0 140 271 2wikimqa 5
+NATURAL_REFERENCE 0 141 271 2wikimqa 5
+NATURAL_REFERENCE 0 142 271 2wikimqa 5
+NATURAL_REFERENCE 0 143 271 2wikimqa 5
+NATURAL_REFERENCE 0 144 271 2wikimqa 7
+NATURAL_REFERENCE 0 145 271 2wikimqa 4
+NATURAL_REFERENCE 0 146 271 2wikimqa 6
+NATURAL_REFERENCE 0 147 271 2wikimqa 6
+NATURAL_REFERENCE 0 148 271 2wikimqa 7
+NATURAL_REFERENCE 0 149 271 2wikimqa 6
+NATURAL_REFERENCE 0 150 271 2wikimqa 5
+NATURAL_REFERENCE 0 151 271 2wikimqa 11
+NATURAL_REFERENCE 0 152 271 2wikimqa 8
+NATURAL_REFERENCE 0 153 271 2wikimqa 4
+NATURAL_REFERENCE 0 154 271 2wikimqa 4
+NATURAL_REFERENCE 0 155 271 2wikimqa 67
+NATURAL_REFERENCE 0 156 271 2wikimqa 5
+NATURAL_REFERENCE 0 157 271 2wikimqa 4
+NATURAL_REFERENCE 0 158 271 dureader 380
+NATURAL_REFERENCE 0 159 271 dureader 210
+NATURAL_REFERENCE 0 160 271 dureader 313
+NATURAL_REFERENCE 0 161 271 dureader 187
+NATURAL_REFERENCE 0 162 271 dureader 331
+NATURAL_REFERENCE 0 163 271 dureader 294
+NATURAL_REFERENCE 0 164 271 dureader 217
+NATURAL_REFERENCE 0 165 271 dureader 527
+NATURAL_REFERENCE 0 166 271 dureader 358
+NATURAL_REFERENCE 0 167 271 dureader 240
+NATURAL_REFERENCE 0 168 271 dureader 313
+NATURAL_REFERENCE 0 169 271 dureader 571
+NATURAL_REFERENCE 0 170 271 dureader 259
+NATURAL_REFERENCE 0 171 271 dureader 218
+NATURAL_REFERENCE 0 172 271 dureader 519
+NATURAL_REFERENCE 0 173 271 dureader 92
+NATURAL_REFERENCE 0 174 271 dureader 705
+NATURAL_REFERENCE 0 175 271 dureader 1408
+NATURAL_REFERENCE 0 176 271 dureader 96
+NATURAL_REFERENCE 0 177 271 dureader 282
+NATURAL_REFERENCE 0 178 271 dureader 627
+NATURAL_REFERENCE 0 179 271 dureader 510
+NATURAL_REFERENCE 0 180 271 dureader 850
+NATURAL_REFERENCE 0 181 271 dureader 174
+NATURAL_REFERENCE 0 182 271 dureader 948
+NATURAL_REFERENCE 0 183 271 multi_news 587
+NATURAL_REFERENCE 0 184 271 multi_news 526
+NATURAL_REFERENCE 0 185 271 multi_news 478
+NATURAL_REFERENCE 0 186 271 multi_news 480
+NATURAL_REFERENCE 0 187 271 multi_news 389
+NATURAL_REFERENCE 0 188 271 multi_news 605
+NATURAL_REFERENCE 0 189 271 multi_news 481
+NATURAL_REFERENCE 0 190 271 hotpotqa 21
+NATURAL_REFERENCE 0 191 271 hotpotqa 7
+NATURAL_REFERENCE 0 192 271 hotpotqa 5
+NATURAL_REFERENCE 0 193 271 hotpotqa 6
+NATURAL_REFERENCE 0 194 271 hotpotqa 9
+NATURAL_REFERENCE 0 195 271 hotpotqa 5
+NATURAL_REFERENCE 0 196 271 hotpotqa 2
+NATURAL_REFERENCE 0 197 271 hotpotqa 3
+NATURAL_REFERENCE 0 198 271 hotpotqa 5
+NATURAL_REFERENCE 0 199 271 hotpotqa 5
+NATURAL_REFERENCE 0 200 271 hotpotqa 5
+NATURAL_REFERENCE 0 201 271 hotpotqa 8
+NATURAL_REFERENCE 0 202 271 hotpotqa 5
+NATURAL_REFERENCE 0 203 271 hotpotqa 6
+NATURAL_REFERENCE 0 204 271 hotpotqa 5
+NATURAL_REFERENCE 0 205 271 hotpotqa 5
+NATURAL_REFERENCE 0 206 271 hotpotqa 4
+NATURAL_REFERENCE 0 207 271 hotpotqa 3
+NATURAL_REFERENCE 0 208 271 hotpotqa 4
+NATURAL_REFERENCE 0 209 271 hotpotqa 4
+NATURAL_REFERENCE 0 210 271 hotpotqa 4
+NATURAL_REFERENCE 0 211 271 hotpotqa 4
+NATURAL_REFERENCE 0 212 271 hotpotqa 3
+NATURAL_REFERENCE 0 213 271 hotpotqa 5
+NATURAL_REFERENCE 0 214 271 narrativeqa 8
+NATURAL_REFERENCE 0 215 271 narrativeqa 17
+NATURAL_REFERENCE 0 216 271 narrativeqa 11
+NATURAL_REFERENCE 0 217 271 narrativeqa 5
+NATURAL_REFERENCE 0 218 271 narrativeqa 9
+NATURAL_REFERENCE 0 219 271 narrativeqa 3
+NATURAL_REFERENCE 0 220 271 narrativeqa 4
+NATURAL_REFERENCE 0 221 271 narrativeqa 10
+NATURAL_REFERENCE 0 222 271 narrativeqa 5
+NATURAL_REFERENCE 0 223 271 narrativeqa 5
+NATURAL_REFERENCE 0 224 271 narrativeqa 8
+NATURAL_REFERENCE 0 225 271 narrativeqa 3
+NATURAL_REFERENCE 0 226 271 narrativeqa 18
+NATURAL_REFERENCE 0 227 271 narrativeqa 6
+NATURAL_REFERENCE 0 228 271 narrativeqa 18
+NATURAL_REFERENCE 0 229 271 narrativeqa 10
+NATURAL_REFERENCE 0 230 271 narrativeqa 12
+NATURAL_REFERENCE 0 231 271 musique 4
+NATURAL_REFERENCE 0 232 271 musique 4
+NATURAL_REFERENCE 0 233 271 musique 9
+NATURAL_REFERENCE 0 234 271 musique 4
+NATURAL_REFERENCE 0 235 271 musique 4
+NATURAL_REFERENCE 0 236 271 musique 5
+NATURAL_REFERENCE 0 237 271 musique 4
+NATURAL_REFERENCE 0 238 271 musique 4
+NATURAL_REFERENCE 0 239 271 musique 10
+NATURAL_REFERENCE 0 240 271 musique 22
+NATURAL_REFERENCE 0 241 271 musique 67
+NATURAL_REFERENCE 0 242 271 musique 4
+NATURAL_REFERENCE 0 243 271 musique 5
+NATURAL_REFERENCE 0 244 271 musique 6
+NATURAL_REFERENCE 0 245 271 musique 4
+NATURAL_REFERENCE 0 246 271 musique 3
+NATURAL_REFERENCE 0 247 271 musique 3
+NATURAL_REFERENCE 0 248 271 musique 8
+NATURAL_REFERENCE 0 249 271 musique 9
+NATURAL_REFERENCE 0 250 271 musique 5
+NATURAL_REFERENCE 0 251 271 musique 9
+NATURAL_REFERENCE 0 252 271 musique 5
+NATURAL_REFERENCE 0 253 271 musique 15
+NATURAL_REFERENCE 0 254 271 musique 4
+NATURAL_REFERENCE 0 255 271 musique 5
+NATURAL_REFERENCE 0 256 271 multifieldqa_zh 3
+NATURAL_REFERENCE 0 257 271 multifieldqa_zh 13
+NATURAL_REFERENCE 0 258 271 multifieldqa_zh 4
+NATURAL_REFERENCE 0 259 271 multifieldqa_zh 6
+NATURAL_REFERENCE 0 260 271 multifieldqa_zh 7
+NATURAL_REFERENCE 0 261 271 multifieldqa_zh 4
+NATURAL_REFERENCE 0 262 271 multifieldqa_zh 6
+NATURAL_REFERENCE 0 263 271 multifieldqa_zh 21
+NATURAL_REFERENCE 0 264 271 multifieldqa_zh 7
+NATURAL_REFERENCE 0 265 271 multifieldqa_zh 4
+NATURAL_REFERENCE 0 266 271 multifieldqa_zh 28
+NATURAL_REFERENCE 0 267 271 multifieldqa_zh 129
+NATURAL_REFERENCE 0 268 271 multifieldqa_zh 11
+NATURAL_REFERENCE 0 269 271 multifieldqa_zh 27
+NATURAL_REFERENCE 0 270 271 multifieldqa_zh 9
+NATURAL_REFERENCE 0 271 271 multifieldqa_zh 4
