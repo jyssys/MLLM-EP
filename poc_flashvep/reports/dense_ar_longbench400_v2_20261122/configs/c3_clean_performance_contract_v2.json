@@ -1,0 +1,30 @@
+{
+  "time": 1795339225.4222264,
+  "pilot_dataset": "c3_capacity_discovery64_v2.json",
+  "pilot_dataset_SHA256": "07e34c957735ba8707752e4663fe91abc82e371dede7f16f752fe4fbf473d9db",
+  "source": "v2_native_decode_scoped_prompt_ops_v4.zip",
+  "pilot_QPS": [
+    0.7,
+    1.4,
+    2.8,
+    4.0
+  ],
+  "pilot_methods": [
+    "NativeStrong",
+    "Agg"
+  ],
+  "pilot_rule": "Use clean,unprofiled and already-qualified engines. Find the first offered QPS with achieved finite-cohort request rate below90% of offered, or with TTFT p95 above1.5 times the lowest-load value and post-arrival drain above25% of the arrival span. This is a finite-cohort knee estimate,not sustainable capacity. If no knee is observed,use the highest pilot point as a bracket,not a capacity claim.",
+  "grid_rule": "Use the smaller observed Native/Agg knee. Multiply it by[0.20,0.35,0.50,0.65,0.80,1.00,1.20,1.50]. Round QPS to two decimals and deduplicate. Keep at least0.20 QPS. Freeze the common grid before candidate results.",
+  "discovery_dataset": "balanced400_v2_discovery.json",
+  "discovery_dataset_SHA256": "8d88ce7665175951430e3daa39debeffc815e50cc242a992ebf7ba1162a02a4c",
+  "discovery_QPS_rule": "Use the common grid point nearest the finite-cohort knee. The same trace,order and GPU pair apply to all arms within a block.",
+  "tuning_geometry": "Layer cuts2/4/8/12. Strong compiled Stock Token cuts2/4/8/12 with uncapped coordinator credit0,and StockToken8 credit8. Hybrid(2,1/8),(4,1/8),(8,1/8),(4,1/4). Initial D admission cap2. NativeStrong,common-policy Native,Agg and whole-prefill deflection remain visible.",
+  "second_tuning_stage": "After geometry discovery,qualify and measure the best Layer,Stock Token,Hybrid and deflection under the common prospective D-cap set0/1/2/4. Cap0 removes only the running-request cap. It retains installed decode-first compute,READ and registration deferral. It does not authorize active-decode insertion. Test credits8/16 for Layer and Hybrid,and0/8/16 for Stock Token,as budget permits. Every changed runtime signature requires a fresh state/quality composition proof. Unrun cases remain NOT_RUN.",
+  "selection": "Within each family,first restrict to correctness and task-quality PASS. Prefer points with at least95% absolute decode attainment and ITL p99 and TPOT p95 point ratios at most1.05 against both Native references. Then minimize TTFT p95. Break ties by greater SLO-goodput,then the lexicographic configuration label. If no candidate passes this discovery point screen,retain the fastest qualified candidate as SAFETY_UNCONFIRMED. This screen is not the independent-start CI gate. Do not call a retained unsafe candidate a serving success.",
+  "confirmation": "Freeze one configuration per family before heldout measurements. Use fresh independent starts and arrival seeds. Important points require at least3 paired starts. Primary CI uses the ratio of paired start means. No request-level performance bootstrap.",
+  "natural_output_confound": "For every compared natural-EOS pair,report actual token totals,length distributions,cap hits,quality and exact-match counts. If total output tokens differ by more than5% from either comparator,flag OUTPUT_WORK_UNMATCHED. Do not attribute raw throughput or residency differences solely to scheduling.",
+  "matched_replay": "At flagged important cells,run a separate diagnostic using the original compiled C1 per-request natural lengths for every arm. Use ignore_eos with exactly those lengths. Keep prompts,arrival and runtime unchanged. Label this CONTROLLED_REPLAY,not natural generation. Reference lengths are experimental output control,not an online selector feature. Do not replace or remove the natural-EOS result.",
+  "safety": "Require paired95%CI upper<=1.05 for ITL p99 and TPOT p95 against NativeStrong and exact common-D-policy Native. Retain the frozen TTFT5000ms,every-ITL34ms and TPOT33ms metrics. Report maxITL and all-ITL request attainment. Relative safety and absolute attainment remain separate. No TTFT gain can cancel a decode failure.",
+  "safe_window": "Physical kernel gaps are not executable windows. Do not run new active-decode insertion without a validated deadline,readiness,stream,credit and tail-cost predictor.",
+  "exposure": "All400 requests had C1 reference exposure. Heldout192 is context-disjoint from discovery208. It is held out from C3 method tuning, not globally unseen after C0 fixed-output experiments. Report the additional old compiler-control overlap separately."
+}

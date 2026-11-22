@@ -35,7 +35,8 @@ def select():
 def plan(selection,heldout=False,replay=False):
     grid=json.loads((ROOT/'configs/c3_common_qps_grid_v2.json').read_text());registry=policy_registry();original=qualified_registry()
     qpss=grid['QPS_grid'];knee=grid['reference_knee']
-    keys=sorted({min(qpss,key=lambda q:abs(q-knee)),min(qpss,key=lambda q:abs(q-1.2*knee))})
+    keys=json.loads((ROOT/'configs/c3_confirmation_knee_refinement_v3.json').read_text())['important_confirmation_QPS']
+    assert all(q in qpss for q in keys)
     if heldout or replay:qpss=keys
     dataset='balanced400_v2_heldout.json' if heldout else 'longbench_balanced400_v2.json'
     mode='Heldout192' if heldout else 'Main400';mode+='Replay' if replay else 'Natural'
@@ -70,6 +71,7 @@ def plan(selection,heldout=False,replay=False):
     path=ROOT/'jobs'/filename;assert not path.exists()
     write(path,dict(time=time.time(),lanes=lanes,blocks=blocks,stop_on_failure=False,important_QPS=keys,
         dataset_SHA256=digest(ROOT/'data'/dataset),selection_SHA256=digest(ROOT/'configs/c3_final_static_selection_v2.json'),
+        capacity_refinement_SHA256=digest(ROOT/'configs/c3_confirmation_knee_refinement_v3.json'),
         scope='Natural EOS Main400 includes both discovery and heldout requests. Heldout192 excludes C3 tuning contexts. '
             'All methods within a paired block use the same pair,original requests,order,arrival offsets and output contract. '
             'Independent starts initialize fresh actor processes. Compiler caches may persist. '
@@ -88,20 +90,28 @@ def replay_needed(heldout=True):
     return bool(flagged)
 
 def analyze(name):
-    from .c3_analysis import analyze,figures
+    from .c3_analysis import analyze,figures,motivation
     result=analyze(name);figures(result,name.removesuffix('.json'))
+    if name=='c3_main_serving_v2.json':
+        motivation(result)
+        from .c3_subgroups import analyze as subgroup_analysis
+        subgroup_analysis()
+    from .path_analysis import analyze as host_analysis
+    host_analysis(name)
+    from .queue_analysis import analyze as queue_analysis
+    queue_analysis(name)
 
 def run():
     wait_file(ROOT/'state/c3_policy_tuning_complete_v2.json');selection=select()
     name=plan(selection);launch(name);analyze(name)
     name=plan(selection,heldout=True);launch(name);analyze(name)
-    if replay_needed(heldout=False) and dispatch_allowed():
-        name=plan(selection,replay=True);launch(name);analyze(name)
     if replay_needed() and dispatch_allowed():
         name=plan(selection,heldout=True,replay=True);launch(name)
         # Task quality is inherited,not re-scored after forced post-EOS generation.
         analyze(name)
         write(ROOT/'state/c3_heldout_replay_complete_v2.json',dict(time=time.time(),plan=name,complete=True,evidence='DIAGNOSTIC'))
+    if replay_needed(heldout=False) and dispatch_allowed():
+        name=plan(selection,replay=True);launch(name);analyze(name)
     write(ROOT/'state/c3_main_and_heldout_complete_v2.json',dict(time=time.time(),complete=True))
 
 if __name__=='__main__':

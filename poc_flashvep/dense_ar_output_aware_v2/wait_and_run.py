@@ -13,6 +13,10 @@ def main():
         time.sleep(5)
     write(ROOT/'state'/f'{module}_deferred_controller_v2.json',dict(time=time.time(),status='STARTING',markers=markers,
         controller_source_SHA256=digest(SOURCE/(module+'.py'))))
+    # A long-lived waiter can retain the earlier budget-helper module.
+    # Refresh it before importing a phase that was not loaded during the wait.
+    importlib.invalidate_caches()
+    importlib.reload(importlib.import_module('poc_flashvep.dense_ar_output_aware_v2.common'))
     target=importlib.import_module('poc_flashvep.dense_ar_output_aware_v2.'+module);target.run()
 
 if __name__=='__main__':main()

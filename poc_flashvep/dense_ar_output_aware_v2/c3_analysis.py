@@ -39,12 +39,19 @@ def analyze(plan_name='c3_main_serving_v2.json'):
             m,status=load_metric(name);statuses[label]=status
             if m is None:continue
             q=actual_quality(name);cfg=json.loads((ROOT/'configs'/(name+'.json')).read_text());rows=raw_rows(name)
+            from .derived_metrics import output_contract
+            m=dict(m,output_contract=output_contract(cfg))
             runtime={role:json.loads(p.read_text()) for role in ('prefill','decode','replica0','replica1')
                 if (p:=ROOT/'raw'/name/f'actual_runtime_{role}.json').exists()}
             assert runtime and all(r['scheduler_B']==8192 and r['scheduler_S']==1024 and r['chunked_prefill'] and
                 r['model_layers']==36 and r['parameter_dtypes']==['torch.bfloat16'] for r in runtime.values())
             coverage=None
+            partition=None
+            from .work_contract import executed_prompt_work
+            work=executed_prompt_work(cfg,ROOT/'raw'/name,json.loads((ROOT/'data'/cfg['dataset']).read_text()))
             if cfg.get('axis_kind'):
+                from .work_contract import actual_partitions
+                partition=actual_partitions(cfg,ROOT/'raw'/name,json.loads((ROOT/'data'/cfg['dataset']).read_text()))
                 cpath=ROOT/'analysis'/(name+'_coverage.json')
                 coverage=json.loads(cpath.read_text()) if cpath.exists() else coverage_audit(name)
                 assert coverage['passed'] and coverage['decode_full36_observation_complete']
@@ -56,7 +63,14 @@ def analyze(plan_name='c3_main_serving_v2.json'):
                 fractional_token_work=cfg.get('fractional_token_work'),aggregate_work_audit=cfg.get('aggregate_work_audit'),
                 quality_CI95_percentage_points=q['CI95_percentage_points'],quality_exact_greedy_requests=q['exact_greedy_requests'],
                 request_count=m['n'],output_contract=m['output_contract'],
+                client_ITL_interval_count=m['ITL_interval_count'],
+                requests_with_decode_intervals=sum(r['output_tokens']>=2 for r in rows),
+                requests_without_decode_intervals=sum(r['output_tokens']<2 for r in rows),
+                first_delivery_multi_token_requests=m['first_event_multi_token_requests'],
+                token_delivery_scope=m['token_delivery_scope'],
                 timing_run_query_layer_coverage_passed=coverage['passed'] if coverage else None,
+                actual_static_partition_audit=partition,
+                executed_valid_prompt_work_and_chunk_audit=work,
                 timing_run_state_scope='Full-state composition proof plus clean-run coverage. No full KV hash capture in timing runs.',
                 natural_cap_hits=None if cfg.get('ignore_eos') else sum(r['cap_hit'] for r in rows),output_length_mean=float(np.mean([r['output_tokens'] for r in rows])),
                 output_length_p95=float(np.percentile([r['output_tokens'] for r in rows],95)),
@@ -117,12 +131,13 @@ def analyze(plan_name='c3_main_serving_v2.json'):
             'Decode failures remain visible. Natural EOS can change actual output work. Finite-cohort throughput is not sustainable capacity.')
     write(ROOT/'analysis'/f'{path.stem}_analysis.json',result);return result
 
-def figures(result,prefix='c3_main_serving_v2'):
+def figures(result,prefix='c3_main_serving_v2',include_labels=None):
     import matplotlib
     matplotlib.use('Agg')
     import matplotlib.pyplot as plt
-    labels=('Agg','NativeStrong','Layer','StockToken','Hybrid','Deflection')
-    colors=dict(zip(labels,('#dd6b00','#009e73','#0072b2','#cc79a7','#d55e00','#666666')))
+    all_labels=('Agg','NativeStrong','Layer','StockToken','Hybrid','Deflection')
+    labels=all_labels if include_labels is None else include_labels
+    colors=dict(zip(all_labels,('#dd6b00','#009e73','#0072b2','#cc79a7','#d55e00','#666666')))
     specs=[('TTFT_p95_ms','TTFT p95 (ms)'),('mean_TBT_ms','Mean client-visible TBT (ms)'),
         ('ITL_p99_ms','Client-visible ITL p99 (ms)'),('TPOT_p95_ms','Request TPOT p95 (ms/token)'),
         ('generated_output_tokens_per_second','Generated output tokens/s'),
@@ -153,12 +168,46 @@ def figures(result,prefix='c3_main_serving_v2'):
             ax.set(xlabel='Offered QPS (requests/s)',ylabel=ylabel,title=f'LongBench400-v2 | BI0 C3 | {split}')
             ax.grid(alpha=.2);ax.legend(fontsize=8,ncol=2)
             fig.text(.02,.015,'MEASURED_ONLINE. Marks are raw measured QPS points. Bars: start-level95%CI,only N≥3.\n'
-                'Black ×: decode gate unqualified,including insufficient starts. Request count and output contract: CSV. Finite-cohort throughput,not sustainable capacity.',fontsize=8)
+                'Black ×: decode gate unqualified. Hollow gray squares: quality failure. Request count and output contract: CSV.\n'
+                'Insufficient starts do not pass the decode gate. Finite-cohort throughput is not sustainable capacity.',fontsize=8)
             fig.tight_layout(rect=(0,.08,1,1))
             target=ROOT/'figures'/f'{prefix}_{split}_{field}'
             for ext in ('png','pdf'):fig.savefig(target.with_suffix('.'+ext),dpi=170)
             csv_save(target.with_suffix('.csv'),plotted);plt.close(fig)
 
+def motivation(result):
+    """Use the same measured Main trace,not a new or historical workload."""
+    figures(result,'c3_motivation_agg_native_v2',include_labels=('Agg','NativeStrong'))
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+    specs=(('TTFT_p95_ms','TTFT p95 (ms)'),('ITL_p99_ms','Client-visible ITL p99 (ms)'),
+        ('TPOT_p95_ms','Request TPOT p95 (ms/token)'),('generated_output_tokens_per_second','Generated output tokens/s'))
+    for split in sorted({r['split'] for r in result['cells']}):
+        fig,axes=plt.subplots(2,2,figsize=(12,8));records=[]
+        for ax,(field,ylabel) in zip(axes.flat,specs):
+            for label,color in (('Agg','#dd6b00'),('NativeStrong','#009e73')):
+                rows=sorted([r for r in result['cells'] if r['split']==split and r['label']==label],key=lambda r:r['QPS'])
+                ax.plot([r['QPS'] for r in rows],
+                    [r['fields'][field]['mean'] if r['quality_passed_all_starts'] else np.nan for r in rows],
+                    'o-',label=label,color=color,markersize=4)
+                for row in rows:
+                    value=row['fields'][field];point=value['mean'];ci=value['CI95']
+                    if ci and row['quality_passed_all_starts']:
+                        ax.errorbar(row['QPS'],point,yerr=[[point-ci[0]],[ci[1]-point]],color=color,capsize=3)
+                    records.append(dict(split=split,metric=field,label=label,QPS=row['QPS'],value=point,CI95=ci,
+                        starts=value['starts'],requests_per_start=row['requests_per_start'],quality_passed=row['quality_passed_all_starts']))
+            ax.set(xlabel='Offered QPS (requests/s)',ylabel=ylabel);ax.grid(alpha=.2);ax.legend(fontsize=8)
+        fig.suptitle(f'Qwen3-8B | 2 × H100 | LongBench400-v2 | BI0 C3 | {split}')
+        fig.text(.02,.015,'New variable-length benchmark using DuetServe-style comparisons. This is not a reproduction of its Figure2 values.\n'
+            'Raw QPS points only. Bars: start-level95%CI when N≥3. Natural EOS output totals remain in the tables.\n'
+            'Output-only finite-cohort throughput is not sustainable capacity.',fontsize=8)
+        fig.tight_layout(rect=(0,.09,1,.94));stem=f'c3_motivation_agg_native_four_panel_{split}_v2'
+        for ext in ('png','pdf'):fig.savefig(ROOT/'figures'/f'{stem}.{ext}',dpi=170)
+        csv_save(ROOT/'figures'/f'{stem}.csv',records);plt.close(fig)
+
 if __name__=='__main__':
     p=argparse.ArgumentParser();p.add_argument('--plan',default='c3_main_serving_v2.json');args=p.parse_args()
-    result=analyze(args.plan);figures(result,args.plan.removesuffix('.json'));print('C3_TABLES_AND_FIGURES',len(result['cells']),flush=True)
+    result=analyze(args.plan);figures(result,args.plan.removesuffix('.json'))
+    if args.plan=='c3_main_serving_v2.json':motivation(result)
+    print('C3_TABLES_AND_FIGURES',len(result['cells']),flush=True)

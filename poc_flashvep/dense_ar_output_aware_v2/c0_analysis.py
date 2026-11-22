@@ -58,6 +58,11 @@ def check_block(block,metrics):
         for role,shape in m['actual_geometry'].items():
             assert shape['maximum_requests']==1,(block,arm,role,shape)
         if arm in ('Layer','Token'):
+            from .work_contract import actual_partitions,executed_prompt_work
+            actual=actual_partitions(configs[arm],ROOT/'raw'/block[arm],data)
+            assert actual['D_rows']==expected
+            work=executed_prompt_work(configs[arm],ROOT/'raw'/block[arm],data)
+            assert work['actual_P_minus_nominal_rows']==0 and work['actual_D_minus_nominal_rows']==0,('Executed work differs',block[arm],work)
             path=ROOT/'analysis'/(block[arm]+'_coverage.json')
             coverage=json.loads(path.read_text()) if path.exists() else coverage_audit(block[arm])
             assert coverage['passed'] and coverage['decode_full36_observation_complete']
@@ -199,6 +204,7 @@ def figures(result):
                 'N1 discovery has no CI. Heldout targetN3. C0 Mode0 Token is not strong C3 Stock Token. Full ratios,CI and scope: paired CSV.',fontsize=9)
             fig.tight_layout(rect=(0,.10,1,.94))
             for extension in ('png','pdf'):fig.savefig(ROOT/'figures'/f'c0_{split}_{kind}_map_v2.{extension}',dpi=170)
+            csv_save(ROOT/'figures'/f'c0_{split}_{kind}_map_v2.csv',[r for r in result['cells'] if r['split']==split])
             plt.close(fig)
 
 if __name__=='__main__':

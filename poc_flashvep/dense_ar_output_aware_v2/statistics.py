@@ -2,6 +2,16 @@
 import itertools
 import numpy as np
 
+def paired_difference(left,right):
+    a=np.asarray(left,float);b=np.asarray(right,float);assert len(a)==len(b)>0
+    assert np.all(np.isfinite(a)) and np.all(np.isfinite(b))
+    delta=a-b;result=dict(estimate=float(delta.mean()),CI95=None,starts=len(delta),
+        method='Paired server-start difference of means. Pointwise,unadjusted.')
+    if len(delta)>=3:
+        n=len(delta);indices=np.asarray(list(itertools.product(range(n),repeat=n))) if n<=5 else np.random.default_rng(2026112201).integers(0,n,(20000,n))
+        result.update(CI95=np.percentile(delta[indices].mean(axis=1),[2.5,97.5]).tolist(),resamples=len(indices))
+    return result
+
 def ratio(left,right):
     a=np.asarray(left,float);b=np.asarray(right,float);assert len(a)==len(b)>0
     assert np.all(np.isfinite(a)) and np.all(np.isfinite(b))

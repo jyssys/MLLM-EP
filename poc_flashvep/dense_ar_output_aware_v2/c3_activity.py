@@ -12,11 +12,11 @@ from .c0_analysis import csv_save
 def prepare():
     selection=json.loads((ROOT/'configs/c3_final_static_selection_v2.json').read_text());registry=policy_registry();original=qualified_registry()
     grid=json.loads((ROOT/'configs/c3_common_qps_grid_v2.json').read_text());knee=grid['reference_knee']
-    loads=sorted({min(grid['QPS_grid'],key=lambda q:abs(q-knee)),min(grid['QPS_grid'],key=lambda q:abs(q-1.2*knee))})
+    loads=grid['QPS_grid']
     tests=[];lanes=[[],[],[],[]]
     cases=[]
     for qps in loads:cases.append(('NativeStrong',original['NativeStrong'],qps))
-    qps=loads[-1]
+    qps=json.loads((ROOT/'configs/c3_confirmation_knee_refinement_v3.json').read_text())['important_confirmation_QPS'][-1]
     for axis,value in selection['chosen'].items():
         if axis=='Deflection':continue
         cases.append((axis,value['item'],qps))
@@ -56,10 +56,16 @@ def analyze():
             clean_output=(metrics[0]['output_tokens']+metrics[2]['output_tokens'])/2
             work_ratio=metrics[1]['output_tokens']/clean_output
             gate['profile_output_over_mean_clean']=work_ratio;gate['output_work_gate_passed']=abs(work_ratio-1)<=.05
-            gate['passed'] &= gate['output_work_gate_passed'];gate['status']='PASS' if gate['passed'] else 'DIAGNOSTIC'
+            from .c3_analysis import actual_quality
+            gate['per_run_quality_passed']={name:actual_quality(name)['passed'] for name in test['jobs']}
+            gate['passed'] &= gate['output_work_gate_passed'] and all(gate['per_run_quality_passed'].values())
+            gate['status']='PASS' if gate['passed'] else 'DIAGNOSTIC'
             evidence='MEASURED_KERNEL_ACTIVITY' if gate['passed'] else 'DIAGNOSTIC'
             for role in roles:
                 role['evidence']=evidence
+                role['scope']='Kernel/copy activity uses the actual collector ROI. Host observations remain separate. '
+                role['scope']+='A gap does not establish a ready partition,a free stream,KV credit or a future deadline. '
+                role['scope']+='NIXL host overlap does not establish the cause of a gap.'
                 flat.append(dict(label=test['label'],QPS=test['qps'],role=role['role'],evidence=evidence,observer_passed=gate['passed'],
                     qualified_kernel_busy_fraction=role['kernel_busy_fraction'] if gate['passed'] else None,
                     diagnostic_raw_kernel_busy_fraction=role['kernel_busy_fraction'],ROI_seconds=role['ROI_seconds'],
@@ -82,18 +88,66 @@ def figures(results):
     import matplotlib.pyplot as plt
     for test in results:
         if 'roles' not in test:continue
+        records=[];gap_records=[]
+        common_left=min(min(a for a,b in role['kernel_intervals_ns']+role['kernel_inactivity_intervals_ns']) for role in test['roles'])
         fig,axes=plt.subplots(2,1,figsize=(12,4.5),sharex=True)
         for ax,role in zip(axes,test['roles']):
-            spans=role['kernel_intervals_ns'];allspans=spans+role['kernel_inactivity_intervals_ns'];left=min(a for a,b in allspans)
-            ax.broken_barh([((a-left)/1e9,(b-a)/1e9) for a,b in spans],(.2,.6),facecolors='#0072b2')
+            spans=role['kernel_intervals_ns'];allspans=spans+role['kernel_inactivity_intervals_ns']
+            left=min(a for a,b in allspans);right=max(b for a,b in allspans)
+            ax.broken_barh([((a-common_left)/1e9,(b-a)/1e9) for a,b in spans],(.2,.6),facecolors='#0072b2')
+            for kind,values in (('kernel_union',spans),('kernel_inactivity',role['kernel_inactivity_intervals_ns'])):
+                for a,b in values:
+                    record=dict(role=role['role'],kind=kind,start_CUPTI_ns=a,end_CUPTI_ns=b,
+                        start_seconds_from_common_ROI=(a-common_left)/1e9,duration_ms=(b-a)/1e6,
+                        boundary_censored=a==left or b==right,evidence=test['evidence'])
+                    records.append(record)
+                    if kind=='kernel_inactivity' and not record['boundary_censored']:gap_records.append(record)
             ax.set(ylim=(0,1),yticks=[.5],yticklabels=[role['role']]);ax.grid(axis='x',alpha=.2)
-        axes[-1].set_xlabel('Seconds from actual collector ROI start')
+        axes[-1].set_xlabel('Seconds from the earlier actual P/D collector ROI start')
         fig.suptitle(f'{test["label"]} | QPS{test["qps"]} | {test["evidence"]} | kernel intervals')
         fig.text(.02,.015,'One clean/profile/clean triplet. Capture is diagnostic unless the5% observer gate passes.\n'
             'Blank kernel intervals are not guaranteed all-engine idle. No validated executable-window or dynamic-speedup claim.',fontsize=8)
         fig.tight_layout(rect=(0,.1,1,.92));stem=f'c3_kernel_timeline_q{test["qps"]}_{test["label"]}'
         for ext in ('png','pdf'):fig.savefig(ROOT/'figures'/f'{stem}.{ext}',dpi=170)
+        csv_save(ROOT/'figures'/f'{stem}.csv',records)
         plt.close(fig)
+        fig,ax=plt.subplots(figsize=(7.5,4.8))
+        for role in test['roles']:
+            values=sorted(r['duration_ms'] for r in gap_records if r['role']==role['role'])
+            if values:ax.step(values,np.arange(1,len(values)+1)/len(values),where='post',label=role['role'])
+        ax.set(xscale='log',xlabel='Interior kernel inactivity interval (ms)',ylabel='Empirical CDF',
+            title=f'{test["label"]} | QPS{test["qps"]} | {test["evidence"]}')
+        ax.grid(alpha=.2);ax.legend()
+        fig.text(.02,.015,'Boundary-censored gaps are excluded. One ROI per role. Kernel inactivity is not a decode-safe window.',fontsize=8)
+        fig.tight_layout(rect=(0,.06,1,1));stem=f'c3_kernel_gap_CDF_q{test["qps"]}_{test["label"]}'
+        for ext in ('png','pdf'):fig.savefig(ROOT/'figures'/f'{stem}.{ext}',dpi=170)
+        csv_save(ROOT/'figures'/f'{stem}.csv',gap_records);plt.close(fig)
+    overview=[]
+    for test in results:
+        for role in test.get('roles',[]):
+            overview.append(dict(label=test['label'],QPS=test['qps'],role=role['role'],
+                kernel_busy_percent=100*role['kernel_busy_fraction'],evidence=test['evidence'],
+                **role['queue']['time_weighted_mean']))
+    for field,ylabel in (('kernel_busy_percent','GPU kernel busy (%)'),('waiting_total','Observed waiting requests'),
+            ('decode_ready_waiting','Observed decode-ready waiting requests'),('remote_KV_waiting','Observed remote-KV waiting requests')):
+        fig,ax=plt.subplots(figsize=(8,5));plotted=[]
+        for label in sorted({r['label'] for r in overview}):
+            for role,marker in (('prefill','o'),('decode','^')):
+                values=[r for r in overview if r['label']==label and r['role']==role and field in r]
+                for evidence in ('MEASURED_KERNEL_ACTIVITY','DIAGNOSTIC'):
+                    rows=[r for r in values if r['evidence']==evidence]
+                    if not rows:continue
+                    ax.scatter([r['QPS'] for r in rows],[r[field] for r in rows],marker=marker,
+                        label=f'{label}/{role}'+(' diagnostic' if evidence=='DIAGNOSTIC' else ''),
+                        facecolors='none' if evidence=='DIAGNOSTIC' else None)
+                    plotted+=rows
+        ax.set(xlabel='Offered QPS (requests/s)',ylabel=ylabel,title='C3 short ROI observations')
+        ax.grid(alpha=.2);ax.legend(fontsize=6,ncol=2)
+        fig.text(.02,.015,'One clean/profile/clean triplet per point. Hollow markers fail the observer or quality gate.\n'
+            'Queue states are host observations. The sampled ROI does not establish sustained capacity or a safe window.',fontsize=8)
+        fig.tight_layout(rect=(0,.08,1,1));stem='c3_activity_'+field+'_vs_qps_v2'
+        for ext in ('png','pdf'):fig.savefig(ROOT/'figures'/f'{stem}.{ext}',dpi=170)
+        csv_save(ROOT/'figures'/f'{stem}.csv',plotted);plt.close(fig)
 
 def run():
     wait_file(ROOT/'state/c3_continuous_iso8_output_bridge_complete_v2.json')

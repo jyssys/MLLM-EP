@@ -1,0 +1,181 @@
+{
+  "time": 1795347281.9102197,
+  "discovery_source_SHA256": "d6ddb9286b233184048e47eb89f926fe40c1b1cc5dd22fc65e44b22e392006e6",
+  "training_cells": 80,
+  "heldout_cells_used": 0,
+  "rules": {
+    "2": {
+      "FixedAxis": {
+        "rule": {
+          "kind": "fixed",
+          "axis": "Layer",
+          "leaves": 1
+        },
+        "discovery_loss": 1.0066874826037657
+      },
+      "OutputOnly": {
+        "rule": {
+          "kind": "output_threshold",
+          "threshold": 16,
+          "low": "Token",
+          "high": "Layer",
+          "leaves": 2
+        },
+        "discovery_loss": 1.0027251685848972
+      },
+      "InputAndOutput": {
+        "rule": {
+          "kind": "input_then_output",
+          "input_threshold": 2,
+          "low": {
+            "kind": "output_threshold",
+            "threshold": 8,
+            "low": "Token",
+            "high": "Layer",
+            "leaves": 2
+          },
+          "high": {
+            "kind": "output_threshold",
+            "threshold": 128,
+            "low": "Token",
+            "high": "Layer",
+            "leaves": 2
+          },
+          "leaves": 4
+        },
+        "discovery_loss": 0.999100097216226
+      }
+    },
+    "4": {
+      "FixedAxis": {
+        "rule": {
+          "kind": "fixed",
+          "axis": "Layer",
+          "leaves": 1
+        },
+        "discovery_loss": 1.0023179226034356
+      },
+      "OutputOnly": {
+        "rule": {
+          "kind": "output_threshold",
+          "threshold": 8,
+          "low": "Token",
+          "high": "Layer",
+          "leaves": 2
+        },
+        "discovery_loss": 0.9978151857822857
+      },
+      "InputAndOutput": {
+        "rule": {
+          "kind": "input_then_output",
+          "input_threshold": 0,
+          "low": {
+            "kind": "fixed",
+            "axis": "Layer",
+            "leaves": 1
+          },
+          "high": {
+            "kind": "output_threshold",
+            "threshold": 16,
+            "low": "Token",
+            "high": "Layer",
+            "leaves": 2
+          },
+          "leaves": 3
+        },
+        "discovery_loss": 0.9893237913931477
+      }
+    },
+    "8": {
+      "FixedAxis": {
+        "rule": {
+          "kind": "fixed",
+          "axis": "Token",
+          "leaves": 1
+        },
+        "discovery_loss": 1.0056018217634968
+      },
+      "OutputOnly": {
+        "rule": {
+          "kind": "output_threshold",
+          "threshold": 64,
+          "low": "Token",
+          "high": "Layer",
+          "leaves": 2
+        },
+        "discovery_loss": 0.9958409942746286
+      },
+      "InputAndOutput": {
+        "rule": {
+          "kind": "input_then_output",
+          "input_threshold": 1,
+          "low": {
+            "kind": "output_threshold",
+            "threshold": 16,
+            "low": "Layer",
+            "high": "Token",
+            "leaves": 2
+          },
+          "high": {
+            "kind": "output_threshold",
+            "threshold": 16,
+            "low": "Token",
+            "high": "Layer",
+            "leaves": 2
+          },
+          "leaves": 4
+        },
+        "discovery_loss": 0.9869703318651946
+      }
+    },
+    "12": {
+      "FixedAxis": {
+        "rule": {
+          "kind": "fixed",
+          "axis": "Layer",
+          "leaves": 1
+        },
+        "discovery_loss": 1.0246325049379226
+      },
+      "OutputOnly": {
+        "rule": {
+          "kind": "output_threshold",
+          "threshold": 16,
+          "low": "Token",
+          "high": "Layer",
+          "leaves": 2
+        },
+        "discovery_loss": 1.0142414174848278
+      },
+      "InputAndOutput": {
+        "rule": {
+          "kind": "input_then_output",
+          "input_threshold": 2,
+          "low": {
+            "kind": "output_threshold",
+            "threshold": 8,
+            "low": "Token",
+            "high": "Layer",
+            "leaves": 2
+          },
+          "high": {
+            "kind": "output_threshold",
+            "threshold": 16,
+            "low": "Token",
+            "high": "Layer",
+            "leaves": 2
+          },
+          "leaves": 4
+        },
+        "discovery_loss": 1.0098657220976104
+      }
+    }
+  },
+  "features": [
+    "known controlled max_tokens",
+    "known input-token bucket"
+  ],
+  "action_metadata": "Cut is a fixed calibrated action,not a predicted feature.",
+  "fitting_loss": "Mean TTFT p95 divided by matched C0 Native TTFT p95 across discovery cells.",
+  "scope": "Diagnostic rule learning from N1 discovery cells only. C0 uses a Mode0 Token,not strong C3 Stock Token. A rule chooses one static axis for an entire homogeneous controlled-output trace. It does not alternate per-request actions or simulate queue updates. Do not replace known controlled max_tokens with future natural EOS. This experiment cannot establish dynamic C3 serving gain or a mixed-workload oracle upper bound."
+}

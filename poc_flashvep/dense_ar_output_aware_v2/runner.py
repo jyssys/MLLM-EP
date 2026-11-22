@@ -122,7 +122,7 @@ def lane(plan_name,lane_index):
         try:
             from .bridge import bind
             bind()
-            from ..dense_ar_longbench400_pd.metrics import summarize
+            from .derived_metrics import summarize
             for name in jobs:
                 if not dispatch_allowed():
                     results.append(dict(name=name,status='NOT_RUN',reason='TIME_BUDGET_OR_SAFETY_STOP'));continue
