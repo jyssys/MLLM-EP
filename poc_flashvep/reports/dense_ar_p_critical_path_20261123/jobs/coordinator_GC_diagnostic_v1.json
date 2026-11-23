@@ -1,0 +1,60 @@
+{
+  "time": 1795410764.3385515,
+  "lanes": [
+    [],
+    [
+      "PC_CoordGC_Hybrid_NormalGC_BufferedReplay192",
+      "PC_CoordGC_Hybrid_DeferredGC_BufferedReplay192",
+      "PC_CoordGC_StockToken_NormalGC_BufferedReplay192",
+      "PC_CoordGC_StockToken_DeferredGC_BufferedReplay192",
+      "PC_CoordGC_NativeStrong_NormalGC_BufferedReplay192",
+      "PC_CoordGC_NativeStrong_DeferredGC_BufferedReplay192"
+    ],
+    [],
+    []
+  ],
+  "cases": [
+    {
+      "label": "Hybrid",
+      "jobs": [
+        "PC_CoordGC_Hybrid_NormalGC_BufferedReplay192",
+        "PC_CoordGC_Hybrid_DeferredGC_BufferedReplay192"
+      ],
+      "seed": 2026112322,
+      "pair": [
+        2,
+        3
+      ]
+    },
+    {
+      "label": "StockToken",
+      "jobs": [
+        "PC_CoordGC_StockToken_NormalGC_BufferedReplay192",
+        "PC_CoordGC_StockToken_DeferredGC_BufferedReplay192"
+      ],
+      "seed": 2026112322,
+      "pair": [
+        2,
+        3
+      ]
+    },
+    {
+      "label": "NativeStrong",
+      "jobs": [
+        "PC_CoordGC_NativeStrong_NormalGC_BufferedReplay192",
+        "PC_CoordGC_NativeStrong_DeferredGC_BufferedReplay192"
+      ],
+      "seed": 2026112322,
+      "pair": [
+        2,
+        3
+      ]
+    }
+  ],
+  "stop_on_failure": true,
+  "evidence": "DIAGNOSTIC",
+  "observation": "A Hybrid immediate-write loop gap of79.30ms contained78.87ms in a file write. After write deferral,a37.48ms loop gap contained35.17ms of cyclic GC. A separate Stock loop gap contained37.26ms of GC. These are host enclosures,not GPU work.",
+  "hypothesis": "If coordinator cyclic GC causes delivery tails,deferring GC will remove those overlaps without changing worker gaps.",
+  "falsifier": "Persistent large client gaps outside GC or unchanged worker tails contradict GC as the sole cause.",
+  "scope": "One-factor diagnostic after the write-deferral experiment. No artificial sleep or timestamp correction. Restore the caller GC state after measurement and on exception. Record coordinator maximum RSS. Do not call a common coordinator improvement a Layer-specific kernel gain."
+}

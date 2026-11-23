@@ -1,0 +1,64 @@
+{
+  "time": 1795409517.2441292,
+  "lanes": [
+    [],
+    [
+      "PC_CoordDiagnostic_Hybrid_ImmediateIO_Replay192",
+      "PC_CoordDiagnostic_Hybrid_DeferredIO_Replay192",
+      "PC_CoordDiagnostic_StockToken_ImmediateIO_Replay192",
+      "PC_CoordDiagnostic_StockToken_DeferredIO_Replay192",
+      "PC_CoordDiagnostic_NativeStrong_ImmediateIO_Replay192",
+      "PC_CoordDiagnostic_NativeStrong_DeferredIO_Replay192"
+    ],
+    [],
+    []
+  ],
+  "cases": [
+    {
+      "label": "Hybrid",
+      "jobs": [
+        "PC_CoordDiagnostic_Hybrid_ImmediateIO_Replay192",
+        "PC_CoordDiagnostic_Hybrid_DeferredIO_Replay192"
+      ],
+      "seed": 2026112322,
+      "pair": [
+        2,
+        3
+      ]
+    },
+    {
+      "label": "StockToken",
+      "jobs": [
+        "PC_CoordDiagnostic_StockToken_ImmediateIO_Replay192",
+        "PC_CoordDiagnostic_StockToken_DeferredIO_Replay192"
+      ],
+      "seed": 2026112322,
+      "pair": [
+        2,
+        3
+      ]
+    },
+    {
+      "label": "NativeStrong",
+      "jobs": [
+        "PC_CoordDiagnostic_NativeStrong_ImmediateIO_Replay192",
+        "PC_CoordDiagnostic_NativeStrong_DeferredIO_Replay192"
+      ],
+      "seed": 2026112322,
+      "pair": [
+        2,
+        3
+      ]
+    }
+  ],
+  "stop_on_failure": true,
+  "hypotheses": [
+    "Evidence-file writes block the coordinator.",
+    "GC or JSON work blocks the coordinator.",
+    "A partial socket receive blocks the coordinator.",
+    "Other host scheduling or shared-resource interference."
+  ],
+  "existing_sender": "Already asynchronous. Do not implement another asynchronous sender without evidence.",
+  "discriminating_test": "Trace append serialization/write,GC,receive,slow poll and process/thread CPU during loop gaps. One-factor defer evidence writes across Hybrid,Stock Token and Native. No sleep or artificial serving delay.",
+  "scope": "No winner claim from diagnostic timings. Preserve the uninstrumented long-tail run. Buffering evidence is benchmark/runtime hygiene,not layer-specific GPU efficiency. A host overlap is not causal proof. Reject the I/O hypothesis if the stall occurs outside writes."
+}

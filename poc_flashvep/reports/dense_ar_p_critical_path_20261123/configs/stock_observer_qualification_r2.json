@@ -1,0 +1,63 @@
+{
+  "time": 1795405938.7953105,
+  "items": [
+    {
+      "label": "StockToken",
+      "lane": 3,
+      "pair": [
+        6,
+        7
+      ],
+      "strict": [
+        "PC_Q_StockToken_Original_Strict8_ArrivalFix2",
+        "PC_Q_StockToken_ObservedRetirement_Strict8_ArrivalFix2"
+      ],
+      "policies": [
+        {
+          "enabled": false,
+          "label": "Control",
+          "jobs": [
+            "PC_Q_StockToken_Control_Natural32",
+            "PC_Q_StockToken_Control_Natural400"
+          ],
+          "gate": "pc_stocktoken_control_composition.json",
+          "signature": {
+            "method": "Token",
+            "batch_invariant": false,
+            "token_budget": 8192,
+            "max_num_seqs": 1024,
+            "protocol": "OFFICIAL_PROXY",
+            "execution_family": "INSTALLED_DEFAULT_COMPILE",
+            "async_scheduling": true,
+            "KV_block_tokens": 128,
+            "restore_official_UCX_init": true,
+            "nixl_num_threads": 4,
+            "controlled_pipeline": false,
+            "source_credit_limit": 4,
+            "hidden_source_slots": 16,
+            "hidden_destination_slots": 16,
+            "axis_kind": "Token",
+            "axis_cut": 8,
+            "continuous_source_credit_limit": 0,
+            "credit_serialization_control": false,
+            "d_compute_throttle": true,
+            "defer_D_remote_setup": true,
+            "hidden_pool_free_reserve_bytes": 2147483648,
+            "token_stock_model": true,
+            "D_running_admission_cap": 0,
+            "iso_work_frontier": true,
+            "target_D_rows": 3621888,
+            "target_P_rows": 12676608,
+            "bridge_controlled_output": true,
+            "bridge_discovery_only": false,
+            "defer_D_request_registration": true,
+            "registration_bridge_original": "C3Bridge_I3_O16_Cap1_s0_StockToken_v1"
+          }
+        }
+      ],
+      "source_capsule": "pc_v2_preemption_observer_fix_v5_trace_retirement_r1.zip",
+      "source_capsule_SHA256": "208403e2bd6f7bec618bf1c0f2dd994fa54e076d5e31c066540c43a0f5abcee8"
+    }
+  ],
+  "scope": "Original and changed source use identical serial execution geometry for exact differential state tests. The observer adds events only. Natural32/400 test both false and true credit policies on the same changed source. Native KV retirement and hidden ownership remain authoritative. These captures are correctness-only."
+}

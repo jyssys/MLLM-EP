@@ -1,0 +1,151 @@
+{
+  "time": 1795413823.7783232,
+  "items": [
+    {
+      "label": "NativeStrong",
+      "arm": "NativeStrong",
+      "lane": 1,
+      "pair": [
+        2,
+        3
+      ],
+      "teacher": null,
+      "strict": null,
+      "jobs": [
+        "PC_CoordQual_NativeStrong_Natural32_StateCaptureFixV3",
+        "PC_CoordQual_NativeStrong_Natural400_StateCaptureFixV3"
+      ],
+      "gate": "pc_coord_nativestrong_composition_state_capture_v3.json",
+      "signature": {
+        "method": "Native",
+        "batch_invariant": false,
+        "token_budget": 8192,
+        "max_num_seqs": 1024,
+        "protocol": "OFFICIAL_PROXY",
+        "execution_family": "INSTALLED_DEFAULT_COMPILE",
+        "async_scheduling": true,
+        "KV_block_tokens": 128,
+        "restore_official_UCX_init": true,
+        "nixl_num_threads": 4,
+        "controlled_pipeline": false,
+        "source_credit_limit": 4,
+        "hidden_source_slots": 4,
+        "hidden_destination_slots": 4,
+        "continuous_source_credit_limit": 0,
+        "d_compute_throttle": false,
+        "defer_D_remote_setup": false,
+        "iso_work_frontier": true,
+        "target_D_rows": 3621888,
+        "target_P_rows": 12676608,
+        "bridge_controlled_output": true,
+        "bridge_discovery_only": false,
+        "defer_D_request_registration": false,
+        "registration_bridge_original": "C3Bridge_I3_O16_Cap1_s0_NativeStrong_v1",
+        "source_credit_release_on_retirement": false,
+        "buffer_coordinator_evidence": true,
+        "defer_coordinator_cyclic_gc": true
+      },
+      "source_capsule_SHA256": "a025fd9e892040700142726ad15b1ce30ecd1f0454231d55ad0fa76498b9fb67"
+    },
+    {
+      "label": "NativeCommon2",
+      "arm": "NativeCommon",
+      "lane": 1,
+      "pair": [
+        2,
+        3
+      ],
+      "teacher": null,
+      "strict": null,
+      "jobs": [
+        "PC_CoordQual_NativeCommon2_Natural32_StateCaptureFixV3",
+        "PC_CoordQual_NativeCommon2_Natural400_StateCaptureFixV3"
+      ],
+      "gate": "pc_coord_nativecommon2_composition_state_capture_v3.json",
+      "signature": {
+        "method": "Native",
+        "batch_invariant": false,
+        "token_budget": 8192,
+        "max_num_seqs": 1024,
+        "protocol": "OFFICIAL_PROXY",
+        "execution_family": "INSTALLED_DEFAULT_COMPILE",
+        "async_scheduling": true,
+        "KV_block_tokens": 128,
+        "restore_official_UCX_init": true,
+        "nixl_num_threads": 4,
+        "controlled_pipeline": false,
+        "source_credit_limit": 4,
+        "hidden_source_slots": 4,
+        "hidden_destination_slots": 4,
+        "continuous_source_credit_limit": 0,
+        "d_compute_throttle": true,
+        "defer_D_remote_setup": true,
+        "D_running_admission_cap": 2,
+        "iso_work_frontier": true,
+        "target_D_rows": 3621888,
+        "target_P_rows": 12676608,
+        "bridge_controlled_output": true,
+        "bridge_discovery_only": false,
+        "defer_D_request_registration": true,
+        "registration_bridge_original": "C3Bridge_I3_O16_Cap1_s0_NativeCommon_v1",
+        "source_credit_release_on_retirement": false,
+        "buffer_coordinator_evidence": true,
+        "defer_coordinator_cyclic_gc": true
+      },
+      "source_capsule_SHA256": "a025fd9e892040700142726ad15b1ce30ecd1f0454231d55ad0fa76498b9fb67"
+    },
+    {
+      "label": "NativeCommon16",
+      "arm": "NativeCommon",
+      "lane": 1,
+      "pair": [
+        2,
+        3
+      ],
+      "teacher": null,
+      "strict": null,
+      "jobs": [
+        "PC_CommonPolicy_NativeCommon16_Natural32_StateCaptureFixV3",
+        "PC_CommonPolicy_NativeCommon16_Natural400_StateCaptureFixV3"
+      ],
+      "gate": "pc_coord_nativecommon16_composition_state_capture_v3.json",
+      "signature": {
+        "method": "Native",
+        "batch_invariant": false,
+        "token_budget": 8192,
+        "max_num_seqs": 1024,
+        "protocol": "OFFICIAL_PROXY",
+        "execution_family": "INSTALLED_DEFAULT_COMPILE",
+        "async_scheduling": true,
+        "KV_block_tokens": 128,
+        "restore_official_UCX_init": true,
+        "nixl_num_threads": 4,
+        "controlled_pipeline": false,
+        "source_credit_limit": 4,
+        "hidden_source_slots": 4,
+        "hidden_destination_slots": 4,
+        "continuous_source_credit_limit": 16,
+        "d_compute_throttle": true,
+        "defer_D_remote_setup": true,
+        "D_running_admission_cap": 2,
+        "iso_work_frontier": true,
+        "target_D_rows": 3621888,
+        "target_P_rows": 12676608,
+        "bridge_controlled_output": true,
+        "bridge_discovery_only": false,
+        "defer_D_request_registration": true,
+        "registration_bridge_original": "C3Bridge_I3_O16_Cap1_s0_NativeCommon_v1",
+        "source_credit_release_on_retirement": false,
+        "buffer_coordinator_evidence": true,
+        "defer_coordinator_cyclic_gc": true
+      },
+      "source_capsule_SHA256": "a025fd9e892040700142726ad15b1ce30ecd1f0454231d55ad0fa76498b9fb67"
+    }
+  ],
+  "state_prefix": "pc_native_capture_v3",
+  "source_capsule_SHA256": null,
+  "actual_failure": "The Native32 GPU run completed. Its state audit could not find native_valid_prefix state files.",
+  "source_cause": "The new builder enabled axis_state_capture for a Native arm. Native uses state_capture instead.",
+  "fix": "Set state_capture=True and axis_state_capture=False only in these new correctness versions.",
+  "scope": "No worker,model,arrival,policy or numerical code changes. Old failed gates and raw runs remain unchanged. These fresh32/400 captures must pass before the new coordinator Native references can time primary performance. A missing observer file is not evidence that Native KV state was incorrect."
+}

@@ -1,0 +1,33 @@
+{
+  "time": 1795413556.5162141,
+  "items": [
+    {
+      "label": "Layer",
+      "jobs": [
+        "PC_PNorm_Layer_CUDAIR_Strict8",
+        "PC_PNorm_Layer_NativeIR_Strict8"
+      ],
+      "source_capsule_SHA256": "5ba4733c9fca338ab2460764de8a2a4a04fd42d7ed00c269d88f36d3e4bbca24",
+      "pair": [
+        4,
+        5
+      ]
+    },
+    {
+      "label": "Hybrid",
+      "jobs": [
+        "PC_PNorm_Hybrid_CUDAIR_Strict8",
+        "PC_PNorm_Hybrid_NativeIR_Strict8"
+      ],
+      "source_capsule_SHA256": "ea8feb7a15711dfd60441743c289c718ce7e3462bddad3a742cb7e80ad79535a",
+      "pair": [
+        4,
+        5
+      ]
+    }
+  ],
+  "hypothesis": "P forced CUDA RMSNorm dispatch can retain extra named-kernel work despite prefix compilation.",
+  "observation": "In the first qualified C3 capture,Layer2 P RMSNorm used11.51ms/request. Stock8 used0.079ms/request. Work differs in that comparison. It does not prove an11.43ms causal saving.",
+  "test": "Change only P scoped IR priority on the same source. Keep custom_ops=all and D execution unchanged. Require exact8 KV,hidden and greedy output before primary timing. Do not relax the frozen accuracy contract.",
+  "scope": "Two strict pairs,not a compiler parameter sweep. Cache isolation is part of correctness. The runtime-global priority log does not expose a temporary P scope. Save the actual scoped priority in model-visit records."
+}

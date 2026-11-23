@@ -1,0 +1,24 @@
+{
+  "time": 1795427155.79064,
+  "jobs": [
+    "PC_OfficialWarm_StockToken_NormalGC_Strict8",
+    "PC_OfficialWarm_StockToken_DeferredGC_Strict8",
+    "PC_OfficialWarm_StockToken_NormalGCRepeat_Strict8"
+  ],
+  "pair": [
+    2,
+    3
+  ],
+  "expected_cache_roots": {
+    "prefill": "/home/esjung/.cache/vllm/torch_compile_cache/673b53ae82/rank_0_0/backbone",
+    "decode": "/home/esjung/.cache/vllm/torch_compile_cache/7b34489c22/rank_0_0/backbone"
+  },
+  "previous_failed_plan_SHA256": "73a8373b3cc81cb528727f47274067b2b9b65dc8183578ae56e5b2d0168e3492",
+  "retrospective_warm_pair_SHA256": "1f8ce4e6c91281eb99efb78b113580c52879e7cc64584efb586a459c0126b5a2",
+  "hypotheses": [
+    "Cold graph execution and official AOT-loaded execution can differ numerically. Three warm runs should match all8 states.",
+    "A changing asynchronous state or request order would still produce state differences within the warm triple.",
+    "BI0 nondeterminism not isolated by this regime would also leave warm-repeat differences."
+  ],
+  "scope": "Prospective correctness-only regime test. Execute exactly one new NormalGC/DeferredGC/NormalGCRepeat triple. Require observed official graph and AOT loading,unchanged cache roots,and exact full KV/hidden/greedy states. Do not edit a compiler key,inject a compiled artifact,alter model math,or repeat a failed GPU call. The old cold-control gates remain failed. A warm triple alone does not qualify Natural32/400 or N3 performance."
+}
