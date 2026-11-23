@@ -1,0 +1,48 @@
+{
+  "time": 1795336648.0875576,
+  "actions": {
+    "Layer": {
+      "lane": 0,
+      "teacher": "V2_DecodeScope_Layer_OriginalTeacher8",
+      "jobs": [
+        {
+          "name": "V2_PCompile_Layer_Compiled_N1_DecodeScopeV4",
+          "count": 1,
+          "experimental": true
+        },
+        {
+          "name": "V2_PCompile_Layer_Compiled_N8_DecodeScopeV4",
+          "count": 8,
+          "experimental": true
+        }
+      ],
+      "teacher_scope": "Fresh independent Full36 eager-CUDA prompt/default-native compiled decode teacher;no partition or imported state."
+    },
+    "Hybrid": {
+      "lane": 1,
+      "teacher": "V2_DecodeScope_Hybrid_OriginalTeacher8",
+      "jobs": [
+        {
+          "name": "V2_PCompile_Hybrid_Compiled_N1_DecodeScopeV4",
+          "count": 1,
+          "experimental": true
+        },
+        {
+          "name": "V2_PCompile_Hybrid_Compiled_N8_DecodeScopeV4",
+          "count": 8,
+          "experimental": true
+        }
+      ],
+      "teacher_scope": "Fresh independent Full36 eager-CUDA prompt/default-native compiled decode teacher;no partition or imported state."
+    }
+  },
+  "source_capsule": "v2_native_decode_scoped_prompt_ops_v4.zip",
+  "source_capsule_SHA256": "3d630dd4fb79b713a4a21fbe94ed0b46c7a8064912192049d9c8052c934d7e3a",
+  "state_prefix": "compiler_control_decode_scope_v4",
+  "hypotheses": [
+    "H1: Global CUDA custom ops add decoder cost. Scope them to eager prompts and retain original native decode.",
+    "H2: Host hooks,registration or transport dominate tails;kernel policy alone will not remove the residual.",
+    "H3: Changed batch and residency mediate the intervention;measure them and do not label host deltas exclusive GPU time."
+  ],
+  "scope": "Prospective correctness-preserving kernel-policy intervention. No active-decode prefill insertion or safety claim. Retain all preceding failures and both successful P-only strict tests."
+}

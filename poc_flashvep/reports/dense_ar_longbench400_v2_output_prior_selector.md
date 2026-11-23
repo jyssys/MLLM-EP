@@ -1,8 +1,8 @@
 # Output Prior와 Selector 검증 범위
 
-상태: ACTIVE_SNAPSHOT.
-생성 시각: 2026-11-22T18:39:15.245786+00:00.
-경과 연구 시간: 11.540시간.
+상태: FINAL.
+생성 시각: 2026-11-23T02:04:01.118482+00:00.
+경과 연구 시간: 18.953시간.
 기준 Commit: `5ebed239073b4fa3709361038cbec026d1c32b78`.
 연구 Branch: `flashvep/longbench400-v2-output-aware-2d-20261122`.
 

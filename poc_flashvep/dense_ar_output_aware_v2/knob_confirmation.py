@@ -1,7 +1,11 @@
 """Confirm compiler,credit and admission interventions with fixed output work."""
 import json
+import os
+from pathlib import Path
+import signal
+import subprocess
 import time
-from .common import ROOT,write,dispatch_allowed
+from .common import ROOT,REPO,PYTHON,write,dispatch_allowed,preserve
 from .c3_campaign import qualified_registry,performance,launch,wait_file
 from .c3_policy import policy_registry
 from .statistics import ratio,safety
@@ -84,9 +88,46 @@ def analyze():
 
 def run():
     wait_file(ROOT/'state/c3_continuous_iso8_output_bridge_complete_v2.json')
-    wait_file(ROOT/'state/c3_policy_tuning_complete_v2.json')
+    if (ROOT/'configs/c3_knob_early_dispatch_priority_v9.json').exists():
+        # These interventions were fixed before policy timing. They do not use
+        # the policy performance or final selection,so the old barrier is not
+        # a scientific dependency. Keep their heldout results out of selection.
+        for lane in (0,1):
+            wait_file(ROOT/'state'/f'c3_policy_qualification_v2_lane{lane}_complete_v4.json')
+            wait_file(ROOT/'state'/f'c3_fused_teacher_context_v15_lane{lane}_complete_v4.json')
+    else:wait_file(ROOT/'state/c3_policy_tuning_complete_v2.json')
     name=prepare()
     if name is None:return
     launch(name);analyze();write(ROOT/'state/c3_knob_confirmation_complete_v2.json',dict(time=time.time(),complete=True))
+
+def advance_after_qualification(waiter_pid):
+    preserve();assert dispatch_allowed()
+    assert not (ROOT/'jobs/c3_knob_independent_confirmation_v2.json').exists()
+    assert (ROOT/'state/c3_continuous_iso8_output_bridge_complete_v2.json').exists()
+    assert not (ROOT/'state/c3_policy_tuning_complete_v2.json').exists()
+    for lane in (0,1):
+        for prefix in ('c3_policy_qualification_v2','c3_fused_teacher_context_v15'):
+            assert (ROOT/'state'/f'{prefix}_lane{lane}_complete_v4.json').exists()
+    process=Path('/proc')/str(waiter_pid);assert process.stat().st_uid==os.getuid()
+    command=(process/'cmdline').read_bytes().decode().split('\0')
+    assert command[:4]==[str(PYTHON),'-u','-m','poc_flashvep.dense_ar_output_aware_v2.knob_confirmation']
+    assert not (process/'task'/str(waiter_pid)/'children').read_text().strip(),'Do not replace an active GPU controller'
+    write(ROOT/'configs/c3_knob_early_dispatch_priority_v9.json',dict(time=time.time(),
+        old_dependency='c3_policy_tuning_complete_v2.json',
+        new_dependency='Completed strict8/natural32/400 composition proofs and the completed iso-work bridge.',
+        pair=[4,5],dataset='balanced400_v2_heldout.json',settings_changed=False,
+        heldout_results_enter_static_selection=False,
+        reason='Use an idle approved pair while independent policy calibration continues on0/1 and2/3. '
+            'Every intervention and its N3 output replay were already fixed. No policy-performance input is required. '
+            'Preserve every method,source,QPS,arrival seed,pair,order,output contract and safety threshold. '
+            'Do not inspect these heldout timing results before the static selection freezes.'))
+    os.kill(waiter_pid,signal.SIGTERM)
+    target=ROOT/'logs/knob_confirmation_controller_early_v9.log';assert not target.exists()
+    with target.open('w') as stream:
+        child=subprocess.Popen([str(PYTHON),'-u','-m','poc_flashvep.dense_ar_output_aware_v2.knob_confirmation'],
+            cwd=REPO,stdout=stream,stderr=subprocess.STDOUT,start_new_session=True)
+    write(ROOT/'state/knob_cpu_waiter_handoff_v9.json',dict(time=time.time(),old_PID=waiter_pid,
+        old_command=command,new_PID=child.pid,old_waiter_had_no_children=True,active_GPU_jobs_interrupted=False))
+    preserve();print('EARLY_FIXED_KNOB_CONTROLLER',child.pid,flush=True)
 
 if __name__=='__main__':run()

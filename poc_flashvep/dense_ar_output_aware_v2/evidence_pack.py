@@ -114,6 +114,56 @@ def tensor_snapshot():
         done+=1;print('LOCAL_TENSOR_ARCHIVE_VERIFIED',record['run'],flush=True)
     preserve();print('NEW_LOCAL_TENSOR_ARCHIVES',done,flush=True)
 
+def minimal_snapshot():
+    """Publish structured replay evidence,not bulk prompts or captured tensors."""
+    preserve();destination=ROOT/'publication/minimal_evidence';done=0
+    for folder in sorted((ROOT/'raw').iterdir()):
+        receipt=folder/'dispatcher_result.json'
+        if not folder.is_dir() or not receipt.exists():continue
+        marker=destination/'manifests'/(folder.name+'.json')
+        if marker.exists():continue
+        files=[]
+        for path in sorted(folder.rglob('*')):
+            if not path.is_file():continue
+            relative=path.relative_to(folder)
+            if relative.parts[0]=='worker_source' or '__pycache__' in relative.parts:continue
+            if path.suffix not in ('.json','.jsonl','.csv'):continue
+            if 'numerical_probe' in path.name:continue
+            files.append(path)
+        before=digest(receipt)
+        records=[dict(path=str(p.relative_to(folder)),bytes=p.stat().st_size,SHA256=digest(p)) for p in files]
+        parts=compress(files,destination/'runs'/(folder.name+'.tar.zst'),folder)
+        assert digest(receipt)==before
+        write(marker,dict(time=time.time(),run=folder.name,dispatcher_SHA256=before,files=records,compressed_parts=parts,
+            scope='Structured runtime evidence for independent metric,queue,coverage and capture recomputation. '
+                'No original dataset prompt/context archive,tensor capture,worker tree or unstructured log is included. '
+                'Exact worker ZIPs are deduplicated in the full archive manifest. Full logs and tensors remain unchanged locally. '
+                'The separate full archive manifest preserves omitted-file hashes. No failed or unrun receipt is promoted.'))
+        done+=1
+    preserve();print('NEW_MINIMAL_PUBLICATION_ARCHIVES',done,flush=True)
+
+def derived_snapshot():
+    """Preserve oversized derived tables in lossless bounded publication parts."""
+    preserve();destination=ROOT/'publication/derived_tables';records=[]
+    for directory,pattern in (('figures','*.csv'),('analysis','*.json')):
+        for path in sorted((ROOT/directory).glob(pattern)):
+            if path.stat().st_size<90*1024**2:continue
+            marker=destination/(directory+'_'+path.name+'.manifest.json')
+            if marker.exists():
+                old=json.loads(marker.read_text());assert digest(path)==old['source_SHA256']
+                records.append(old);continue
+            before=digest(path)
+            parts=compress([path],destination/(directory+'_'+path.name+'.tar.zst'),ROOT)
+            assert digest(path)==before
+            value=dict(time=time.time(),source=str(path.relative_to(ROOT)),source_bytes=path.stat().st_size,
+                source_SHA256=before,compressed_parts=parts,original_retained=True,
+                scope='Lossless archive of an oversized derived CSV or JSON table. '
+                    'Concatenate ordered parts before decompression when the manifest lists several parts. '
+                    'The original table remains unchanged. This archive contains no bulk input dataset or tensor capture.')
+            write(marker,value);records.append(value)
+    write(destination/'index_v2.json',dict(time=time.time(),tables=records,passed=True))
+    preserve();print('OVERSIZED_DERIVED_TABLES_ARCHIVED',len(records),flush=True)
+
 if __name__=='__main__':
-    p=argparse.ArgumentParser();p.add_argument('action',choices=('raw_snapshot','dataset_snapshot','tensor_snapshot'))
+    p=argparse.ArgumentParser();p.add_argument('action',choices=('raw_snapshot','dataset_snapshot','tensor_snapshot','minimal_snapshot','derived_snapshot'))
     args=p.parse_args();globals()[args.action]()

@@ -104,8 +104,13 @@ def analyze(plan_name='c3_main_serving_v2.json'):
             else:row['decode_gate']=dict(qualified=False,reason='MISSING_PAIRED_NATIVE_REFERENCES')
             if not row['quality_passed_all_starts']:row['evidence']='DIAGNOSTIC_QUALITY_FAILURE'
             cells.append(row)
-        for left,right in [('Layer','StockToken'),('Hybrid','StockToken'),('Hybrid','Layer'),
-                ('Layer','NativeStrong'),('StockToken','NativeStrong'),('Hybrid','NativeStrong'),('Deflection','NativeStrong')]:
+        pairs=[('Agg','NativeStrong'),('Layer','StockToken'),('Hybrid','StockToken'),('Hybrid','Layer'),
+                ('Layer','NativeStrong'),('StockToken','NativeStrong'),('Hybrid','NativeStrong'),('Deflection','NativeStrong')]
+        for left in ('Layer','StockToken','Hybrid','Deflection'):
+            references={b['NativeCommon_for'].get(left) for b,_,_ in blocks if left in b['arms']}
+            references.discard(None)
+            pairs += [(left,right) for right in sorted(references) if (left,right) not in pairs]
+        for left,right in pairs:
             matched=[(b,m) for b,m,_ in blocks if left in m and right in m]
             if not matched:continue
             for b,m in matched:

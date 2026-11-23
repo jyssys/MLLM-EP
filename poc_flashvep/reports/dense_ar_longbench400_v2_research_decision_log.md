@@ -417,3 +417,162 @@ C0의 Mode0 Token과 C3의 Compiled Stock Token도 계속 구분한다.
 
 새 C3 Bridge는 원래 Held-out Prompt와 실제 Continuous Scheduler를 사용한다.
 C0의 결과를 C3 결과로 재사용하지 않는다.
+
+## 23. Fused Teacher 재검증과 Stock Fence 반증
+
+ContextFixV15의 Fused Hybrid 두 후보는 새 N8/N32/N400 Gate를 통과했다.
+새 Teacher의 실제 Eager Dispatch Log도 확인했다.
+이 결과는 Candidate의 Tensor 교정이 아니다. 독립 Teacher의 누락된 실행 Flag를 복구한 결과다.
+원래 실패 Gate는 계속 실패 상태로 보존한다.
+
+Stock의 Control → Pre-forward Fence → Control 세 실행은 모두 Strict State를 통과했다.
+따라서 Fence가 기존 오류를 해결했다고 결론 내리지 않는다.
+Compiler Autotune 구성의 차이는 남아 있다. Strict 불일치의 인과적 원인은 미확정이다.
+
+## 24. C0의 절대 ITL 위반 위치
+
+Held-out의 고유 C0 실행 540개를 모두 조사했다.
+Native가 여러 Cut에 재사용된 경우 한 번만 계산했다.
+Client ITL>34ms 위반은 총 66개 구간이었다.
+그중 65개는 같은 구간의 Worker Emission Gap이 34ms 이하였다.
+가장 큰 Client ITL은 604.143ms였다. Worker Gap은 7.149ms였다.
+해당 Delivery Delay 변화는 596.994ms였다.
+
+이 수치는 일부 절대 SLO 실패가 GPU Decode Step의 지속적 악화와 다르다는 근거다.
+하지만 GC, Socket, CPU Scheduling 또는 File I/O 중 하나를 원인으로 확정하지 않는다.
+Client-visible Timestamp와 원래 실패 판정은 변경하지 않았다.
+C3의 Tail과 동일한 원인이라고 가정하지 않는다.
+
+## 25. 고정 Knob 확인의 조기 실행
+
+독립 Knob 실험은 이미 정해진 Compiler, Credit 및 Cap만 비교한다.
+Policy Timing 결과나 최종 후보 선택을 입력으로 사용하지 않는다.
+모든 Composition Gate와 C3 Bridge가 완료됐으므로 불필요한 대기 Barrier를 줄였다.
+
+GPU4/5에서 기존 N3 Fixed-length Replay를 먼저 실행한다.
+Source, 데이터, Pair, 순서, Arrival, QPS 및 SLO는 바꾸지 않는다.
+기존 CPU 대기 Process에 Child가 없는 것을 확인한 뒤 교체했다.
+실행 중인 GPU 작업은 중단하지 않았다.
+최종 Static 선택을 동결하기 전에는 이 Held-out Timing 결과를 읽지 않는다.
+
+## 26. Native CPC의 조기 실행
+
+GPU6/7의 유휴 시간에 기존 NativeStrong QPS2.0/4.8 CPC를 먼저 실행한다.
+새 QPS 또는 다른 계측을 추가하지 않는다.
+최종 Activity Plan은 같은 Config와 Receipt를 재사용한다.
+같은 실행을 두 개의 독립 Start로 계산하지 않는다.
+
+Data, Seed, Pair 및 전체 Trace/ROI의 5% Observer Gate는 유지한다.
+이 Timing은 Static 후보 선택에 들어가지 않는다.
+최종 후보 선택은 동결된 Discovery96 규칙만 사용한다.
+
+## 27. 최종 Static 후보 동결
+
+QPS2.0/4.8의 동일한 Discovery96에서 각 Family의 정책을 비교했다.
+Layer는 Last2/Cap2/Credit16을 선택했다.
+Stock Token은 Work Cut8/Cap0/Credit0을 선택했다.
+Hybrid는 Last2/Suffix1/8의 Fused Short+D Compiled/Cap2/Credit8을 선택했다.
+Deflection은 Cap1/Credit8을 선택했다.
+
+선택은 사전에 정한 품질 및 Decode Point Screen을 먼저 사용했다.
+그다음 Native-normalized TTFT와 Goodput 규칙을 사용했다.
+이 N1 Screen은 최종 N3 CI Gate가 아니다.
+동결 전에는 C3 Bridge 및 조기 Knob의 Held-out Timing을 읽지 않았다.
+최종 후보를 바꾸지 않고 Main400과 Held-out192의 QPS2.0 N3를 먼저 확인한다.
+
+## 28. Native 계측의 제한과 한 번의 Recovery Bundle
+
+Native QPS2.0/4.8의 두 CPC는 품질과 Output Work 조건을 통과했다.
+하지만 ROI 노출 Request의 ITL p99 비율은 각각 1.1101과 1.2304였다.
+허용 변화 5%를 초과했으므로 Kernel Busy는 `DIAGNOSTIC`으로 남긴다.
+Kernel Busy가 낮다는 관측만으로 Decode-safe Headroom을 선언하지 않는다.
+
+경쟁 가설은 양쪽 GPU 동시 수집, 추가 상태 Observer 및 Natural Batch/Output 변동이다.
+단일 Role, 5초 ROI 및 Quiescent Witness 비활성화의 저부하 Bundle을 고정했다.
+P와 D 각각 한 CPC만 추가한다. 통과할 때까지 반복하지 않는다.
+같은 5% 전체 Trace/ROI Gate와 Output Work/품질 조건을 유지한다.
+여러 Observer 설정을 함께 바꾸므로 개별 설정의 인과 효과로 표현하지 않는다.
+
+GPU4/5의 Primary Equal-output Replay를 이 선택적 Recovery보다 우선한다.
+따라서 Knob 및 Primary Replay가 끝난 후에만 실행한다.
+예산이 끝나면 해당 Capture는 `NOT_RUN`으로 남긴다.
+
+## 29. Natural Primary의 독립 확인
+
+동결한 QPS2.0에서 Main400과 Held-out192를 각각 독립 Start3회 실행했다.
+두 요청 집합과 GPU Pair의 CI는 합치지 않았다.
+Layer, Stock Token, Hybrid 및 Deflection은 두 Native 대조군의 Decode Gate를 통과했다.
+그러나 일부 개별 Client ITL은 34ms를 초과했다.
+Max ITL과 모든-ITL 요청 통과율을 원래 값으로 보존했다.
+
+Natural Held-out192의 Layer/Stock TTFT p95 비율은 1.0471이었다.
+95% CI는 [0.7719,1.5230]이었다.
+Hybrid/Stock은 1.1270 [0.6096,1.9694]였다.
+두 비교 모두 Layer/Hybrid 우위를 확정하지 못했다.
+Natural Output 작업량 차이가 사전 기준 5%를 초과했다.
+따라서 이미 선언한 Equal-output Replay를 실행했다.
+
+## 30. Output 작업량을 통제한 반증
+
+Replay는 요청별 독립 Compiled C1의 길이를 사용했다.
+동일한 Held-out 원문, Arrival 및 고정 정책을 유지했다.
+이 실험은 Fixed-length Diagnostic이다. Natural Serving을 대체하지 않는다.
+
+Layer, Stock Token 및 Hybrid는 각각 독립 Start3회를 완료했다.
+Layer/Stock TTFT p95 비율은 1.1588 [1.1379,1.1892]였다.
+Hybrid/Stock은 1.3042 [1.2040,1.4201]였다.
+SLO-goodput 비율은 각각 0.8574 [0.8004,0.9224]와 0.7880 [0.7381,0.8332]였다.
+이 세 Arm은 두 Native 대조군의 Decode Gate를 통과했다.
+이 조건에서 Output 작업량 차이는 Layer/Hybrid의 패배를 설명하는 유일한 원인이 아니었다.
+
+Replay의 전체 27개 계획 중 26개 실행을 완료했다.
+마지막 Common-policy Native Cap1 Start는 신규 Dispatch 예산이 끝나 미실행으로 남겼다.
+따라서 Deflection Replay의 완전한 N3 Common-policy Decode Gate를 주장하지 않는다.
+선택적 단일 Role 계측 Recovery도 미실행으로 남겼다.
+
+## 31. Kernel Activity와 실행 가능한 Window의 분리
+
+일부 Native 및 Axis CPC는 고정된 5% Observer Gate를 통과했다.
+NativeStrong QPS3.2의 약20초 ROI에서 P Kernel Busy는 99.55%였다.
+D Kernel Busy는 48.42%였고 P Waiting 평균은 27.31 Requests였다.
+이는 해당 ROI의 P/D 불균형 근거다.
+하지만 이 CPC의 모든-ITL 요청 통과율은 Clean/Profile/Clean에서 90.75%/93.00%/96.50%였다.
+
+Physical Kernel Gap은 안전한 Prefill 실행 가능 Window가 아니다.
+Partition 준비, KV Credit, Stream 가용성 및 Tail Cost를 함께 검증하지 못했다.
+따라서 Active-decode Dynamic Insertion은 실행하지 않았다.
+실패한 Observer Gate의 Capture는 Diagnostic으로 보존했다.
+
+## 32. 예산 종료와 최종 판정 범위
+
+시작 후 18시간에 신규 GPU Dispatch를 종료했다.
+이미 실행 중인 소유 작업은 정상 종료까지 기다렸다.
+Agg/Native Motivation은 공통 Offered QPS 0.8/1.4/2.0/2.6/3.2/4.0/4.8/6.0을 확보했다.
+모든 Method의 전체 QPS Grid는 완료하지 못했다.
+나머지 계획은 `NOT_RUN`으로 보존했다. 누락된 값을 보간하지 않았다.
+
+Raw Metric 재계산은 1303개 Client Metric 실행에서 통과했다.
+Client Metric이 없는 Teacher/Diagnostic 14개는 별도로 남겼다.
+실행 실패 4개 및 미실행 Receipt 20개를 성공으로 변경하지 않았다.
+전체 Configuration Inventory에는 미실행 238개가 있다.
+Configuration과 Receipt의 분모는 서로 다르다.
+
+C0의 긴 Output Point Win 증가는 확인했다.
+하지만 테스트한 강한 C3 고정 후보에서 Layer/Hybrid의 추가 Serving 이득은 확인하지 못했다.
+최종 Serving 판정은 `NO-GO_ON_TESTED_GRID`다.
+이는 테스트하지 않은 전역 설계 공간의 불가능성을 뜻하지 않는다.
+
+## 33. 게시용 Private Index의 지연 수정
+
+최종 게시에서 파일마다 Private Index를 다시 쓰는 경로가 느렸다.
+다른 후보 원인은 파일 Hash 계산과 저장장치 지연이었다.
+소유한 CPU Publisher만 Commit/Ref/Push 이전에 종료했다.
+Branch Ref와 사용자 Checkout/Index가 바뀌지 않은 것을 확인했다.
+GPU 측정, Raw Evidence 및 Burner는 변경하지 않았다.
+
+작은 실제 Git Fixture에서 파일 3개가 Index 갱신 3회를 발생시켰다.
+Index 갱신 1회를 요구한 회귀 검사는 수정 전 실패했다.
+수정은 Hash와 Index Entry를 일괄 제출한다.
+수정 후 검사는 Index 갱신 1회와 Serial 경로의 동일한 Git Tree를 확인했다.
+공백 및 한글 파일명도 검사했다.
+이 수정은 게시 경로만 변경한다. GPU Runtime의 성능 수정이 아니다.

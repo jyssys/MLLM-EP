@@ -5,6 +5,48 @@ from .runner import signature
 from .dataset import bucket
 
 class ProtocolTests(unittest.TestCase):
+    def test_publication_writes_private_index_once_with_identical_tree(self):
+        import os,subprocess,tempfile
+        from pathlib import Path
+        from unittest.mock import patch
+        from . import publication
+        with tempfile.TemporaryDirectory(prefix='v2-private-index-test-') as directory:
+            root=Path(directory);subprocess.run(['git','init','-q',str(root)],check=True)
+            paths=[root/'alpha.py',root/'beta file.json',root/'unicode_경로.json']
+            for index,path in enumerate(paths):path.write_text(str(index)+'\n')
+            expected_env=dict(os.environ,GIT_INDEX_FILE=str(root/'serial.index'))
+            actual_env=dict(os.environ,GIT_INDEX_FILE=str(root/'batch.index'));calls=[]
+            original=publication.git
+            def traced(args,**kwargs):
+                calls.append(args)
+                return original(args,**kwargs)
+            with patch.object(publication,'REPO',root):
+                original(['read-tree','--empty'],env=expected_env)
+                for path in paths:
+                    blob=original(['hash-object','-w',str(path)],env=expected_env)
+                    original(['update-index','--add','--cacheinfo',f'100644,{blob},{path.name}'],env=expected_env)
+                expected=original(['write-tree'],env=expected_env)
+                original(['read-tree','--empty'],env=actual_env)
+                with patch.object(publication,'git',traced):publication.stage_paths(paths,actual_env)
+                self.assertEqual(sum(args[0]=='update-index' for args in calls),1)
+                self.assertEqual(original(['write-tree'],env=actual_env),expected)
+
+    def test_archive_validator_checks_decompressed_bytes(self):
+        import hashlib,subprocess,tarfile,tempfile
+        from pathlib import Path
+        from .archive_validation import check_archive
+        from .evidence_pack import ZSTD
+        with tempfile.TemporaryDirectory(prefix='v2-archive-byte-test-') as directory:
+            root=Path(directory);source=root/'metric.json';source.write_bytes(b'{"ITL_ms":8}\n')
+            tar=root/'fixture.tar'
+            with tarfile.open(tar,'w') as archive:archive.add(source,arcname='metric.json')
+            target=root/'fixture.tar.zst'
+            subprocess.run([ZSTD,'-q','-f',str(tar),'-o',str(target)],check=True)
+            record=dict(bytes=source.stat().st_size,SHA256=hashlib.sha256(source.read_bytes()).hexdigest())
+            self.assertTrue(check_archive(target,{'metric.json':record})['passed'])
+            with self.assertRaises(AssertionError):
+                check_archive(target,{'metric.json':dict(record,SHA256='0'*64)})
+
     def test_output_bins(self):
         self.assertEqual([bucket(x) for x in (0,1,10,11,50,51,100,101,200,201)],
             [None,0,0,1,1,2,2,3,3,None])

@@ -9,6 +9,15 @@ from .c3_campaign import qualified_registry,performance,launch,wait_file
 from .c3_policy import policy_registry
 from .c0_analysis import csv_save
 
+def observation(stage):
+    return dict(kernel_activity=stage=='Profile',kernel_activity_roles=['prefill','decode'],
+        collector_namespace='kernel_only_collector_v3',runtime_api_activity=False,activity_copies=True,
+        quiescent_witness=stage=='Profile',
+        operator_correlation=False,graph_enclosures=False,activity_delay_seconds=30,activity_ROI_seconds=20,
+        observer_scope='Kernel/copy-only20-second ROI after30 seconds. No operator hooks or CUDA API tracing. '
+            'Require clean/profile/clean latency ratios within5% on the full trace and ROI-exposed request IDs. '
+            'Kernel gaps are not guaranteed all-engine idle or decode-safe executable windows.')
+
 def prepare():
     selection=json.loads((ROOT/'configs/c3_final_static_selection_v2.json').read_text());registry=policy_registry();original=qualified_registry()
     grid=json.loads((ROOT/'configs/c3_common_qps_grid_v2.json').read_text());knee=grid['reference_knee']
@@ -32,13 +41,7 @@ def prepare():
         lane=3;pair=[6,7];jobs=[]
         for stage in ('Clean1','Profile','Clean2'):
             name=f'V2_C3Activity_q{qps}_{label}_{stage}'
-            flags=dict(kernel_activity=stage=='Profile',kernel_activity_roles=['prefill','decode'],
-                collector_namespace='kernel_only_collector_v3',runtime_api_activity=False,activity_copies=True,
-                quiescent_witness=stage=='Profile',
-                operator_correlation=False,graph_enclosures=False,activity_delay_seconds=30,activity_ROI_seconds=20,
-                observer_scope='Kernel/copy-only20-second ROI after30 seconds. No operator hooks or CUDA API tracing. '
-                    'Require clean/profile/clean latency ratios within5% on the full trace and ROI-exposed request IDs. '
-                    'Kernel gaps are not guaranteed all-engine idle or decode-safe executable windows.')
+            flags=observation(stage)
             performance(item,name,'longbench_balanced400_v2.json',pair,qps,2026112301,observation=flags)
             jobs.append(name);lanes[lane].append(name)
         tests.append(dict(label=label,qps=qps,jobs=jobs,pair=pair))
@@ -51,12 +54,46 @@ def prepare():
             'Do not use NVML utilization as kernel busy. The collector does not establish SM/HBM metrics or a safe insertion window.'))
     return filename
 
+def early_native():
+    from .common import dispatch_allowed
+    assert dispatch_allowed()
+    assert not (ROOT/'configs/c3_final_static_selection_v2.json').exists()
+    assert (ROOT/'state/c3_continuous_iso8_output_bridge_complete_v2.json').exists()
+    target=ROOT/'jobs/c3_native_activity_early_v10.json';assert not target.exists()
+    item=qualified_registry()['NativeStrong']
+    keys=json.loads((ROOT/'configs/c3_confirmation_knee_refinement_v3.json').read_text())['important_confirmation_QPS']
+    tests=[];lanes=[[],[],[],[]]
+    for qps in (keys[0],keys[-1]):
+        jobs=[]
+        for stage in ('Clean1','Profile','Clean2'):
+            name=f'V2_C3Activity_q{qps}_NativeStrong_{stage}'
+            performance(item,name,'longbench_balanced400_v2.json',[6,7],qps,2026112301,observation=observation(stage))
+            jobs.append(name);lanes[3].append(name)
+        tests.append(dict(label='NativeStrong',qps=qps,jobs=jobs,pair=[6,7]))
+    write(ROOT/'configs/c3_native_activity_early_priority_v10.json',dict(time=time.time(),
+        changed='Execution order only. Run the two already declared NativeStrong CPC triplets on the idle6/7 pair.',
+        source_dataset_pair_trace_gate_changed=False,static_selection_uses_these_results=False,
+        scope='The final full activity plan reuses these exact names,configs and receipts. '
+            'Do not create another independent-start count by listing the same capture twice. '
+            'Preserve the unchanged5% full-trace/ROI observer gate. Do not inspect Main/heldout timing before static selection freezes.'))
+    write(target,dict(time=time.time(),lanes=lanes,tests=tests,stop_on_failure=False,
+        scope='Early dispatch of the two unchanged NativeStrong CPC triplets. No candidate selection input.'))
+    result=launch(target.name,allow_partial_budget=True)
+    write(ROOT/'state/c3_native_activity_early_complete_v10.json',dict(time=time.time(),complete=result['complete']))
+
 def analyze():
     from .bridge import bind
     bind()
     from ..dense_ar_longbench400_pd.window_analysis import role_analysis,observer
     plan=json.loads((ROOT/'jobs/c3_kernel_copy_cpc_v2.json').read_text());results=[];flat=[]
     for test in plan['tests']:
+        receipts=[ROOT/'raw'/name/'dispatcher_result.json' for name in test['jobs']]
+        existing=[json.loads(path.read_text()) for path in receipts if path.exists()]
+        if len(existing)!=3 or not all(r['complete'] for r in existing):
+            status='FAILED' if any(not r['complete'] for r in existing) else 'NOT_RUN' if not existing else 'PARTIAL_OR_NOT_RUN'
+            results.append(dict(test,evidence=status,completed_runs=sum(r['complete'] for r in existing),
+                reason='A complete clean/profile/clean triplet is required. Do not label an unlaunched capture as a measured failure.'))
+            continue
         try:
             roles=[role_analysis(test['jobs'][1],role) for role in ('prefill','decode')]
             gate=observer(test['qps'],roles,test['jobs'])
