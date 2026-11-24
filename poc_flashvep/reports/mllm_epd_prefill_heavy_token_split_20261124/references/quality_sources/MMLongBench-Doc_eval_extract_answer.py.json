@@ -1,0 +1,6 @@
+{
+  "repository": "mayubo2333/MMLongBench-Doc",
+  "source_SHA": "d73f0dc0be7e0a2ff6a403d5fe65fcd96461f384",
+  "source_path": "eval/extract_answer.py",
+  "source_text": "from openai import OpenAI\nclient = OpenAI()\n\n\ndef extract_answer(question, output, prompt, model_name=\"gpt-4o\"):\n    try:\n        response = client.chat.completions.create(\n            model=model_name,\n            messages=[\n                {\n                    \"role\": \"user\",\n                    \"content\": prompt,\n                },\n                {\n                \"role\": \"assistant\",\n                \"content\": \"\\n\\nQuestion:{}\\nAnalysis:{}\\n\".format(question, output)\n                }\n            ],\n            temperature=0.0,\n            max_tokens=256,\n            top_p=1,\n            frequency_penalty=0,\n            presence_penalty=0\n        )\n        response = response.choices[0].message.content\n    except:\n        response = \"Failed\"\n    \n    return response"
+}

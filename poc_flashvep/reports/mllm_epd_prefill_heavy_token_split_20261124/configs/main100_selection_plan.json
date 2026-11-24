@@ -1,0 +1,24 @@
+{
+  "time": 1795508520.621327,
+  "parent_manifest": "/home/esjung/MLLM-EP-github/poc_flashvep/reports/mllm_epd_prefill_heavy_token_split_20261124/data/main_manifest_template_v2.json",
+  "parent_SHA256": "7ac7d28ae1678499bee35ec20e317760555944cac7b4ca29eb46aeb3957b9592",
+  "reference_outputs": "/home/esjung/MLLM-EP-github/poc_flashvep/reports/mllm_epd_prefill_heavy_token_split_20261124/raw/reference_main400_natural_template_v2_v0_requests.jsonl",
+  "reference_outputs_SHA256": "448b9721bc2ccaceeccc8c307595c86085609901181af04c1205dc7541c5c43b",
+  "target": 100,
+  "seed": 2026112405,
+  "starts": 4,
+  "iterations_per_start": 60000,
+  "procedure": "Source/split rounded quotas, then deterministic feature-balanced subset selection.",
+  "criteria": "Input, visual, text, special, image/page count, measured Natural output length, and input/output quartiles.",
+  "prohibited_inputs": [
+    "method latency",
+    "method throughput",
+    "SLO outcomes",
+    "answer accuracy"
+  ],
+  "rare_tail_policy": "Do not force the min/max or the single 2048-token cap hit. Report all tail changes.",
+  "split_policy": "Inherit original discovery/heldout ownership. Keep 50/50. Keep Calibration32 unchanged.",
+  "performance_selection": false,
+  "output_length_selection": true,
+  "caveat": "Length-balanced sampling changes inclusion probabilities. It does not reproduce all Main400 statistics exactly."
+}

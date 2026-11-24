@@ -1,0 +1,55 @@
+{
+  "time": 1795520530.6338038,
+  "status": "FROZEN_BEFORE_CANDIDATE",
+  "workers": [
+    {
+      "name": "metadata_B3_E4",
+      "pid": 411513,
+      "GPU_info": "4, GPU-6076e2f2-5b63-3761-5586-56ceb7df8139, NVIDIA H100 80GB HBM3, 81559 MiB\n",
+      "source_archive_SHA256": "b6ca246e8eb016c2ac5221364c9d05c28ac0732d43b2a8d729ad880b5c08840f"
+    },
+    {
+      "name": "metadata_B3_P5",
+      "pid": 411527,
+      "GPU_info": "5, GPU-a1a1cfcf-93a1-3544-9a5e-e58144b68730, NVIDIA H100 80GB HBM3, 81559 MiB\n",
+      "source_archive_SHA256": "b6ca246e8eb016c2ac5221364c9d05c28ac0732d43b2a8d729ad880b5c08840f"
+    },
+    {
+      "name": "metadata_B3_D6",
+      "pid": 411526,
+      "GPU_info": "6, GPU-e3f3998e-0f1a-e94a-b97c-4abb0e8c2c28, NVIDIA H100 80GB HBM3, 81559 MiB\n",
+      "source_archive_SHA256": "b6ca246e8eb016c2ac5221364c9d05c28ac0732d43b2a8d729ad880b5c08840f"
+    }
+  ],
+  "source_archive_SHA256": "e116a147e15addf09e525161c63ce3145f6854a706617966e8c2e6c075926cd9",
+  "one_factor": "Client full SSE evidence serialization time",
+  "hypotheses": [
+    "If completion raw serialization causes a receipt stall, post-drain full serialization reduces client ITL without changing engine output.",
+    "If API or GPU timing dominates, the deferred policy does not restore the frozen all-ITL gate.",
+    "If the first/last immediate arms differ materially, this single-start result is unstable."
+  ],
+  "arms": [
+    "immediate",
+    "deferred",
+    "immediate"
+  ],
+  "QPS": 2,
+  "count": 100,
+  "output": "Per-request equal-output replay",
+  "fixed": [
+    "GPU group",
+    "model",
+    "processor",
+    "grid-only metadata handoff",
+    "arrival seed",
+    "order seed",
+    "SLO thresholds"
+  ],
+  "SLO": {
+    "every_ITL_ms": 34,
+    "TPOT_ms": 33,
+    "TTFT_ms": 5000,
+    "absolute_decode_attainment_min": 0.95
+  },
+  "caveat": "Full chunks and prompt IDs remain in memory until drain. A compact completion journal preserves metrics if interrupted. This is not a server optimization or a token-split result."
+}

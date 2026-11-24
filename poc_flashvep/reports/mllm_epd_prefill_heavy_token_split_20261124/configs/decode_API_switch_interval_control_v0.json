@@ -1,0 +1,20 @@
+{
+  "time": 1795515157.0127754,
+  "evidence": "DIAGNOSTIC_CONTROL",
+  "baseline": "native_main100_timeline_CPC_q2_v2_client_host",
+  "candidate": "native_main100_timeline_CPC_q2_v3_API1ms",
+  "one_factor": "D API process Python thread switch interval: default 5ms to 1ms.",
+  "other_servers": "E13_sync and P10 unchanged. D uses identical model, connector, B/S/KV/attention/compile configuration.",
+  "client_heap_freeze": false,
+  "model_or_sampling_change": false,
+  "quality_gate": "N1 same-geometry output comparison first. Full task quality remains pending.",
+  "hypothesis": "If D API CPU-thread contention delays token delivery, a shorter GIL switching interval reduces API heartbeat and Engine-to-API tail without changing Engine token work.",
+  "alternative_hypotheses": [
+    "Proxy forwarding delay",
+    "Client-side synchronous logging or GC",
+    "D GPU execution delay"
+  ],
+  "measurement": "Same Main100, q2, seeds, per-request output replay, clean/timeline/clean, exact engine/API/client alignment.",
+  "success_criteria": "All100 finish. API heartbeat and Engine-to-API tail decrease without engine or E2E regression. Preserve every client ITL violation. No success claim until independent confirmation.",
+  "observer_limit": 0.05
+}

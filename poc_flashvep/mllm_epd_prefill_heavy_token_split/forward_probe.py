@@ -1,0 +1,104 @@
+"""Read-only LLM input, prompt KV and greedy-margin probes. Correctness only."""
+import hashlib
+import os
+import re
+import time
+
+from .common import ROOT,write,digest
+
+
+def gather_prompt_kv(cache, block_ids, length):
+    import torch
+    assert cache.ndim==4 and length>0
+    positions=torch.arange(length,device=cache.device)
+    blocks=torch.tensor(block_ids,device=cache.device,dtype=torch.long)
+    size=cache.shape[2]
+    assert len(block_ids)*size>=length
+    return cache[blocks[positions//size],:,positions%size,:].contiguous()
+
+
+class ForwardProbe:
+    def __init__(self,worker,name,max_logits):
+        assert re.fullmatch('[A-Za-z0-9_.-]+',name) and name not in ('.','..')
+        self.runner=worker.model_runner;self.model=self.runner.model;self.max_logits=max_logits
+        self.decode_role=os.environ['MLLM_EPD_ROLE'] in ('decode','reference_decode')
+        self.folder=ROOT/'raw/llm_reference'/name
+        assert not self.folder.exists();self.folder.mkdir(parents=True)
+        assert len(self.runner.kv_caches)==28,'This probe requires the actual Qwen2.5-VL 28-layer cache'
+        self.events=[];self.logits=[];self.tensors={};self.snapshot=None;self.current=None
+
+    def tensor(self,name,value):
+        # Dedicated CPU storage avoids serializing a larger backing allocation.
+        self.tensors[name]=value.detach().cpu().contiguous().clone()
+
+    def begin(self):
+        from vllm.forward_context import get_forward_context
+        import torch
+        self.original_execute=self.runner.execute_model
+        self.original_forward=self.runner._model_forward
+        self.original_logits=self.model.compute_logits
+        self.original_slots=[(obj,key,key in vars(obj),vars(obj).get(key)) for obj,key in
+            [(self.runner,'execute_model'),(self.runner,'_model_forward'),(self.model,'compute_logits')]]
+        me=self
+        def execute(output,*args,**kwargs):
+            me.current=output
+            return me.original_execute(output,*args,**kwargs)
+        def forward(*args,**kwargs):
+            output=me.current;batch=me.runner.input_batch
+            ids=list(batch.req_ids)
+            assert len(ids)==1,'Use a single-request correctness probe, not a serving run'
+            rid=ids[0];i=0;start=int(batch.num_computed_tokens_cpu[i]);n=int(output.num_scheduled_tokens[rid])
+            length=int(batch.num_prompt_tokens[i]);context=get_forward_context()
+            event=dict(index=len(me.events),request_id=rid,start=start,query_tokens=n,prompt_tokens=length,
+                cudagraph_mode=str(context.cudagraph_runtime_mode),batch_descriptor=str(context.batch_descriptor))
+            for key in ('input_ids','inputs_embeds','positions'):
+                value=kwargs.get(key)
+                if isinstance(value,torch.Tensor):
+                    event[key+'_shape']=list(value.shape)
+                    # Do not introduce a D-side pre-forward GPU synchronization.
+                    if not me.decode_role and len(me.events)<me.max_logits:
+                        data=value[:n] if key!='positions' else value[...,:n]
+                        me.tensor(key+'_'+str(len(me.events)),data)
+            me.events.append(event)
+            return me.original_forward(*args,**kwargs)
+        def logits(hidden,*args,**kwargs):
+            result=me.original_logits(hidden,*args,**kwargs)
+            event=me.events[-1]
+            if event['start']+event['query_tokens']>=event['prompt_tokens'] and len(me.logits)<me.max_logits:
+                values,indices=result.float().topk(32,dim=-1)
+                me.logits.append(dict(event=event['index'],token_ids=indices.cpu().tolist(),values=values.cpu().tolist()))
+                me.tensor('hidden_'+str(len(me.logits)-1),hidden)
+                if me.snapshot is None:
+                    batch=me.runner.input_batch;table=batch.block_table[0]
+                    length=event['prompt_tokens'];num_blocks=int(table.num_blocks_per_row[0])
+                    blocks=table.block_table.np[0,:num_blocks].tolist()
+                    signatures=[]
+                    for index,cache in enumerate(me.runner.kv_caches):
+                        assert cache.shape[1]==4 and cache.shape[3]==256,(index,cache.shape)
+                        data=gather_prompt_kv(cache,blocks,length)
+                        me.tensor('prompt_KV_'+str(index),data)
+                        signatures.append(dict(layer=index,shape=list(data.shape),cache_shape=list(cache.shape),
+                            cache_stride=list(cache.stride()),dtype=str(data.dtype)))
+                    request=me.runner.requests[event['request_id']]
+                    token_ids=request.prompt_token_ids
+                    me.tensor('prompt_token_ids',torch.tensor(token_ids,dtype=torch.int64))
+                    if request.mrope_positions is not None:me.tensor('full_prompt_mrope',request.mrope_positions[...,:length])
+                    me.snapshot=dict(event=event,block_ids=blocks,kernel_block_size=int(table.block_size),layers=signatures,
+                        mrope_delta=request.mrope_position_delta,
+                        scope='All valid prompt KV positions after first complete prompt query. '
+                            'For D,positions below event.start are imported. The remaining positions may be recomputed.')
+            return result
+        self.runner.execute_model=execute;self.runner._model_forward=forward;self.model.compute_logits=logits
+        return dict(folder=str(self.folder),scope='CORRECTNESS_ONLY. Original forward and logits passthrough. CPU copies invalidate timing.')
+
+    def close(self):
+        from safetensors.torch import save_file
+        for obj,key,existed,value in self.original_slots:
+            if existed:setattr(obj,key,value)
+            else:delattr(obj,key)
+        file=self.folder/'tensors.safetensors';save_file(self.tensors,str(file))
+        value=dict(time=time.time(),events=self.events,logits=self.logits,snapshot=self.snapshot,
+            tensor_file=str(file),tensor_SHA256=digest(file),evidence='CORRECTNESS_ONLY',
+            scope='No model input,output,cache or sampled token was changed. This run cannot establish latency or throughput.')
+        write(self.folder/'manifest.json',value)
+        return dict(folder=str(self.folder),events=len(self.events),logits=len(self.logits),KV_snapshot=self.snapshot is not None)

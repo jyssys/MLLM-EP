@@ -1,0 +1,23 @@
+{
+  "time": 1795499285.5566537,
+  "prior_cache_GB": 0,
+  "corrected_cache_GB": 1,
+  "prefix_cache": false,
+  "all_baselines_same_policy": true,
+  "request_unique_UUIDs": true,
+  "performance_results_used": false,
+  "original_failure": "Native Calibration32 failed at request index6. P attempted 1014+225 embeddings for2916 placeholders.",
+  "cause": "Installed BaseRenderer._process_mm_uuids overrides supplied UUIDs when both caches are disabled. Separate E/P request counters diverge.",
+  "fix": "Enable a1GiB processor cache in all baselines. Retain request-unique UUIDs to prevent cross-request media reuse.",
+  "unchanged": [
+    "model weights",
+    "precision",
+    "processor pixel configuration",
+    "MRoPE",
+    "attention",
+    "prefix caching disabled",
+    "B/S"
+  ],
+  "validation": "CPU actual renderer regression. GPU N1/N8/N32 retest required.",
+  "evidence": "Source-level diagnosis and FAILED_EXECUTION,not a serving performance result"
+}

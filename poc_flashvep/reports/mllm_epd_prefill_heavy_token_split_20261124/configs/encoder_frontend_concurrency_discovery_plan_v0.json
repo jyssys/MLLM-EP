@@ -1,0 +1,24 @@
+{
+  "time": 1795519847.002856,
+  "status": "FROZEN_BEFORE_TUNING_RESULTS",
+  "evidence": "CONTROL_PLAN",
+  "reason": "After exact metadata handoff, q3 central diagnostic E/P/D busy is 61.65/62.99/56.41 percent. P is not saturated. E has pending HTTP work during 33.73 percent of physical idle while P has no pending HTTP work for 27.14 percent of total time. This localizes a possible E supply limit, but does not prove its cause.",
+  "supported_config_constraint": "Installed model.py rejects renderer_num_workers>1 with mm_processor_cache_gb>0 because the cache is not thread-safe.",
+  "sequence": [
+    "A: current E cache1,renderer1, exact grid metadata handoff.",
+    "B: E cache0,renderer1. Keep P/D cache1. Test cache-policy and identifier consistency separately.",
+    "C: E cache0,renderer2. Same as B except the official CPU renderer worker count.",
+    "D: renderer4 only if C shows an unresolved CPU supply limit without correctness or memory failure."
+  ],
+  "mandatory": [
+    "Fresh unique shared EC directory and processed-prompt directory for every E restart. Cache0 generates engine-local IDs; do not risk stale exports across restarts.",
+    "Preserve original E-processed mm_hashes in P/D. Consumer processing must not regenerate identifiers.",
+    "N1/N8 full Natural EOS correctness before timing.",
+    "Retain original Processor, Vision Encoder, images, token counts and BF16. No threshold or dataset change.",
+    "Record OOM or quality failure as invalid. Do not hide it.",
+    "Tune Agg DP3 CPU rendering fairly before final primary comparison. Its local cache0 identifiers do not cross engines.",
+    "Do not claim P-prefill-heavy merely from improved CPU rendering. Measure P/E/D queues and activity again."
+  ],
+  "primary_status": "Native task quality and observer qualification remain pending. Discovery timing is DIAGNOSTIC.",
+  "not_new_method": "This is host supply/runtime tuning, not visual pruning, new token selection, or encoder model optimization."
+}

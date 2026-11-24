@@ -1,0 +1,101 @@
+{
+  "time": 1795519570.0072718,
+  "status": "ACTIVE",
+  "main_count": 100,
+  "manifest_SHA256": "910506f24984e8f83e433c169b0a03d06c89396e1ef8a5f66b514d97406844d1",
+  "verified_unused_burners": [
+    {
+      "gpu": 0,
+      "burner_sid": 380533,
+      "processes": [
+        {
+          "gpu": 0,
+          "pid": 381281
+        }
+      ]
+    },
+    {
+      "gpu": 1,
+      "burner_sid": 380510,
+      "processes": [
+        {
+          "gpu": 1,
+          "pid": 381274
+        }
+      ]
+    },
+    {
+      "gpu": 2,
+      "burner_sid": 380507,
+      "processes": [
+        {
+          "gpu": 2,
+          "pid": 381267
+        }
+      ]
+    },
+    {
+      "gpu": 3,
+      "burner_sid": 332072,
+      "processes": [
+        {
+          "gpu": 3,
+          "pid": 332348
+        }
+      ]
+    },
+    {
+      "gpu": 7,
+      "burner_sid": 156518,
+      "processes": [
+        {
+          "gpu": 7,
+          "pid": 156825
+        }
+      ]
+    }
+  ],
+  "live_controller": {
+    "pid": 410788,
+    "exec_session": 2302,
+    "module": "independent_q3_profile",
+    "proc_verified": true
+  },
+  "servers": [
+    "metadata_B3_E4",
+    "metadata_B3_P5",
+    "metadata_B3_D6"
+  ],
+  "correctness": [
+    "31 CPU tests passed.",
+    "N1/N8 fixed16 and N8 full Natural EOS match across none/full/grid_only.",
+    "Mantis6 same-geometry P input embeddings, MRoPE and all28 imported/full prompt KV layers match strictly. Natural output matches."
+  ],
+  "diagnostic_online": {
+    "one_initialization": true,
+    "QPS": 2,
+    "same_5269_output_tokens": true,
+    "none_TTFT_p95_ms": 8783.446460866617,
+    "full_TTFT_p95_ms": 7647.736538504614,
+    "grid_TTFT_p95_ms": 6914.665975314347,
+    "none_all_ITL_pass": 0.68,
+    "full_all_ITL_pass": 0.91,
+    "grid_all_ITL_pass": 0.97
+  },
+  "kernel_q2": "DIAGNOSTIC: E/P/D central kernel busy about 46.8/46.9/45.8 percent. P-prefill-heavy not confirmed. Observer gate failed.",
+  "q3_B2": "Clean100 completed with 99 percent all-ITL pass. Profile NOT_RUN because one capture per worker is enforced.",
+  "q3_B3": "Fresh unchanged workers. N1 and warm100 passed. CPC is live; no restart on observation timeout.",
+  "remaining": [
+    "Inspect fresh B3 q3 profile and queue to distinguish P GPU bottleneck from E CPU supply.",
+    "If CPU bottleneck is measured, test supported E rendering concurrency carefully. Official renderer_workers>1 requires cache0. Metadata reuse can preserve E identifiers, but every cache0 restart requires a fresh shared EC namespace. Do not silently reuse old encoder-local identifiers.",
+    "Independent N3 of validated common runtime and all strong baselines remains pending.",
+    "Full task-quality and cross-geometry encoder tolerances remain unresolved. No quality or safe-headroom waiver.",
+    "Generic exact token split, static/idle-aware offload, E co-residency/quanta and online probes remain NOT_RUN.",
+    "Finish required reports, figures, reproducibility, commit/push/remote verification and all8 burner closeout."
+  ],
+  "client_hygiene": [
+    "Future serial duration anchor fixed. Original 400-reference raw remains unchanged; about 1s anchor discrepancy recorded.",
+    "Client replay loader now streams counts only. Old raw reference trees and their rare GC stalls are not retained. This common measurement repair is not a model speedup."
+  ],
+  "scientific_scope": "Metadata-only consumer handoff is a common EPD runtime repair, not a token partitioning gain. The legacy triple-processor Native must not be the only primary comparator."
+}
