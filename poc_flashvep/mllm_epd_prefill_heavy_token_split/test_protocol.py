@@ -217,6 +217,8 @@ class ObserverHookTest(unittest.TestCase):
         observer=object.__new__(Collector)
         observer.runner_class=Runner;observer.runner=runner
         observer.rows=[];observer.calls=[];observer.originals=[]
+        observer.state_interval_ns=0
+        observer.last_schedule_sample_ns=observer.last_execute_sample_ns=0
         output=types.SimpleNamespace(total_num_scheduled_tokens=1,
             num_scheduled_tokens={'request':1},scheduled_encoder_inputs={})
         try:

@@ -1,0 +1,30 @@
+{
+  "time": 1795525018.7656176,
+  "status": "FROZEN_BEFORE_ACK_INTERVENTION",
+  "source_archive_SHA256": "db46eee93fb48d33c6606e39173bc2355cd6eefc9da36123f9d19d0313742c3f",
+  "evidence": "DIAGNOSTIC_CONTROL_PLAN",
+  "one_factor": "P waits for an E completion-ACK RPC versus writes an owned completion marker",
+  "baseline": "ec_IPC_C8 preserves correct N1/N8/all28 KV, but equal-output q2 TTFTp95 regresses7.15s->11.54s.",
+  "hypotheses": [
+    "An unnecessary synchronous ACK can delay P even after its GPU clone is complete.",
+    "If export RPC dominates, changing only the completion ACK will not recover the CPU baseline.",
+    "Device-open and clone costs can remain after both control-plane delays are reduced."
+  ],
+  "arms": [
+    "RPC_A",
+    "FILE_B",
+    "RPC_C"
+  ],
+  "independent_starts": 1,
+  "not_N3": true,
+  "fixed": [
+    "Same GPU4/5/6 group and initialization",
+    "Main100",
+    "Equal5269 output tokens",
+    "QPS2",
+    "Arrival seed2026112402/order seed2026112404",
+    "All model,processor,B/S,KV,compiler and SLO settings"
+  ],
+  "mandatory": "CUDA clone completion synchronization and producer ownership release gates remain in both modes. A file marker cannot free a live tensor before the downstream request finishes.",
+  "interpretation": "Conservative transport control. No offloaded prefill, future window predictor or dynamic token selection."
+}

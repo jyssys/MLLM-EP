@@ -28,6 +28,7 @@ async def run(args):
                 observer_interference_max=.05,primary_quality_status='PENDING',
                 evidence='DIAGNOSTIC until both observer and model-quality gates pass',
                 observer_kind=args.observer_kind,
+                scheduler_state_sampling_interval_ms=getattr(args,'state_interval_ms',0),
                 client_host_observer=args.observe_client_host,
                 freeze_client_static_heap=args.freeze_client_static_heap,
                 metrics=['duration_seconds','TTFT_p50_ms','TTFT_p95_ms','ITL_p99_ms','TPOT_p95_ms'])
@@ -48,7 +49,8 @@ async def run(args):
     await measure('clean_before')
     try:
         for url in args.worker_urls.split(','):
-            reply=await asyncio.to_thread(rpc,url,args.observer_kind+'/begin',dict(name=args.name,include_copies=True))
+            reply=await asyncio.to_thread(rpc,url,args.observer_kind+'/begin',dict(name=args.name,include_copies=True,
+                state_interval_ms=getattr(args,'state_interval_ms',0)))
             rpc_results[url]=dict(begin=reply);opened.append(url)
         await measure('profile')
     finally:
@@ -87,6 +89,7 @@ def main():
     p.add_argument('--server-names',required=True);p.add_argument('--manifest',type=Path)
     p.add_argument('--replay-from',type=Path,required=True);p.add_argument('--qps',type=float,default=1)
     p.add_argument('--observer-kind',choices=['profile','timeline'],default='profile')
+    p.add_argument('--state-interval-ms',type=float,default=0,help='Scheduler state sampling only. GPU kernels remain fully recorded.')
     p.add_argument('--observe-client-host',action='store_true')
     p.add_argument('--freeze-client-static-heap',action='store_true')
     p.add_argument('--seed',type=int,default=2026112402);p.add_argument('--order-seed',type=int,default=2026112404)

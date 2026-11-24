@@ -104,7 +104,8 @@ def main():
             outstanding=union(pending[role],lo,hi)
             no_http_pending=intersection(idle[role],complement(outstanding,lo,hi))
             waiting=intersection(idle[role],outstanding)
-            sched=json.loads((profile/role/'scheduler.json').read_text())['rows']
+            scheduler_provenance=json.loads((profile/role/'scheduler.json').read_text())
+            sched=scheduler_provenance['rows']
             selected=[r for r in sched if lo<=r['begin_ns']/1e9<=hi]
             roles[role]=dict(kernel_busy_fraction=duration(busy[role])/span,
                 kernel_idle_fraction=duration(idle[role])/span,
@@ -114,6 +115,7 @@ def main():
                 pending_HTTP_kernel_idle_fraction=duration(waiting)/span,
                 idle_windows=windows(idle[role]),no_pending_HTTP_idle_windows=windows(no_http_pending),
                 scheduler_observations=len(selected),
+                scheduler_state_sampling_interval_ms=scheduler_provenance.get('sampling_interval_ms',0),
                 scheduler_waiting_mean_per_observation=float(np.mean([r['before']['waiting'] for r in selected])) if selected else None,
                 scheduler_waiting_max=max((r['before']['waiting'] for r in selected),default=None),
                 actual_scheduled_requests_max=max((r['actual_scheduled_requests'] for r in selected),default=None),

@@ -12,9 +12,12 @@ import urllib.request
 from .common import ROOT,REPO,PYTHON,MODEL_ID,resources,write,append,digest,initialize,preserve,experiment_deadline
 
 
-def command(role,port,ec_path,side_port,observe=False,encoder_native_ops=False,eager_reference=False,compiled_encoder=False,encoder_token_budget=114688,encoder_whole_request=False,encoder_sync_scheduling=False,mm_cache_gb=1,renderer_workers=1):
+def command(role,port,ec_path,side_port,observe=False,encoder_native_ops=False,eager_reference=False,compiled_encoder=False,encoder_token_budget=114688,encoder_whole_request=False,encoder_sync_scheduling=False,mm_cache_gb=1,renderer_workers=1,ec_transport='cpu',encoder_api='http://127.0.0.1:18840',token_split=False):
     assert mm_cache_gb>=0 and renderer_workers>=1
     assert renderer_workers==1 or mm_cache_gb==0,'Official renderer threads require a disabled processor cache'
+    assert ec_transport in ('cpu','cuda_ipc')
+    assert ec_transport=='cpu' or observe,'CUDA IPC requires the fixed owned-worker RPC endpoints'
+    assert not token_split or observe and role in ('prefill','decode')
     model=json.loads((ROOT/'state/model_download_complete.json').read_text())
     args=[str(PYTHON),'-m','vllm.entrypoints.openai.api_server','--model',model['directory'],
         '--served-model-name',MODEL_ID,'--dtype','bfloat16','--port',str(port),'--host','127.0.0.1',
@@ -44,9 +47,16 @@ def command(role,port,ec_path,side_port,observe=False,encoder_native_ops=False,e
         if cfg['ec_role']=='ec_consumer':
             cfg.update(ec_connector='StrictExampleConnector',
                 ec_connector_module_path='poc_flashvep.mllm_epd_prefill_heavy_token_split.strict_ec')
+        if ec_transport=='cuda_ipc':
+            cfg.update(ec_connector='CUDAIPCEncoderConnector',
+                ec_connector_module_path='poc_flashvep.mllm_epd_prefill_heavy_token_split.cuda_ipc_ec')
+            cfg['ec_connector_extra_config']['producer_api']=encoder_api
         args+=['--ec-transfer-config',json.dumps(cfg)]
     if role in ('prefill','decode','reference_prefill','reference_decode'):
         cfg=dict(kv_connector='NixlConnector',kv_role='kv_producer' if role in ('prefill','reference_prefill') else 'kv_consumer')
+        if token_split:
+            cfg.update(kv_connector='ExactTokenNixlConnector',
+                kv_connector_module_path='poc_flashvep.mllm_epd_prefill_heavy_token_split.token_nixl')
         args+=['--kv-transfer-config',json.dumps(cfg)]
     if observe:
         args[2]='poc_flashvep.mllm_epd_prefill_heavy_token_split.server_entry'
@@ -56,7 +66,7 @@ def command(role,port,ec_path,side_port,observe=False,encoder_native_ops=False,e
     return args
 
 
-def serve(name,gpu,role,port,ec_path,side_port,observe=False,encoder_native_ops=False,legacy_runner=False,eager_reference=False,compiled_encoder=False,encoder_token_budget=114688,encoder_whole_request=False,encoder_sync_scheduling=False,api_switch_interval=None,mm_cache_gb=1,renderer_workers=1):
+def serve(name,gpu,role,port,ec_path,side_port,observe=False,encoder_native_ops=False,legacy_runner=False,eager_reference=False,compiled_encoder=False,encoder_token_budget=114688,encoder_whole_request=False,encoder_sync_scheduling=False,api_switch_interval=None,mm_cache_gb=1,renderer_workers=1,ec_transport='cpu',encoder_api='http://127.0.0.1:18840',token_split=False):
     initialize();owner=resources()
     stop=ROOT/'state'/('stop_server_'+name)
     record=ROOT/'state'/('server_'+name+'.json')
@@ -64,24 +74,27 @@ def serve(name,gpu,role,port,ec_path,side_port,observe=False,encoder_native_ops=
     if record.exists():
         old=json.loads(record.read_text());assert old.get('finished'),('Existing lease',name)
     ec_path.mkdir(parents=True,exist_ok=True)
-    owner.stop([gpu])
     child=None;request_stop=False;started=time.time();last_sample=0
     def on_signal(*_):
         nonlocal request_stop
         request_stop=True
     signal.signal(signal.SIGTERM,on_signal);signal.signal(signal.SIGINT,on_signal)
-    cmd=command(role,port,ec_path,side_port,observe=observe,encoder_native_ops=encoder_native_ops,eager_reference=eager_reference,compiled_encoder=compiled_encoder,encoder_token_budget=encoder_token_budget,encoder_whole_request=encoder_whole_request,encoder_sync_scheduling=encoder_sync_scheduling,mm_cache_gb=mm_cache_gb,renderer_workers=renderer_workers)
+    cmd=command(role,port,ec_path,side_port,observe=observe,encoder_native_ops=encoder_native_ops,eager_reference=eager_reference,compiled_encoder=compiled_encoder,encoder_token_budget=encoder_token_budget,encoder_whole_request=encoder_whole_request,encoder_sync_scheduling=encoder_sync_scheduling,mm_cache_gb=mm_cache_gb,renderer_workers=renderer_workers,ec_transport=ec_transport,encoder_api=encoder_api,token_split=token_split)
     if observe:
         from .worker_observer import prepare_artifact
         prepare_artifact()
-    from .source_snapshot import snapshot
+    from .source_snapshot import snapshot,materialize
     archived_source=snapshot('server_'+name)
+    frozen_cwd=materialize(archived_source)
     env=dict(os.environ,PATH=str(PYTHON.parent)+os.pathsep+os.environ.get('PATH',''),
         CUDA_VISIBLE_DEVICES=str(gpu),VLLM_NIXL_SIDE_CHANNEL_PORT=str(side_port),
         OMP_NUM_THREADS='4',MKL_NUM_THREADS='4',TOKENIZERS_PARALLELISM='false',VLLM_BATCH_INVARIANT='0',
         VLLM_CACHE_ROOT=str(ROOT/'runtime_cache'/role),HF_HUB_OFFLINE='1',TRANSFORMERS_OFFLINE='1',
         UCX_NET_DEVICES='all',VLLM_ALLOW_LONG_MAX_MODEL_LEN='1',MLLM_EPD_ROLE=role)
-    env.update(MLLM_EPD_EC_PATH=str(ec_path),MLLM_EPD_METADATA_PATH=str(ec_path/'processed_prompts'))
+    env.update(MLLM_EPD_EC_PATH=str(ec_path),MLLM_EPD_METADATA_PATH=str(ec_path/'processed_prompts'),
+        MLLM_EPD_EC_TRANSPORT=ec_transport)
+    env['PYTHONDONTWRITEBYTECODE']='1'
+    env['MLLM_EPD_TOKEN_SPLIT']='1' if token_split else '0'
     if legacy_runner:env['VLLM_USE_V2_MODEL_RUNNER']='0'
     else:env.pop('VLLM_USE_V2_MODEL_RUNNER',None)
     env.pop('MLLM_EPD_API_SWITCH_INTERVAL',None)
@@ -95,18 +108,21 @@ def serve(name,gpu,role,port,ec_path,side_port,observe=False,encoder_native_ops=
         guardian=os.getpid(),guardian_sid=os.getsid(0),started=started,ready=False,finished=False,legacy_runner=legacy_runner,
         source_SHA256={p.name:digest(p) for p in Path(__file__).parent.glob('*.py')},
         source_archive=archived_source['archive'],source_archive_SHA256=archived_source['archive_SHA256'],
+        executed_source_cwd=str(frozen_cwd),source_execution='Verified extracted boot snapshot',
         GPU_info=subprocess.check_output(['nvidia-smi','-i',str(gpu),
             '--query-gpu=index,uuid,name,memory.total','--format=csv,noheader'],text=True),
         compiler_preflight=dict(ninja=ninja,passed=True),
         API_switch_interval_requested=api_switch_interval,
         frontend_configuration=dict(mm_processor_cache_gb=mm_cache_gb,renderer_num_workers=renderer_workers),
+        EC_transport=ec_transport,token_split_adapter_enabled=token_split,
         environment={k:env[k] for k in ('PATH','CUDA_VISIBLE_DEVICES','VLLM_NIXL_SIDE_CHANNEL_PORT','OMP_NUM_THREADS',
             'MKL_NUM_THREADS','VLLM_BATCH_INVARIANT','VLLM_CACHE_ROOT')},
         observer='Inactive fixed RPC endpoints plus NVML. CUPTI/state hooks require an explicit begin/end and CPC gate.'
             if observe else 'NVML only. Not a kernel-busy or GPU-exclusive measurement.')
     try:
+        owner.stop([gpu])
         with (ROOT/'logs'/('server_'+name+'.log')).open('ab') as log:
-            child=subprocess.Popen(cmd,cwd=REPO,env=env,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
+            child=subprocess.Popen(cmd,cwd=frozen_cwd,env=env,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
         data['pid']=child.pid;data['sid']=os.getsid(child.pid);write(record,data)
         append(ROOT/'resource_ledger.jsonl',dict(action='START_OWNED_SERVER',time=time.time(),**data))
         while child.poll() is None and not request_stop and not stop.exists() and time.time()<experiment_deadline():
@@ -163,9 +179,13 @@ def main():
     parser.add_argument('--api-switch-interval',type=float)
     parser.add_argument('--mm-cache-gb',type=float,default=1)
     parser.add_argument('--renderer-workers',type=int,default=1)
+    parser.add_argument('--ec-transport',choices=['cpu','cuda_ipc'],default='cpu')
+    parser.add_argument('--encoder-api',default='http://127.0.0.1:18840')
+    parser.add_argument('--token-split',action='store_true')
     args=parser.parse_args()
     assert args.mm_cache_gb>=0 and args.renderer_workers>=1
     assert args.renderer_workers==1 or args.mm_cache_gb==0,'Official renderer threads require a disabled processor cache'
+    assert args.ec_transport=='cpu' or args.observe
     if args.action=='start':
         with (ROOT/'logs'/('guardian_'+args.name+'.log')).open('ab') as log:
             command=[str(PYTHON),'-m','poc_flashvep.mllm_epd_prefill_heavy_token_split.servers','serve',
@@ -176,14 +196,16 @@ def main():
             if args.legacy_runner:command+=['--legacy-runner']
             if args.eager_reference:command+=['--eager-reference']
             if args.compiled_encoder:command+=['--compiled-encoder']
+            if args.token_split:command+=['--token-split']
             if args.encoder_whole_request:command+=['--encoder-whole-request']
             if args.encoder_sync_scheduling:command+=['--encoder-sync-scheduling']
             if args.api_switch_interval is not None:command+=['--api-switch-interval',str(args.api_switch_interval)]
             command+=['--mm-cache-gb',str(args.mm_cache_gb),'--renderer-workers',str(args.renderer_workers)]
+            command+=['--ec-transport',args.ec_transport,'--encoder-api',args.encoder_api]
             command+=['--encoder-token-budget',str(args.encoder_token_budget)]
             child=subprocess.Popen(command,cwd=REPO,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
         print(json.dumps(dict(guardian=child.pid,name=args.name)))
-    elif args.action=='serve':serve(args.name,args.gpu,args.role,args.port,args.ec_path,args.side_port,args.observe,args.encoder_native_ops,args.legacy_runner,args.eager_reference,args.compiled_encoder,args.encoder_token_budget,args.encoder_whole_request,args.encoder_sync_scheduling,args.api_switch_interval,args.mm_cache_gb,args.renderer_workers)
+    elif args.action=='serve':serve(args.name,args.gpu,args.role,args.port,args.ec_path,args.side_port,args.observe,args.encoder_native_ops,args.legacy_runner,args.eager_reference,args.compiled_encoder,args.encoder_token_budget,args.encoder_whole_request,args.encoder_sync_scheduling,args.api_switch_interval,args.mm_cache_gb,args.renderer_workers,args.ec_transport,args.encoder_api,args.token_split)
     elif args.action=='stop':
         write(ROOT/'state'/('stop_server_'+args.name),dict(time=time.time()))
     else:print((ROOT/'state'/('server_'+args.name+'.json')).read_text())

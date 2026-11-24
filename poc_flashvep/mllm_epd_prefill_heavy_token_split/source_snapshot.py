@@ -17,6 +17,8 @@ def snapshot(label, include_runtime=False):
     assert re.fullmatch('[A-Za-z0-9_.-]+',label) and label not in ('.','..')
     preserve()
     paths={str(p.relative_to(REPO)):p for p in SOURCE.glob('*.py')}
+    parent_init=REPO/'poc_flashvep/__init__.py'
+    paths[str(parent_init.relative_to(REPO))]=parent_init
     for package in ['dense_ar_slo_layer_pd','ouro_budget_joint_cg','dense_ar_bi0_axis_rootcause']:
         folder=REPO/'poc_flashvep'/package
         paths.update({str(p.relative_to(REPO)):p for p in folder.glob('*.py')})
@@ -56,6 +58,32 @@ def snapshot(label, include_runtime=False):
     write(ROOT/'state'/f'{name}.source_snapshot.json',record)
     preserve()
     return record
+
+
+def materialize(record):
+    """Run future workers from verified boot bytes, not a changing worktree."""
+    archive=Path(record['archive'])
+    assert digest(archive)==record['archive_SHA256']
+    assert re.fullmatch('[A-Za-z0-9_.-]+',archive.stem)
+    folder=ROOT/'runtime_sources'/(record['archive_SHA256'][:16]+'_'+archive.stem)
+    assert not folder.exists(),'Each server boot uses a distinct recorded snapshot'
+    folder.mkdir(parents=True)
+    with ZipFile(archive) as source:
+        manifest=json.loads(source.read('source_manifest.json'))
+        for item in manifest:
+            member=Path(item['member'])
+            assert not member.is_absolute() and '..' not in member.parts
+            assert member.parts[0]=='poc_flashvep','Do not execute installed-runtime snapshots as campaign source'
+            data=source.read(item['member'])
+            assert hashlib.sha256(data).hexdigest()==item['SHA256']
+            target=folder/member
+            target.parent.mkdir(parents=True,exist_ok=True)
+            with target.open('xb') as stream:stream.write(data)
+            assert digest(target)==item['SHA256']
+            target.chmod(0o444)
+    write(folder/'verified_source_manifest.json',dict(archive_SHA256=record['archive_SHA256'],
+        files=manifest,scope='Verified original boot source. Server cwd selects this package before the worktree.'))
+    return folder
 
 
 if __name__=='__main__':

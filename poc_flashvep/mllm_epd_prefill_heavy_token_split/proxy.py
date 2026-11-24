@@ -12,11 +12,16 @@ from fastapi.responses import JSONResponse,StreamingResponse
 import aiohttp
 
 from .common import ROOT,append,write,digest
+from .token_split import select_prefix as token_prefix,POLICY_KEY
 
 
-def application(mode,encoder,prefill,decoders,name,encoder_policy='whole_request',processor_handoff='none'):
+def application(mode,encoder,prefill,decoders,name,encoder_policy='whole_request',processor_handoff='none',release_encoder_ipc=False,token_suffix_fraction=0.,token_prefix_tokens=0):
     assert processor_handoff in ('none','full','grid_only')
     assert processor_handoff=='none' or mode in ('epd','e_pd') and encoder_policy=='whole_request'
+    assert not release_encoder_ipc or processor_handoff!='none' and mode in ('epd','e_pd')
+    assert not (token_suffix_fraction or token_prefix_tokens) or mode=='epd' and processor_handoff!='none'
+    assert 0<=token_suffix_fraction<1 and token_prefix_tokens>=0
+    assert not (token_suffix_fraction and token_prefix_tokens)
     cursor=0;active={url:0 for url in decoders};session=None
     state=dict(received=0,encoder_pending=0,prefill_pending=0,decode_pending=0,completed=0,failed=0)
     @asynccontextmanager
@@ -60,6 +65,9 @@ def application(mode,encoder,prefill,decoders,name,encoder_policy='whole_request
         try:
             if encoder_policy=='whole_request':
                 payload=copy.deepcopy(body);payload.update(max_tokens=1,stream=False)
+                if token_suffix_fraction or token_prefix_tokens:
+                    payload['kv_transfer_params']={POLICY_KEY:dict(
+                        suffix_fraction=token_suffix_fraction,fixed_prefix=token_prefix_tokens)}
                 payload.pop('stream_options',None)
                 if 'max_completion_tokens' in payload:payload['max_completion_tokens']=1
                 begin=time.monotonic()
@@ -85,6 +93,14 @@ def application(mode,encoder,prefill,decoders,name,encoder_policy='whole_request
         if 'max_completion_tokens' in request:request['max_completion_tokens']=1
         request['kv_transfer_params']=dict(do_remote_decode=True,do_remote_prefill=False,
             remote_engine_id=None,remote_block_ids=None,remote_host=None,remote_port=None)
+        plan=None
+        if token_suffix_fraction or token_prefix_tokens:
+            length=trace['E_items'][0]['usage']['prompt_tokens']
+            prefix=token_prefix(length,token_suffix_fraction,token_prefix_tokens)
+            plan=dict(prefix_tokens=prefix,full_prompt_tokens=length)
+            request['kv_transfer_params']['campaign_token_split_v1']=plan
+            trace['token_partition']=dict(plan,suffix_tokens=length-prefix,
+                P_sample='Discarded. All original prompt tokens are processed before D sampling.')
         state['prefill_pending']+=1;trace['P_submit']=time.monotonic()
         try:
             async with session.post(prefill+'/v1/chat/completions',json=request,
@@ -95,8 +111,21 @@ def application(mode,encoder,prefill,decoders,name,encoder_policy='whole_request
         trace['P_ready']=time.monotonic();trace['P_response']=result
         params=result.get('kv_transfer_params')
         assert params and params.get('remote_block_ids') is not None,('Missing actual NIXL handoff',result)
+        if plan is not None:
+            assert params.get('remote_num_tokens')==plan['prefix_tokens'],('Invalid P prefix export',params,plan)
+            params['campaign_token_split_v1']=plan
         output=copy.deepcopy(body);output['kv_transfer_params']=params
         return output
+
+    async def release_encoder(request_id,trace):
+        if not release_encoder_ipc:return
+        begin=time.monotonic()
+        async with session.post(encoder+'/campaign/ec_ipc/release',
+            json=dict(key=hashlib.sha256(request_id.encode()).hexdigest())) as reply:
+            value=await reply.json()
+            assert reply.status==200,('EC ownership release failed',reply.status,str(value)[:1000])
+        assert len(value)==1
+        trace['E_embedding_release']=dict(begin=begin,end=time.monotonic(),state=value[0])
 
     @app.post('/v1/chat/completions')
     async def completion(request:Request):
@@ -121,6 +150,7 @@ def application(mode,encoder,prefill,decoders,name,encoder_policy='whole_request
                 raise RuntimeError(('decode',reply.status,error[:3000]))
             if not body.get('stream'):
                 output=await reply.json();reply.release()
+                await release_encoder(request_id,trace)
                 state['decode_pending']-=1;active[target]-=1;state['completed']+=1
                 trace.update(status='MEASURED_ONLINE',finished=time.monotonic(),D_response=output)
                 append(ROOT/'raw'/('proxy_'+name+'.jsonl'),trace)
@@ -137,8 +167,15 @@ def application(mode,encoder,prefill,decoders,name,encoder_policy='whole_request
                     raise
                 finally:
                     reply.release();state['decode_pending']-=1;active[target]-=1
-                    trace['finished']=time.monotonic()
-                    append(ROOT/'raw'/('proxy_'+name+'.jsonl'),trace)
+                    try:
+                        if trace['status']=='MEASURED_ONLINE':await release_encoder(request_id,trace)
+                    except BaseException as error:
+                        trace.update(status='FAILED_EXECUTION',error='EC_RELEASE: '+type(error).__name__+': '+str(error))
+                        state['completed']-=1;state['failed']+=1
+                        raise
+                    finally:
+                        trace['finished']=time.monotonic()
+                        append(ROOT/'raw'/('proxy_'+name+'.jsonl'),trace)
             return StreamingResponse(stream(),media_type='text/event-stream')
         except Exception as error:
             if trace.get('D_submit') and active[target]>0:state['decode_pending']-=1;active[target]-=1
@@ -155,13 +192,16 @@ def main():
     p.add_argument('--decoders',default='http://127.0.0.1:18402');p.add_argument('--port',type=int,default=18403)
     p.add_argument('--name',required=True)
     p.add_argument('--processor-handoff',choices=['none','full','grid_only'],default='none')
+    p.add_argument('--release-encoder-ipc',action='store_true',help='Release only after successful D completion and clone ACKs')
+    p.add_argument('--token-suffix-fraction',type=float,default=0.)
+    p.add_argument('--token-prefix-tokens',type=int,default=0,help='Fixed boundary for correctness controls only')
     p.add_argument('--encoder-policy',choices=['whole_request','image_fanout'],default='whole_request');args=p.parse_args()
     write(ROOT/'configs'/('proxy_'+args.name+'.json'),dict(args=vars(args),source_SHA256=digest(__file__),
         policy='Default engine continuous scheduler. No source credit or artificial D admission cap.',
-        EC_transport='Installed ECExampleConnector CPU staging through per-run tmpfs',
+        EC_transport='Campaign CUDA IPC with original E tensors' if args.release_encoder_ipc else 'Installed ECExampleConnector CPU staging through per-run tmpfs',
         payload='Original media and full prompt forwarded. No new-version metadata rewrite.',
         cache='mm_processor_cache_gb=1 preserves per-request UUIDs. Unique media UUIDs prevent cross-request reuse in every baseline.'))
-    uvicorn.run(application(args.mode,args.encoder,args.prefill,args.decoders.split(','),args.name,args.encoder_policy,args.processor_handoff),
+    uvicorn.run(application(args.mode,args.encoder,args.prefill,args.decoders.split(','),args.name,args.encoder_policy,args.processor_handoff,args.release_encoder_ipc,args.token_suffix_fraction,args.token_prefix_tokens),
         host='127.0.0.1',port=args.port,log_level='warning')
 
 

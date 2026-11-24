@@ -24,7 +24,8 @@ def prepare_artifact():
 
 
 class Collector:
-    def __init__(self,name,role,copies,runner):
+    def __init__(self,name,role,copies,runner,state_interval_ms=0):
+        assert 0<=state_interval_ms<=1000
         assert re.fullmatch('[A-Za-z0-9_.-]+',name) and name not in ('.','..')
         key=role+('_gpu'+os.environ['CUDA_VISIBLE_DEVICES'] if role in ('agg','pd') else '')
         self.folder=ROOT/'raw/profiles'/name/key
@@ -40,7 +41,10 @@ class Collector:
             getattr(self.lib,'activity_'+k).restype=ctypes.c_uint64
         assert self.lib.activity_prepare(1024*1024**2)==0
         self.rows=[];self.calls=[];self.originals=[]
+        self.state_interval_ns=int(state_interval_ms*1_000_000)
+        self.last_schedule_sample_ns=0;self.last_execute_sample_ns=0
         write(self.folder/'provenance.json',dict(build=build,role=role,pid=os.getpid(),include_copies=copies,
+            scheduler_state_sampling_interval_ms=state_interval_ms,
             scope='CUPTI kernels and optional copies. No driver/runtime/external or graph-enclosure tracing. '
                 'Kernel union is not SM,Tensors or HBM utilization. Observer qualification is required.'))
 
@@ -70,7 +74,11 @@ class Collector:
                 prefill_active=sum(r.num_computed_tokens<r.num_prompt_tokens for r in running),
                 decode_ready_waiting=sum(r.num_computed_tokens>=r.num_prompt_tokens for r in waiting))
         def schedule(scheduler,*args,**kwargs):
-            begin=time.monotonic_ns();before=queue(scheduler);output=original_schedule(scheduler,*args,**kwargs)
+            begin=time.monotonic_ns()
+            if begin-me.last_schedule_sample_ns<me.state_interval_ns:
+                return original_schedule(scheduler,*args,**kwargs)
+            me.last_schedule_sample_ns=begin
+            before=queue(scheduler);output=original_schedule(scheduler,*args,**kwargs)
             requests=[]
             for rid,n in output.num_scheduled_tokens.items():
                 request=scheduler.requests.get(rid)
@@ -83,7 +91,11 @@ class Collector:
                 scheduled_encoder_items=sum(len(v) for v in output.scheduled_encoder_inputs.values())))
             return output
         def execute(output,*args,**kwargs):
-            begin=time.monotonic_ns();result=original_execute(output,*args,**kwargs)
+            begin=time.monotonic_ns()
+            if begin-me.last_execute_sample_ns<me.state_interval_ns:
+                return original_execute(output,*args,**kwargs)
+            me.last_execute_sample_ns=begin
+            result=original_execute(output,*args,**kwargs)
             me.calls.append(dict(begin_ns=begin,end_ns=time.monotonic_ns(),
                 scheduled_tokens=output.total_num_scheduled_tokens,
                 scheduled_requests=output.num_scheduled_tokens,
@@ -107,13 +119,52 @@ class Collector:
             passed=code==0 and not counters['dropped'] and not counters['invalid'])
         write(self.folder/'actual_ROI.json',value)
         write(self.folder/'scheduler.json',dict(rows=self.rows,
+            sampling_interval_ms=self.state_interval_ns/1_000_000,
             scope='Actual engine scheduler state and query geometry. Not GPU-exclusive request cost.'))
         write(self.folder/'worker_calls.json',dict(rows=self.calls,
+            sampling_interval_ms=self.state_interval_ns/1_000_000,
             scope='Host model-runner enclosures. Kernels may overlap with copies and other requests.'))
         return value
 
 
 class CampaignWorkerExtension:
+    def campaign_ec_ipc_inline_policy(self,enabled,consumer_role='prefill'):
+        from .cuda_ipc_ec import REGISTRY
+        assert REGISTRY is not None and type(enabled) is bool
+        state=REGISTRY.state()
+        assert state['live_images']==state['outstanding_exports']==0
+        assert consumer_role in ('prefill','pd','decode')
+        before=REGISTRY.inline_role;REGISTRY.inline_role=consumer_role if enabled else None
+        return dict(pid=os.getpid(),before=before,inline_role=REGISTRY.inline_role,
+            scope='Whole-request delivery default. Explicit image consumer plans override this default for a token-prefix method.')
+
+    def campaign_ec_ipc_ack_policy(self,mode):
+        from .cuda_ipc_ec import CONSUMER_CONNECTOR
+        assert mode in ('rpc','file') and CONSUMER_CONNECTOR is not None
+        before=CONSUMER_CONNECTOR.ack_mode;CONSUMER_CONNECTOR.ack_mode=mode
+        return dict(pid=os.getpid(),before=before,actual=mode,
+            scope='Quiescent one-factor EC ACK control. CUDA clone completion remains mandatory in both modes.')
+
+    def campaign_ec_ipc_export(self,keys,consumer):
+        from .cuda_ipc_ec import REGISTRY
+        assert REGISTRY is not None
+        return REGISTRY.export(keys,consumer)
+
+    def campaign_ec_ipc_ack(self,token):
+        from .cuda_ipc_ec import REGISTRY
+        assert REGISTRY is not None
+        return REGISTRY.acknowledge(token)
+
+    def campaign_ec_ipc_release(self,keys):
+        from .cuda_ipc_ec import REGISTRY
+        assert REGISTRY is not None
+        return REGISTRY.release(keys)
+
+    def campaign_ec_ipc_state(self):
+        from .cuda_ipc_ec import REGISTRY
+        assert REGISTRY is not None
+        return REGISTRY.state()
+
     def campaign_timeline_begin(self,name):
         from .host_timeline import EngineTimeline
         self._campaign_timeline=EngineTimeline(self.model_runner,name)
@@ -188,9 +239,9 @@ class CampaignWorkerExtension:
             evidence='CORRECTNESS_ONLY',scope='Actual colocated official vLLM encoder. Extra CPU copies exclude this run from performance.'))
         return dict(images=len(capture['rows']),folder=str(capture['folder']))
 
-    def campaign_profile_begin(self,name,include_copies=True):
+    def campaign_profile_begin(self,name,include_copies=True,state_interval_ms=0):
         assert not hasattr(self,'_campaign_collector'),'One profile per independent worker start'
-        self._campaign_collector=Collector(name,os.environ['MLLM_EPD_ROLE'],include_copies,self.model_runner)
+        self._campaign_collector=Collector(name,os.environ['MLLM_EPD_ROLE'],include_copies,self.model_runner,state_interval_ms)
         return self._campaign_collector.begin()
 
     def campaign_profile_end(self):

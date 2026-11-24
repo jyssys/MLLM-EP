@@ -48,6 +48,10 @@ class RenderStore:
         assert mode in ('full','grid_only')
         conversation,inputs=rendered
         assert len(inputs)==1 and inputs[0]['type']=='multimodal'
+        from .embedding_consumer_plan import build,persist
+        consumer_plan=build(request,inputs[0])
+        if consumer_plan is not None:
+            persist(os.environ['MLLM_EPD_EC_PATH'],key,consumer_plan)
         prompt=dict(inputs[0]);kwargs=prompt.pop('mm_kwargs');placeholders=prompt.pop('mm_placeholders')
         assert set(kwargs)==set(placeholders)==set(prompt['mm_hashes'])=={'image'}, 'Only original image-only Qwen2.5-VL inputs are supported'
         assert all(item is not None for item in kwargs['image']), 'A producer-side omitted processor item is unsupported'
@@ -66,15 +70,22 @@ class RenderStore:
             record.append(dict(name=target.name,bytes=view.nbytes,SHA256=hashlib.sha256(view).hexdigest()))
         manifest=dict(key=key,fingerprint=payload.fingerprint,mode=mode,buffers=record,
             prompt_tokens=len(prompt['prompt_token_ids']),images=len(kwargs['image']),
+            image_hashes=list(prompt['mm_hashes']['image']),
             input_keys=sorted(inputs[0]),retained_mm_fields=[sorted(item) for item in kwargs['image']],
             scope='Online E-produced original token and image-grid metadata. Full E input is not modified. '
                 'Grid-only consumers still require all original E embeddings through Strict EC.')
+        if consumer_plan is not None:
+            manifest['token_split_plan']={k:consumer_plan[k] for k in ['prefix_tokens','full_prompt_tokens']}
+            manifest['image_consumer_plan']=consumer_plan['images']
         write(folder/'manifest.json',manifest)
         return manifest
 
     def load(self,key,request,arrival_time):
         folder=self.directory(key);manifest=json.loads((folder/'manifest.json').read_text())
         assert manifest['key']==key and manifest['fingerprint']==input_fingerprint(request), 'Handoff belongs to another input contract'
+        if 'token_split_plan' in manifest:
+            from .token_split import PLAN_KEY
+            assert (request.kv_transfer_params or {}).get(PLAN_KEY)==manifest['token_split_plan'], 'Consumer query ownership differs from E delivery plan'
         buffers=[]
         for item in manifest['buffers']:
             assert re.fullmatch('buffer_[0-9]+[.]bin',item['name'])
@@ -98,8 +109,12 @@ def verify_online_exports(inputs,ec_path):
         for items in prompt['mm_hashes'].values():
             for identifier in items:
                 assert isinstance(identifier,str) and '/' not in identifier and identifier not in ('.','..')
-                path=Path(ec_path)/identifier/'encoder_cache.safetensors'
+                folder=Path(ec_path)/identifier
+                path=folder/('cuda_ipc_ready.json' if os.environ.get('MLLM_EPD_EC_TRANSPORT')=='cuda_ipc'
+                    else 'encoder_cache.safetensors')
                 assert path.is_file(), 'Original online E embedding export is missing: '+identifier
+                if os.environ.get('MLLM_EPD_EC_TRANSPORT')=='cuda_ipc':
+                    assert not (folder/'cuda_ipc_released.json').exists(),'Original E export was already released'
 
 
 def install():
