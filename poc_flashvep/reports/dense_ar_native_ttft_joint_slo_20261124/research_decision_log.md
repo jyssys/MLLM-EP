@@ -268,3 +268,14 @@ Stock Serial의 간섭 실패와 두 `NOT_RUN` Capture도 유지한다.
 공개본에서는 원문 Dataset Context와 Reference·Weight를 제외했다.
 큰 파생 CSV4개도 결정적 Gzip과 원본 SHA256을 비교했다.
 이제 최종 Report Link를 공개 대상 또는 Base Tree와 대조한 뒤 Push한다.
+
+## D21. Science Push와 최종 문서
+
+958개 새 Campaign 파일을 Private Index로 Commit했다.
+Commit은 `308515a484d0be4a89b5d32498047f9e4f2ef1de`다.
+별도 연구 Branch의 `git ls-remote`가 같은 SHA를 반환했다.
+사용자의 기존 Checkout·Index는 바꾸지 않았다.
+Report Link69개가 공개 대상 또는 불변 Base Tree에 존재함을 검사했다.
+큰 CSV 한 파일에 대한 GitHub50MB 권장 경고는 있었지만 Push는 성공했다.
+파일 크기는 GitHub의 강제 제한 이하였다.
+후속 Closeout Commit에는 Science Remote 확인과 이 최종 기록을 포함한다.

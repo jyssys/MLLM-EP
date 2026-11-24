@@ -391,3 +391,13 @@ Notion Archive는 읽기 전용으로 접근했다.
 제한한 Schema Query에서 관련 Dense·LongBench 항목은 반환되지 않았다.
 로컬 불변 Raw와 고정 Source를 Primary 근거로 사용했다.
 [Notion 접근 기록](dense_ar_native_ttft_joint_slo_20261124/references/notion_archive_audit.json)에 Query 범위를 남겼다.
+
+## GitHub Publication
+
+Science Commit은 `308515a484d0be4a89b5d32498047f9e4f2ef1de`다.
+별도 Branch `flashvep/dense-ar-native-ttft-joint-slo-20261124`에 Push했다.
+`git ls-remote`로 같은 Remote SHA를 확인했다.
+이후 Closeout Commit에는 이 원격 확인 기록과 최종 문서를 추가한다.
+따라서 Science Commit SHA와 최종 Branch HEAD가 다를 수 있다.
+[Science Publication 확인 기록](dense_ar_native_ttft_joint_slo_20261124/state/publication_commit_science.json)에 File Hash와 Remote SHA가 있다.
+사용자의 기존 Checkout과 Staged Index는 변경하지 않았다.
