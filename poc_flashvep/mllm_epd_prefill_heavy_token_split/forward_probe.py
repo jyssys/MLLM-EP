@@ -7,6 +7,15 @@ import time
 from .common import ROOT,write,digest
 
 
+def capture_input_allowed(decode_role,include_decode_inputs,event_index,limit):
+    return (not decode_role or include_decode_inputs) and event_index<limit
+
+
+def capture_attention_allowed(layer_name,event,limit):
+    return (bool(re.search(r'(?:^|\.)layers\.0\.self_attn\.attn$',layer_name))
+            and event is not None and event['index']<limit and event['query_tokens']>1)
+
+
 def gather_prompt_kv(cache, block_ids, length):
     import torch
     assert cache.ndim==4 and length>0
@@ -18,10 +27,12 @@ def gather_prompt_kv(cache, block_ids, length):
 
 
 class ForwardProbe:
-    def __init__(self,worker,name,max_logits):
+    def __init__(self,worker,name,max_logits,include_decode_inputs=False,include_attention=False):
         assert re.fullmatch('[A-Za-z0-9_.-]+',name) and name not in ('.','..')
         self.runner=worker.model_runner;self.model=self.runner.model;self.max_logits=max_logits
         self.decode_role=os.environ['MLLM_EPD_ROLE'] in ('decode','reference_decode')
+        self.include_decode_inputs=include_decode_inputs
+        self.include_attention=include_attention
         self.folder=ROOT/'raw/llm_reference'/name
         assert not self.folder.exists();self.folder.mkdir(parents=True)
         assert len(self.runner.kv_caches)==28,'This probe requires the actual Qwen2.5-VL 28-layer cache'
@@ -56,7 +67,7 @@ class ForwardProbe:
                 if isinstance(value,torch.Tensor):
                     event[key+'_shape']=list(value.shape)
                     # Do not introduce a D-side pre-forward GPU synchronization.
-                    if not me.decode_role and len(me.events)<me.max_logits:
+                    if capture_input_allowed(me.decode_role,me.include_decode_inputs,len(me.events),me.max_logits):
                         data=value[:n] if key!='positions' else value[...,:n]
                         me.tensor(key+'_'+str(len(me.events)),data)
             me.events.append(event)
@@ -89,6 +100,30 @@ class ForwardProbe:
                             'For D,positions below event.start are imported. The remaining positions may be recomputed.')
             return result
         self.runner.execute_model=execute;self.runner._model_forward=forward;self.model.compute_logits=logits
+        if self.include_attention:
+            from vllm.v1.attention.backends.flash_attn import FlashAttentionImpl
+            original=FlashAttentionImpl.forward
+            self.original_slots.append((FlashAttentionImpl,'forward',True,original))
+            def attention(impl,layer,query,key,value,kv_cache,metadata,output,*args,**kwargs):
+                event=me.events[-1] if me.events else None
+                selected=capture_attention_allowed(getattr(layer,'layer_name',''),event,me.max_logits)
+                if selected:
+                    n=metadata.num_actual_tokens;index=event['index']
+                    event['attention_0']=dict(layer_name=layer.layer_name,
+                        implementation=type(impl).__name__,version=impl.vllm_flash_attn_version,
+                        **{name:getattr(metadata,name) for name in ['num_actual_tokens','max_query_len',
+                            'max_seq_len','use_cascade','common_prefix_len','max_num_splits']})
+                    for name,tensor in [('query',query),('key',key),('value',value)]:
+                        me.tensor(f'attention_0_{name}_{index}',tensor[:n])
+                    for name in ['query_start_loc','seq_lens','scheduler_metadata','block_table','slot_mapping']:
+                        tensor=getattr(metadata,name,None)
+                        if tensor is not None:
+                            me.tensor(f'attention_0_{name}_{index}',tensor)
+                result=original(impl,layer,query,key,value,kv_cache,metadata,output,*args,**kwargs)
+                if selected:
+                    me.tensor(f'attention_0_output_{index}',result[:n])
+                return result
+            FlashAttentionImpl.forward=attention
         return dict(folder=str(self.folder),scope='CORRECTNESS_ONLY. Original forward and logits passthrough. CPU copies invalidate timing.')
 
     def close(self):
@@ -98,6 +133,8 @@ class ForwardProbe:
             else:delattr(obj,key)
         file=self.folder/'tensors.safetensors';save_file(self.tensors,str(file))
         value=dict(time=time.time(),events=self.events,logits=self.logits,snapshot=self.snapshot,
+            decode_input_copies_enabled=self.include_decode_inputs,
+            first_layer_attention_copies_enabled=self.include_attention,
             tensor_file=str(file),tensor_SHA256=digest(file),evidence='CORRECTNESS_ONLY',
             scope='No model input,output,cache or sampled token was changed. This run cannot establish latency or throughput.')
         write(self.folder/'manifest.json',value)

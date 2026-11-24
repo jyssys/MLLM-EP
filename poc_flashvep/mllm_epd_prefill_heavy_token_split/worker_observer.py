@@ -173,9 +173,9 @@ class CampaignWorkerExtension:
     def campaign_timeline_end(self):
         return self._campaign_timeline.close()
 
-    def campaign_llm_probe_begin(self,name,max_logits=16):
+    def campaign_llm_probe_begin(self,name,max_logits=16,include_decode_inputs=False,include_attention=False):
         from .forward_probe import ForwardProbe
-        self._campaign_llm_probe=ForwardProbe(self,name,max_logits)
+        self._campaign_llm_probe=ForwardProbe(self,name,max_logits,include_decode_inputs,include_attention)
         return self._campaign_llm_probe.begin()
 
     def campaign_llm_probe_end(self):
@@ -258,6 +258,8 @@ class CampaignWorkerExtension:
             key=name.split('.')[0]
             groups[key]=groups.get(key,0)+value.numel()*value.element_size()
         free,total=torch.cuda.mem_get_info()
+        caches=[x for x in getattr(self.model_runner,'kv_caches',[]) if isinstance(x,torch.Tensor)]
+        kv_storage={x.untyped_storage().data_ptr():x.untyped_storage().nbytes() for x in caches}
         return dict(pid=os.getpid(),role=os.environ['MLLM_EPD_ROLE'],
             model_runner=type(self.model_runner).__module__+'.'+type(self.model_runner).__name__,
             allocated_bytes=torch.cuda.memory_allocated(),reserved_bytes=torch.cuda.memory_reserved(),
@@ -265,6 +267,7 @@ class CampaignWorkerExtension:
             device_free_bytes=free,device_total_bytes=total,
             model_parameter_logical_bytes=sum(value.numel()*value.element_size() for _,value in parameters),
             model_parameter_bytes_by_prefix=groups,
+            unique_KV_storage_bytes=sum(kv_storage.values()),
             device_properties=str(torch.cuda.get_device_properties(0)),
             model_type=type(self.model_runner.model).__name__,
             scheduler=dict(B=config.scheduler_config.max_num_batched_tokens,S=config.scheduler_config.max_num_seqs,
@@ -275,6 +278,13 @@ class CampaignWorkerExtension:
             scope='Worker allocator/device counters and logical parameter bytes. '
                 'Parameter sums do not measure runtime workspace or shared-storage ownership. '
                 'Not a co-residency or safe-quantum result.')
+
+    def campaign_cuda_barrier(self):
+        import torch
+        before=time.monotonic()
+        torch.cuda.synchronize()
+        return dict(pid=os.getpid(),role=os.environ['MLLM_EPD_ROLE'],begin=before,end=time.monotonic(),
+            scope='Explicit isolated correctness/memory barrier. Not used by primary serving requests.')
 
     def campaign_runtime_state(self):
         from vllm.v1.core.sched.scheduler import Scheduler

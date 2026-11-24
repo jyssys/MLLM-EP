@@ -90,6 +90,13 @@ class StrictECTest(unittest.TestCase):
 
 
 class KVProbeTest(unittest.TestCase):
+    def test_decode_input_copies_require_explicit_correctness_opt_in(self):
+        from .forward_probe import capture_input_allowed
+        self.assertFalse(capture_input_allowed(True,False,0,16))
+        self.assertTrue(capture_input_allowed(True,True,0,16))
+        self.assertTrue(capture_input_allowed(False,False,0,16))
+        self.assertFalse(capture_input_allowed(True,True,16,16))
+
     def test_logical_HND_indexing(self):
         import torch
         from .forward_probe import gather_prompt_kv

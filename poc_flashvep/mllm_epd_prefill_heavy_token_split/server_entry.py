@@ -98,6 +98,9 @@ def main():
         @app.get('/campaign/worker_info')
         async def info():
             return await app.state.engine_client.collective_rpc('campaign_worker_info',timeout=30)
+        @app.post('/campaign/cuda_barrier')
+        async def cuda_barrier():
+            return await app.state.engine_client.collective_rpc('campaign_cuda_barrier',timeout=120)
         @app.post('/campaign/runtime_state')
         async def runtime_state():
             return await app.state.engine_client.collective_rpc('campaign_runtime_state',timeout=30)
@@ -108,7 +111,8 @@ def main():
         async def llm_probe_begin(request:Request):
             body=await request.json()
             return await app.state.engine_client.collective_rpc('campaign_llm_probe_begin',timeout=60,
-                args=(body['name'],body.get('max_logits',16)))
+                args=(body['name'],body.get('max_logits',16),body.get('include_decode_inputs',False),
+                      body.get('include_attention',False)))
         @app.post('/campaign/llm_probe/end')
         async def llm_probe_end():
             return await app.state.engine_client.collective_rpc('campaign_llm_probe_end',timeout=120)
