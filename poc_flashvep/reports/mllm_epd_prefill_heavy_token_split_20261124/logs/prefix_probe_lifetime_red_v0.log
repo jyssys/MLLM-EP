@@ -1,0 +1,22 @@
+test_only_needed_image_can_issue_a_descriptor_before_release (poc_flashvep.mllm_epd_prefill_heavy_token_split.test_prefix_probe_lifetime.PrefixProbeLifetimeTest.test_only_needed_image_can_issue_a_descriptor_before_release) ... FAIL
+test_cannot_release_before_every_issued_clone_ack (poc_flashvep.mllm_epd_prefill_heavy_token_split.test_cuda_ipc_ec.RegistryTest.test_cannot_release_before_every_issued_clone_ack) ... ok
+test_file_ack_keeps_the_same_release_gate (poc_flashvep.mllm_epd_prefill_heavy_token_split.test_cuda_ipc_ec.RegistryTest.test_file_ack_keeps_the_same_release_gate) ... ok
+test_memory_bound_never_frees_an_inflight_tensor (poc_flashvep.mllm_epd_prefill_heavy_token_split.test_cuda_ipc_ec.RegistryTest.test_memory_bound_never_frees_an_inflight_tensor) ... ok
+test_native_inline_export_still_requires_a_clone_ack (poc_flashvep.mllm_epd_prefill_heavy_token_split.test_cuda_ipc_ec.RegistryTest.test_native_inline_export_still_requires_a_clone_ack) ... ok
+test_shared_storage_is_not_double_counted (poc_flashvep.mllm_epd_prefill_heavy_token_split.test_cuda_ipc_ec.RegistryTest.test_shared_storage_is_not_double_counted) ... ok
+
+======================================================================
+FAIL: test_only_needed_image_can_issue_a_descriptor_before_release (poc_flashvep.mllm_epd_prefill_heavy_token_split.test_prefix_probe_lifetime.PrefixProbeLifetimeTest.test_only_needed_image_can_issue_a_descriptor_before_release)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/mllm_epd_prefill_heavy_token_split/test_prefix_probe_lifetime.py", line 37, in test_only_needed_image_can_issue_a_descriptor_before_release
+    result=registry.release(['image-A','image-B'])
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/mllm_epd_prefill_heavy_token_split/cuda_ipc_ec.py", line 104, in release
+    assert not any(keys & pending['keys'] for pending in self.exports.values()),'GPU clone completion ACK is still pending'
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: GPU clone completion ACK is still pending
+
+----------------------------------------------------------------------
+Ran 6 tests in 5.319s
+
+FAILED (failures=1)

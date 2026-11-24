@@ -16,6 +16,11 @@ def capture_attention_allowed(layer_name,event,limit):
             and event is not None and event['index']<limit and event['query_tokens']>1)
 
 
+def capture_gemm_allowed(event,last_attention_layer,limit):
+    return (last_attention_layer==0 and event is not None and event['index']<limit
+            and event['query_tokens']>1 and len(event.get('first_layer_GEMM',[]))<4)
+
+
 def gather_prompt_kv(cache, block_ids, length):
     import torch
     assert cache.ndim==4 and length>0
@@ -27,12 +32,14 @@ def gather_prompt_kv(cache, block_ids, length):
 
 
 class ForwardProbe:
-    def __init__(self,worker,name,max_logits,include_decode_inputs=False,include_attention=False):
+    def __init__(self,worker,name,max_logits,include_decode_inputs=False,include_attention=False,include_gemm=False):
         assert re.fullmatch('[A-Za-z0-9_.-]+',name) and name not in ('.','..')
         self.runner=worker.model_runner;self.model=self.runner.model;self.max_logits=max_logits
         self.decode_role=os.environ['MLLM_EPD_ROLE'] in ('decode','reference_decode')
         self.include_decode_inputs=include_decode_inputs
         self.include_attention=include_attention
+        assert not include_gemm or include_attention
+        self.include_gemm=include_gemm;self.last_attention_layer=None
         self.folder=ROOT/'raw/llm_reference'/name
         assert not self.folder.exists();self.folder.mkdir(parents=True)
         assert len(self.runner.kv_caches)==28,'This probe requires the actual Qwen2.5-VL 28-layer cache'
@@ -62,6 +69,7 @@ class ForwardProbe:
             length=int(batch.num_prompt_tokens[i]);context=get_forward_context()
             event=dict(index=len(me.events),request_id=rid,start=start,query_tokens=n,prompt_tokens=length,
                 cudagraph_mode=str(context.cudagraph_runtime_mode),batch_descriptor=str(context.batch_descriptor))
+            me.last_attention_layer=None
             for key in ('input_ids','inputs_embeds','positions'):
                 value=kwargs.get(key)
                 if isinstance(value,torch.Tensor):
@@ -102,10 +110,12 @@ class ForwardProbe:
         self.runner.execute_model=execute;self.runner._model_forward=forward;self.model.compute_logits=logits
         if self.include_attention:
             from vllm.v1.attention.backends.flash_attn import FlashAttentionImpl
-            original=FlashAttentionImpl.forward
-            self.original_slots.append((FlashAttentionImpl,'forward',True,original))
+            original_attention=FlashAttentionImpl.forward
+            self.original_slots.append((FlashAttentionImpl,'forward',True,original_attention))
             def attention(impl,layer,query,key,value,kv_cache,metadata,output,*args,**kwargs):
                 event=me.events[-1] if me.events else None
+                match=re.search(r'(?:^|\.)layers\.(\d+)\.self_attn\.attn$',getattr(layer,'layer_name',''))
+                me.last_attention_layer=int(match.group(1)) if match else None
                 selected=capture_attention_allowed(getattr(layer,'layer_name',''),event,me.max_logits)
                 if selected:
                     n=metadata.num_actual_tokens;index=event['index']
@@ -119,11 +129,59 @@ class ForwardProbe:
                         tensor=getattr(metadata,name,None)
                         if tensor is not None:
                             me.tensor(f'attention_0_{name}_{index}',tensor)
-                result=original(impl,layer,query,key,value,kv_cache,metadata,output,*args,**kwargs)
+                result=original_attention(impl,layer,query,key,value,kv_cache,metadata,output,*args,**kwargs)
                 if selected:
                     me.tensor(f'attention_0_output_{index}',result[:n])
                 return result
             FlashAttentionImpl.forward=attention
+        if self.include_gemm:
+            import inspect
+            from torch._inductor.select_algorithm import extern_kernels
+            def gemm_wrapper(kind,original):
+                def captured(*args,**kwargs):
+                    event=me.events[-1] if me.events else None
+                    selected=capture_gemm_allowed(event,me.last_attention_layer,me.max_logits)
+                    if selected:
+                        calls=event.setdefault('first_layer_GEMM',[]);index=len(calls)
+                        matrix=args[0] if kind=='mm' else args[1]
+                        weight=args[1] if kind=='mm' else args[2]
+                        calls.append(dict(index=index,kind=kind,input_shape=list(matrix.shape),
+                            weight_shape=list(weight.shape)))
+                        me.tensor(f'gemm_0_input_{event["index"]}_{index}',matrix)
+                        if index in (0,1):
+                            frame=inspect.currentframe().f_back
+                            try:
+                                if index==0:
+                                    for name,local in [('residual','arg4_1'),('weight','arg3_1')]:
+                                        tensor=frame.f_locals.get(local)
+                                        assert isinstance(tensor,torch.Tensor), 'The actual generated norm call-site layout changed'
+                                        me.tensor(f'norm_0_{name}_{event["index"]}',tensor)
+                                else:
+                                    runtime=[]
+                                    for name in ['triton_red_fused_fused_add_rms_norm_0',
+                                                 'triton_red_fused_fused_add_rms_norm_2']:
+                                        kernel=frame.f_globals.get(name)
+                                        def configs(values):
+                                            return [dict(kwargs=dict(c.kwargs),num_warps=c.num_warps,
+                                                num_stages=c.num_stages) for c in (values or []) if c is not None]
+                                        launchers=getattr(kernel,'launchers',[]) or []
+                                        runtime.append(dict(name=name,type=type(kernel).__name__,
+                                            configs=configs(getattr(kernel,'configs',[])),
+                                            launcher_configs=configs([getattr(l,'config',None) for l in launchers]),
+                                            launcher_count=len(launchers)))
+                                    event['norm_runtime']=dict(caller_file=frame.f_code.co_filename,
+                                        caller_function=frame.f_code.co_name,kernels=runtime)
+                            finally:
+                                del frame
+                    result=original(*args,**kwargs)
+                    if selected:
+                        me.tensor(f'gemm_0_output_{event["index"]}_{index}',result)
+                    return result
+                return captured
+            for kind in ['mm','addmm']:
+                original=getattr(extern_kernels,kind)
+                self.original_slots.append((extern_kernels,kind,True,original))
+                setattr(extern_kernels,kind,gemm_wrapper(kind,original))
         return dict(folder=str(self.folder),scope='CORRECTNESS_ONLY. Original forward and logits passthrough. CPU copies invalidate timing.')
 
     def close(self):
@@ -135,6 +193,7 @@ class ForwardProbe:
         value=dict(time=time.time(),events=self.events,logits=self.logits,snapshot=self.snapshot,
             decode_input_copies_enabled=self.include_decode_inputs,
             first_layer_attention_copies_enabled=self.include_attention,
+            first_layer_GEMM_copies_enabled=self.include_gemm,
             tensor_file=str(file),tensor_SHA256=digest(file),evidence='CORRECTNESS_ONLY',
             scope='No model input,output,cache or sampled token was changed. This run cannot establish latency or throughput.')
         write(self.folder/'manifest.json',value)

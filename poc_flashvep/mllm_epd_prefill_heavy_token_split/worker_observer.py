@@ -173,13 +173,19 @@ class CampaignWorkerExtension:
     def campaign_timeline_end(self):
         return self._campaign_timeline.close()
 
-    def campaign_llm_probe_begin(self,name,max_logits=16,include_decode_inputs=False,include_attention=False):
+    def campaign_llm_probe_begin(self,name,max_logits=16,include_decode_inputs=False,include_attention=False,include_gemm=False):
         from .forward_probe import ForwardProbe
-        self._campaign_llm_probe=ForwardProbe(self,name,max_logits,include_decode_inputs,include_attention)
+        self._campaign_llm_probe=ForwardProbe(self,name,max_logits,include_decode_inputs,include_attention,include_gemm)
         return self._campaign_llm_probe.begin()
 
     def campaign_llm_probe_end(self):
         return self._campaign_llm_probe.close()
+
+    def campaign_boundary_teacher_install(self):
+        assert os.environ.get('MLLM_EPD_PREFIX_PROBE')=='1' and os.environ['MLLM_EPD_ROLE']=='pd'
+        from .token_split import install_boundary_teacher
+        install_boundary_teacher()
+        return dict(evidence='CORRECTNESS_ONLY',scope='Only explicitly marked unsplit teacher requests get aligned query chunks.')
 
     def campaign_vision_fingerprint(self):
         import hashlib
@@ -246,6 +252,14 @@ class CampaignWorkerExtension:
 
     def campaign_profile_end(self):
         return self._campaign_collector.close()
+
+    def campaign_gpu_enclosures_begin(self,name,state_interval_ms=50):
+        from .gpu_enclosures import GPUEnclosures
+        self._campaign_gpu_enclosures=GPUEnclosures(self.model_runner,name,state_interval_ms)
+        return self._campaign_gpu_enclosures.begin()
+
+    def campaign_gpu_enclosures_end(self):
+        return self._campaign_gpu_enclosures.close()
 
     def campaign_worker_info(self):
         import torch

@@ -1,0 +1,23 @@
+test_norm_inputs_are_captured_before_generated_code_deletes_weight (poc_flashvep.mllm_epd_prefill_heavy_token_split.test_probe_hooks.ProbeHookTest.test_norm_inputs_are_captured_before_generated_code_deletes_weight) ... /home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/jit/_script.py:359: DeprecationWarning: `torch.jit.script_method` is not supported in Python 3.14+ and may break. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+FAIL
+
+======================================================================
+FAIL: test_norm_inputs_are_captured_before_generated_code_deletes_weight (poc_flashvep.mllm_epd_prefill_heavy_token_split.test_probe_hooks.ProbeHookTest.test_norm_inputs_are_captured_before_generated_code_deletes_weight)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/mllm_epd_prefill_heavy_token_split/test_probe_hooks.py", line 64, in test_norm_inputs_are_captured_before_generated_code_deletes_weight
+    generated_call()
+    ~~~~~~~~~~~~~~^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/mllm_epd_prefill_heavy_token_split/test_probe_hooks.py", line 55, in generated_call
+    extern_kernels.mm(torch.ones(2,4),torch.eye(4),out=torch.empty(2,4))
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/mllm_epd_prefill_heavy_token_split/forward_probe.py", line 156, in captured
+    assert isinstance(tensor,torch.Tensor), 'The actual generated norm call-site layout changed'
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+AssertionError: The actual generated norm call-site layout changed
+
+----------------------------------------------------------------------
+Ran 1 test in 6.497s
+
+FAILED (failures=1)

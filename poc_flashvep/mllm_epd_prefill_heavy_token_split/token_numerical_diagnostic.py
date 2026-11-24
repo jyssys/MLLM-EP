@@ -1,5 +1,6 @@
 """Locate strict suffix-KV differences before any token performance run."""
 import json
+import os
 from pathlib import Path
 import time
 
@@ -45,6 +46,27 @@ def analyze(results):
                         if actual[key].is_floating_point() else None))
         comparisons.append(dict(comparison=label+'_vs_P_A',KV=kv,first_layer_attention=attention,
             actual_attention=suffix.get('attention_0'),reference_attention=target.get('attention_0')))
+        gemm=[]
+        if target.get('first_layer_GEMM'):
+            assert len(target['first_layer_GEMM'])==len(suffix.get('first_layer_GEMM',[]))==4
+            for index,stage in enumerate(['attention_output_projection','post_attention_norm_then_gate_up',
+                                          'SiLU_gate_then_down_projection','next_input_norm_then_QKV']):
+                fields=[]
+                for field in ['input','output']:
+                    key=f'gemm_0_{field}_{suffix["index"]}_{index}'
+                    ref=f'gemm_0_{field}_{target["index"]}_{index}'
+                    fields.append(dict(field=field,**embedding_metrics(actual[key],reference[ref])))
+                gemm.append(dict(stage=stage,actual=suffix['first_layer_GEMM'][index],
+                    reference=target['first_layer_GEMM'][index],values=fields))
+        comparisons[-1]['first_layer_GEMM']=gemm
+        norm=[]
+        for field in ['residual','weight']:
+            key=f'norm_0_{field}_{suffix["index"]}'
+            ref=f'norm_0_{field}_{target["index"]}'
+            if key in actual and ref in reference:
+                norm.append(dict(field=field,**embedding_metrics(actual[key],reference[ref])))
+        comparisons[-1].update(norm_inputs=norm,actual_norm_runtime=suffix.get('norm_runtime'),
+            reference_norm_runtime=target.get('norm_runtime'))
     direct=[]
     for layer in range(28):
         key=f'prompt_KV_{layer}'
@@ -63,8 +85,15 @@ def main():
     import argparse
     global TAG
     parser=argparse.ArgumentParser();parser.add_argument('--tag',default=TAG)
+    parser.add_argument('--eager',action='store_true',help='Correctness-only original eager P/D, never a serving arm')
+    parser.add_argument('--gemm',action='store_true',help='Read-only first-layer compiled GEMM tensors, no performance claim')
+    parser.add_argument('--fixed-reduction',action='store_true',help='Compiled-only one-factor dynamic_scale_rblock=False control')
+    parser.add_argument('--wait-for-tag',help='An exact prior E4/P5/D6 lease group that must close first')
     args=parser.parse_args()
-    assert args.tag.isidentifier() and args.tag.startswith('token_NUMERICAL_C17')
+    assert args.tag.isidentifier() and args.tag.startswith(('token_NUMERICAL_C17','token_NUMERICAL_C18','token_NUMERICAL_C21','token_NUMERICAL_C24'))
+    assert not args.gemm or not args.eager,'This diagnostic targets the actual compiled GEMM call sites'
+    assert not args.fixed_reduction or not args.eager
+    assert args.wait_for_tag is None or args.wait_for_tag.isidentifier()
     TAG=args.tag
     preserve()
     source=snapshot(TAG)
@@ -78,6 +107,9 @@ def main():
         arms=['Same-P teacher A','Same-P teacher B','Same-D complete teacher A',
               'Same-D complete teacher B','Actual P-prefix/D-suffix'],
         output='Original Natural EOS cap2048',evidence='CORRECTNESS_ONLY and DIAGNOSTIC',
+        compiler='Explicit original P/D eager reference' if args.eager else 'Unchanged stock compiled P/D',
+        first_layer_GEMM_copies=args.gemm,wait_for_tag=args.wait_for_tag,
+        dynamic_scale_rblock=False if args.fixed_reduction else 'Original default',
         no_performance=True,no_active_decode_insertion=True,
         prior_failure='token_CORRECTNESS_C15R1_N1_inside_single_image_TOKEN_comparison.json'))
     while True:
@@ -90,30 +122,44 @@ def main():
         if not active:break
         assert time.time()<experiment_deadline()
         time.sleep(1)
+    if args.wait_for_tag:
+        while True:
+            leases=[json.loads((ROOT/'state'/f'server_{args.wait_for_tag}_{role}{gpu}.json').read_text())
+                for role,gpu in [('E',4),('P',5),('D',6)]]
+            if all(r['finished'] and not Path('/proc',str(r['guardian'])).exists() for r in leases):break
+            for r in leases:
+                proc=Path('/proc',str(r['guardian']))
+                if not r['finished']:
+                    assert proc.exists() and proc.stat().st_uid==os.getuid(), 'Inspect the same terminal prior lease'
+                    assert b'mllm_epd_prefill_heavy_token_split.servers' in (proc/'cmdline').read_bytes()
+            assert time.time()<experiment_deadline()
+            time.sleep(1)
     control.TAG=TAG
     control.EC=Path('/dev/shm')/f'mllm_epd_20261124_{TAG}'
     names=[];proxies=[];results=[]
     row=json.loads((ROOT/'data/calibration_manifest_template_v2.json').read_text())['requests'][0]
     try:
         control.wait_baselines()
-        control.launch_models(names)
+        control.launch_models(names,diagnostic_eager=args.eager,fixed_reduction=args.fixed_reduction)
         for label,port in [('P_A',18841),('P_B',18841),('D_teacher',18842),('D_teacher_B',18842)]:
             role='P' if port==18841 else 'D'
             rpc(18840,'ec_ipc/inline_policy',dict(enabled=True,consumer_role='prefill' if role=='P' else 'decode'))
             run=TAG+'_'+label
             proxy,url=control.launch_proxy(run+'_proxy','e_pd',18848,names,decoder_port=port)
             proxies.append(proxy)
-            try:control.capture(row,run,url,[(port,role)],2415,include_attention=True)
+            try:control.capture(row,run,url,[(port,role)],2415,include_attention=True,include_gemm=args.gemm)
             finally:stop_proxy(proxy);proxies.remove(proxy)
             results.append((label,run,role))
         rpc(18840,'ec_ipc/inline_policy',dict(enabled=True,consumer_role='prefill'))
         run=TAG+'_TOKEN'
         proxy,url=control.launch_proxy(run+'_proxy','epd',18849,names,2415)
         proxies.append(proxy)
-        try:control.capture(row,run,url,[(18841,'P'),(18842,'D')],include_attention=True)
+        try:control.capture(row,run,url,[(18841,'P'),(18842,'D')],include_attention=True,include_gemm=args.gemm)
         finally:stop_proxy(proxy);proxies.remove(proxy)
         results.extend([('Token_P',run,'P'),('Token_D',run,'D')])
         value=analyze(results)
+        if args.gemm:
+            assert all(len(r['first_layer_GEMM'])==4 for r in value['comparisons']), 'The actual compiled GEMM hooks did not capture four stages'
         write(ROOT/'analysis'/f'{TAG}.json',dict(time=time.time(),evidence='DIAGNOSTIC',**value))
         print('TOKEN_NUMERICAL_DIAGNOSTIC_RECORDED',flush=True)
     except BaseException as error:

@@ -70,6 +70,9 @@ async def run(args):
             within_5_percent=abs(profile/center-1)<=.05 and abs(right-left)/center<=.05)
     if args.observer_kind=='profile':
         collectors_passed=all(item['passed'] for value in rpc_results.values() for item in value['end'])
+    elif args.observer_kind=='gpu_enclosures':
+        collectors_passed=all(item['events']>0 and item['clock_scale']>0
+            for value in rpc_results.values() for item in value['end'])
     else:
         collectors_passed=all(value['end']['api']['events']>0 and all(r['events']>0 for r in value['end']['workers'])
             for value in rpc_results.values())
@@ -88,7 +91,7 @@ def main():
     p.add_argument('--url',required=True);p.add_argument('--worker-urls',required=True)
     p.add_argument('--server-names',required=True);p.add_argument('--manifest',type=Path)
     p.add_argument('--replay-from',type=Path,required=True);p.add_argument('--qps',type=float,default=1)
-    p.add_argument('--observer-kind',choices=['profile','timeline'],default='profile')
+    p.add_argument('--observer-kind',choices=['profile','timeline','gpu_enclosures'],default='profile')
     p.add_argument('--state-interval-ms',type=float,default=0,help='Scheduler state sampling only. GPU kernels remain fully recorded.')
     p.add_argument('--observe-client-host',action='store_true')
     p.add_argument('--freeze-client-static-heap',action='store_true')

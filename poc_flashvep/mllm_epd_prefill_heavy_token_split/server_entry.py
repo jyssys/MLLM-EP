@@ -33,6 +33,10 @@ def main():
     if os.environ.get('MLLM_EPD_TOKEN_SPLIT') == '1':
         from .token_split import install_input_prefix
         install_input_prefix()
+    if os.environ.get('MLLM_EPD_PREFIX_PROBE') == '1':
+        assert os.environ.get('MLLM_EPD_TOKEN_SPLIT')!='1'
+        from .prefix_probe_contract import install as install_prefix_probe
+        install_prefix_probe()
     host_timeline.API_RECORDER=api_timeline
     original=api_server.build_app
     def build_app(*args,**kwargs):
@@ -95,6 +99,14 @@ def main():
         @app.post('/campaign/profile/end')
         async def end():
             return await app.state.engine_client.collective_rpc('campaign_profile_end',timeout=120)
+        @app.post('/campaign/gpu_enclosures/begin')
+        async def gpu_enclosures_begin(request:Request):
+            body=await request.json()
+            return await app.state.engine_client.collective_rpc('campaign_gpu_enclosures_begin',timeout=60,
+                args=(body['name'],body.get('state_interval_ms',50)))
+        @app.post('/campaign/gpu_enclosures/end')
+        async def gpu_enclosures_end():
+            return await app.state.engine_client.collective_rpc('campaign_gpu_enclosures_end',timeout=120)
         @app.get('/campaign/worker_info')
         async def info():
             return await app.state.engine_client.collective_rpc('campaign_worker_info',timeout=30)
@@ -112,10 +124,13 @@ def main():
             body=await request.json()
             return await app.state.engine_client.collective_rpc('campaign_llm_probe_begin',timeout=60,
                 args=(body['name'],body.get('max_logits',16),body.get('include_decode_inputs',False),
-                      body.get('include_attention',False)))
+                      body.get('include_attention',False),body.get('include_gemm',False)))
         @app.post('/campaign/llm_probe/end')
         async def llm_probe_end():
             return await app.state.engine_client.collective_rpc('campaign_llm_probe_end',timeout=120)
+        @app.post('/campaign/boundary_teacher/install')
+        async def boundary_teacher_install():
+            return await app.state.engine_client.collective_rpc('campaign_boundary_teacher_install',timeout=30)
         @app.post('/campaign/encoder_capture/begin')
         async def capture_begin(request:Request):
             body=await request.json()

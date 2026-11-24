@@ -1,0 +1,30 @@
+test_gemm_diagnostic_flag_reaches_worker (poc_flashvep.mllm_epd_prefill_heavy_token_split.test_probe_rpc.ProbeRPCTest.test_gemm_diagnostic_flag_reaches_worker) ... FAIL
+
+======================================================================
+FAIL: test_gemm_diagnostic_flag_reaches_worker (poc_flashvep.mllm_epd_prefill_heavy_token_split.test_probe_rpc.ProbeRPCTest.test_gemm_diagnostic_flag_reaches_worker)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/esjung/anaconda3/lib/python3.14/asyncio/runners.py", line 128, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/esjung/anaconda3/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/mllm_epd_prefill_heavy_token_split/test_probe_rpc.py", line 41, in test_gemm_diagnostic_flag_reaches_worker
+    self.assertEqual(worker.call_args.kwargs['args'],('actual-gemm-diagnostic',4,True,True,True))
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Tuples differ: ('actual-gemm-diagnostic', 4, True, True) != ('actual-gemm-diagnostic', 4, True, True, True)
+
+Second tuple contains 1 additional elements.
+First extra element 4:
+True
+
+- ('actual-gemm-diagnostic', 4, True, True)
++ ('actual-gemm-diagnostic', 4, True, True, True)
+?                                     ++++++
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.006s
+
+FAILED (failures=1)
