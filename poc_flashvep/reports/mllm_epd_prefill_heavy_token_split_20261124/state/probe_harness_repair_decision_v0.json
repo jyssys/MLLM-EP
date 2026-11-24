@@ -1,0 +1,53 @@
+{
+  "time": 1795554257.704334,
+  "status": "PREDECESSOR_FAILED_AND_CLOSED",
+  "failed_run": "interference_PROBE_C40R1_B0_SMOKE_N1",
+  "primary_probe_results": "NOT_RUN",
+  "original_Stock_control": "Completed and preserved. Not pooled with the new independent block.",
+  "closed_leases": [
+    "server_interference_PROBE_C40R1_B0_STOCK_D6.json",
+    "server_interference_PROBE_C40R1_B0_E4.json",
+    "server_interference_PROBE_C40R1_B0_D6.json",
+    "server_interference_PROBE_C40R1_B0_P5.json",
+    "server_interference_PROBE_C40R1_B0_STOCK_P5.json",
+    "server_interference_PROBE_C40R1_B0_STOCK_E4.json"
+  ],
+  "hypotheses": [
+    {
+      "rank": 1,
+      "hypothesis": "Stale owned listener accepted as new coordinator",
+      "verdict": "SUPPORTED",
+      "evidence": "Actual E release failure, new bind error, old /health name and port owner, actual launcher red/green test."
+    },
+    {
+      "rank": 2,
+      "hypothesis": "Encoder clone ACK or CUDA IPC lifetime corrupt despite correct new proxy",
+      "verdict": "NOT_SUPPORTED_FOR_THIS_CASE",
+      "evidence": "Observed listener was the old metadata handler. No correct new proxy request completed."
+    },
+    {
+      "rank": 3,
+      "hypothesis": "Readiness should prove process and endpoint identity, not HTTP200 alone",
+      "verdict": "SUPPORTED",
+      "evidence": "The original launcher accepted old health. The corrected launcher rejects it."
+    },
+    {
+      "rank": 4,
+      "hypothesis": "D teacher RPC rejects intended explicit decode prefix probe",
+      "verdict": "SEPARATE_PREFLIGHT_DEFECT_CONFIRMED",
+      "evidence": "CPU actual RPC guard red/green. Not the cause of the earlier observed port collision."
+    }
+  ],
+  "fixes": [
+    "Fail before GPU initialization on occupied required ports.",
+    "Check actual new process is alive and endpoint name matches.",
+    "Permit teacher RPC only in explicit prefix-probe pd or opt-in decode workers. Unmarked Native remains unchanged."
+  ],
+  "invariant": "No assertion was removed. No Dataset, SLO, quantum, sampling, prefix KV, model weight or attention was changed.",
+  "new_namespaces": [
+    "interference_PROBE_C40R2",
+    "suffix_QUANTA_C41R1",
+    "whole_DEFLECTION_C43R1"
+  ],
+  "dependent_runs": "Original C41/C43 stopped at failed predecessor gate before any GPU lease. Old plans and manifests remain unchanged."
+}

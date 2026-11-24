@@ -67,12 +67,19 @@ class Collector:
         self.execute_original_slot=vars(self.runner).get('execute_model')
         def queue(scheduler):
             waiting=list(scheduler.waiting);running=list(scheduler.running)
+            cache=getattr(scheduler,'kv_cache_manager',None)
+            pool=getattr(cache,'block_pool',None)
+            encoder_cache=getattr(scheduler,'encoder_cache_manager',None)
             return dict(waiting=len(waiting),running=len(running),
                 waiting_status={str(status):sum(str(r.status)==str(status) for r in waiting)
                     for status in {r.status for r in waiting}},
                 decode_active=sum(r.num_computed_tokens>=r.num_prompt_tokens for r in running),
                 prefill_active=sum(r.num_computed_tokens<r.num_prompt_tokens for r in running),
-                decode_ready_waiting=sum(r.num_computed_tokens>=r.num_prompt_tokens for r in waiting))
+                decode_ready_waiting=sum(r.num_computed_tokens>=r.num_prompt_tokens for r in waiting),
+                free_KV_blocks=int(pool.get_num_free_blocks()) if pool is not None else None,
+                total_KV_blocks=int(pool.num_gpu_blocks) if pool is not None else None,
+                encoder_free_slots=getattr(encoder_cache,'num_free_slots',None),
+                encoder_cache_slots=getattr(encoder_cache,'cache_size',None))
         def schedule(scheduler,*args,**kwargs):
             begin=time.monotonic_ns()
             if begin-me.last_schedule_sample_ns<me.state_interval_ns:
@@ -196,7 +203,9 @@ class CampaignWorkerExtension:
         return result
 
     def campaign_boundary_teacher_install(self):
-        assert os.environ.get('MLLM_EPD_PREFIX_PROBE')=='1' and os.environ['MLLM_EPD_ROLE']=='pd'
+        role=os.environ['MLLM_EPD_ROLE']
+        assert os.environ.get('MLLM_EPD_PREFIX_PROBE')=='1'
+        assert role=='pd' or role=='decode' and os.environ.get('MLLM_EPD_ALLOW_DECODE_PROBE')=='1'
         from .token_split import install_boundary_teacher
         install_boundary_teacher()
         return dict(evidence='CORRECTNESS_ONLY',scope='Only explicitly marked unsplit teacher requests get aligned query chunks.')

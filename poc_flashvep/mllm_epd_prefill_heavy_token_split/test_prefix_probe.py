@@ -32,5 +32,15 @@ class PrefixProbeTest(unittest.TestCase):
             with self.assertRaises(AssertionError):
                 truncate_probe(self.request({KEY:dict(prefix_tokens=prefix,full_prompt_tokens=full)}),'pd')
 
+    def test_decode_probe_requires_explicit_opt_in_and_still_forbids_remote_handoff(self):
+        plan={KEY:dict(prefix_tokens=128,full_prompt_tokens=2961)}
+        row=self.request(plan);features=row.mm_features
+        truncate_probe(row,'decode',allow_decode_probe=True)
+        self.assertEqual(len(row.prompt_token_ids),128);self.assertIs(row.mm_features,features)
+        with self.assertRaises(AssertionError):
+            truncate_probe(self.request(dict(plan,do_remote_prefill=True)),'decode',allow_decode_probe=True)
+        with self.assertRaises(AssertionError):
+            truncate_probe(self.request(plan),'prefill',allow_decode_probe=True)
+
 
 if __name__=='__main__':unittest.main()

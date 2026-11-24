@@ -5,11 +5,11 @@ import time
 KEY='campaign_isolated_prefix_probe_v1'
 
 
-def truncate_probe(request,role):
+def truncate_probe(request,role,allow_decode_probe=False):
     params=(request.sampling_params.extra_args or {}).get('kv_transfer_params') or {}
     plan=params.get(KEY)
     if plan is None:return request
-    assert role=='pd' and set(plan)=={'prefix_tokens','full_prompt_tokens'}
+    assert (role=='pd' or role=='decode' and allow_decode_probe) and set(plan)=={'prefix_tokens','full_prompt_tokens'}
     prefix,full=plan['prefix_tokens'],plan['full_prompt_tokens']
     assert type(prefix) is int and type(full) is int and 0<prefix<full
     assert len(request.prompt_token_ids)==full
@@ -23,12 +23,14 @@ def truncate_probe(request,role):
 def install():
     from vllm.v1.engine.input_processor import InputProcessor
     from .common import ROOT,append
-    role=os.environ['MLLM_EPD_ROLE'];assert role=='pd'
+    role=os.environ['MLLM_EPD_ROLE']
+    allow_decode=role=='decode' and os.environ.get('MLLM_EPD_ALLOW_DECODE_PROBE')=='1'
+    assert role=='pd' or allow_decode
     original=InputProcessor.process_inputs
     def processed(processor,*args,**kwargs):
         request=original(processor,*args,**kwargs)
         before=request.prompt_token_ids
-        result=truncate_probe(request,role)
+        result=truncate_probe(request,role,allow_decode_probe=allow_decode)
         if result.prompt_token_ids is not before:
             append(ROOT/'raw'/f'isolated_prefix_probe_{os.getpid()}.jsonl',dict(time=time.monotonic(),
                 request_id=result.request_id,full_prompt_tokens=len(before),prefix_tokens=len(result.prompt_token_ids),

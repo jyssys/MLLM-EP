@@ -12,7 +12,9 @@ class ObserverSamplingTest(unittest.TestCase):
         output = SimpleNamespace(num_scheduled_tokens={'r': 128}, total_num_scheduled_tokens=128,
                                  scheduled_encoder_inputs={})
         request = SimpleNamespace(status='WAITING', num_computed_tokens=1, num_prompt_tokens=512)
-        scheduler = SimpleNamespace(waiting=[request], running=[], requests={'r': request})
+        scheduler = SimpleNamespace(waiting=[request], running=[], requests={'r': request},
+            kv_cache_manager=SimpleNamespace(block_pool=SimpleNamespace(get_num_free_blocks=lambda:17,num_gpu_blocks=32)),
+            encoder_cache_manager=SimpleNamespace(num_free_slots=100,cache_size=200))
         def original_schedule(*args, **kwargs):
             called.append('schedule')
             return output
@@ -38,6 +40,9 @@ class ObserverSamplingTest(unittest.TestCase):
         self.assertEqual(called.count('execute'), 3)
         self.assertEqual(len(collector.rows), 2)
         self.assertEqual(len(collector.calls), 2)
+        self.assertEqual(collector.rows[0]['before']['free_KV_blocks'],17)
+        self.assertEqual(collector.rows[0]['after']['total_KV_blocks'],32)
+        self.assertEqual(collector.rows[0]['after']['encoder_free_slots'],100)
 
 
 if __name__ == '__main__':

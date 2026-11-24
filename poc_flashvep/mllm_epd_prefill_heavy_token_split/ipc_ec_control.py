@@ -16,6 +16,7 @@ from .frontend_supply_control import wait_ready,retire,ROLES
 from .llm_probe_control import rpc
 from .metrics import summarize
 from .source_snapshot import snapshot
+from .runtime_endpoint_identity import require_identity
 
 URL='http://127.0.0.1:18847'
 
@@ -52,7 +53,9 @@ def launch(tag,transport,fixed_reduction=False,deterministic_reductions=False,ow
         assert proxy.poll() is None,'Owned proxy terminated'
         try:
             with urllib.request.urlopen(URL+'/health',timeout=2) as response:
-                if response.status==200:break
+                if response.status==200:
+                    require_identity(response,proxy_name,proxy)
+                    break
         except OSError:pass
         if time.time()>until:raise TimeoutError('Inspect the same owned proxy; do not start another one')
         time.sleep(.5)

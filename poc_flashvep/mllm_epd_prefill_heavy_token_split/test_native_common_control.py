@@ -1,5 +1,6 @@
 """Test the real Native launch flags and the recomputed last-query gate."""
 import copy
+import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from types import SimpleNamespace
@@ -25,6 +26,7 @@ class NativeCommonControlTest(unittest.TestCase):
             process=SimpleNamespace(pid=12345,poll=lambda:None)
             class Response:
                 status=200
+                def read(self):return json.dumps(dict(name=tag+'_proxy')).encode()
                 def __enter__(self):return self
                 def __exit__(self,*args):pass
             owned=[]

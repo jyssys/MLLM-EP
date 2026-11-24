@@ -18,7 +18,7 @@ def command(role,port,ec_path,side_port,observe=False,encoder_native_ops=False,e
     assert ec_transport in ('cpu','cuda_ipc')
     assert ec_transport=='cpu' or observe,'CUDA IPC requires the fixed owned-worker RPC endpoints'
     assert not token_split or observe and role in ('prefill','decode')
-    assert not prefix_probe or observe and role=='pd' and not token_split
+    assert not prefix_probe or observe and role in ('pd','decode') and not token_split
     assert not fixed_reduction or observe and role in ('prefill','decode','pd','agg','reference') and not eager_reference
     assert not deterministic_reductions or observe and role in ('prefill','decode','pd','agg','reference') and not eager_reference
     assert 0<kv_cache_gib<=42 and 0<gpu_memory_utilization<=.95
@@ -131,6 +131,7 @@ def serve(name,gpu,role,port,ec_path,side_port,observe=False,encoder_native_ops=
     env['PYTHONDONTWRITEBYTECODE']='1'
     env['MLLM_EPD_TOKEN_SPLIT']='1' if token_split else '0'
     env['MLLM_EPD_PREFIX_PROBE']='1' if prefix_probe else '0'
+    env['MLLM_EPD_ALLOW_DECODE_PROBE']='1' if prefix_probe and role=='decode' else '0'
     if legacy_runner:env['VLLM_USE_V2_MODEL_RUNNER']='0'
     else:env.pop('VLLM_USE_V2_MODEL_RUNNER',None)
     env.pop('MLLM_EPD_API_SWITCH_INTERVAL',None)
@@ -227,7 +228,7 @@ def main():
     parser.add_argument('--ec-transport',choices=['cpu','cuda_ipc'],default='cpu')
     parser.add_argument('--encoder-api',default='http://127.0.0.1:18840')
     parser.add_argument('--token-split',action='store_true')
-    parser.add_argument('--prefix-probe',action='store_true',help='Discarded prefix work in an isolated pd helper, not task completion')
+    parser.add_argument('--prefix-probe',action='store_true',help='Discarded prefix work in a pd helper or explicitly gated decode probe, not task completion')
     parser.add_argument('--fixed-reduction',action='store_true',help='One-factor compiled numerical control: dynamic_scale_rblock=False')
     parser.add_argument('--deterministic-reductions',action='store_true',help='Explicit common numerical control; may reduce performance. Not BI1.')
     parser.add_argument('--kv-cache-gib',type=float,default=42)
