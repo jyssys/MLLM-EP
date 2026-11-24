@@ -82,16 +82,36 @@ async def post(session,url,body,headers=None):
         return value
 
 
+def encoder_state():
+    with urllib.request.urlopen('http://127.0.0.1:18840/campaign/ec_ipc/state',timeout=120) as response:
+        value=json.load(response)
+    assert len(value)==1
+    return value[0]
+
+
 async def prime(row,tag):
     import aiohttp
     body=payload(row,tag,1,False);key=hashlib.sha256(tag.encode()).hexdigest()
-    rpc(18840,'ec_ipc/inline_policy',dict(enabled=False))
-    try:
-        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=1800),trust_env=False) as session:
-            value=await post(session,'http://127.0.0.1:18840/v1/chat/completions',body,
-                {'x-request-id':tag,'x-campaign-metadata-key':key,'x-campaign-metadata-mode':'grid_only'})
+    before=encoder_state()
+    assert before['live_images']==before['outstanding_exports']==0
+    async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=1800),trust_env=False) as session:
+        value=await post(session,'http://127.0.0.1:18840/v1/chat/completions',body,
+            {'x-request-id':tag+':E:prime','x-campaign-metadata-key':key,'x-campaign-metadata-mode':'grid_only'})
         assert value['usage']['prompt_tokens']==row['total_input_tokens']
-    finally:rpc(18840,'ec_ipc/inline_policy',dict(enabled=True))
+        # Keep the original global inline-P policy. Consume its mandatory export
+        # with a real full P forward before retaining the E image for probes.
+        # No remote-KV flag is set, so no unused D reservation is created.
+        prepared=await post(session,'http://127.0.0.1:18841/v1/chat/completions',body,
+            {'x-request-id':tag+':P:prime','x-campaign-metadata-key':key,'x-campaign-metadata-mode':'grid_only'})
+        assert prepared['usage']['prompt_tokens']==row['total_input_tokens']
+        assert prepared['usage']['completion_tokens']==len(prepared['choices'][0]['token_ids'])==1
+    state=encoder_state()
+    assert state['live_images']==row['image_count'] and state['outstanding_exports']==0
+    write(ROOT/'raw'/f'{tag}_priming.json',dict(time=time.time(),E_response=value,P_response=prepared,state=state,
+        evidence='PRIMING_ONLY',task_completion=False,
+        scope='Actual original E plus one full P forward outside all timed cohorts. The P clone ACK consumes the '
+            'existing inline export. Keep the original global policy and retain E images for later on-demand probe clones. '
+            'No imported KV, output correction, early ACK, D reservation or serving speedup.'))
     return dict(body=body,key=key,images=row['image_count'],full_tokens=row['total_input_tokens'])
 
 
@@ -175,6 +195,24 @@ def wait_for_study():
         assert lease['finished'] and not Path('/proc',str(lease['guardian'])).exists()
 
 
+def wait_for_whole_resource(tag):
+    value=json.loads((ROOT/'state'/f'{tag}_controller.json').read_text())
+    proc=Path('/proc',str(value['pid']))
+    while proc.exists():
+        assert proc.stat().st_uid==os.getuid()
+        command=(proc/'cmdline').read_bytes()
+        assert b'mllm_epd_prefill_heavy_token_split.whole_deflection_control' in command and tag.encode() in command
+        assert time.time()<experiment_deadline();time.sleep(1)
+    for path in (ROOT/'state').glob(f'server_{tag}*.json'):
+        if path.name.endswith('.source_snapshot.json'):continue
+        lease=json.loads(path.read_text())
+        assert lease['finished'] and not Path('/proc',str(lease['guardian'])).exists()
+    write(ROOT/'state'/f'{TAG}_resource_predecessor_closeout.json',dict(time=time.time(),predecessor=tag,
+        predecessor_completed=(ROOT/'state'/f'{tag}_controller_complete.json').exists(),all_owned_GPU_leases_closed=True,
+        dependency='GPU resource order only. No correctness, quality or performance proof is borrowed.',
+        independent_correctness_preflight_required=True))
+
+
 def stock_start(index,rows,counts):
     tag=f'{TAG}_B{index}_STOCK';names=[];proxy=None;results=[]
     try:
@@ -204,16 +242,18 @@ def stock_start(index,rows,counts):
             retire([name for name in owned if '_E4' not in name]);retire([name for name in owned if '_E4' in name])
 
 
-def run_start(index,rows,counts):
+def run_start(index,rows,counts,only_correctness=False):
     import aiohttp
-    tag=f'{TAG}_B{index}';names=[];helper=None;proxy=None;prepared=None;results=[]
+    tag=TAG+'_PREFLIGHT' if only_correctness else f'{TAG}_B{index}'
+    names=[];helper=None;proxy=None;prepared=None;results=[]
     try:
         ec=launch_native(tag,names);proxy=launch_proxy(tag,names)
         asyncio.run(smoke(tag,'NativeCommon',URL))
-        results.append(asyncio.run(measure(tag,'plain_warmup',rows,counts)))
+        if not only_correctness:results.append(asyncio.run(measure(tag,'plain_warmup',rows,counts)))
         before={str(port):info(port) for port in [18840,18841,18842]}
-        for mode,output in [('natural',None),('replay',counts)]:
-            results.append(asyncio.run(measure(tag,'plain_'+mode,rows,output)))
+        if not only_correctness:
+            for mode,output in [('natural',None),('replay',counts)]:
+                results.append(asyncio.run(measure(tag,'plain_'+mode,rows,output)))
         helper=tag+'_H4'
         args=[str(PYTHON),'-m','poc_flashvep.mllm_epd_prefill_heavy_token_split.servers','start',
             '--name',helper,'--gpu','4','--role','pd','--port','18843','--side-port','19843',
@@ -238,6 +278,15 @@ def run_start(index,rows,counts):
                             finally:rpc(port,'llm_probe/end',{})
                         compare(teacher,actual,quantum)
         asyncio.run(correctness())
+        if only_correctness:
+            release=rpc(18840,'ec_ipc/release',dict(key=prepared['key']))
+            assert release[0]['live_images']==release[0]['outstanding_exports']==0;prepared=None
+            write(ROOT/'analysis'/f'{tag}_summary.json',dict(time=time.time(),status='CORRECTNESS_PASS',
+                evidence='CORRECTNESS_ONLY',priming='Original inline P consumer completes and ACKs before probes.',
+                encoder_and_helper_smoke='Serial N1/N8 output regression before and after co-residency',
+                prefix_cases=4,quanta=QUANTA,unused_exports=0,actual_Main_performance='NOT_RUN',
+                task_quality='PENDING',memory_before=before,memory_with_helper=after))
+            return results
         results.append(asyncio.run(measure(tag,'co_resident_warmup',rows,counts)))
         # All conditions were frozen before the first probe result. Every
         # baseline and probe condition uses the same coordinator and D policy.
@@ -271,7 +320,11 @@ def main():
     global TAG
     parser=argparse.ArgumentParser();parser.add_argument('--wait-for-c39',action='store_true')
     parser.add_argument('--tag',default=TAG)
+    parser.add_argument('--preflight-first',action='store_true')
+    parser.add_argument('--wait-for-whole-tag')
     args=parser.parse_args();assert re.fullmatch(r'interference_PROBE_C40R[0-9]+',args.tag)
+    if args.wait_for_whole_tag:
+        assert re.fullmatch(r'whole_DEFLECTION_C43R[0-9]+',args.wait_for_whole_tag) and args.preflight_first
     TAG=args.tag;preserve();assert time.time()<experiment_deadline()
     prior_idle=ROOT/'analysis/ec_LOW_CUPTI_C25_CPC_q0.5_v0_qualification.json'
     assert json.loads(prior_idle.read_text())['observer_gate_passed']
@@ -305,12 +358,19 @@ def main():
             'current-state probes empirically. No future window is assumed. Main100 is not yet confirmed prefill-heavy.',
         exclusions='No imported prefix KV, suffix continuation,3way partition, actual Main task completion by probes, '
             'maximum encoder-batch claim or sustainable-capacity claim.',
-        quality='PENDING. No external task-answer extraction without approval.',wait_for_c39=args.wait_for_c39))
-    write(ROOT/'state'/f'{TAG}_controller.json',dict(time=time.time(),pid=os.getpid(),status='WAITING_FOR_C39' if args.wait_for_c39 else 'STARTING'))
+        quality='PENDING. No external task-answer extraction without approval.',wait_for_c39=args.wait_for_c39,
+        preflight_first=args.preflight_first,
+        resource_predecessor=args.wait_for_whole_tag,
+        predecessor_dependency='Resource order only. Independent fresh E/D probe correctness remains mandatory even if the Whole study fails.',
+        priming='Keep original inline P policy. Actual E plus full P max1 discarded sample completes mandatory clone ACKs before retaining private E images. Outside all timing.'))
+    write(ROOT/'state'/f'{TAG}_controller.json',dict(time=time.time(),pid=os.getpid(),status=
+        'WAITING_FOR_WHOLE_RESOURCE' if args.wait_for_whole_tag else 'WAITING_FOR_C39' if args.wait_for_c39 else 'STARTING'))
     if args.wait_for_c39:wait_for_study()
+    if args.wait_for_whole_tag:wait_for_whole_resource(args.wait_for_whole_tag)
     require_free_ports([18840,18841,18842,18843,18845,18847])
     results=[]
     try:
+        if args.preflight_first:run_start(0,rows,counts,only_correctness=True)
         for index in range(3):
             assert time.time()<experiment_deadline()
             strong=stock_start(index,rows,counts)

@@ -162,7 +162,7 @@ def correctness():
         names,native=launch(tag,'cuda_ipc',fixed_reduction=True,deterministic_reductions=True,owned_names=names)
         stop_native_proxy(native);native=None;set_common_ipc_policy()
         reply=rpc(18840,'ec_ipc/inline_policy',dict(enabled=False));assert reply[0]['inline_role'] is None
-        proxy=launch_whole(tag+'_proxy',names,'always_correctness',True)
+        proxy=launch_whole(tag+'_whole_proxy',names,'always_correctness',True)
         pool=json.loads((ROOT/'data/calibration_manifest_template_v2.json').read_text())['requests']
         results.extend(asyncio.run(correctness_cohort(tag+'_N1',[pool[0]])))
         rows=[pool[i] for i in INDICES];random.Random(2026112404).shuffle(rows)
@@ -209,7 +209,7 @@ def run_arm(block,method,main,fresh,counts):
         if common:
             stop_native_proxy(native);native=None
             assert rpc(18840,'ec_ipc/inline_policy',dict(enabled=False))[0]['inline_role'] is None
-            proxy=launch_whole(tag+'_proxy',names,'never' if method=='NativeOnDemand' else 'idle_after_encode')
+            proxy=launch_whole(tag+'_whole_proxy',names,'never' if method=='NativeOnDemand' else 'idle_after_encode')
             url=URL
         else:url='http://127.0.0.1:18847'
         asyncio.run(smoke(tag,'NativeCommon' if common else 'NativeStrong',url))

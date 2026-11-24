@@ -1,0 +1,38 @@
+Executing <Task finished name='Task-2' coro=<PrimingLifetimeTest.test_private_embedding_stays_live_without_global_policy_change_or_unused_export() done, defined at /home/esjung/MLLM-EP-github/poc_flashvep/mllm_epd_prefill_heavy_token_split/test_probe_priming_lifetime.py:17> exception=<HTTPError 405: 'Method Not Allowed'> created at /home/esjung/anaconda3/lib/python3.14/asyncio/runners.py:110> took 5.575 seconds
+E
+======================================================================
+ERROR: test_private_embedding_stays_live_without_global_policy_change_or_unused_export (poc_flashvep.mllm_epd_prefill_heavy_token_split.test_probe_priming_lifetime.PrimingLifetimeTest.test_private_embedding_stays_live_without_global_policy_change_or_unused_export)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/esjung/anaconda3/lib/python3.14/asyncio/runners.py", line 128, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/esjung/anaconda3/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/mllm_epd_prefill_heavy_token_split/test_probe_priming_lifetime.py", line 48, in test_private_embedding_stays_live_without_global_policy_change_or_unused_export
+    result=await controller.prime(row,'private_priming_fixture')
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/mllm_epd_prefill_heavy_token_split/interference_probe_control.py", line 88, in prime
+    before=rpc(18840,'ec_ipc/state',{})[0]
+           ~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/mllm_epd_prefill_heavy_token_split/llm_probe_control.py", line 15, in rpc
+    with urllib.request.urlopen(request,timeout=180) as response:return json.load(response)
+         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/anaconda3/lib/python3.14/unittest/mock.py", line 1176, in __call__
+    return self._mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/esjung/anaconda3/lib/python3.14/unittest/mock.py", line 1180, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/esjung/anaconda3/lib/python3.14/unittest/mock.py", line 1247, in _execute_mock_call
+    result = effect(*args, **kwargs)
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/mllm_epd_prefill_heavy_token_split/test_probe_priming_lifetime.py", line 40, in response
+    if method!='GET':raise HTTPError(url,405,'Method Not Allowed',{},None)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+urllib.error.HTTPError: HTTP Error 405: Method Not Allowed
+
+----------------------------------------------------------------------
+Ran 1 test in 5.580s
+
+FAILED (errors=1)

@@ -1,0 +1,63 @@
+{
+  "time": 1795556820.418355,
+  "status": "FROZEN_BEFORE_ONE_FACTOR_NATIVE_TRANSPORT_RESULTS",
+  "source_archive_SHA256": "129d5314951cbd6a0788e983c59021044ad7fe2d9365b7bfb70c114f84d6ae95",
+  "manifest_SHA256": "910506f24984e8f83e433c169b0a03d06c89396e1ef8a5f66b514d97406844d1",
+  "GPU_group": [
+    4,
+    5,
+    6
+  ],
+  "QPS": 2.0,
+  "independent_initializations": 3,
+  "periods": [
+    [
+      true,
+      false,
+      false,
+      true
+    ],
+    [
+      false,
+      true,
+      true,
+      false
+    ],
+    [
+      true,
+      false,
+      false,
+      true
+    ]
+  ],
+  "factor": "Only E inline P descriptor versus on-demand P descriptor. Original tensors, clone ACKs and safe release unchanged.",
+  "controls": "Both arms use the same original full28 Native E/P/D, common compiled BF16, no Token, no deflection and the same never-deflect coordinator.",
+  "correctness": "Fresh serial N1/N8 outputs in both policies before timing. No active state when changing the default.",
+  "primary_evidence": "MEASURED_ONLINE Native root-cause control, not a new candidate serving method.",
+  "motivation": "A closed on-demand replay had148 P import groups/1251 images, RPC mean81.455ms/p95457.555ms/max1055.674ms. This is descriptive host evidence, not exclusive GPU time or a causal effect estimate.",
+  "strong_baseline": "NativeStrong and the already inline Static Token remain unchanged. This cannot be advertised as a repair of their absent export RPC.",
+  "hypotheses": [
+    "Inline removes export RPC but only improves TTFT if that host dependency is critical.",
+    "Clone/ready-stream waiting can dominate even with zero export RPC.",
+    "Natural output-work effects can differ from equal-output replay; never pool them."
+  ],
+  "observer": "No GPU profiler or tensor capture during timing. Existing transport logs remain identical instrumentation in both arms.",
+  "uncertainty": "Average the two periods of each policy within a start, then form paired independent N3 CI. Never use24 cohorts as24 starts.",
+  "dependencies": [
+    [
+      "whole_DEFLECTION_C43R4",
+      "whole_deflection_control"
+    ],
+    [
+      "interference_PROBE_C40R4",
+      "interference_probe_control"
+    ],
+    [
+      "suffix_QUANTA_C41R3",
+      "suffix_quantum_cost_control"
+    ]
+  ],
+  "task_quality": "PENDING",
+  "Dataset_SLO_unchanged": true,
+  "no_prefill_heavy_or_safe_window_claim": true
+}

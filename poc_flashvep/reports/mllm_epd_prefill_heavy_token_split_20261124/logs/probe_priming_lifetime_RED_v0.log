@@ -1,0 +1,38 @@
+Executing <Task finished name='Task-2' coro=<PrimingLifetimeTest.test_private_embedding_stays_live_without_global_policy_change_or_unused_export() done, defined at /home/esjung/MLLM-EP-github/poc_flashvep/mllm_epd_prefill_heavy_token_split/test_probe_priming_lifetime.py:12> exception=AssertionError() created at /home/esjung/anaconda3/lib/python3.14/asyncio/runners.py:110> took 5.286 seconds
+F
+======================================================================
+FAIL: test_private_embedding_stays_live_without_global_policy_change_or_unused_export (poc_flashvep.mllm_epd_prefill_heavy_token_split.test_probe_priming_lifetime.PrimingLifetimeTest.test_private_embedding_stays_live_without_global_policy_change_or_unused_export)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/esjung/anaconda3/lib/python3.14/asyncio/runners.py", line 128, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/esjung/anaconda3/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/mllm_epd_prefill_heavy_token_split/test_probe_priming_lifetime.py", line 41, in test_private_embedding_stays_live_without_global_policy_change_or_unused_export
+    result=await controller.prime(row,'private_priming_fixture')
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/mllm_epd_prefill_heavy_token_split/interference_probe_control.py", line 94, in prime
+    finally:rpc(18840,'ec_ipc/inline_policy',dict(enabled=True))
+            ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/anaconda3/lib/python3.14/unittest/mock.py", line 1176, in __call__
+    return self._mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/esjung/anaconda3/lib/python3.14/unittest/mock.py", line 1180, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/esjung/anaconda3/lib/python3.14/unittest/mock.py", line 1247, in _execute_mock_call
+    result = effect(*args, **kwargs)
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/mllm_epd_prefill_heavy_token_split/test_probe_priming_lifetime.py", line 33, in rpc
+    if path=='ec_ipc/inline_policy':return [worker.campaign_ec_ipc_inline_policy(**body)]
+                                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/mllm_epd_prefill_heavy_token_split/worker_observer.py", line 142, in campaign_ec_ipc_inline_policy
+    assert state['live_images']==state['outstanding_exports']==0
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+
+----------------------------------------------------------------------
+Ran 1 test in 5.290s
+
+FAILED (failures=1)
