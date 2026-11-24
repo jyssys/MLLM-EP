@@ -284,6 +284,18 @@ class CampaignWorkerExtension:
     def campaign_gpu_enclosures_end(self):
         return self._campaign_gpu_enclosures.close()
 
+    def campaign_batch_counter_begin(self,name):
+        from .batch_counter import BatchCounter
+        assert not getattr(self,'_campaign_batch_counter_active',False)
+        self._campaign_batch_counter=BatchCounter(self.model_runner,name)
+        result=self._campaign_batch_counter.begin();self._campaign_batch_counter_active=True
+        return result
+
+    def campaign_batch_counter_end(self):
+        assert self._campaign_batch_counter_active
+        result=self._campaign_batch_counter.close();self._campaign_batch_counter_active=False
+        return result
+
     def campaign_worker_info(self):
         import torch
         config=self.model_runner.vllm_config

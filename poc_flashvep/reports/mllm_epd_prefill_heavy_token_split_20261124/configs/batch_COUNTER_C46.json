@@ -1,0 +1,55 @@
+{
+  "time": 1795560202.8841915,
+  "status": "FROZEN_BEFORE_COUNTER_GPU_RESULTS",
+  "source_archive_SHA256": "98daa61aaf750b7d8dd998b4f025af614659ca3a6fea0b17553aace2ea229411",
+  "manifest_SHA256": "910506f24984e8f83e433c169b0a03d06c89396e1ef8a5f66b514d97406844d1",
+  "methods": [
+    "NativeStrong",
+    "NativeCommon",
+    "Static10",
+    "Idle10",
+    "AggDP3",
+    "E_PD_DP2"
+  ],
+  "QPS": 2.0,
+  "GPU_group": [
+    4,
+    5,
+    6
+  ],
+  "independent_initializations_per_method": 1,
+  "purpose": "The closed N3 lacks clean actual-batch measurements. Measure representative logical query and encoder output geometry without CUDA events or CUPTI.",
+  "sequence": [
+    "N1/N8 existing family correctness",
+    "Replay100 warmup",
+    "clean_before",
+    "counter",
+    "clean_after"
+  ],
+  "sampling": "Same per-request R0 output token counts, original prompt/order/arrival. Not Natural EOS or new N3 confirmation.",
+  "actual_geometry": "P/D prepared prompt versus generation query rows, mixed-request categories, encoder output image and visual-row counts.",
+  "scope_exclusions": [
+    "No exclusive kernel/transfer time",
+    "No SM/HBM counters",
+    "No queue timeline",
+    "No future safe window",
+    "No quality PASS",
+    "No backfill of old clean N3 batch shapes"
+  ],
+  "observer_gate": {
+    "metrics": [
+      "duration_seconds",
+      "TTFT_p50_ms",
+      "TTFT_p95_ms",
+      "ITL_p99_ms",
+      "TPOT_p95_ms"
+    ],
+    "relative_difference_max": 0.05,
+    "clean_spread_max": 0.05
+  },
+  "unchanged": "Original model, BF16, compiler, chunked prefill, B8192/S1024, KV42GiB, Block128 and existing conservative Token admission.",
+  "no_active_decode_insertion": true,
+  "no_parameter_search": true,
+  "escalation": "No automatic repeat or independent N3 expansion. All failed gates remain diagnostic.",
+  "dependency": "Start only after owned C44 and all earlier owned GPU leases close. No correctness proof is borrowed."
+}

@@ -107,6 +107,13 @@ def main():
         @app.post('/campaign/gpu_enclosures/end')
         async def gpu_enclosures_end():
             return await app.state.engine_client.collective_rpc('campaign_gpu_enclosures_end',timeout=120)
+        @app.post('/campaign/batch_counter/begin')
+        async def batch_counter_begin(request:Request):
+            body=await request.json()
+            return await app.state.engine_client.collective_rpc('campaign_batch_counter_begin',timeout=60,args=(body['name'],))
+        @app.post('/campaign/batch_counter/end')
+        async def batch_counter_end():
+            return await app.state.engine_client.collective_rpc('campaign_batch_counter_end',timeout=60)
         @app.get('/campaign/worker_info')
         async def info():
             return await app.state.engine_client.collective_rpc('campaign_worker_info',timeout=30)
