@@ -15,13 +15,18 @@ from .common import ROOT,append,write,digest
 from .token_split import select_prefix as token_prefix,POLICY_KEY
 
 
-def application(mode,encoder,prefill,decoders,name,encoder_policy='whole_request',processor_handoff='none',release_encoder_ipc=False,token_suffix_fraction=0.,token_prefix_tokens=0):
+def application(mode,encoder,prefill,decoders,name,encoder_policy='whole_request',processor_handoff='none',release_encoder_ipc=False,token_suffix_fraction=0.,token_prefix_tokens=0,token_admission='none',token_policy='static'):
     assert processor_handoff in ('none','full','grid_only')
     assert processor_handoff=='none' or mode in ('epd','e_pd') and encoder_policy=='whole_request'
     assert not release_encoder_ipc or processor_handoff!='none' and mode in ('epd','e_pd')
     assert not (token_suffix_fraction or token_prefix_tokens) or mode=='epd' and processor_handoff!='none'
     assert 0<=token_suffix_fraction<1 and token_prefix_tokens>=0
     assert not (token_suffix_fraction and token_prefix_tokens)
+    assert token_admission in ('none','decode_idle') and token_policy in ('static','idle_fallback')
+    assert token_admission=='none' or mode=='epd' and len(decoders)==1
+    assert token_policy=='static' or token_admission=='decode_idle' and (token_suffix_fraction or token_prefix_tokens)
+    from .idle_admission import IdleAdmission,FirstToken
+    admission=IdleAdmission() if token_admission=='decode_idle' else None
     cursor=0;active={url:0 for url in decoders};session=None
     state=dict(received=0,encoder_pending=0,prefill_pending=0,decode_pending=0,completed=0,failed=0)
     @asynccontextmanager
@@ -45,6 +50,7 @@ def application(mode,encoder,prefill,decoders,name,encoder_policy='whole_request
 
     @app.get('/campaign_state')
     async def campaign_state():return dict(time=time.time(),**state,active_http_streams=active,
+        continuation_admission=admission.state() if admission is not None else None,
         scope='Coordinator HTTP state. Not engine decode-ready or GPU activity.')
 
     async def encode(body,request_id,trace):
@@ -65,7 +71,7 @@ def application(mode,encoder,prefill,decoders,name,encoder_policy='whole_request
         try:
             if encoder_policy=='whole_request':
                 payload=copy.deepcopy(body);payload.update(max_tokens=1,stream=False)
-                if token_suffix_fraction or token_prefix_tokens:
+                if trace['token_enabled']:
                     payload['kv_transfer_params']={POLICY_KEY:dict(
                         suffix_fraction=token_suffix_fraction,fixed_prefix=token_prefix_tokens)}
                 payload.pop('stream_options',None)
@@ -94,7 +100,7 @@ def application(mode,encoder,prefill,decoders,name,encoder_policy='whole_request
         request['kv_transfer_params']=dict(do_remote_decode=True,do_remote_prefill=False,
             remote_engine_id=None,remote_block_ids=None,remote_host=None,remote_port=None)
         plan=None
-        if token_suffix_fraction or token_prefix_tokens:
+        if trace['token_enabled']:
             length=trace['E_items'][0]['usage']['prompt_tokens']
             prefix=token_prefix(length,token_suffix_fraction,token_prefix_tokens)
             plan=dict(prefix_tokens=prefix,full_prompt_tokens=length)
@@ -134,14 +140,35 @@ def application(mode,encoder,prefill,decoders,name,encoder_policy='whole_request
         assert request_id,'Campaign requests must have an explicit request ID'
         trace=dict(runtime_request_id=request_id,mode=mode,name=name,received=time.monotonic(),
             wall_received=time.time(),state_at_arrival=dict(state),status='FAILED_EXECUTION',processor_handoff=processor_handoff)
+        requested=bool(token_suffix_fraction or token_prefix_tokens)
+        trace['token_enabled']=requested and (token_policy=='static' or
+            state['prefill_pending']>0 and not any(active.values()) and admission.prefill_owner is None)
+        trace['token_decision']=dict(policy=token_policy,requested=requested,selected=trace['token_enabled'],
+            P_HTTP_outstanding=state['prefill_pending'],D_HTTP_outstanding=sum(active.values()),
+            admission=admission.state() if admission is not None else None,
+            scope='Current state before encode. HTTP P pressure is not an exact GPU queue or a future window.')
         state['received']+=1
         target=decoders[cursor%len(decoders)];cursor+=1
+        gate_entered=False;http_counted=False
+        async def close_admission(failed=False):
+            nonlocal gate_entered,http_counted
+            if http_counted:
+                state['decode_pending']-=1;active[target]-=1;http_counted=False
+            if gate_entered:
+                await admission.leave(request_id,failed=failed);gate_entered=False
         try:
+            if admission is not None:
+                assert admission.failure is None,'A previous D failure disabled new admissions for this experiment'
+                assert body.get('return_token_ids') is True,'The admission boundary requires actual generated token IDs'
+                assert body.get('stream') or body.get('max_tokens')==1,'Use streaming to release prefill at the first token, not after full decode'
             if mode in ('e_pd','epd'):
                 await encode(body,request_id,trace)
             if mode in ('epd','pd'):body=await prefill_request(body,request_id,trace)
+            if admission is not None:
+                trace['D_admission']=await admission.enter(request_id,trace['token_enabled'])
+                gate_entered=True
             trace['D_submit']=time.monotonic();trace['D_target']=target
-            state['decode_pending']+=1;active[target]+=1
+            state['decode_pending']+=1;active[target]+=1;http_counted=True
             reply=await session.post(target+'/v1/chat/completions',json=body,
                 headers=headers(request_id,request_id+':D'))
             trace['D_headers']=time.monotonic()
@@ -150,23 +177,31 @@ def application(mode,encoder,prefill,decoders,name,encoder_policy='whole_request
                 raise RuntimeError(('decode',reply.status,error[:3000]))
             if not body.get('stream'):
                 output=await reply.json();reply.release()
+                if admission is not None:
+                    assert any(c.get('token_ids') for c in output.get('choices',[]))
+                    await admission.first_token(request_id)
                 await release_encoder(request_id,trace)
-                state['decode_pending']-=1;active[target]-=1;state['completed']+=1
+                await close_admission();state['completed']+=1
                 trace.update(status='MEASURED_ONLINE',finished=time.monotonic(),D_response=output)
                 append(ROOT/'raw'/('proxy_'+name+'.jsonl'),trace)
                 return JSONResponse(output)
             async def stream():
                 try:
                     first=True
+                    detector=FirstToken() if admission is not None else None
                     async for block in reply.content.iter_any():
                         if first:trace['D_first_SSE_bytes']=time.monotonic();first=False
+                        if detector is not None and detector.feed(block):
+                            trace['D_first_generated_token']=time.monotonic()
+                            await admission.first_token(request_id)
                         yield block
+                    assert detector is None or detector.seen,'No generated token reached the admission boundary'
                     trace['status']='MEASURED_ONLINE';state['completed']+=1
                 except BaseException as error:
                     trace['error']=type(error).__name__+': '+str(error);state['failed']+=1
                     raise
                 finally:
-                    reply.release();state['decode_pending']-=1;active[target]-=1
+                    reply.release();await close_admission(failed=trace['status']!='MEASURED_ONLINE')
                     try:
                         if trace['status']=='MEASURED_ONLINE':await release_encoder(request_id,trace)
                     except BaseException as error:
@@ -177,10 +212,11 @@ def application(mode,encoder,prefill,decoders,name,encoder_policy='whole_request
                         trace['finished']=time.monotonic()
                         append(ROOT/'raw'/('proxy_'+name+'.jsonl'),trace)
             return StreamingResponse(stream(),media_type='text/event-stream')
-        except Exception as error:
-            if trace.get('D_submit') and active[target]>0:state['decode_pending']-=1;active[target]-=1
+        except BaseException as error:
+            await close_admission(failed=True)
             trace['error']=type(error).__name__+': '+str(error);trace['finished']=time.monotonic()
             append(ROOT/'raw'/('proxy_'+name+'.jsonl'),trace);state['failed']+=1
+            if not isinstance(error,Exception):raise
             return JSONResponse(dict(error=trace['error']),status_code=502)
     return app
 
@@ -195,13 +231,17 @@ def main():
     p.add_argument('--release-encoder-ipc',action='store_true',help='Release only after successful D completion and clone ACKs')
     p.add_argument('--token-suffix-fraction',type=float,default=0.)
     p.add_argument('--token-prefix-tokens',type=int,default=0,help='Fixed boundary for correctness controls only')
+    p.add_argument('--token-admission',choices=['none','decode_idle'],default='none')
+    p.add_argument('--token-policy',choices=['static','idle_fallback'],default='static')
     p.add_argument('--encoder-policy',choices=['whole_request','image_fanout'],default='whole_request');args=p.parse_args()
     write(ROOT/'configs'/('proxy_'+args.name+'.json'),dict(args=vars(args),source_SHA256=digest(__file__),
-        policy='Default engine continuous scheduler. No source credit or artificial D admission cap.',
+        policy=('Default engine continuous scheduler. No source credit or artificial D admission cap.' if args.token_admission=='none' else
+            'Extra suffix starts only with zero D HTTP streams. New Native D waits only until the first actual suffix output token. '
+            'This is conservative admission, not a safe-window or dynamic-size predictor.'),
         EC_transport='Campaign CUDA IPC with original E tensors' if args.release_encoder_ipc else 'Installed ECExampleConnector CPU staging through per-run tmpfs',
         payload='Original media and full prompt forwarded. No new-version metadata rewrite.',
         cache='mm_processor_cache_gb=1 preserves per-request UUIDs. Unique media UUIDs prevent cross-request reuse in every baseline.'))
-    uvicorn.run(application(args.mode,args.encoder,args.prefill,args.decoders.split(','),args.name,args.encoder_policy,args.processor_handoff,args.release_encoder_ipc,args.token_suffix_fraction,args.token_prefix_tokens),
+    uvicorn.run(application(args.mode,args.encoder,args.prefill,args.decoders.split(','),args.name,args.encoder_policy,args.processor_handoff,args.release_encoder_ipc,args.token_suffix_fraction,args.token_prefix_tokens,args.token_admission,args.token_policy),
         host='127.0.0.1',port=args.port,log_level='warning')
 
 

@@ -1,0 +1,51 @@
+{"guardian": 929884, "name": "vision_BATCH_C38_E4"}
+{"guardian": 929887, "name": "vision_BATCH_C38_P5"}
+REQUEST_FINISHED vision_BATCH_C38_Solo_A_LLM 0 FAILED_EXECUTION None RuntimeError: {'message': 'EngineCore encountered an issue. See stack trace (above) for the root cause.', 'type': 'InternalServerError', 'param': None, 'code': 500}
+Traceback (most recent call last):
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/mllm_epd_prefill_heavy_token_split/vision_batch_intervention_control.py", line 41, in case
+    assert result['status']=='MEASURED_ONLINE'
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/mllm_epd_prefill_heavy_token_split/vision_batch_intervention_control.py", line 147, in <module>
+    if __name__=='__main__':main()
+                            ~~~~^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/mllm_epd_prefill_heavy_token_split/vision_batch_intervention_control.py", line 133, in main
+    results.append(asyncio.run(case(label,pool[6],companion)))
+                   ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/anaconda3/lib/python3.14/asyncio/runners.py", line 205, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/home/esjung/anaconda3/lib/python3.14/asyncio/runners.py", line 128, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/esjung/anaconda3/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/mllm_epd_prefill_heavy_token_split/vision_batch_intervention_control.py", line 42, in case
+    finally:rpc(18841,'llm_probe/end',{})
+            ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/mllm_epd_prefill_heavy_token_split/llm_probe_control.py", line 15, in rpc
+    with urllib.request.urlopen(request,timeout=180) as response:return json.load(response)
+         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/anaconda3/lib/python3.14/urllib/request.py", line 187, in urlopen
+    return opener.open(url, data, timeout)
+           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/anaconda3/lib/python3.14/urllib/request.py", line 493, in open
+    response = meth(req, response)
+  File "/home/esjung/anaconda3/lib/python3.14/urllib/request.py", line 602, in http_response
+    response = self.parent.error(
+        'http', request, response, code, msg, hdrs)
+  File "/home/esjung/anaconda3/lib/python3.14/urllib/request.py", line 531, in error
+    return self._call_chain(*args)
+           ~~~~~~~~~~~~~~~~^^^^^^^
+  File "/home/esjung/anaconda3/lib/python3.14/urllib/request.py", line 464, in _call_chain
+    result = func(*args)
+  File "/home/esjung/anaconda3/lib/python3.14/urllib/request.py", line 611, in http_error_default
+    raise HTTPError(req.full_url, code, msg, hdrs, fp)
+urllib.error.HTTPError: HTTP Error 500: Internal Server Error

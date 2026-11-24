@@ -132,7 +132,7 @@ def main():
         async def batch_prefix_begin(request:Request):
             body=await request.json()
             return await app.state.engine_client.collective_rpc('campaign_batch_prefix_begin',timeout=60,
-                args=(body['name'],body['contracts']))
+                args=(body['name'],body['contracts'],body.get('allow_decode',False),body.get('capture_full_prompt',False)))
         @app.post('/campaign/batch_prefix/end')
         async def batch_prefix_end():
             return await app.state.engine_client.collective_rpc('campaign_batch_prefix_end',timeout=180)

@@ -67,7 +67,9 @@ def launch_models(names,diagnostic_eager=False,fixed_reduction=False,determinist
     return names
 
 
-def launch_proxy(label, mode, port, names, prefix=0, decoder_port=None):
+def launch_proxy(label, mode, port, names, prefix=0, decoder_port=None,
+                 suffix_fraction=0.,token_admission='none',token_policy='static'):
+    assert not (prefix and suffix_fraction)
     decoder_port=decoder_port or (18841 if mode=='e_pd' else 18842)
     command = [str(PYTHON), '-m', 'poc_flashvep.mllm_epd_prefill_heavy_token_split.proxy',
         '--mode', mode, '--name', label, '--encoder', 'http://127.0.0.1:18840',
@@ -76,12 +78,16 @@ def launch_proxy(label, mode, port, names, prefix=0, decoder_port=None):
         '--port', str(port), '--processor-handoff', 'grid_only', '--release-encoder-ipc']
     if prefix:
         command += ['--token-prefix-tokens', str(prefix)]
+    if suffix_fraction:
+        command += ['--token-suffix-fraction',str(suffix_fraction)]
+    if token_admission!='none':
+        command += ['--token-admission',token_admission,'--token-policy',token_policy]
     lease = json.loads((ROOT / 'state' / f'server_{names[0]}.json').read_text())
     with (ROOT / 'logs' / f'{label}.log').open('xb') as stream:
         process = subprocess.Popen(command, cwd=lease['executed_source_cwd'], stdout=stream,
                                    stderr=subprocess.STDOUT, start_new_session=True)
     write(ROOT / 'state' / f'{label}.json', dict(pid=process.pid, sid=process.pid, command=command,
-        scope='Single-request correctness proxy, not an online performance arm'))
+        scope='Correctness proxy, not an online performance arm'))
     url = f'http://127.0.0.1:{port}'
     deadline = time.time() + 30
     while True:

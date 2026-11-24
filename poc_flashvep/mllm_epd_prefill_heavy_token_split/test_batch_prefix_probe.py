@@ -14,6 +14,35 @@ from . import batch_prefix_probe as probe
 
 
 class BatchPrefixProbeTest(unittest.TestCase):
+    def test_decode_positions_and_full_prompt_capture_are_explicit_d_only(self):
+        contracts={'r':dict(prefix_tokens=2,full_prompt_tokens=4)}
+        rid='chatcmpl-r:D-deadbeef';positions=torch.arange(4).repeat(3,1)
+        cache=torch.ones(1,4,128,256)
+        table=SimpleNamespace(num_blocks_per_row=[1],block_table=SimpleNamespace(np=np.array([[0]])),block_size=128)
+        batch=SimpleNamespace(req_ids=[rid],num_prompt_tokens=[4],num_computed_tokens_cpu=[2],block_table=[table])
+        state=SimpleNamespace(prompt_token_ids=list(range(4)),mrope_positions=positions,mrope_position_delta=-1)
+        class Runner:
+            def __init__(self):
+                self.kv_caches=[cache]*28;self.requests={rid:state};self.input_batch=batch
+            def _model_forward(self,**kwargs):return 'original'
+            def execute_model(self,output):
+                start=self.input_batch.num_computed_tokens_cpu[0]
+                actual=positions[...,2:] if start==2 else torch.tensor([[3],[3],[3]])
+                return self._model_forward(positions=actual)
+        with TemporaryDirectory() as directory,patch.object(probe,'ROOT',Path(directory)),\
+             patch.dict(os.environ,MLLM_EPD_ROLE='decode'),patch.object(probe,'forward_context',return_value=SimpleNamespace(
+                cudagraph_runtime_mode='NONE',batch_descriptor='cpu_fixture')):
+            runner=Runner();obj=probe.BatchPrefixProbe(SimpleNamespace(model_runner=runner),'natural',contracts,True,True)
+            obj.begin()
+            self.assertEqual(runner.execute_model(SimpleNamespace(num_scheduled_tokens={rid:2},total_num_scheduled_tokens=2)),'original')
+            batch.num_computed_tokens_cpu[0]=4
+            self.assertEqual(runner.execute_model(SimpleNamespace(num_scheduled_tokens={rid:1},total_num_scheduled_tokens=1)),'original')
+            obj.close()
+            record=json.loads((Path(directory)/'raw/batch_prefix/natural/manifest.json').read_text())
+            self.assertEqual([e['requests'][0]['phase'] for e in record['events']],['prefill','decode'])
+            self.assertEqual(set(record['full_prompt_tensor_files']),{'r'})
+            self.assertTrue(Path(record['full_prompt_tensor_files']['r']['path']).exists())
+
     def test_runtime_id_validation(self):
         self.assertEqual(probe.request_base('chatcmpl-a-b:P-deadbeef','P',{'a-b':{}}),'a-b')
         for rid in ['chatcmpl-a-b:D-deadbeef','chatcmpl-other:P-deadbeef','a-b:P-deadbeef']:

@@ -18,7 +18,7 @@ class ProbeRPCTest(unittest.IsolatedAsyncioTestCase):
         contracts={'real-request':dict(prefix_tokens=128,full_prompt_tokens=512)}
         request=types.SimpleNamespace(json=AsyncMock(return_value=dict(name='mixed-prefix',contracts=contracts)))
         self.assertEqual(await namespace['batch_prefix_begin'](request),['recorded'])
-        worker.assert_awaited_once_with('campaign_batch_prefix_begin',timeout=60,args=('mixed-prefix',contracts))
+        worker.assert_awaited_once_with('campaign_batch_prefix_begin',timeout=60,args=('mixed-prefix',contracts,False,False))
 
     async def test_selected_attention_layer_reaches_worker(self):
         source=Path(__file__).with_name('server_entry.py')

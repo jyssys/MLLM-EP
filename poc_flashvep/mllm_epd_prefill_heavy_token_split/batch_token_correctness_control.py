@@ -66,7 +66,7 @@ async def finish(session, record):
     return dict(record, response=output, released=released)
 
 
-def validate(run, contracts):
+def validate(run, contracts,include_decode=False):
     records = {role: json.loads((ROOT / 'raw/batch_prefix' / f'{run}_{role}/manifest.json').read_text())
                for role in ['P', 'D']}
     checks = []
@@ -85,6 +85,9 @@ def validate(run, contracts):
                 for row in event['requests']:
                     if row['base'] != base:
                         continue
+                    if row.get('phase')=='decode':
+                        assert include_decode
+                        continue
                     assert row['start'] == cursor, ('Repeated or missing query rows', base, role, row, cursor)
                     cursor += row['query_tokens']
                     assert row['positions'] == row['expected_positions']
@@ -96,8 +99,10 @@ def validate(run, contracts):
         passed=all(row['passed'] for row in checks),
         actual_batch_histograms={role: {str(size): sum(e['actual_batch'] == size for e in record['events'])
             for size in sorted({e['actual_batch'] for e in record['events']})} for role, record in records.items()},
-        scope='Actual concurrent continuous engines, exact all28 prefix import and original query MRoPE. '
-            'One output per request, no subsequent decode. Not a throughput, full suffix KV equivalence, or task-quality result.')
+        scope='Actual concurrent continuous engines, exact all28 prefix import and original query MRoPE. '+
+            ('Natural decode is enabled in this correctness-only capture. '
+             'Not a throughput, full suffix numerical equivalence, or task-quality result.' if include_decode else
+             'One output per request, no subsequent decode. Not a throughput, full suffix KV equivalence, or task-quality result.'))
     write(ROOT / 'analysis' / f'{run}_comparison.json', result)
     assert result['passed'], 'Do not run serving performance after a prefix or query-state failure'
     return result

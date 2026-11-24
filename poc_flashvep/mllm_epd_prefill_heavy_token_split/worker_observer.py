@@ -181,10 +181,10 @@ class CampaignWorkerExtension:
     def campaign_llm_probe_end(self):
         return self._campaign_llm_probe.close()
 
-    def campaign_batch_prefix_begin(self,name,contracts):
+    def campaign_batch_prefix_begin(self,name,contracts,allow_decode=False,capture_full_prompt=False):
         assert not getattr(self,'_campaign_batch_prefix_active',False)
         from .batch_prefix_probe import BatchPrefixProbe
-        self._campaign_batch_prefix=BatchPrefixProbe(self,name,contracts)
+        self._campaign_batch_prefix=BatchPrefixProbe(self,name,contracts,allow_decode,capture_full_prompt)
         result=self._campaign_batch_prefix.begin()
         self._campaign_batch_prefix_active=True
         return result
