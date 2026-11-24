@@ -1,0 +1,49 @@
+{
+  "complete": true,
+  "overall": "PARTIAL_ROOT_CAUSE",
+  "SLO_failure": "SLO_FAILURE_CONFIRMED",
+  "tested_policy_total_effect": "CONFIRMED",
+  "new_layer_or_hybrid_serving_speedup": "NOT_CONFIRMED",
+  "historical_metric_reproduction": "PASS_15_PUBLISHED_MAIN_STARTS_AND_209_HISTORICAL_STARTS",
+  "fresh_online": {
+    "Main400_Natural": {"arms": 13, "starts_per_arm": 3, "timing_starts": 39, "all_quality_passed": true},
+    "Heldout192_EqualReplay": {"arms": 10, "starts_per_arm": 3, "timing_starts": 30, "output_tokens_per_start": 11208, "all_quality_passed": true},
+    "budget_fallback_used": false,
+    "scope": "Keep these families separate. Natural Main and Heldout Replay differ in requests,traces and output contract. They are not an output-only A/B."
+  },
+  "hypotheses": {
+    "H1_full_model_compilation": {"status": "INCONCLUSIVE", "finding": "Strong Stock remains full-model compiled. Qualified Layer and Hybrid serial P kernels are shorter than Native. Compiler-only causal contribution is not isolated."},
+    "H2_extra_continuation_and_handoff": {"status": "SUPPORTED", "scope": "Added-path existence and measured serial cost,not exclusive Main causal shares.", "finding": "Serial N3 observes added D-first kernel and host cost. P kernel savings nearly cancel added D-first kernels. Main post-P host paths are longer. Exclusive DMA remains unmeasured."},
+    "H3_P_queue": {"status": "SUPPORTED", "scope": "Observed host-path location,not an exclusive GPU causal share.", "finding": "Layer versus Stock has a longer pre-P-ready host path. Native-relative comparison has a different critical path. Host enclosures do not identify request-exclusive GPU compute."},
+    "H4_D_admission": {"status": "SUPPORTED", "scope": "Tested policy total effect only.", "finding": "Same Stock cap0-to2 raises TTFT p95 and lowers goodput in Natural N3 and length-matched Replay N3. Registration-open moves waiting after acceptance without reproducible TTFT recovery."},
+    "H5_policy_concurrency": {"status": "SUPPORTED", "scope": "Tested factors,not all axis differences.", "finding": "Exact one-signature-field interventions retain endogenous batching and queue feedback. Earlier safe coordinator credit return does not consistently reduce TTFT. Source windows still differ in common-D Native comparisons."}
+  },
+  "falsifications": [
+    "Fresh uncapped Stock Native-relative TTFT regression is not statistically confirmed in either family. Do not force the historical premise onto the fresh family.",
+    "Better ITL and TPOT do not imply better joint attainment. Same-axis D cap control reproduces this tradeoff.",
+    "Removing registration waiting does not remove total D waiting.",
+    "Earlier safe credit return does not always improve online TTFT.",
+    "Best-family Layer,Token and Hybrid do not have matched offloaded rows. Inherited target metadata is not matching proof."
+  ],
+  "measurement_limits": [
+    "Main400 Natural per-request exclusive GPU operator and DMA times are NOT_MEASURED.",
+    "Stock serial profiler observer interference exceeds5percent. Its first capture stays DIAGNOSTIC and subsequent two are NOT_RUN.",
+    "Qualified serial Batch1 Output16 measurements are not Main400 Natural operator fractions.",
+    "Logical scheduler overlap is not physical GPU idle,exclusive causal delay or a safe future window.",
+    "Old-to-fresh runtime bridge changes several common host and priming details. It is not a one-factor intervention.",
+    "Frozen-path and metric-gate oracles do not update queues,KV,ITL,outputs or cohort duration. They are not achievable speedups or global bounds.",
+    "All N3 empirical confidence intervals are pointwise and unadjusted. Requests and tokens are not independent server starts."
+  ],
+  "dynamic_online": "NOT_RUN_NO_VALIDATED_DECODE_SAFE_WINDOW",
+  "evidence": ["MEASURED_ONLINE", "TRACE_ANALYSIS", "STRUCTURAL_ACCOUNTING", "ISOLATED_KERNEL_MEASUREMENT", "OFFLINE_FROZEN_TRACE_METRIC_ORACLE", "CORRECTNESS_ONLY", "DIAGNOSTIC", "NOT_RUN"],
+  "primary_sources": [
+    "analysis/historical_main400_metric_reproduction.json",
+    "analysis/historical_independent_metric_audit.json",
+    "analysis/request_failure_attribution.json",
+    "analysis/request_critical_paths.json",
+    "analysis/controlled_intervention_analysis.json",
+    "analysis/serial_native_relative_kernel_analysis_v2.json",
+    "analysis/native_relative_actual_work_audit.json",
+    "analysis/historical_current_runtime_bridge_audit.json"
+  ]
+}

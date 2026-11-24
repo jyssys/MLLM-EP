@@ -1,0 +1,82 @@
+{
+  "time": 1795483601.6867714,
+  "passed": true,
+  "figures": [
+    {
+      "stem": "serial_native_split_kernel_and_host",
+      "evidence": "ISOLATED_KERNEL_MEASUREMENT",
+      "scope": "Serial32 | Actual Batch1/1/1 | Output16 | qualified CPC only. Blue: kernel union. Grey: no observed kernel.\nGrey is not physical idle or DMA. D-first includes continuation and first-output work. This is not Main400 Natural TTFT.",
+      "files": {
+        "png": "eaa286484d04888860821b0e60d3ec242908064009982fd61ffb073408d2e839",
+        "pdf": "423fb9ef07558c1aa84de7c5524c1d36513824a7ba7ecc9d71ccbd7b9a98b7a2",
+        "csv": "4f7003fc9bcc983640aea154e39cc6d8061275220e0b4ec55d7671175faeac48"
+      }
+    },
+    {
+      "stem": "serial_native_split_actual_kernel_timeline",
+      "evidence": "ISOLATED_KERNEL_MEASUREMENT",
+      "scope": "First request of the first qualified prospective CPC per arm. Source,ROI and clock uncertainty remain in the profile analysis.\nCUDA kernel activity only. White space does not prove no DMA or a safe future decode window.",
+      "files": {
+        "png": "40c6187eb6dbef6483d5ac1d5143cc9ce6c87b34b033a42c9025e8de932594fc",
+        "pdf": "9000c6c4c21493e837cb04f3ca92fa6767a8affd93deb5b2f8f25f1a413c5695",
+        "csv": "abf165997b3d663f5c28ae2ad28bb0f774b4ae1547ae399885acd43248e37c52"
+      }
+    },
+    {
+      "stem": "policy_effects_current_heldout192_equalreplay",
+      "evidence": "MEASURED_ONLINE",
+      "scope": "Current_Heldout192_EqualReplay | QPS2 | GPUs0/1 | warm compiled paths | exact paired arrivals.\nPointwise start-level CI only for N>=3. Red: quality gate failed or pending. Decode gates remain separate.",
+      "files": {
+        "png": "8300db7044da44bec55f4d7ddcb7f2719f94f0c30623827b847cef7d0c2a22e6",
+        "pdf": "6ed4159dd73f45df9a72c776955e2519f423bb69b04f28d15c0ab8420abbb6ba",
+        "csv": "1b15be351963279868ce4c7e2d14b27a048cfcbae5a8d8c2c1b2d0ff2df057e2"
+      }
+    },
+    {
+      "stem": "policy_decode_gates_current_heldout192_equalreplay",
+      "evidence": "MEASURED_ONLINE",
+      "scope": "Current_Heldout192_EqualReplay | Blue: NativeStrong. Orange: exact common-D Native. Source windows can remain different.\nRelative CI upper<=1.05 and absolute request decode attainment>=95% are separate requirements.",
+      "files": {
+        "png": "d70dad6d27e05514f180b69f3dd3ef3511a149badc1ac62bc95b9b16498c6d9f",
+        "pdf": "138d9a51b7248793cefd2f6489797eae64a7bbe0bac2d924cf857d2869c76435",
+        "csv": "f803e83dd1b7ebe6820e622d31836099ac0016e5642b5a556fb5891acedfd435"
+      }
+    },
+    {
+      "stem": "policy_effects_current_main400_natural",
+      "evidence": "MEASURED_ONLINE",
+      "scope": "Current_Main400_Natural | QPS2 | GPUs0/1 | warm compiled paths | exact paired arrivals.\nPointwise start-level CI only for N>=3. Red: quality gate failed or pending. Decode gates remain separate.",
+      "files": {
+        "png": "c5356e550406eba519ea86a842441bf2b3ddb9fea1191d582555e951371bb918",
+        "pdf": "08b7835283861b92dc1e57d441844b636efa72da287a4f21d42c40747a9d30b1",
+        "csv": "33f71a329062f8bcffe4841312733bd0c7c8328f3b38ef0becc2ffabe1c0f7e4"
+      }
+    },
+    {
+      "stem": "policy_decode_gates_current_main400_natural",
+      "evidence": "MEASURED_ONLINE",
+      "scope": "Current_Main400_Natural | Blue: NativeStrong. Orange: exact common-D Native. Source windows can remain different.\nRelative CI upper<=1.05 and absolute request decode attainment>=95% are separate requirements.",
+      "files": {
+        "png": "efd8eba445bce27b5f279f1b4a318581d91223683270d5c599ebdcadc887809a",
+        "pdf": "dc3649326a7a0e43d54f89d1287d603a4d59f111e1e480060bd6732a7b12939f",
+        "csv": "f61241360cfde92ece7f8571bc6e36a1e5cf3eac0cdfeabf714f8505f2eede88"
+      }
+    },
+    {
+      "stem": "fresh_main400_native_split_ttft_CDF",
+      "evidence": "MEASURED_ONLINE",
+      "scope": "Fresh warm-runtime family only | QPS2 | same400 prompts and paired arrivals. No pooling with the published v2 family.\nCSV preserves pointwise start-level95% CI. Natural output work and realized batches can differ. No fresh Agg rerun.",
+      "files": {
+        "png": "4e654fb01683fce35649a4e03e18081c8f6df4b9b45af834774f98decdce0160",
+        "pdf": "0d8553fa89826e8698cab4a5ea600c323ff401db86e8c1153a854dc253c7470e",
+        "csv": "9d369bf2c3db06ce2b39a86c53f9364914c4ab3d8a1d28424f061762b7709b0b"
+      }
+    }
+  ],
+  "analysis_inputs_SHA256": {
+    "analysis/serial_native_relative_kernel_analysis_v2.json": "c466bb9c4bd6efdb5cbbb7cf297c18a7766868418c7a7161dfd8d682af17ba7d",
+    "analysis/controlled_intervention_analysis.json": "cc061e66bc2b0ef95da89c23b37507508d55c1d265c4b44e56505645f3723d0a",
+    "figures/main400_request_slo_failures.csv": "53fbb20617361eba03538142c6571b88fdaf02d1231ba191e6749ed6b5717f43"
+  },
+  "scope": "Serial activity,online policy effects and decode gates use separate figures and source families."
+}
