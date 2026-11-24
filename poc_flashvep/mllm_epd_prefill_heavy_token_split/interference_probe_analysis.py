@@ -15,6 +15,45 @@ KEYS=['TTFT_p50_ms','TTFT_p95_ms','ITL_p99_ms','ITL_max_ms','TPOT_p95_ms','E_HTT
     'raw_output_tokens_per_second','SLO_goodput','joint_percent','decode_pass_percent']
 
 
+def memory_records(block,snapshots):
+    """Keep shared device use separate from each process's allocator sample."""
+    roles={'18840':('E',4),'18841':('P',5),'18842':('D',6),'18843':('E_helper',4)}
+    rows=[]
+    for phase,ports in snapshots.items():
+        for port,value in ports.items():
+            role,gpu=roles[str(port)];parameters=value['model_parameter_bytes_by_prefix']
+            assert sum(parameters.values())==value['model_parameter_logical_bytes']
+            rows.append(dict(block=block,phase=phase,port=str(port),role=role,GPU=gpu,
+                device_total_bytes=value['device_total_bytes'],device_free_bytes=value['device_free_bytes'],
+                device_used_bytes=value['device_total_bytes']-value['device_free_bytes'],
+                process_allocated_bytes=value['allocated_bytes'],process_reserved_bytes=value['reserved_bytes'],
+                process_peak_allocated_bytes=value['maximum_allocated_bytes'],
+                model_parameter_logical_bytes=value['model_parameter_logical_bytes'],
+                vision_parameter_logical_bytes=parameters.get('visual',0),
+                LLM_parameter_logical_bytes=parameters.get('language_model',0),
+                unique_KV_storage_bytes=value['unique_KV_storage_bytes'],
+                peak_scope='Process lifetime, including initialization and warmup. Not a per-cohort peak.',
+                scope='Worker sample outside timed cohorts. E and E_helper share GPU4. '
+                    'Do not sum their device use. Allocator reservation is not model-weight memory.'))
+    return rows
+
+
+def memory_figure_records(memory):
+    """Use one GPU4 device sample per phase. Do not invent a pre-helper zero."""
+    rows=[]
+    for value in memory:
+        common={key:value[key] for key in ['block','phase','port','role','GPU']}
+        if value['role']=='E':
+            for metric in ['device_used_bytes','device_free_bytes']:
+                rows.append(dict(**common,panel='shared_device',metric=metric,bytes=value[metric],
+                    scope='GPU4 device sample from E only. Includes all co-resident processes.'))
+        if value['role'] in ['E','E_helper']:
+            for metric in ['process_allocated_bytes','process_reserved_bytes']:
+                rows.append(dict(**common,panel='process_allocator',metric=metric,bytes=value[metric],
+                    scope='Actual process allocator sample. Missing pre-helper process is not a zero measurement.'))
+    return rows
+
+
 def protection_gate(pairs,starts,arm,mode):
     chosen=[r for r in starts if r['arm']==arm and r['mode']==mode]
     assert len(chosen)==3
@@ -111,13 +150,7 @@ def main():
                 **{key:(before[key]+after[key])/2 for key in KEYS},accepted_probes=0,rejected_probes=0,
                 additional_prefix_tokens=0,scope='Mean of two measured no-probe controls within one initialization. Not another independent start or cohort.'))
         block_data=json.loads((ROOT/'analysis'/f'{tag}_B{block}_summary.json').read_text())
-        for phase,ports in block_data['memory'].items():
-            for port,value in ports.items():
-                memory.append(dict(block=block,phase=phase,port=port,
-                    device_total_bytes=value['device_total_bytes'],device_used_bytes=value['device_total_bytes']-value['device_free_bytes'],
-                    process_allocated_bytes=value['allocated_bytes'],process_reserved_bytes=value['reserved_bytes'],
-                    process_peak_allocated_bytes=value['maximum_allocated_bytes'],
-                    scope='Worker memory sample outside timed cohorts. Device use includes co-resident processes.'))
+        memory.extend(memory_records(block,block_data['memory']))
     assert len(arrivals)==1
     pairs=[]
     for mode in ['natural','replay']:
@@ -157,6 +190,25 @@ def main():
         fig.tight_layout();name=tag+'_'+metric+'_v0'
         for extension in ['png','pdf']:fig.savefig(ROOT/'figures'/f'{name}.{extension}',dpi=180)
         plt.close(fig);table(ROOT/'figures'/f'{name}.csv',records)
+    records=memory_figure_records(memory)
+    fig,axes=plt.subplots(1,2,figsize=(12,4.8));phases=['before','with_helper','final']
+    for block in range(3):
+        for metric,style in [('device_used_bytes','-o'),('device_free_bytes','--s')]:
+            rows=[r for r in records if r['block']==block and r['panel']=='shared_device' and r['metric']==metric]
+            axes[0].plot([phases.index(r['phase']) for r in rows],[r['bytes']/2**30 for r in rows],style,
+                label=f'B{block} '+metric.removesuffix('_bytes').replace('_',' '))
+        for role in ['E','E_helper']:
+            for metric,style in [('process_allocated_bytes','-o'),('process_reserved_bytes','--s')]:
+                rows=[r for r in records if r['block']==block and r['role']==role and r['metric']==metric]
+                axes[1].plot([phases.index(r['phase']) for r in rows],[r['bytes']/2**30 for r in rows],style,
+                    label=f'B{block} {role} '+metric.removeprefix('process_').removesuffix('_bytes'))
+    for axis,title in zip(axes,['Shared GPU4: count device memory once','E/helper allocator samples: not weight sizes']):
+        axis.set_xticks(range(3),phases);axis.set_ylabel('GiB');axis.set_title(title);axis.grid(alpha=.2)
+        axis.legend(fontsize=6,ncol=2)
+    fig.suptitle('Actual N3 memory snapshots | Helper KV8GiB | Not a maximum-batch or safe-headroom test')
+    fig.tight_layout();name=tag+'_memory_v0'
+    for extension in ['png','pdf']:fig.savefig(ROOT/'figures'/f'{name}.{extension}',dpi=180)
+    plt.close(fig);table(ROOT/'figures'/f'{name}.csv',records)
     report=ROOT.parent/'mllm_epd_encoder_decoder_interference_probe_v1.md';assert not report.exists()
     lines=['# E/D 실제 Prefill Probe — 독립 N3 간섭 검사','',
         '증거는 `INTERFERENCE_PROBE`다. Probe는 실제 요청의 완료에 기여하지 않는다.',
@@ -189,6 +241,16 @@ def main():
         '실제 Encoder-exclusive Service p95의 상대 Gate는 미측정이다. 이를 HTTP Enclosure로 대체하지 않았다.',
         '이 결과만으로 Full ENCODE_SAFE_HEADROOM_CONFIRMED 또는 Online Token Split GO를 부여하지 않는다.',
         '모든 실패 조합의 Request Count와 Token Weight를 보존했다. 전체 Task Quality도 계속 PENDING이다.',
+        'Probe 순서는 Clean-before, E128, E512, D128, D512, Clean-after로 고정했다. 순서 효과를 완전히 제거하지 못했다.',
+        '', '## 실제 메모리 표본','',
+        '모든 Block의 Helper 추가 전·추가 후·마지막 표본을 CSV로 보존했다.',
+        'E와 Helper는 GPU4를 공유한다. Device Used는 E 표본 한 번만 사용했다.',
+        'Process Allocated와 Reserved는 별도로 표시했다. Reserved를 Weight 크기로 해석하지 않았다.',
+        'Model Parameter의 논리적 Bytes와 실제 Unique KV Storage Bytes를 별도로 저장했다.',
+        'Peak Allocated는 Process 시작 이후의 최대값이다. Cohort별 Activation Peak가 아니다.',
+        'Helper 생성 전의 Helper 메모리는 NOT_APPLICABLE이다. 이를 실제 0-byte 측정값으로 채우지 않았다.',
+        'Helper KV8GiB와 D KV42GiB는 다르다. 동일한 KV Capacity 또는 최대 Encoder Batch를 입증한 것은 아니다.',
+        '남은 Device Memory가 있더라도 안전한 Prefill Window나 Encoder 성능 보호를 의미하지 않는다.',
         'Original C40R1의 Port Collision 실패와 그 수정은 별도 보고서에 있다. 실패한 실행은 삭제하지 않았다.','',
         '## 재현 자료','',
         f'Config는 `configs/{tag}.json`이다. Main100 Manifest와 SLO는 변경하지 않았다.',

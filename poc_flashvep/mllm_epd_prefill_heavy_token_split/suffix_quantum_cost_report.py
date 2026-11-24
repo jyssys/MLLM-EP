@@ -121,6 +121,18 @@ def main():
     fig.tight_layout()
     for extension in ['png','pdf']:fig.savefig(ROOT/'figures'/f'{tag}_cost_v0.{extension}',dpi=180)
     plt.close(fig);table(ROOT/'figures'/f'{tag}_cost_v0.csv',figure_rows)
+    fig,axes=plt.subplots(1,2,figsize=(11,4.5))
+    for index in [0,6,31]:
+        selected=[r for r in fit if r['index']==index];label=f'Input{selected[0]["input_tokens"]}'
+        for axis,key,title in zip(axes,['fitting_window_fraction','idle_duration_fraction_in_fitting_windows'],
+                ['Physical window-count fraction','Physical idle-duration fraction']):
+            axis.plot([r['suffix_tokens'] for r in selected],[100*r[key] for r in selected],marker='o',label=label)
+            axis.set_xlabel('Actual suffix query tokens');axis.set_ylabel(title+' (%)');axis.set_ylim(0,100)
+            axis.grid(alpha=.2)
+    axes[0].legend();fig.suptitle('OFFLINE_ORACLE | Future C25 gaps known | No safe-admission or serving-speedup claim')
+    fig.tight_layout()
+    for extension in ['png','pdf']:fig.savefig(ROOT/'figures'/f'{tag}_physical_gap_fit_oracle_v0.{extension}',dpi=180)
+    plt.close(fig);table(ROOT/'figures'/f'{tag}_physical_gap_fit_oracle_v0.csv',fit)
     report=ROOT.parent/'mllm_epd_imported_kv_suffix_quantum_cost_v1.md';assert not report.exists()
     lines=['# 실제 Prefix KV를 가져온 Suffix Quantum 비용','',
         f'전체 증거 수준은 `{evidence}`다. 독립 초기화는 1회다.',
