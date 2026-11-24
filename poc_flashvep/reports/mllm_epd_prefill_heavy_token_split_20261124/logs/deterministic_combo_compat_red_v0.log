@@ -1,0 +1,35 @@
+test_actual_combo_path_does_not_request_a_banned_benchmark (poc_flashvep.mllm_epd_prefill_heavy_token_split.test_deterministic_reductions.DeterministicReductionTest.test_actual_combo_path_does_not_request_a_banned_benchmark) ... ERROR
+
+======================================================================
+ERROR: test_actual_combo_path_does_not_request_a_banned_benchmark (poc_flashvep.mllm_epd_prefill_heavy_token_split.test_deterministic_reductions.DeterministicReductionTest.test_actual_combo_path_does_not_request_a_banned_benchmark)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/mllm_epd_prefill_heavy_token_split/test_deterministic_reductions.py", line 25, in test_actual_combo_path_does_not_request_a_banned_benchmark
+    with config.patch(settings):self.assertTrue(Scheduler.speedup_by_combo_kernel(scheduler,[node]))
+                                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/_inductor/scheduler.py", line 6922, in speedup_by_combo_kernel
+    ms, path = self.benchmark_fused_nodes(node_list)
+               ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/mllm_epd_prefill_heavy_token_split/test_deterministic_reductions.py", line 22, in benchmark
+    def benchmark(nodes):called.append('unvetted');may_ban_benchmarking()
+                                                   ~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/_inductor/runtime/benchmarking.py", line 66, in may_ban_benchmarking
+    raise RuntimeError("""In the deterministic mode of Inductor, we will avoid those
+    ...<9 lines>...
+    """)
+RuntimeError: In the deterministic mode of Inductor, we will avoid those
+        benchmarkings that would cause non deterministic results. Only benchmarkings in the vetted
+        scenarios are allowed. Example include autotuning for triton configs of pointwise kernels.
+
+        When you see this exception, you can do one of the following two things:
+        1. if the benchmarking you are doing does not introduce any non-determinism, you can just
+        add is_vetted_benchmarking=True to you benchmark_gpu call. That would solve the issue.
+
+        2. if the benchmarking you are doing indeed introduces non-determinism, you'll need to disable
+        such feature in deterministic mode or find an alternative implementation that is deterministic.
+        
+
+----------------------------------------------------------------------
+Ran 1 test in 5.464s
+
+FAILED (errors=1)

@@ -67,6 +67,19 @@ def load_activity(folder):
     return intervals[data['kind']=='kernel'],intervals[data['kind']!='kernel'],anchor,record
 
 
+def observation_rois(left,right,arrivals,activity,shortened):
+    central=tuple(np.percentile(arrivals,[10,90]))
+    if not shortened:return dict(full_cohort=(left,right),central_arrival_window=central)
+    def midpoint(anchor):return (anchor['host_lower_ns']+anchor['host_upper_ns'])/2e9
+    lo=max(left,max(midpoint(item[3]['left']) for item in activity.values()))
+    hi=min(right,min(midpoint(item[3]['right']) for item in activity.values()))
+    assert lo<hi,'No common E/P/D captured interval. Do not infer idle outside observation.'
+    result=dict(observed_common_ROI=(lo,hi))
+    a,b=max(lo,central[0]),min(hi,central[1])
+    if a<b:result['central_arrival_window']=(a,b)
+    return result
+
+
 def main():
     p=argparse.ArgumentParser();p.add_argument('name');p.add_argument('--proxy-name',required=True);args=p.parse_args()
     preserve();name=args.name;run=name+'_profile'
@@ -74,9 +87,10 @@ def main():
     request_rows=[json.loads(s) for s in (ROOT/'raw'/f'{run}_requests.jsonl').read_text().splitlines()]
     left=done['monotonic_start'];right=left+done['duration_seconds']
     arrivals=sorted(r['scheduled_arrival'] for r in request_rows)
-    rois=dict(full_cohort=(left,right),central_arrival_window=tuple(np.percentile(arrivals,[10,90])))
+    config=json.loads((ROOT/'configs'/f'{name}.json').read_text())
     profile=ROOT/'raw/profiles'/name
     activity={role:load_activity(profile/role) for role in ['encoder','prefill','decode']}
+    rois=observation_rois(left,right,arrivals,activity,bool(config.get('profile_completion_roi')))
     pending={role:[] for role in activity}
     proxy_rows=[json.loads(s) for s in (ROOT/'raw'/f'proxy_{args.proxy_name}.jsonl').read_text().splitlines()]
     for row in proxy_rows:
@@ -85,7 +99,9 @@ def main():
             if a in row and b in row:pending[role].append((row[a],row[b]))
     qualification=ROOT/'analysis'/f'{name}_qualification.json'
     observer=json.loads(qualification.read_text()) if qualification.exists() else None
-    result=dict(time=time.time(),name=name,QPS=json.loads((ROOT/'configs'/f'{name}.json').read_text())['QPS'],
+    result=dict(time=time.time(),name=name,QPS=config['QPS'],
+        frozen_completion_roi=config.get('profile_completion_roi'),
+        unobserved_time_is_idle=False,
         observer_gate_passed=observer['observer_gate_passed'] if observer else None,
         model_quality_gate='PENDING',evidence='TRACE_ANALYSIS of DIAGNOSTIC online activity',ROIs={},
         limitations=['Physical kernel inactivity is not an admission-safe window.',
@@ -93,7 +109,8 @@ def main():
             'HTTP pending intervals include preprocessing, transfer, engine queue and service.',
             'Kernel/copy observation does not measure SM active, Tensor Core active or HBM bandwidth.',
             'Idle without pending HTTP encode/decode is distinguished from pending host/transfer waits.',
-            'No additional prefill was inserted. Encode/decode-safe headroom is NOT_MEASURED.'])
+            'No additional prefill was inserted. Encode/decode-safe headroom is NOT_MEASURED.',
+            'A shortened capture is analyzed only inside the common actually observed GPU interval.'])
     window_rows=[]
     for roi,(lo,hi) in rois.items():
         span=hi-lo;roles={};busy={};idle={}
@@ -140,8 +157,9 @@ def main():
     matplotlib.use('Agg')
     import matplotlib.pyplot as plt
     fig,ax=plt.subplots(figsize=(7,4))
+    figure_roi='central_arrival_window' if 'central_arrival_window' in rois else 'observed_common_ROI'
     for role in ['encoder','decode']:
-        x=np.sort([r['duration_ms'] for r in window_rows if r['ROI']=='central_arrival_window' and r['role']==role and r['kind']=='kernel_idle'])
+        x=np.sort([r['duration_ms'] for r in window_rows if r['ROI']==figure_roi and r['role']==role and r['kind']=='kernel_idle'])
         if len(x):ax.step(x,np.arange(1,len(x)+1)/len(x),where='post',label=role)
     ax.set_xscale('log');ax.set_xlabel('Physical kernel gap (ms)');ax.set_ylabel('Window-count CDF');ax.legend();ax.grid(alpha=.2)
     ax.set_title('DIAGNOSTIC physical idle | Not safe admission budgets');fig.tight_layout()

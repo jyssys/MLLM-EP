@@ -22,12 +22,16 @@ def main():
     import argparse
     global TAG
     parser=argparse.ArgumentParser();parser.add_argument('--tag',default=TAG)
-    parser.add_argument('--qps',type=float,choices=[.5,2],default=2)
+    parser.add_argument('--qps',type=float,choices=[.5,2,3],default=2)
     parser.add_argument('--observer-kind',choices=['gpu_enclosures','profile'],default='gpu_enclosures')
     parser.add_argument('--wait-for-tag')
+    parser.add_argument('--profile-completion-roi',nargs=2,type=int)
     args=parser.parse_args()
-    assert args.tag.isidentifier() and args.tag.startswith(('ec_GPU_ENCLOSURES_C19','ec_GPU_ENCLOSURES_C20','ec_LOW_CUPTI_C25'))
-    if args.observer_kind=='profile':assert args.tag.startswith('ec_LOW_CUPTI_C25') and args.qps==.5
+    assert args.tag.isidentifier() and args.tag.startswith(('ec_GPU_ENCLOSURES_C19','ec_GPU_ENCLOSURES_C20','ec_LOW_CUPTI_C25','ec_ROI_CUPTI_C27'))
+    if args.observer_kind=='profile':
+        assert (args.tag.startswith('ec_LOW_CUPTI_C25') and args.qps==.5 and not args.profile_completion_roi) or (
+            args.tag.startswith('ec_ROI_CUPTI_C27') and args.qps==3 and args.profile_completion_roi==[30,70])
+    if args.profile_completion_roi:assert args.observer_kind=='profile'
     if args.wait_for_tag:assert args.wait_for_tag.isidentifier()
     TAG=args.tag;qps=args.qps
     preserve()
@@ -35,10 +39,13 @@ def main():
     source=snapshot(TAG)
     write(path,dict(time=time.time(),status='FROZEN_BEFORE_OBSERVER_RESULTS',
         source_archive_SHA256=source['archive_SHA256'],QPS=qps,warmup_QPS=2,requests=100,
-        one_factor=('Record full CUPTI kernel/copy activity at low load after the low-load event observer qualified.'
+        one_factor=('Bound CUPTI to the frozen completed-request interval30:70 at QPS3. Full-cohort metrics remain unchanged.'
+            if args.profile_completion_roi else
+            'Record full CUPTI kernel/copy activity at low load after the low-load event observer qualified.'
             if args.observer_kind=='profile' else
             'Replace full CUPTI activity recording with two CUDA events per original model-runner execute.'),
         observer_kind=args.observer_kind,wait_for_tag=args.wait_for_tag,
+        profile_completion_roi=args.profile_completion_roi,
         unchanged=['Original stock compiled Native model','Main100','Natural-derived fixed replay counts',
                    'Arrival/order seeds','EC transport and ACK','B8192/S1024','KV42GiB','Frozen SLO'],
         evidence='DIAGNOSTIC until clean/profile/clean qualification',observer_gate_max=.05,
@@ -85,6 +92,7 @@ def main():
             name=TAG+f'_CPC_q{qps:g}_v0',url=URL,
             worker_urls='http://127.0.0.1:18840,http://127.0.0.1:18841,http://127.0.0.1:18842',
             observer_kind=args.observer_kind,state_interval_ms=0 if args.observer_kind=='profile' else 50,
+            profile_completion_roi=args.profile_completion_roi,
             observe_client_host=False,freeze_client_static_heap=False)
         asyncio.run(profile_run(run_args));ownership_empty(TAG,'cuda_ipc')
         write(ROOT/'state'/f'{TAG}_complete.json',dict(time=time.time(),status='COMPLETE',

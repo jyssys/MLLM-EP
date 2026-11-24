@@ -11,6 +11,54 @@ from .common import ROOT,digest,write,experiment_deadline
 from .llm_probe_control import rpc
 
 
+def prefix_events(folder,arm,quantums):
+    event_rows=[];controls=[]
+    geometry={r['index']:r['requests'] for r in json.loads((folder/'geometry.json').read_text())['rows']}
+    with (folder/'forward_enclosures.csv').open() as stream:
+        for value in csv.DictReader(stream):
+            index=int(value['index']);requests=geometry[index]
+            count=int(value['scheduled_requests']);tokens=int(value['scheduled_tokens'])
+            assert len(requests)==count and sum(requests.values())==tokens
+            if count==0:
+                assert tokens==0 and int(value['encoder_items'])==0
+                controls.append(dict(index=index,arm=arm,GPU_enclosure_ms=float(value['GPU_enclosure_ms']),
+                    scope='Empty-schedule engine/control work. Preserved, not assigned to prefill.'))
+                continue
+            assert count==1 and tokens in quantums
+            event_rows.append(dict(index=index,arm=arm,quantum=tokens,runtime_request_id=next(iter(requests)),
+                GPU_enclosure_ms=float(value['GPU_enclosure_ms']),
+                evidence='CUDA-event enclosure, not exclusive kernel cost'))
+    assert len(geometry)==len(event_rows)+len(controls)
+    return event_rows,controls
+
+
+def recalculate_saved_cost(name,arm,recovered=False):
+    plan=ROOT/'configs'/f'{name}.json';settings=json.loads(plan.read_text())
+    comparisons=[]
+    with (ROOT/'analysis'/f'{name}_qualification.csv').open() as stream:
+        for row in csv.DictReader(stream):
+            assert row['observer_gate_passed'] in ['True','False']
+            comparisons.append(dict(arm=row['arm'],quantum=int(row['quantum']),HTTP_percentile=int(row['HTTP_percentile']),
+                **{k:float(row[k]) for k in ['clean_before_ms','profile_ms','clean_after_ms',
+                    'profile_relative_difference','clean_relative_spread']},
+                observer_gate_passed=row['observer_gate_passed']=='True'))
+    event_rows,controls=prefix_events(ROOT/'raw/gpu_enclosures'/name/'pd',arm,settings['quantum_tokens'])
+    assert len(event_rows)==45 and len(comparisons)==10
+    for quantum in settings['quantum_tokens']:
+        assert sum(r['quantum']==quantum for r in event_rows)==9
+    target=ROOT/'analysis'/f'{name}_cost.json';assert not target.exists()
+    write(target,dict(time=time.time(),plan_SHA256=digest(plan),
+        evidence='DIAGNOSTIC' if not all(r['observer_gate_passed'] for r in comparisons) else 'ISOLATED_GPU_MEASUREMENT',
+        observer_gate_passed=all(r['observer_gate_passed'] for r in comparisons),comparisons=comparisons,
+        actual_batch=1,independent_starts=1,events=event_rows,empty_schedule_control_events=controls,
+        empty_schedule_control_total_enclosure_ms=sum(r['GPU_enclosure_ms'] for r in controls),
+        recovered_from_closed_raw_without_GPU_rerun=recovered,
+        task_completion=False,suffix_continuation=False,online_interference=False,
+        scope='Original same-input prefix execution and original online E. No imported prefix KV, task quality, '
+              'sustainable throughput, safe quantum or serving speedup claim.'))
+    return all(r['observer_gate_passed'] for r in comparisons)
+
+
 def measure(tag,arm,row,url,port,encoder_port):
     from .prefix_quantum_correctness_control import request
     name=f'{tag}_{arm}_CPC';quantums=[128,256,512,1024,2048];records=[];collector={}
@@ -58,20 +106,13 @@ def measure(tag,arm,row,url,port,encoder_port):
         writer=csv.DictWriter(stream,fieldnames=list(records[0]));writer.writeheader();writer.writerows(records)
     with (ROOT/'analysis'/f'{name}_qualification.csv').open('x',newline='') as stream:
         writer=csv.DictWriter(stream,fieldnames=list(comparisons[0]));writer.writeheader();writer.writerows(comparisons)
-    event_rows=[]
-    folder=ROOT/'raw/gpu_enclosures'/name/'pd'
-    with (folder/'forward_enclosures.csv').open() as stream:
-        for value in csv.DictReader(stream):
-            assert int(value['scheduled_requests'])==1 and int(value['scheduled_tokens']) in quantums
-            event_rows.append(dict(arm=arm,quantum=int(value['scheduled_tokens']),
-                GPU_enclosure_ms=float(value['GPU_enclosure_ms']),
-                evidence='CUDA-event enclosure, not exclusive kernel cost'))
-    assert len(event_rows)==45
-    write(ROOT/'analysis'/f'{name}_cost.json',dict(time=time.time(),plan_SHA256=digest(plan),
-        evidence='DIAGNOSTIC' if not all(r['observer_gate_passed'] for r in comparisons) else 'ISOLATED_GPU_MEASUREMENT',
-        observer_gate_passed=all(r['observer_gate_passed'] for r in comparisons),comparisons=comparisons,
-        actual_batch=1,independent_starts=1,events=event_rows,
-        task_completion=False,suffix_continuation=False,online_interference=False,
-        scope='Original same-input prefix execution and original online E. No imported prefix KV, task quality, '
-              'sustainable throughput, safe quantum or serving speedup claim.'))
-    print('PREFIX_COST_QUALIFICATION',arm,all(r['observer_gate_passed'] for r in comparisons),flush=True)
+    passed=recalculate_saved_cost(name,arm)
+    print('PREFIX_COST_QUALIFICATION',arm,passed,flush=True)
+
+
+if __name__=='__main__':
+    import argparse
+    parser=argparse.ArgumentParser();parser.add_argument('--recover',required=True)
+    parser.add_argument('--arm',choices=['E','D'],required=True);options=parser.parse_args()
+    assert options.recover.isidentifier() and options.recover.startswith('prefix_QUANTA_C26')
+    print('RECOVERED_WITHOUT_GPU_RERUN',options.recover,recalculate_saved_cost(options.recover,options.arm,True))

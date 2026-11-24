@@ -41,7 +41,7 @@ def wait_baselines():
     assert all(r['finished'] and not Path('/proc', str(r['guardian'])).exists() for r in leases)
 
 
-def launch_models(names,diagnostic_eager=False,fixed_reduction=False):
+def launch_models(names,diagnostic_eager=False,fixed_reduction=False,deterministic_reductions=False):
     assert not EC.exists(), 'Do not reuse a CUDA ownership epoch'
     assert not names
     for role, gpu, port, side in ROLES:
@@ -57,6 +57,7 @@ def launch_models(names,diagnostic_eager=False,fixed_reduction=False):
             args += ['--token-split']
             if diagnostic_eager:args += ['--eager-reference']
             if fixed_reduction:args += ['--fixed-reduction']
+            if deterministic_reductions:args += ['--deterministic-reductions']
         subprocess.run(args, cwd=REPO, check=True)
     wait_ready(names)
     for port in [18841, 18842]:
@@ -110,12 +111,12 @@ async def request(row, url, run, teacher_prefix=None):
     return value
 
 
-def capture(row, run, url, ports, teacher_prefix=None,include_attention=False,include_gemm=False):
+def capture(row, run, url, ports, teacher_prefix=None,include_attention=False,include_gemm=False,attention_layer=0):
     opened = []
     try:
         for port, role in ports:
             rpc(port, 'llm_probe/begin', dict(name=run + '_' + role, max_logits=16,
-                include_decode_inputs=True,include_attention=include_attention,include_gemm=include_gemm))
+                include_decode_inputs=True,include_attention=include_attention,include_gemm=include_gemm,attention_layer=attention_layer))
             opened.append((port, role))
         return asyncio.run(request(row, url, run, teacher_prefix))
     finally:
@@ -214,8 +215,14 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--tag', default=TAG)
     parser.add_argument('--eager',action='store_true',help='Isolated original eager P/D correctness only, not serving performance')
+    parser.add_argument('--fixed-reduction',action='store_true')
+    parser.add_argument('--deterministic-reductions',action='store_true')
+    parser.add_argument('--wait-for-tag')
     args = parser.parse_args()
-    assert args.tag.isidentifier() and args.tag.startswith('token_CORRECTNESS_C15')
+    assert args.tag.isidentifier() and args.tag.startswith(('token_CORRECTNESS_C15','token_CORRECTNESS_C30'))
+    assert not args.eager or not (args.fixed_reduction or args.deterministic_reductions)
+    assert not args.deterministic_reductions or args.fixed_reduction
+    assert args.wait_for_tag is None or args.wait_for_tag.isidentifier()
     TAG = args.tag
     EC = Path('/dev/shm') / f'mllm_epd_20261124_{TAG}'
     preserve()
@@ -240,7 +247,11 @@ def main():
     write(plan_file, dict(time=time.time(), status='FROZEN_BEFORE_GPU_TOKEN_RESULTS',
         source_archive_SHA256=archive['archive_SHA256'], manifest_SHA256=digest(manifest), cases=cases,
         GPU_group=[4, 5, 6], evidence='CORRECTNESS_ONLY', output='Natural EOS cap2048, greedy original BF16 BI0',
-        compiler_contract='Explicit original eager P/D diagnostic' if args.eager else 'Unchanged stock compiled P/D',
+        compiler_contract=('Explicit original eager P/D diagnostic' if args.eager else
+            'Common compiled deterministic reduction control, not stock policy' if args.deterministic_reductions else
+            'Unchanged stock compiled P/D'),
+        fixed_reduction=args.fixed_reduction,deterministic_reductions=args.deterministic_reductions,
+        wait_for_tag=args.wait_for_tag,
         reference='Complete original E+PD execution. Only its prefill chunk boundary is aligned for strict comparison.',
         safety='Wait for all C14 baseline starts to finish. Run one request at a time with no other active decode.',
         gates='Stop on first strict correctness failure. Preserve errors; do not start any token performance arm.',
@@ -251,8 +262,26 @@ def main():
     token_proxy = None
     results = []
     try:
+        if args.deterministic_reductions:
+            prior=ROOT/'analysis/token_NUMERICAL_C29R1.json'
+            proof=json.loads(prior.read_text())
+            assert all(all(r['strict'] for r in comparison['KV']) for comparison in proof['comparisons'])
+            assert all(r['P_to_D_prefix_strict'] for r in proof['direct_checks'])
+            assert len({tuple(v) for v in proof['greedy_tokens'].values()})==1
+            write(ROOT/'state'/f'{TAG}_prior_numerical_gate.json',dict(passed=True,source_SHA256=digest(prior),
+                scope='Matched N1 compiled control only. Not C3 or full task quality.'))
+        if args.wait_for_tag:
+            while True:
+                leases=[json.loads((ROOT/'state'/f'server_{args.wait_for_tag}_{role}{gpu}.json').read_text())
+                    for role,gpu in [('E',4),('P',5),('D',6)]]
+                if all(r['finished'] and not Path('/proc',str(r['guardian'])).exists() for r in leases):break
+                for lease in leases:
+                    proc=Path('/proc',str(lease['guardian']))
+                    if not lease['finished']:assert proc.exists() and proc.stat().st_uid==os.getuid()
+                assert time.time()<experiment_deadline();time.sleep(1)
         wait_baselines()
-        launch_models(names,diagnostic_eager=args.eager)
+        launch_models(names,diagnostic_eager=args.eager,fixed_reduction=args.fixed_reduction,
+            deterministic_reductions=args.deterministic_reductions)
         teacher_proxy, teacher_url = launch_proxy(TAG + '_teacher_proxy', 'e_pd', 18848, names)
         for case, index, prefix in cases:
             assert time.time() < experiment_deadline()

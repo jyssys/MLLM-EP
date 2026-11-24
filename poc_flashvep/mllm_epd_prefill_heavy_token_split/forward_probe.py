@@ -11,8 +11,8 @@ def capture_input_allowed(decode_role,include_decode_inputs,event_index,limit):
     return (not decode_role or include_decode_inputs) and event_index<limit
 
 
-def capture_attention_allowed(layer_name,event,limit):
-    return (bool(re.search(r'(?:^|\.)layers\.0\.self_attn\.attn$',layer_name))
+def capture_attention_allowed(layer_name,event,limit,attention_layer=0):
+    return (bool(re.search(rf'(?:^|\.)layers\.{attention_layer}\.self_attn\.attn$',layer_name))
             and event is not None and event['index']<limit and event['query_tokens']>1)
 
 
@@ -32,12 +32,15 @@ def gather_prompt_kv(cache, block_ids, length):
 
 
 class ForwardProbe:
-    def __init__(self,worker,name,max_logits,include_decode_inputs=False,include_attention=False,include_gemm=False):
+    def __init__(self,worker,name,max_logits,include_decode_inputs=False,include_attention=False,include_gemm=False,attention_layer=0):
         assert re.fullmatch('[A-Za-z0-9_.-]+',name) and name not in ('.','..')
         self.runner=worker.model_runner;self.model=self.runner.model;self.max_logits=max_logits
         self.decode_role=os.environ['MLLM_EPD_ROLE'] in ('decode','reference_decode')
         self.include_decode_inputs=include_decode_inputs
         self.include_attention=include_attention
+        assert isinstance(attention_layer,int) and 0<=attention_layer<28
+        assert not include_gemm or attention_layer==0,'Generated GEMM call-site capture is qualified only for layer0'
+        self.attention_layer=attention_layer
         assert not include_gemm or include_attention
         self.include_gemm=include_gemm;self.last_attention_layer=None
         self.folder=ROOT/'raw/llm_reference'/name
@@ -116,7 +119,7 @@ class ForwardProbe:
                 event=me.events[-1] if me.events else None
                 match=re.search(r'(?:^|\.)layers\.(\d+)\.self_attn\.attn$',getattr(layer,'layer_name',''))
                 me.last_attention_layer=int(match.group(1)) if match else None
-                selected=capture_attention_allowed(getattr(layer,'layer_name',''),event,me.max_logits)
+                selected=capture_attention_allowed(getattr(layer,'layer_name',''),event,me.max_logits,me.attention_layer)
                 if selected:
                     n=metadata.num_actual_tokens;index=event['index']
                     event['attention_0']=dict(layer_name=layer.layer_name,
@@ -193,6 +196,7 @@ class ForwardProbe:
         value=dict(time=time.time(),events=self.events,logits=self.logits,snapshot=self.snapshot,
             decode_input_copies_enabled=self.include_decode_inputs,
             first_layer_attention_copies_enabled=self.include_attention,
+            captured_attention_layer=self.attention_layer,
             first_layer_GEMM_copies_enabled=self.include_gemm,
             tensor_file=str(file),tensor_SHA256=digest(file),evidence='CORRECTNESS_ONLY',
             scope='No model input,output,cache or sampled token was changed. This run cannot establish latency or throughput.')

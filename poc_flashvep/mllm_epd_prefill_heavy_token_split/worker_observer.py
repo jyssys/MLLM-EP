@@ -173,13 +173,27 @@ class CampaignWorkerExtension:
     def campaign_timeline_end(self):
         return self._campaign_timeline.close()
 
-    def campaign_llm_probe_begin(self,name,max_logits=16,include_decode_inputs=False,include_attention=False,include_gemm=False):
+    def campaign_llm_probe_begin(self,name,max_logits=16,include_decode_inputs=False,include_attention=False,include_gemm=False,attention_layer=0):
         from .forward_probe import ForwardProbe
-        self._campaign_llm_probe=ForwardProbe(self,name,max_logits,include_decode_inputs,include_attention,include_gemm)
+        self._campaign_llm_probe=ForwardProbe(self,name,max_logits,include_decode_inputs,include_attention,include_gemm,attention_layer)
         return self._campaign_llm_probe.begin()
 
     def campaign_llm_probe_end(self):
         return self._campaign_llm_probe.close()
+
+    def campaign_batch_prefix_begin(self,name,contracts):
+        assert not getattr(self,'_campaign_batch_prefix_active',False)
+        from .batch_prefix_probe import BatchPrefixProbe
+        self._campaign_batch_prefix=BatchPrefixProbe(self,name,contracts)
+        result=self._campaign_batch_prefix.begin()
+        self._campaign_batch_prefix_active=True
+        return result
+
+    def campaign_batch_prefix_end(self):
+        assert self._campaign_batch_prefix_active
+        result=self._campaign_batch_prefix.close()
+        self._campaign_batch_prefix_active=False
+        return result
 
     def campaign_boundary_teacher_install(self):
         assert os.environ.get('MLLM_EPD_PREFIX_PROBE')=='1' and os.environ['MLLM_EPD_ROLE']=='pd'

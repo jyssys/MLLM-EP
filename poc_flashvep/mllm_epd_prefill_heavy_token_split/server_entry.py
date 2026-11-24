@@ -124,10 +124,18 @@ def main():
             body=await request.json()
             return await app.state.engine_client.collective_rpc('campaign_llm_probe_begin',timeout=60,
                 args=(body['name'],body.get('max_logits',16),body.get('include_decode_inputs',False),
-                      body.get('include_attention',False),body.get('include_gemm',False)))
+                      body.get('include_attention',False),body.get('include_gemm',False),body.get('attention_layer',0)))
         @app.post('/campaign/llm_probe/end')
         async def llm_probe_end():
             return await app.state.engine_client.collective_rpc('campaign_llm_probe_end',timeout=120)
+        @app.post('/campaign/batch_prefix/begin')
+        async def batch_prefix_begin(request:Request):
+            body=await request.json()
+            return await app.state.engine_client.collective_rpc('campaign_batch_prefix_begin',timeout=60,
+                args=(body['name'],body['contracts']))
+        @app.post('/campaign/batch_prefix/end')
+        async def batch_prefix_end():
+            return await app.state.engine_client.collective_rpc('campaign_batch_prefix_end',timeout=180)
         @app.post('/campaign/boundary_teacher/install')
         async def boundary_teacher_install():
             return await app.state.engine_client.collective_rpc('campaign_boundary_teacher_install',timeout=30)

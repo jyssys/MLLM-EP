@@ -20,10 +20,11 @@ from .source_snapshot import snapshot
 URL='http://127.0.0.1:18847'
 
 
-def launch(tag,transport):
+def launch(tag,transport,fixed_reduction=False,deterministic_reductions=False,owned_names=None):
     ec=Path('/dev/shm')/f'mllm_epd_20261124_{tag}'
     assert not ec.exists(),'Every worker group requires a new EC ownership epoch'
-    names=[]
+    names=[] if owned_names is None else owned_names
+    assert not names
     for role,gpu,port,side in ROLES:
         name=f'{tag}_{role[0].upper()}{gpu}';names.append(name)
         args=[str(PYTHON),'-m','poc_flashvep.mllm_epd_prefill_heavy_token_split.servers','start',
@@ -32,6 +33,9 @@ def launch(tag,transport):
         if role=='encoder':
             args+=['--encoder-native-ops','--compiled-encoder','--encoder-sync-scheduling',
                    '--mm-cache-gb','0','--renderer-workers','2']
+        else:
+            if fixed_reduction:args+=['--fixed-reduction']
+            if deterministic_reductions:args+=['--deterministic-reductions']
         subprocess.run(args,cwd=REPO,check=True)
     wait_ready(names)
     proxy_name=tag+'_proxy'

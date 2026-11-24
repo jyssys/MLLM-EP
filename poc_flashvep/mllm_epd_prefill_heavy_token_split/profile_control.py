@@ -28,6 +28,7 @@ async def run(args):
                 observer_interference_max=.05,primary_quality_status='PENDING',
                 evidence='DIAGNOSTIC until both observer and model-quality gates pass',
                 observer_kind=args.observer_kind,
+                profile_completion_roi=getattr(args,'profile_completion_roi',None),
                 scheduler_state_sampling_interval_ms=getattr(args,'state_interval_ms',0),
                 client_host_observer=args.observe_client_host,
                 freeze_client_static_heap=args.freeze_client_static_heap,
@@ -47,18 +48,31 @@ async def run(args):
         stages[stage]=summarize(run_name)
         print('CPC_STAGE_COMPLETE',stage,stages[stage]['duration_seconds'],flush=True)
     await measure('clean_before')
-    try:
-        for url in args.worker_urls.split(','):
-            reply=await asyncio.to_thread(rpc,url,args.observer_kind+'/begin',dict(name=args.name,include_copies=True,
-                state_interval_ms=getattr(args,'state_interval_ms',0)))
-            rpc_results[url]=dict(begin=reply);opened.append(url)
-        await measure('profile')
-    finally:
-        for url in reversed(opened):
-            try:rpc_results[url]['end']=await asyncio.to_thread(rpc,url,args.observer_kind+'/end',{})
-            except Exception as error:
-                rpc_results[url]['close_error']=type(error).__name__+': '+str(error)
-        write(ROOT/'state'/f'{args.name}_collector_rpc.json',rpc_results)
+    if config['profile_completion_roi']:
+        from .profile_completion_roi import collect
+        start,stop=config['profile_completion_roi']
+        assert args.observer_kind=='profile' and 0<start<stop<len(rows)
+        finished=asyncio.Event()
+        collector=asyncio.create_task(collect(ROOT/'raw'/f'{args.name}_profile_requests.jsonl',start,stop,
+            args.worker_urls.split(','),args.name,rpc,finished,getattr(args,'state_interval_ms',0)))
+        try:await measure('profile')
+        finally:
+            finished.set();rpc_results,audit=await collector
+            write(ROOT/'state'/f'{args.name}_collector_rpc.json',rpc_results)
+            write(ROOT/'state'/f'{args.name}_completion_roi.json',audit)
+    else:
+        try:
+            for url in args.worker_urls.split(','):
+                reply=await asyncio.to_thread(rpc,url,args.observer_kind+'/begin',dict(name=args.name,include_copies=True,
+                    state_interval_ms=getattr(args,'state_interval_ms',0)))
+                rpc_results[url]=dict(begin=reply);opened.append(url)
+            await measure('profile')
+        finally:
+            for url in reversed(opened):
+                try:rpc_results[url]['end']=await asyncio.to_thread(rpc,url,args.observer_kind+'/end',{})
+                except Exception as error:
+                    rpc_results[url]['close_error']=type(error).__name__+': '+str(error)
+            write(ROOT/'state'/f'{args.name}_collector_rpc.json',rpc_results)
     await measure('clean_after')
     comparison={}
     for key in config['metrics']:
@@ -92,6 +106,7 @@ def main():
     p.add_argument('--server-names',required=True);p.add_argument('--manifest',type=Path)
     p.add_argument('--replay-from',type=Path,required=True);p.add_argument('--qps',type=float,default=1)
     p.add_argument('--observer-kind',choices=['profile','timeline','gpu_enclosures'],default='profile')
+    p.add_argument('--profile-completion-roi',nargs=2,type=int,metavar=('START','STOP'))
     p.add_argument('--state-interval-ms',type=float,default=0,help='Scheduler state sampling only. GPU kernels remain fully recorded.')
     p.add_argument('--observe-client-host',action='store_true')
     p.add_argument('--freeze-client-static-heap',action='store_true')

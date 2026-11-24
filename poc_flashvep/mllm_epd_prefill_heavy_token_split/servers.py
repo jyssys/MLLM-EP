@@ -12,7 +12,7 @@ import urllib.request
 from .common import ROOT,REPO,PYTHON,MODEL_ID,resources,write,append,digest,initialize,preserve,experiment_deadline
 
 
-def command(role,port,ec_path,side_port,observe=False,encoder_native_ops=False,eager_reference=False,compiled_encoder=False,encoder_token_budget=114688,encoder_whole_request=False,encoder_sync_scheduling=False,mm_cache_gb=1,renderer_workers=1,ec_transport='cpu',encoder_api='http://127.0.0.1:18840',token_split=False,kv_cache_gib=42,gpu_memory_utilization=.9,prefix_probe=False,fixed_reduction=False):
+def command(role,port,ec_path,side_port,observe=False,encoder_native_ops=False,eager_reference=False,compiled_encoder=False,encoder_token_budget=114688,encoder_whole_request=False,encoder_sync_scheduling=False,mm_cache_gb=1,renderer_workers=1,ec_transport='cpu',encoder_api='http://127.0.0.1:18840',token_split=False,kv_cache_gib=42,gpu_memory_utilization=.9,prefix_probe=False,fixed_reduction=False,deterministic_reductions=False):
     assert mm_cache_gb>=0 and renderer_workers>=1
     assert renderer_workers==1 or mm_cache_gb==0,'Official renderer threads require a disabled processor cache'
     assert ec_transport in ('cpu','cuda_ipc')
@@ -20,6 +20,7 @@ def command(role,port,ec_path,side_port,observe=False,encoder_native_ops=False,e
     assert not token_split or observe and role in ('prefill','decode')
     assert not prefix_probe or observe and role=='pd' and not token_split
     assert not fixed_reduction or observe and role in ('prefill','decode','pd','agg','reference') and not eager_reference
+    assert not deterministic_reductions or observe and role in ('prefill','decode','pd','agg','reference') and not eager_reference
     assert 0<kv_cache_gib<=42 and 0<gpu_memory_utilization<=.95
     model=json.loads((ROOT/'state/model_download_complete.json').read_text())
     args=[str(PYTHON),'-m','vllm.entrypoints.openai.api_server','--model',model['directory'],
@@ -45,8 +46,12 @@ def command(role,port,ec_path,side_port,observe=False,encoder_native_ops=False,e
         assert role=='reference' or token_split and role in ('prefill','decode'), (
             'The eager teacher is an explicit correctness diagnostic, not a serving baseline')
         args+=['--enforce-eager','--compilation-config',json.dumps(dict(custom_ops=['none']))]
-    if fixed_reduction:
-        args+=['--compilation-config',json.dumps(dict(inductor_compile_config={'dynamic_scale_rblock':False}))]
+    if fixed_reduction or deterministic_reductions:
+        settings={}
+        if fixed_reduction:settings['dynamic_scale_rblock']=False
+        if deterministic_reductions:
+            settings.update(deterministic=True,combo_kernels=True,benchmark_combo_kernel=False)
+        args+=['--compilation-config',json.dumps(dict(inductor_compile_config=settings))]
     if role in ('encoder','prefill','pd','decode','reference_export'):
         # Use the installed official debug connector. Its CPU staging is not a NIXL EC transfer.
         cfg=dict(ec_connector='ECExampleConnector',ec_role='ec_producer' if role in ('encoder','reference_export') else 'ec_consumer',
@@ -95,7 +100,7 @@ def inspect_co_resident(owner,gpu,name,ec_path,encoder_api):
     return dict(name=name,lease_SHA256=digest(lease_path),pid=lease['pid'],sid=lease['sid'],observed=facts)
 
 
-def serve(name,gpu,role,port,ec_path,side_port,observe=False,encoder_native_ops=False,legacy_runner=False,eager_reference=False,compiled_encoder=False,encoder_token_budget=114688,encoder_whole_request=False,encoder_sync_scheduling=False,api_switch_interval=None,mm_cache_gb=1,renderer_workers=1,ec_transport='cpu',encoder_api='http://127.0.0.1:18840',token_split=False,kv_cache_gib=42,gpu_memory_utilization=.9,co_resident_with=None,prefix_probe=False,fixed_reduction=False):
+def serve(name,gpu,role,port,ec_path,side_port,observe=False,encoder_native_ops=False,legacy_runner=False,eager_reference=False,compiled_encoder=False,encoder_token_budget=114688,encoder_whole_request=False,encoder_sync_scheduling=False,api_switch_interval=None,mm_cache_gb=1,renderer_workers=1,ec_transport='cpu',encoder_api='http://127.0.0.1:18840',token_split=False,kv_cache_gib=42,gpu_memory_utilization=.9,co_resident_with=None,prefix_probe=False,fixed_reduction=False,deterministic_reductions=False):
     initialize();owner=resources()
     stop=ROOT/'state'/('stop_server_'+name)
     record=ROOT/'state'/('server_'+name+'.json')
@@ -109,7 +114,7 @@ def serve(name,gpu,role,port,ec_path,side_port,observe=False,encoder_native_ops=
         request_stop=True
     signal.signal(signal.SIGTERM,on_signal);signal.signal(signal.SIGINT,on_signal)
     assert not co_resident_with or role=='pd' and 0<kv_cache_gib<=16 and gpu_memory_utilization<=.5
-    cmd=command(role,port,ec_path,side_port,observe=observe,encoder_native_ops=encoder_native_ops,eager_reference=eager_reference,compiled_encoder=compiled_encoder,encoder_token_budget=encoder_token_budget,encoder_whole_request=encoder_whole_request,encoder_sync_scheduling=encoder_sync_scheduling,mm_cache_gb=mm_cache_gb,renderer_workers=renderer_workers,ec_transport=ec_transport,encoder_api=encoder_api,token_split=token_split,kv_cache_gib=kv_cache_gib,gpu_memory_utilization=gpu_memory_utilization,prefix_probe=prefix_probe,fixed_reduction=fixed_reduction)
+    cmd=command(role,port,ec_path,side_port,observe=observe,encoder_native_ops=encoder_native_ops,eager_reference=eager_reference,compiled_encoder=compiled_encoder,encoder_token_budget=encoder_token_budget,encoder_whole_request=encoder_whole_request,encoder_sync_scheduling=encoder_sync_scheduling,mm_cache_gb=mm_cache_gb,renderer_workers=renderer_workers,ec_transport=ec_transport,encoder_api=encoder_api,token_split=token_split,kv_cache_gib=kv_cache_gib,gpu_memory_utilization=gpu_memory_utilization,prefix_probe=prefix_probe,fixed_reduction=fixed_reduction,deterministic_reductions=deterministic_reductions)
     if observe:
         from .worker_observer import prepare_artifact
         prepare_artifact()
@@ -147,7 +152,10 @@ def serve(name,gpu,role,port,ec_path,side_port,observe=False,encoder_native_ops=
         frontend_configuration=dict(mm_processor_cache_gb=mm_cache_gb,renderer_num_workers=renderer_workers),
         EC_transport=ec_transport,token_split_adapter_enabled=token_split,
         isolated_prefix_probe_enabled=prefix_probe,
-        compiled_reduction_policy='dynamic_scale_rblock=False' if fixed_reduction else 'Original default',
+        compiled_reduction_policy=('deterministic=True; dynamic_scale_rblock='+str(not fixed_reduction)
+            if deterministic_reductions else 'dynamic_scale_rblock=False' if fixed_reduction else 'Original default'),
+        deterministic_reductions=deterministic_reductions,
+        deterministic_combo_benchmark=False if deterministic_reductions else 'Original default',
         KV_cache_GiB=kv_cache_gib,gpu_memory_utilization=gpu_memory_utilization,
         co_resident_with=co_resident_with,
         environment={k:env[k] for k in ('PATH','CUDA_VISIBLE_DEVICES','VLLM_NIXL_SIDE_CHANNEL_PORT','OMP_NUM_THREADS',
@@ -221,6 +229,7 @@ def main():
     parser.add_argument('--token-split',action='store_true')
     parser.add_argument('--prefix-probe',action='store_true',help='Discarded prefix work in an isolated pd helper, not task completion')
     parser.add_argument('--fixed-reduction',action='store_true',help='One-factor compiled numerical control: dynamic_scale_rblock=False')
+    parser.add_argument('--deterministic-reductions',action='store_true',help='Explicit common numerical control; may reduce performance. Not BI1.')
     parser.add_argument('--kv-cache-gib',type=float,default=42)
     parser.add_argument('--gpu-memory-utilization',type=float,default=.9)
     parser.add_argument('--co-resident-with',help='Owned encoder lease for the diagnostic E/LLM co-residency test only')
@@ -241,6 +250,7 @@ def main():
             if args.token_split:command+=['--token-split']
             if args.prefix_probe:command+=['--prefix-probe']
             if args.fixed_reduction:command+=['--fixed-reduction']
+            if args.deterministic_reductions:command+=['--deterministic-reductions']
             command+=['--kv-cache-gib',str(args.kv_cache_gib),'--gpu-memory-utilization',str(args.gpu_memory_utilization)]
             if args.co_resident_with:command+=['--co-resident-with',args.co_resident_with]
             if args.encoder_whole_request:command+=['--encoder-whole-request']
@@ -251,7 +261,7 @@ def main():
             command+=['--encoder-token-budget',str(args.encoder_token_budget)]
             child=subprocess.Popen(command,cwd=REPO,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
         print(json.dumps(dict(guardian=child.pid,name=args.name)))
-    elif args.action=='serve':serve(args.name,args.gpu,args.role,args.port,args.ec_path,args.side_port,args.observe,args.encoder_native_ops,args.legacy_runner,args.eager_reference,args.compiled_encoder,args.encoder_token_budget,args.encoder_whole_request,args.encoder_sync_scheduling,args.api_switch_interval,args.mm_cache_gb,args.renderer_workers,args.ec_transport,args.encoder_api,args.token_split,args.kv_cache_gib,args.gpu_memory_utilization,args.co_resident_with,args.prefix_probe,args.fixed_reduction)
+    elif args.action=='serve':serve(args.name,args.gpu,args.role,args.port,args.ec_path,args.side_port,args.observe,args.encoder_native_ops,args.legacy_runner,args.eager_reference,args.compiled_encoder,args.encoder_token_budget,args.encoder_whole_request,args.encoder_sync_scheduling,args.api_switch_interval,args.mm_cache_gb,args.renderer_workers,args.ec_transport,args.encoder_api,args.token_split,args.kv_cache_gib,args.gpu_memory_utilization,args.co_resident_with,args.prefix_probe,args.fixed_reduction,args.deterministic_reductions)
     elif args.action=='stop':
         write(ROOT/'state'/('stop_server_'+args.name),dict(time=time.time()))
     else:print((ROOT/'state'/('server_'+args.name+'.json')).read_text())

@@ -14,7 +14,7 @@ from .source_snapshot import snapshot
 TAG='token_NUMERICAL_C17'
 
 
-def analyze(results):
+def analyze(results,attention_layer=0):
     import torch
     from safetensors.torch import load_file
     from .numerical import embedding_metrics
@@ -74,10 +74,10 @@ def analyze(results):
             D_teacher_token_strict=torch.equal(data['D_teacher'][key],data['Token_D'][key]),
             P_to_D_prefix_strict=torch.equal(data['Token_P'][key],data['Token_D'][key][:2415])))
     assert all(r['P_to_D_prefix_strict'] for r in direct),'Imported P prefix changed'
-    return dict(comparisons=comparisons,direct_checks=direct,
+    return dict(comparisons=comparisons,direct_checks=direct,captured_attention_layer=attention_layer,
         greedy_tokens={label:json.loads((ROOT/'raw'/f'{run}_requests.jsonl').read_text().splitlines()[0])['token_ids']
             for label,run,role in results if label!='Token_P'},
-        scope='Read-only first-layer Q/K/V/output and attention metadata. Original forward passthrough. '
+        scope='Read-only selected-layer Q/K/V/output and attention metadata. Original forward passthrough. '
             'Strict failures remain failures. No tolerance or task-quality gate changes.')
 
 
@@ -88,11 +88,15 @@ def main():
     parser.add_argument('--eager',action='store_true',help='Correctness-only original eager P/D, never a serving arm')
     parser.add_argument('--gemm',action='store_true',help='Read-only first-layer compiled GEMM tensors, no performance claim')
     parser.add_argument('--fixed-reduction',action='store_true',help='Compiled-only one-factor dynamic_scale_rblock=False control')
+    parser.add_argument('--deterministic-reductions',action='store_true')
+    parser.add_argument('--attention-layer',type=int,choices=[0,1],default=0)
     parser.add_argument('--wait-for-tag',help='An exact prior E4/P5/D6 lease group that must close first')
     args=parser.parse_args()
-    assert args.tag.isidentifier() and args.tag.startswith(('token_NUMERICAL_C17','token_NUMERICAL_C18','token_NUMERICAL_C21','token_NUMERICAL_C24'))
+    assert args.tag.isidentifier() and args.tag.startswith(('token_NUMERICAL_C17','token_NUMERICAL_C18','token_NUMERICAL_C21','token_NUMERICAL_C24','token_NUMERICAL_C28','token_NUMERICAL_C29'))
     assert not args.gemm or not args.eager,'This diagnostic targets the actual compiled GEMM call sites'
+    assert not args.gemm or args.attention_layer==0
     assert not args.fixed_reduction or not args.eager
+    assert not args.deterministic_reductions or not args.eager
     assert args.wait_for_tag is None or args.wait_for_tag.isidentifier()
     TAG=args.tag
     preserve()
@@ -107,9 +111,14 @@ def main():
         arms=['Same-P teacher A','Same-P teacher B','Same-D complete teacher A',
               'Same-D complete teacher B','Actual P-prefix/D-suffix'],
         output='Original Natural EOS cap2048',evidence='CORRECTNESS_ONLY and DIAGNOSTIC',
-        compiler='Explicit original P/D eager reference' if args.eager else 'Unchanged stock compiled P/D',
+        compiler=('Explicit original P/D eager reference' if args.eager else
+            'Explicit common compiled numerical control, not stock policy' if args.fixed_reduction or args.deterministic_reductions else
+            'Unchanged stock compiled P/D'),
         first_layer_GEMM_copies=args.gemm,wait_for_tag=args.wait_for_tag,
+        captured_attention_layer=args.attention_layer,
         dynamic_scale_rblock=False if args.fixed_reduction else 'Original default',
+        deterministic_reductions=args.deterministic_reductions,
+        deterministic_combo_benchmark=False if args.deterministic_reductions else 'Original default',
         no_performance=True,no_active_decode_insertion=True,
         prior_failure='token_CORRECTNESS_C15R1_N1_inside_single_image_TOKEN_comparison.json'))
     while True:
@@ -140,24 +149,25 @@ def main():
     row=json.loads((ROOT/'data/calibration_manifest_template_v2.json').read_text())['requests'][0]
     try:
         control.wait_baselines()
-        control.launch_models(names,diagnostic_eager=args.eager,fixed_reduction=args.fixed_reduction)
+        control.launch_models(names,diagnostic_eager=args.eager,fixed_reduction=args.fixed_reduction,
+            deterministic_reductions=args.deterministic_reductions)
         for label,port in [('P_A',18841),('P_B',18841),('D_teacher',18842),('D_teacher_B',18842)]:
             role='P' if port==18841 else 'D'
             rpc(18840,'ec_ipc/inline_policy',dict(enabled=True,consumer_role='prefill' if role=='P' else 'decode'))
             run=TAG+'_'+label
             proxy,url=control.launch_proxy(run+'_proxy','e_pd',18848,names,decoder_port=port)
             proxies.append(proxy)
-            try:control.capture(row,run,url,[(port,role)],2415,include_attention=True,include_gemm=args.gemm)
+            try:control.capture(row,run,url,[(port,role)],2415,include_attention=True,include_gemm=args.gemm,attention_layer=args.attention_layer)
             finally:stop_proxy(proxy);proxies.remove(proxy)
             results.append((label,run,role))
         rpc(18840,'ec_ipc/inline_policy',dict(enabled=True,consumer_role='prefill'))
         run=TAG+'_TOKEN'
         proxy,url=control.launch_proxy(run+'_proxy','epd',18849,names,2415)
         proxies.append(proxy)
-        try:control.capture(row,run,url,[(18841,'P'),(18842,'D')],include_attention=True,include_gemm=args.gemm)
+        try:control.capture(row,run,url,[(18841,'P'),(18842,'D')],include_attention=True,include_gemm=args.gemm,attention_layer=args.attention_layer)
         finally:stop_proxy(proxy);proxies.remove(proxy)
         results.extend([('Token_P',run,'P'),('Token_D',run,'D')])
-        value=analyze(results)
+        value=analyze(results,args.attention_layer)
         if args.gemm:
             assert all(len(r['first_layer_GEMM'])==4 for r in value['comparisons']), 'The actual compiled GEMM hooks did not capture four stages'
         write(ROOT/'analysis'/f'{TAG}.json',dict(time=time.time(),evidence='DIAGNOSTIC',**value))

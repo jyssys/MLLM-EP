@@ -84,10 +84,11 @@ def main():
     parser=argparse.ArgumentParser();parser.add_argument('--tag',default=TAG)
     parser.add_argument('--wait-for-tag')
     parser.add_argument('--measure-quanta',action='store_true')
-    args=parser.parse_args()
-    assert args.tag.isidentifier() and args.tag.startswith(('prefix_QUANTA_C22','prefix_QUANTA_C26'))
-    if args.wait_for_tag:assert args.wait_for_tag.isidentifier()
-    TAG=args.tag;EC=Path('/dev/shm')/f'mllm_epd_20261124_{TAG}'
+    parser.add_argument('--cost-arm',choices=['both','E','D'],default='both')
+    options=parser.parse_args()
+    assert options.tag.isidentifier() and options.tag.startswith(('prefix_QUANTA_C22','prefix_QUANTA_C26'))
+    if options.wait_for_tag:assert options.wait_for_tag.isidentifier()
+    TAG=options.tag;EC=Path('/dev/shm')/f'mllm_epd_20261124_{TAG}'
     E=TAG+'_E4';HE=TAG+'_LE4';HD=TAG+'_LD6'
     preserve();source=snapshot(TAG)
     plan=ROOT/'configs'/f'{TAG}.json';assert not plan.exists() and not EC.exists()
@@ -99,14 +100,14 @@ def main():
         encoder_GPU=4,E_helper_GPU=4,D_helper_GPU=6,helper_KV_GiB=8,B=8192,S=1024,
         embedding_transport='Original E encodes all images. On-demand descriptors cover only scheduled consumers.',
         inline_descriptors=False,clone_complete_ACK_required=True,
-        isolated_cost_measurement_requested=args.measure_quanta,wait_for_tag=args.wait_for_tag,
+        isolated_cost_measurement_requested=options.measure_quanta,cost_arm=options.cost_arm,wait_for_tag=options.wait_for_tag,
         evidence='CORRECTNESS_ONLY',task_completion=False,
-        cost_timing='PLANNED_SEPARATE_CPC' if args.measure_quanta else 'NOT_RUN',
+        cost_timing='PLANNED_SEPARATE_CPC' if options.measure_quanta else 'NOT_RUN',
         scope='Original BF16 compiled helpers use real original E embeddings. Prefix quanta have no imported prefix KV. '
             'This is not suffix continuation, online insertion, a full task answer or serving improvement.'))
-    if args.wait_for_tag:
+    if options.wait_for_tag:
         while True:
-            files=[p for p in (ROOT/'state').glob(f'server_{args.wait_for_tag}_*.json')
+            files=[p for p in (ROOT/'state').glob(f'server_{options.wait_for_tag}_*.json')
                 if not p.name.endswith('.source_snapshot.json')]
             leases=[json.loads(p.read_text()) for p in files]
             assert len(leases)==3,'Expected three exact preceding owned leases'
@@ -152,14 +153,14 @@ def main():
                 captured(row,teacher,url,port,quantum,True)
                 captured(row,probe,url,port,quantum,False)
                 results.append(compare(teacher,probe,quantum))
-            if args.measure_quanta:
+            if options.measure_quanta and options.cost_arm in ('both',arm):
                 from .prefix_quantum_cost import measure
                 measure(TAG,arm,row,url,port,18840)
             stop_proxy(proxy);proxies.remove(proxy)
         write(ROOT/'analysis'/f'{TAG}_summary.json',dict(time=time.time(),status='CORRECTNESS_PASS',
             cases=len(results),strict_cases=sum(r['strict_pass'] for r in results),memory=memory,
             scope='Matched same-GPU real prefix compute only. No suffix KV import, task quality, timing or online safety claim.',
-            prefix_quantum_cost='SEPARATE_CPC_RESULT' if args.measure_quanta else 'NOT_MEASURED',
+            prefix_quantum_cost='SEPARATE_CPC_RESULT' if options.measure_quanta else 'NOT_MEASURED',
             online_interference='NOT_RUN'))
     except BaseException as error:
         write(ROOT/'state'/f'{TAG}_failure.json',dict(time=time.time(),status='FAILED_EXECUTION',

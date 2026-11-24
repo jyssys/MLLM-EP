@@ -5,6 +5,12 @@ from .forward_probe import capture_attention_allowed,capture_gemm_allowed
 
 
 class AttentionProbeTest(unittest.TestCase):
+    def test_selected_second_layer_does_not_expand_the_default_scope(self):
+        event=dict(index=0,query_tokens=2416)
+        self.assertTrue(capture_attention_allowed('model.layers.1.self_attn.attn',event,4,1))
+        self.assertFalse(capture_attention_allowed('model.layers.0.self_attn.attn',event,4,1))
+        self.assertFalse(capture_attention_allowed('model.layers.1.self_attn.attn',event,4))
+
     def test_first_layer_prefill_is_selected(self):
         self.assertTrue(capture_attention_allowed('language_model.model.layers.0.self_attn.attn',
             dict(index=0,query_tokens=2416),4))
