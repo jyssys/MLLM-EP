@@ -72,6 +72,63 @@ def body():
 
 
 class IdleProxyTest(unittest.IsolatedAsyncioTestCase):
+    async def test_batch_one_preserves_upstream_concurrency_and_fifo_d_completion(self):
+        streams = {name: Stream() for name in ('first', 'suffix', 'third')}
+        for stream in streams.values():
+            stream.allow_first.set()
+
+        class BatchOneSession(Session):
+            def post(self, url, json, headers=None):
+                if not url.startswith('http://D/'):
+                    return super().post(url, json, headers)
+                self.calls.append((url, json, headers))
+                name = headers['x-request-id'].removesuffix(':D')
+                async def result():
+                    return Reply(content=streams[name])
+                return Post(result)
+
+        for token in (False, True):
+            for stream in streams.values():
+                stream.role_sent.clear()
+                stream.first_sent.clear()
+                stream.allow_finish.clear()
+            session = BatchOneSession(None)
+            with TemporaryDirectory() as directory,patch.object(proxy,'ROOT',Path(directory)),\
+                 patch.object(proxy.aiohttp,'ClientSession',return_value=session):
+                (Path(directory)/'raw').mkdir()
+                app = proxy.application('epd','http://E','http://P',['http://D'],'cpu_batch_one',
+                    processor_handoff='grid_only',release_encoder_ipc=True,
+                    decode_batch_one=True,token_suffix_fraction=.1 if token else 0.,
+                    token_admission='decode_idle' if token else 'none')
+                async with app.router.lifespan_context(app),httpx.AsyncClient(
+                    transport=httpx.ASGITransport(app),base_url='http://fixture') as client:
+                    first = asyncio.create_task(client.post('/v1/chat/completions',json=body(),
+                        headers={'x-request-id':'first'}))
+                    await streams['first'].first_sent.wait()
+                    queued = []
+                    for name in ('suffix','third'):
+                        queued.append(asyncio.create_task(client.post('/v1/chat/completions',json=body(),
+                            headers={'x-request-id':name})))
+                        await asyncio.sleep(0)
+                    state = (await client.get('/campaign_state')).json()['continuation_admission']
+                    self.assertEqual((state['active_http_requests'],state['admission_waiting']),(1,2))
+                    self.assertEqual(sum(url.startswith('http://P/') for url,_,_ in session.calls),3)
+                    self.assertFalse(streams['suffix'].role_sent.is_set())
+                    streams['first'].allow_finish.set()
+                    self.assertEqual((await first).status_code,200)
+                    await streams['suffix'].first_sent.wait()
+                    self.assertFalse(streams['third'].role_sent.is_set())
+                    streams['suffix'].allow_finish.set()
+                    self.assertEqual((await queued[0]).status_code,200)
+                    await streams['third'].first_sent.wait()
+                    streams['third'].allow_finish.set()
+                    self.assertEqual((await queued[1]).status_code,200)
+                records = [json.loads(line) for line in
+                    (Path(directory)/'raw/proxy_cpu_batch_one.jsonl').read_text().splitlines()]
+                self.assertEqual([row['runtime_request_id'] for row in records],['first','suffix','third'])
+                self.assertEqual(records[1]['D_at_P_ready']['active_http_requests'],1)
+                self.assertTrue(all(row['D_admission']['after']['active_http_requests']==1 for row in records))
+
     async def test_idle_policy_falls_back_to_unmodified_native_before_encode(self):
         stream=Stream();stream.allow_first.set();stream.allow_finish.set();session=Session(stream)
         with TemporaryDirectory() as directory,patch.object(proxy,'ROOT',Path(directory)),\

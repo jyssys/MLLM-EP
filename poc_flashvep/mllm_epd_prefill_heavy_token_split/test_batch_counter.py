@@ -1,5 +1,6 @@
 """The observer must preserve outputs and count the prepared query positions."""
 from pathlib import Path
+import json
 from tempfile import TemporaryDirectory
 from types import SimpleNamespace
 import unittest
@@ -11,6 +12,36 @@ from . import batch_counter as module
 
 
 class CounterTest(unittest.TestCase):
+    def test_decode_v2_records_logical_rows_and_real_padding_without_encoder(self):
+        prepared=SimpleNamespace(req_ids=['a','b'],num_reqs=2,
+            num_scheduled_tokens=np.array([3,1]),num_tokens=4,
+            num_computed_prefill_tokens_np=np.array([2,6]),prefill_len_np=np.array([4,6]),
+            num_draft_tokens=0,num_reqs_after_padding=4,num_tokens_after_padding=8)
+
+        class Runner:
+            def prepare_inputs(self,output,descriptor):return prepared
+            def execute_model(self,output):
+                return self.prepare_inputs(output,SimpleNamespace(cg_mode=SimpleNamespace(name='FULL')))
+
+        output=SimpleNamespace(num_scheduled_tokens={'a':3,'b':1},total_num_scheduled_tokens=4,
+            scheduled_encoder_inputs={},
+            scheduled_cached_reqs=SimpleNamespace(req_ids=['a','b'],num_output_tokens=[0,7]))
+        with TemporaryDirectory() as directory,patch.object(module,'ROOT',Path(directory)),\
+                patch.dict(module.os.environ,MLLM_EPD_ROLE='decode',CUDA_VISIBLE_DEVICES='6'):
+            runner=Runner();counter=module.BatchCounter(runner,'decode_fixture',decode_only=True)
+            counter.begin()
+            self.assertIs(runner.execute_model(output),prepared)
+            result=counter.close()
+            values=json.loads((Path(result['folder'])/'histograms.json').read_text())
+        self.assertTrue(result['valid'])
+        self.assertEqual(values['scheduler_generation_phase_histogram'],
+            [dict(requests=2,generation_phase_requests=1,query_rows=4,calls=1)])
+        self.assertEqual(values['prepared_decode_padding_histogram'],
+            [dict(requests=2,decode_requests=2,query_rows=4,requests_after_padding=4,
+                query_rows_after_padding=8,graph_mode='FULL',calls=1)])
+        self.assertFalse(values['encoder_output_histogram'])
+        self.assertNotIn('prepare_inputs',vars(runner))
+
     def test_v2_real_call_order_counts_returned_batch_and_restores_nested_encoder(self):
         sentinel=object()
         batch=SimpleNamespace(num_reqs=2,num_scheduled_tokens=np.array([2,1]),num_tokens=3,

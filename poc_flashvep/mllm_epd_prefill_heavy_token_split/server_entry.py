@@ -110,7 +110,8 @@ def main():
         @app.post('/campaign/batch_counter/begin')
         async def batch_counter_begin(request:Request):
             body=await request.json()
-            return await app.state.engine_client.collective_rpc('campaign_batch_counter_begin',timeout=60,args=(body['name'],))
+            return await app.state.engine_client.collective_rpc('campaign_batch_counter_begin',timeout=60,
+                args=(body['name'],body.get('decode_only',False)))
         @app.post('/campaign/batch_counter/end')
         async def batch_counter_end():
             return await app.state.engine_client.collective_rpc('campaign_batch_counter_end',timeout=60)

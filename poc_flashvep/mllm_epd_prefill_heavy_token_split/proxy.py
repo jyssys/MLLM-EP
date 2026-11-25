@@ -15,7 +15,7 @@ from .common import ROOT,append,write,digest
 from .token_split import select_prefix as token_prefix,POLICY_KEY
 
 
-def application(mode,encoder,prefill,decoders,name,encoder_policy='whole_request',processor_handoff='none',release_encoder_ipc=False,token_suffix_fraction=0.,token_prefix_tokens=0,token_admission='none',token_policy='static'):
+def application(mode,encoder,prefill,decoders,name,encoder_policy='whole_request',processor_handoff='none',release_encoder_ipc=False,token_suffix_fraction=0.,token_prefix_tokens=0,token_admission='none',token_policy='static',decode_batch_one=False):
     assert processor_handoff in ('none','full','grid_only')
     assert processor_handoff=='none' or mode in ('epd','e_pd') and encoder_policy=='whole_request'
     assert not release_encoder_ipc or processor_handoff!='none' and mode in ('epd','e_pd')
@@ -25,8 +25,9 @@ def application(mode,encoder,prefill,decoders,name,encoder_policy='whole_request
     assert token_admission in ('none','decode_idle') and token_policy in ('static','idle_fallback')
     assert token_admission=='none' or mode=='epd' and len(decoders)==1
     assert token_policy=='static' or token_admission=='decode_idle' and (token_suffix_fraction or token_prefix_tokens)
+    assert not decode_batch_one or mode=='epd' and len(decoders)==1
     from .idle_admission import IdleAdmission,FirstToken
-    admission=IdleAdmission() if token_admission=='decode_idle' else None
+    admission=IdleAdmission(batch_one=decode_batch_one) if decode_batch_one or token_admission=='decode_idle' else None
     cursor=0;active={url:0 for url in decoders};session=None
     state=dict(received=0,encoder_pending=0,prefill_pending=0,decode_pending=0,completed=0,failed=0)
     @asynccontextmanager
@@ -163,7 +164,11 @@ def application(mode,encoder,prefill,decoders,name,encoder_policy='whole_request
                 assert body.get('stream') or body.get('max_tokens')==1,'Use streaming to release prefill at the first token, not after full decode'
             if mode in ('e_pd','epd'):
                 await encode(body,request_id,trace)
-            if mode in ('epd','pd'):body=await prefill_request(body,request_id,trace)
+            if mode in ('epd','pd'):
+                body=await prefill_request(body,request_id,trace)
+                trace['D_at_P_ready']=dict(time=trace['P_ready'],active_http_requests=sum(active.values()),
+                    pending_admissions=admission.waiting if admission is not None else 0,
+                    suffix_owner=admission.prefill_owner if admission is not None else None)
             if admission is not None:
                 trace['D_admission']=await admission.enter(request_id,trace['token_enabled'])
                 gate_entered=True
@@ -177,6 +182,7 @@ def application(mode,encoder,prefill,decoders,name,encoder_policy='whole_request
                 raise RuntimeError(('decode',reply.status,error[:3000]))
             if not body.get('stream'):
                 output=await reply.json();reply.release()
+                trace['D_http_complete']=time.monotonic()
                 if admission is not None:
                     assert any(c.get('token_ids') for c in output.get('choices',[]))
                     await admission.first_token(request_id)
@@ -196,6 +202,7 @@ def application(mode,encoder,prefill,decoders,name,encoder_policy='whole_request
                             await admission.first_token(request_id)
                         yield block
                     assert detector is None or detector.seen,'No generated token reached the admission boundary'
+                    trace['D_http_complete']=time.monotonic()
                     trace['status']='MEASURED_ONLINE';state['completed']+=1
                 except BaseException as error:
                     trace['error']=type(error).__name__+': '+str(error);state['failed']+=1
@@ -233,15 +240,18 @@ def main():
     p.add_argument('--token-prefix-tokens',type=int,default=0,help='Fixed boundary for correctness controls only')
     p.add_argument('--token-admission',choices=['none','decode_idle'],default='none')
     p.add_argument('--token-policy',choices=['static','idle_fallback'],default='static')
+    p.add_argument('--decode-batch-one',action='store_true',
+        help='Admit one D request at a time in P-ready FIFO order through completion')
     p.add_argument('--encoder-policy',choices=['whole_request','image_fanout'],default='whole_request');args=p.parse_args()
     write(ROOT/'configs'/('proxy_'+args.name+'.json'),dict(args=vars(args),source_SHA256=digest(__file__),
-        policy=('Default engine continuous scheduler. No source credit or artificial D admission cap.' if args.token_admission=='none' else
+        policy=('P-ready FIFO. One D HTTP request through completion, including any isolated suffix phase.'
+            if args.decode_batch_one else 'Default engine continuous scheduler. No source credit or artificial D admission cap.' if args.token_admission=='none' else
             'Extra suffix starts only with zero D HTTP streams. New Native D waits only until the first actual suffix output token. '
             'This is conservative admission, not a safe-window or dynamic-size predictor.'),
         EC_transport='Campaign CUDA IPC with original E tensors' if args.release_encoder_ipc else 'Installed ECExampleConnector CPU staging through per-run tmpfs',
         payload='Original media and full prompt forwarded. No new-version metadata rewrite.',
         cache='mm_processor_cache_gb=1 preserves per-request UUIDs. Unique media UUIDs prevent cross-request reuse in every baseline.'))
-    uvicorn.run(application(args.mode,args.encoder,args.prefill,args.decoders.split(','),args.name,args.encoder_policy,args.processor_handoff,args.release_encoder_ipc,args.token_suffix_fraction,args.token_prefix_tokens,args.token_admission,args.token_policy),
+    uvicorn.run(application(args.mode,args.encoder,args.prefill,args.decoders.split(','),args.name,args.encoder_policy,args.processor_handoff,args.release_encoder_ipc,args.token_suffix_fraction,args.token_prefix_tokens,args.token_admission,args.token_policy,args.decode_batch_one),
         host='127.0.0.1',port=args.port,log_level='warning')
 
 

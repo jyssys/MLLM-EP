@@ -31,10 +31,11 @@ class FirstToken:
 
 
 class IdleAdmission:
-    def __init__(self):
+    def __init__(self, batch_one=False):
         self.condition = asyncio.Condition()
+        self.batch_one = batch_one
         self.active = {}
-        self.pending = set()
+        self.pending = {}
         self.prefill_owner = None
         self.waiting = 0
         self.events = []
@@ -43,17 +44,24 @@ class IdleAdmission:
     def state(self):
         return dict(active_http_requests=len(self.active), prefill_owner=self.prefill_owner,
             admission_waiting=self.waiting,failed_closed=self.failure is not None,
+            max_active_http_requests=1 if self.batch_one else None,
+            policy='FIFO_P_READY' if self.batch_one else 'IDLE_SUFFIX',
             scope='Sole-coordinator HTTP lifetime, not engine decode-ready or GPU kernel activity.')
+
+    def can_enter(self, request_id, extra_prefill):
+        if self.batch_one:
+            return not self.active and next(iter(self.pending)) == request_id
+        return self.prefill_owner is None and (not extra_prefill or not self.active)
 
     async def enter(self, request_id, extra_prefill):
         async with self.condition:
             assert request_id not in self.active and request_id not in self.pending
             begin = time.monotonic()
             self.waiting += 1
-            self.pending.add(request_id)
+            self.pending[request_id] = None
             try:
                 await self.condition.wait_for(lambda: self.failure is not None or
-                    self.prefill_owner is None and (not extra_prefill or not self.active))
+                    self.can_enter(request_id, extra_prefill))
                 if self.failure is not None:
                     raise RuntimeError('D completion is uncertain. Stop new D admission until this experiment is closed.')
                 before = self.state()
@@ -66,7 +74,9 @@ class IdleAdmission:
                 return event
             finally:
                 self.waiting -= 1
-                self.pending.remove(request_id)
+                del self.pending[request_id]
+                if self.batch_one and not self.active:
+                    self.condition.notify_all()
 
     async def first_token(self, request_id):
         async with self.condition:

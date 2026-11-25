@@ -284,10 +284,10 @@ class CampaignWorkerExtension:
     def campaign_gpu_enclosures_end(self):
         return self._campaign_gpu_enclosures.close()
 
-    def campaign_batch_counter_begin(self,name):
+    def campaign_batch_counter_begin(self,name,decode_only=False):
         from .batch_counter import BatchCounter
         assert not getattr(self,'_campaign_batch_counter_active',False)
-        self._campaign_batch_counter=BatchCounter(self.model_runner,name)
+        self._campaign_batch_counter=BatchCounter(self.model_runner,name,decode_only=decode_only)
         result=self._campaign_batch_counter.begin();self._campaign_batch_counter_active=True
         return result
 
