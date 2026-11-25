@@ -16,7 +16,8 @@ import time
 from . import runtime as rt
 from .resources import burner_status, experiment_lease
 
-MODES = ("native-strong", "native-common", "static10", "idle10")
+TOKEN_FRACTIONS = {"static5": .05, "static10": .10, "static15": .15, "static20": .20, "idle10": .10}
+MODES = ("native-strong", "native-common", *TOKEN_FRACTIONS)
 SEED = 2026112402
 ORDER_SEED = 2026112404
 
@@ -65,11 +66,19 @@ def parse_args():
     parser.add_argument("--mode", choices=MODES, required=True)
     parser.add_argument("--batch-one", action="store_true")
     parser.add_argument("--observe-batch", action="store_true")
+    parser.add_argument("--defer-client-raw", action="store_true",
+                        help="Flush full client traces after drain using the pinned deferred writer")
     parser.add_argument("--profile", action="store_true",
                         help="One QPS point with clean/profile/clean kernel-only CUPTI collection")
+    parser.add_argument("--profile-state-ms", type=int, default=50)
+    parser.add_argument("--profile-decode-buffer-gib", type=int, choices=(1, 2), default=1)
     parser.add_argument("--qps", type=float, nargs="+", default=[])
+    parser.add_argument("--repeat-main100", type=int, choices=(1, 3), default=1,
+                        help="Separate sustained 300-arrival diagnostic with fresh media UUIDs")
     parser.add_argument("--regression", action="store_true")
     parser.add_argument("--capacity", action="store_true")
+    parser.add_argument("--capacity-stage", choices=("encoder", "prefill", "decode-b1", "decode-free"))
+    parser.add_argument("--capacity-p-profile", action="store_true")
     parser.add_argument("--seed", type=int, default=SEED)
     parser.add_argument("--replay", type=Path)
     parser.add_argument("--wall-seconds", type=int, default=3600)
@@ -107,14 +116,18 @@ def measured_cohorts(args, run, url, manifests):
     rows = rt.read(manifests[rt.MAIN100])["requests"]
     random.Random(ORDER_SEED).shuffle(rows)
     replay = load_replay(args.replay, rows) if args.replay else None
+    rows *= args.repeat_main100
 
     def measure(tag, qps, observe_batch=False):
         if observe_batch:
             rpc(18842, "batch_counter/begin", {"name": tag, "decode_only": True})
         try:
             results = asyncio.run(client.execute(rows, [url], tag, qps, args.seed, replay,
+                                                 defer_raw=args.defer_client_raw,
+                                                 unique_media_occurrence=args.repeat_main100 > 1,
                                                  metadata={"order_seed": ORDER_SEED, "method": args.mode,
                                                            "batch_one": args.batch_one,
+                                                           "Main100_cycles": args.repeat_main100,
                                                            "manifest_SHA256": rt.sha(manifests[rt.MAIN100])}))
         finally:
             if observe_batch:
@@ -128,11 +141,21 @@ def measured_cohorts(args, run, url, manifests):
         ownership_empty(tag, "cuda_ipc")
         result = metrics.summarize(tag)
         print("METRICS", json.dumps(result), flush=True)
-        rt.require(len(results) == 100 and result["primary_execution_valid"], f"{tag} incomplete")
+        rt.require(len(results) == len(rows) and result["primary_execution_valid"], f"{tag} incomplete")
         return result
 
     for qps in args.qps:
         tag = f"{args.mode.replace('-', '_')}_{'b1' if args.batch_one else 'free'}_{qps:g}".replace(".", "p")
+        if args.repeat_main100 > 1:
+            tag += f"_sustained_r{args.repeat_main100}"
+        if args.profile or args.observe_batch:
+            priming = tag + "_priming"
+            asyncio.run(client.execute(rows, [url], priming, qps, args.seed, replay,
+                                       defer_raw=args.defer_client_raw,
+                                       unique_media_occurrence=args.repeat_main100 > 1,
+                                       metadata={"evidence": "WARMUP_EXCLUDED", "order_seed": ORDER_SEED}))
+            rt.require(rt.read(run / "state" / f"{priming}_complete.json")["passed"], "Main100 priming failed")
+            ownership_empty(priming, "cuda_ipc")
         if args.observe_batch:
             from .trace import COMPARISON_METRICS
 
@@ -159,7 +182,8 @@ def measured_cohorts(args, run, url, manifests):
 
         async def instrumented():
             ports = {role: port for role, _, port, _ in rt.ROLES}
-            async with profile_session(ports, profile, state_interval_ms=50) as receipts:
+            async with profile_session(ports, profile, state_interval_ms=args.profile_state_ms,
+                                       decode_buffer_gib=args.profile_decode_buffer_gib) as receipts:
                 observed = await asyncio.to_thread(measure, profile, qps)
             return observed, receipts
 
@@ -185,10 +209,14 @@ def main():
     rt.require(args.qps or args.regression or args.capacity, "Select an experiment")
     rt.require(not args.capacity or args.mode == "native-common" and args.replay,
                "Stage capacity requires NativeCommon and original replay counts")
-    rt.require(not args.regression or args.batch_one and args.mode in ("native-common", "static10"),
-               "Regression covers the B1 NativeCommon and Static10 controls")
+    rt.require(not args.capacity_stage or args.capacity, "Stage selection needs --capacity")
+    rt.require(not args.capacity_p_profile or args.capacity and args.capacity_stage == "prefill",
+               "Isolated P profiling is a separate stage run")
+    rt.require(not args.regression or args.batch_one and (args.mode == "native-common" or args.mode.startswith("static")),
+               "Regression covers the B1 NativeCommon and static Token Split controls")
     rt.require(not args.profile or len(args.qps) == 1 and not args.observe_batch,
                "A clean/profile/clean comparison requires one load and no batch observer")
+    rt.require(1 <= args.profile_state_ms <= 1000, "Positive sampled observer interval required")
     rt.git_check(asset_repo)
     fingerprint = rt.runtime_inventory()
     model, manifests = rt.verify_inputs(asset_repo, receipt)
@@ -199,7 +227,7 @@ def main():
     run.mkdir(mode=0o700)
     for directory in ("state", "logs", "raw", "analysis", "data", "configs", "references"):
         (run / directory).mkdir()
-    if args.profile:
+    if args.profile or args.capacity_p_profile:
         from .trace import build_collector
         build_collector(asset_repo, run, Path(sys.executable).parent.parent)
     rt.write(run / "state/model_download_complete.json", {"directory": str(model), "revision": rt.MODEL_REVISION})
@@ -231,16 +259,17 @@ def main():
             rt.verify_ports()
             ec.mkdir(mode=0o700)
             try:
-                token = args.mode in ("static10", "idle10")
+                token = args.mode in TOKEN_FRACTIONS
+                fraction = TOKEN_FRACTIONS.get(args.mode, 0.)
                 rt.launch_models(group, args.mode, ec, expected, asset_repo / rt.REPORT / "media",
                                  token=token, common=args.mode != "native-strong")
                 url = rt.launch_proxy(group, "epd", "epd", 18847, token=token,
-                                      batch_one=args.batch_one, idle=args.mode == "idle10")
+                                      batch_one=args.batch_one, idle=args.mode == "idle10", fraction=fraction)
                 if args.regression:
                     from .regression import native_checks, token_checks
                     teacher = rt.launch_proxy(group, "teacher", "e_pd", 18848)
                     calibration = rt.read(manifests[rt.CALIBRATION])["requests"]
-                    result = token_checks(calibration, teacher, url, "epd") if token else native_checks(
+                    result = token_checks(calibration, teacher, url, "epd", fraction) if token else native_checks(
                         calibration, teacher, url)
                     rt.write(run / "analysis/regression.json", {"evidence": "CORRECTNESS_PASS", "result": result})
                 if args.qps:
@@ -250,9 +279,12 @@ def main():
                     rows = rt.read(manifests[rt.MAIN100])["requests"]
                     random.Random(ORDER_SEED).shuffle(rows)
                     counts = load_replay(args.replay, rows)
-                    for stage, batch_one in (("encoder", False), ("prefill", False),
-                                             ("decode", True), ("decode", False)):
-                        asyncio.run(measure_stages(run, rows, stage, replay=counts, batch_one=batch_one))
+                    stages = {"encoder": ("encoder", False), "prefill": ("prefill", False),
+                              "decode-b1": ("decode", True), "decode-free": ("decode", False)}
+                    for stage, batch_one in (stages[name] for name in ([args.capacity_stage]
+                                                                       if args.capacity_stage else stages)):
+                        asyncio.run(measure_stages(run, rows, stage, replay=counts, batch_one=batch_one,
+                                                   profile=args.capacity_p_profile))
             finally:
                 group.close()
                 rt.verify_devices(expected)

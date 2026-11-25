@@ -1,6 +1,7 @@
 """The observer must preserve outputs and count the prepared query positions."""
 from pathlib import Path
 import json
+import sys
 from tempfile import TemporaryDirectory
 from types import SimpleNamespace
 import unittest
@@ -12,6 +13,49 @@ from . import batch_counter as module
 
 
 class CounterTest(unittest.TestCase):
+    def test_decode_v1_records_actual_forward_padding_and_restores_model_forward(self):
+        from types import ModuleType
+        context=SimpleNamespace(batch_descriptor=SimpleNamespace(num_reqs=2,num_tokens=8),
+            cudagraph_runtime_mode=SimpleNamespace(name='FULL'))
+        context_module=ModuleType('vllm.forward_context')
+        context_module.get_forward_context=lambda:context
+        sentinel=object()
+
+        class Runner:
+            input_batch=SimpleNamespace(req_ids=['d'],num_reqs=1,
+                num_computed_tokens_cpu=np.array([12]),num_prompt_tokens=np.array([12]))
+            def _prepare_inputs(self,output,scheduled):return None,None
+            def _model_forward(self,**kwargs):return sentinel
+            def execute_model(self,output):
+                self._prepare_inputs(output,np.array([1]))
+                return self._model_forward(input_ids=np.zeros(context.batch_descriptor.num_tokens))
+
+        output=SimpleNamespace(num_scheduled_tokens={'d':1},total_num_scheduled_tokens=1,
+            scheduled_encoder_inputs={},scheduled_spec_decode_tokens={},
+            scheduled_cached_reqs=SimpleNamespace(req_ids=['d'],num_output_tokens=[1]))
+        with TemporaryDirectory() as directory,patch.object(module,'ROOT',Path(directory)),\
+                patch.dict(sys.modules,{'vllm.forward_context':context_module}),\
+                patch.dict(module.os.environ,MLLM_EPD_ROLE='decode',CUDA_VISIBLE_DEVICES='6'):
+            runner=Runner();counter=module.BatchCounter(runner,'v1_decode_fixture',decode_only=True)
+            info=counter.begin()
+            self.assertIs(runner.execute_model(output),sentinel)
+            context.batch_descriptor.num_reqs=None
+            context.batch_descriptor.num_tokens=1
+            context.cudagraph_runtime_mode.name='NONE'
+            self.assertIs(runner.execute_model(output),sentinel)
+            result=counter.close()
+            values=json.loads((Path(result['folder'])/'histograms.json').read_text())
+        self.assertEqual(info['runner_API'],'V1_PRIVATE_PREPARE_AND_FORWARD_CONTEXT')
+        self.assertTrue(result['valid'])
+        self.assertEqual(result['decode_maxima']['prepared_decode_requests'],1)
+        self.assertEqual(result['decode_maxima']['prepared_requests_after_padding'],2)
+        self.assertEqual(values['prepared_decode_padding_histogram'],
+            [dict(requests=1,decode_requests=1,query_rows=1,requests_after_padding=1,
+                query_rows_after_padding=1,graph_mode='NONE',calls=1),
+             dict(requests=1,decode_requests=1,query_rows=1,requests_after_padding=2,
+                query_rows_after_padding=8,graph_mode='FULL',calls=1)])
+        self.assertNotIn('_model_forward',vars(runner))
+
     def test_decode_v2_records_logical_rows_and_real_padding_without_encoder(self):
         prepared=SimpleNamespace(req_ids=['a','b'],num_reqs=2,
             num_scheduled_tokens=np.array([3,1]),num_tokens=4,

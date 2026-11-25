@@ -114,7 +114,7 @@ async def one(session,url,row,body,arrival,run,index,host_observer=None,evidence
 
 
 async def execute(rows,urls,run,qps,seed,output_count,serial=False,metadata=None,observe_host=False,
-                  freeze_static_heap=False,defer_raw=False):
+                  freeze_static_heap=False,defer_raw=False,unique_media_occurrence=False):
     import aiohttp
     rng=random.Random(seed);offset=0;trace=[]
     for i,row in enumerate(rows):
@@ -130,6 +130,7 @@ async def execute(rows,urls,run,qps,seed,output_count,serial=False,metadata=None
         output_mode='Natural EOS' if output_count is None else
             'Per-request equal-output replay' if isinstance(output_count,dict) else 'Fixed-output diagnostic',
         output_count=output_count,mm_processor_cache_gb=1,unique_media_UUID_per_request=True,
+        unique_media_UUID_per_occurrence=unique_media_occurrence,
         prefix_cache=False,transport='HTTP SSE',evidence='MEASURED_ONLINE' if not serial else 'CORRECTNESS_REFERENCE',
         workload=metadata or {},client_host_observer=observe_host,
         freeze_client_static_heap=freeze_static_heap,defer_client_full_raw=defer_raw))
@@ -159,7 +160,8 @@ async def execute(rows,urls,run,qps,seed,output_count,serial=False,metadata=None
                         time.monotonic(),run,i,host_observer,evidence_sink))
                     if results[-1]['status']!='MEASURED_ONLINE':break
             else:
-                results=await asyncio.gather(*(one(session,urls[t['replica']],row,payload(row,run,resolve_output_count(output_count,row)),
+                results=await asyncio.gather(*(one(session,urls[t['replica']],row,payload(
+                    row,f"{run}_{t['index']:04d}" if unique_media_occurrence else run,resolve_output_count(output_count,row)),
                     start+t['offset_seconds'],run,t['index'],host_observer,evidence_sink) for row,t in zip(rows,trace)))
     finally:
         if host_observer is not None:await host_observer.close()

@@ -70,13 +70,14 @@ def rpc(port, path, body):
 
 
 @asynccontextmanager
-async def profile_session(ports, name, state_interval_ms=50):
+async def profile_session(ports, name, state_interval_ms=50, decode_buffer_gib=1):
     """Collect three kernel streams and rate-limited scheduler state outside timed setup."""
     receipts = {}
     try:
         for role, port in ports.items():
             value = await asyncio.to_thread(rpc, port, 'profile/begin', {
                 'name': name, 'include_copies': False, 'state_interval_ms': state_interval_ms,
+                'buffer_gib': decode_buffer_gib if role == 'decode' else 1,
             })
             receipts[role] = {'begin': value}
         yield receipts

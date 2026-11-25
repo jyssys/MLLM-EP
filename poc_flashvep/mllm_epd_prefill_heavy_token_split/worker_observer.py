@@ -24,8 +24,9 @@ def prepare_artifact():
 
 
 class Collector:
-    def __init__(self,name,role,copies,runner,state_interval_ms=0):
+    def __init__(self,name,role,copies,runner,state_interval_ms=0,buffer_gib=1):
         assert 0<=state_interval_ms<=1000
+        assert type(buffer_gib) is int and buffer_gib in (1,2)
         assert re.fullmatch('[A-Za-z0-9_.-]+',name) and name not in ('.','..')
         key=role+('_gpu'+os.environ['CUDA_VISIBLE_DEVICES'] if role in ('agg','pd') else '')
         self.folder=ROOT/'raw/profiles'/name/key
@@ -39,12 +40,12 @@ class Collector:
         self.lib.activity_end.argtypes=[ctypes.c_char_p,ctypes.c_uint64,ctypes.c_uint64]
         for k in ('dropped','invalid','count','all_kernels','requested_buffers','completed_buffers','reserved_host_bytes'):
             getattr(self.lib,'activity_'+k).restype=ctypes.c_uint64
-        assert self.lib.activity_prepare(1024*1024**2)==0
+        assert self.lib.activity_prepare(buffer_gib*1024**3)==0
         self.rows=[];self.calls=[];self.originals=[]
         self.state_interval_ns=int(state_interval_ms*1_000_000)
         self.last_schedule_sample_ns=0;self.last_execute_sample_ns=0
         write(self.folder/'provenance.json',dict(build=build,role=role,pid=os.getpid(),include_copies=copies,
-            scheduler_state_sampling_interval_ms=state_interval_ms,
+            scheduler_state_sampling_interval_ms=state_interval_ms,buffer_gib=buffer_gib,
             scope='CUPTI kernels and optional copies. No driver/runtime/external or graph-enclosure tracing. '
                 'Kernel union is not SM,Tensors or HBM utilization. Observer qualification is required.'))
 
@@ -268,9 +269,10 @@ class CampaignWorkerExtension:
             evidence='CORRECTNESS_ONLY',scope='Actual colocated official vLLM encoder. Extra CPU copies exclude this run from performance.'))
         return dict(images=len(capture['rows']),folder=str(capture['folder']))
 
-    def campaign_profile_begin(self,name,include_copies=True,state_interval_ms=0):
+    def campaign_profile_begin(self,name,include_copies=True,state_interval_ms=0,buffer_gib=1):
         assert not hasattr(self,'_campaign_collector'),'One profile per independent worker start'
-        self._campaign_collector=Collector(name,os.environ['MLLM_EPD_ROLE'],include_copies,self.model_runner,state_interval_ms)
+        self._campaign_collector=Collector(name,os.environ['MLLM_EPD_ROLE'],include_copies,self.model_runner,
+            state_interval_ms,buffer_gib)
         return self._campaign_collector.begin()
 
     def campaign_profile_end(self):

@@ -69,8 +69,8 @@ async def json_reply(request, stage):
         return await response.json()
 
 
-async def stage_request(session, port, row, name, stage, client, export=False):
-    body = client.payload(row, name, None, stream=False)
+async def stage_request(session, port, row, name, stage, client, export=False, output_count=None):
+    body = client.payload(row, name, output_count, stream=False)
     body['max_tokens'] = 1
     if export:
         body['kv_transfer_params'] = dict(PULL_PARAMS)
@@ -277,11 +277,13 @@ async def measure_stages(root, rows, stage, *, replay=None, batch_one=False, pro
             jobs = list(zip(cohort, names, strict=True))
 
             async def encode():
-                return await collect_all(*(stage_request(session, encoder, row, name, 'E:full', client)
+                return await collect_all(*(stage_request(session, encoder, row, name, 'E:full', client,
+                                           output_count=replay[row['request_id']] if stage == 'decode' else None)
                                            for row, name in jobs))
 
             async def prefill_rows(export=False):
-                return await collect_all(*(stage_request(session, prefill, row, name, 'P', client, export)
+                return await collect_all(*(stage_request(session, prefill, row, name, 'P', client, export,
+                                           output_count=replay[row['request_id']] if stage == 'decode' else None)
                                            for row, name in jobs))
 
             prepared = {}

@@ -184,15 +184,24 @@ class RepresentativeSubsetTest(unittest.TestCase):
 class FrontendConfigTest(unittest.TestCase):
     def test_official_renderer_configuration_constraint_is_preserved(self):
         from pathlib import Path
-        from .servers import command
-        for cache,workers in [(1,1),(0,1),(0,2)]:
-            args=command('encoder',18840,Path('/dev/shm/fixture'),19840,
-                         mm_cache_gb=cache,renderer_workers=workers)
-            self.assertEqual(args[args.index('--mm-processor-cache-gb')+1],str(cache))
-            self.assertEqual(args[args.index('--renderer-num-workers')+1],str(workers))
-            self.assertEqual(args[args.index('--max-num-batched-tokens')+1],'114688')
-        with self.assertRaises(AssertionError):
-            command('encoder',18840,Path('/dev/shm/fixture'),19840,mm_cache_gb=1,renderer_workers=2)
+        from tempfile import TemporaryDirectory
+        from unittest.mock import patch
+        from . import servers
+
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / 'state').mkdir()
+            (root / 'state/model_download_complete.json').write_text('{"directory": "/fixture/model"}')
+            with patch.object(servers, 'ROOT', root):
+                for cache, workers in [(1, 1), (0, 1), (0, 2)]:
+                    args = servers.command('encoder', 18840, Path('/dev/shm/fixture'), 19840,
+                                           mm_cache_gb=cache, renderer_workers=workers)
+                    self.assertEqual(args[args.index('--mm-processor-cache-gb') + 1], str(cache))
+                    self.assertEqual(args[args.index('--renderer-num-workers') + 1], str(workers))
+                    self.assertEqual(args[args.index('--max-num-batched-tokens') + 1], '114688')
+                with self.assertRaises(AssertionError):
+                    servers.command('encoder', 18840, Path('/dev/shm/fixture'), 19840,
+                                    mm_cache_gb=1, renderer_workers=2)
 
 
 class IntervalTest(unittest.TestCase):

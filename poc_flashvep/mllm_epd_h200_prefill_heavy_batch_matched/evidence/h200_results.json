@@ -1,0 +1,987 @@
+{
+  "motivation": "P_HEAVY_D_IDLE_NOT_MEASURED",
+  "campaign": "HOLD",
+  "base_commit": "449c3e1873c65206435a6bb9411a889a62e55be7",
+  "scope": {
+    "h200_experiment_gpu_indices": [
+      4,
+      5,
+      6
+    ],
+    "other_gpu_burners_allowed": true,
+    "burner_off_comparison": false,
+    "prefill_heavy_static_and_idle_confirmation": "NOT_RUN"
+  },
+  "capacity": [
+    {
+      "evidence": "ISOLATED_GPU_MEASUREMENT",
+      "stage": "encoder",
+      "batch_one": false,
+      "requests": 100,
+      "tokens": 1095976,
+      "requests_per_second": 3.9243237248766007,
+      "tokens_per_second": 43009.64618695357,
+      "scope": "Concurrent original image-encoder HTTP. No inline transport, and releases follow the measured interval.",
+      "source": "c_capacity/analysis/capacity_encoder_free.json",
+      "P_kernel_busy_in_profiled_cohort": []
+    },
+    {
+      "evidence": "ISOLATED_GPU_MEASUREMENT",
+      "stage": "prefill",
+      "batch_one": false,
+      "requests": 100,
+      "tokens": 1102959,
+      "requests_per_second": 3.176595613045308,
+      "tokens_per_second": 35036.547207688396,
+      "scope": "Original E embeddings pre-staged, real decoder model P step with immediate local KV release; no D or exported KV retention.",
+      "source": "c_capacity/analysis/capacity_prefill_free.json",
+      "P_kernel_busy_in_profiled_cohort": []
+    },
+    {
+      "evidence": "ISOLATED_GPU_MEASUREMENT",
+      "stage": "decode",
+      "batch_one": true,
+      "requests": 100,
+      "tokens": 5269,
+      "requests_per_second": 3.32039558269683,
+      "tokens_per_second": 174.95164325229598,
+      "scope": "Official NIXL imports from fully pre-staged P KV with equal original output counts. Includes import and dispatch gaps. P/E preparation excluded.",
+      "source": "c_capacity_decode-b1/analysis/capacity_decode_b1.json",
+      "P_kernel_busy_in_profiled_cohort": []
+    },
+    {
+      "evidence": "ISOLATED_GPU_MEASUREMENT",
+      "stage": "decode",
+      "batch_one": false,
+      "requests": 100,
+      "tokens": 5269,
+      "requests_per_second": 7.194210997904976,
+      "tokens_per_second": 379.0629774796132,
+      "scope": "Official NIXL imports from fully pre-staged P KV with equal original output counts. Includes import and dispatch gaps. P/E preparation excluded.",
+      "source": "c_capacity_decode-free/analysis/capacity_decode_free.json",
+      "P_kernel_busy_in_profiled_cohort": []
+    },
+    {
+      "evidence": "ISOLATED_GPU_MEASUREMENT",
+      "stage": "prefill",
+      "batch_one": false,
+      "requests": 100,
+      "tokens": 1102959,
+      "requests_per_second": 3.174970748817592,
+      "tokens_per_second": 35018.62562145102,
+      "scope": "Original E embeddings pre-staged, real decoder model P step with immediate local KV release; no D or exported KV retention.",
+      "source": "c_capacity_prefill/analysis/capacity_prefill_free.json",
+      "P_kernel_busy_in_profiled_cohort": [
+        0.9219690615399883
+      ]
+    }
+  ],
+  "QPS2_controls": {
+    "b_common_free": {
+      "evidence": "N1 online clean-before/after bracket",
+      "QPS": 2,
+      "output_tokens": 5269,
+      "clean_means": {
+        "TTFT_p95_ms": 4471.707700309344,
+        "TTFT_mean_ms": 2273.660263638012,
+        "ITL_p99_ms": 12.188797304406751,
+        "TPOT_p95_ms": 5.204002897479329
+      },
+      "batch_observer_qualified": false,
+      "actual_decode_maxima": {
+        "scheduled_requests": 4,
+        "scheduler_generation_phase_requests": 4,
+        "prepared_decode_requests": 4,
+        "prepared_query_rows": 4,
+        "prepared_requests_after_padding": 4,
+        "prepared_query_rows_after_padding": 4
+      },
+      "source": [
+        "b_common_free/analysis/native_common_free_2_batch_clean_after_metrics.json",
+        "b_common_free/analysis/native_common_free_2_batch_clean_before_metrics.json"
+      ]
+    },
+    "b_native_common_v2": {
+      "evidence": "N1 online clean-before/after bracket",
+      "QPS": 2,
+      "output_tokens": 5269,
+      "clean_means": {
+        "TTFT_p95_ms": 5248.7819192465395,
+        "TTFT_mean_ms": 2639.8676707642153,
+        "ITL_p99_ms": 5.967633435502638,
+        "TPOT_p95_ms": 4.823617646235523
+      },
+      "batch_observer_qualified": false,
+      "actual_decode_maxima": {
+        "scheduled_requests": 1,
+        "scheduler_generation_phase_requests": 1,
+        "prepared_decode_requests": 1,
+        "prepared_query_rows": 1,
+        "prepared_requests_after_padding": 1,
+        "prepared_query_rows_after_padding": 1
+      },
+      "source": [
+        "b_native_common_v2/analysis/native_common_b1_2_batch_clean_after_metrics.json",
+        "b_native_common_v2/analysis/native_common_b1_2_batch_clean_before_metrics.json"
+      ]
+    },
+    "b_strong_b1": {
+      "evidence": "N1 online clean-before/after bracket",
+      "QPS": 2,
+      "output_tokens": 5269,
+      "clean_means": {
+        "TTFT_p95_ms": 5028.6208221223205,
+        "TTFT_mean_ms": 2522.249490278773,
+        "ITL_p99_ms": 6.281039817258714,
+        "TPOT_p95_ms": 4.800563025844788
+      },
+      "batch_observer_qualified": false,
+      "actual_decode_maxima": {
+        "scheduled_requests": 1,
+        "scheduler_generation_phase_requests": 1,
+        "prepared_decode_requests": 1,
+        "prepared_query_rows": 1,
+        "prepared_requests_after_padding": 1,
+        "prepared_query_rows_after_padding": 1
+      },
+      "source": [
+        "b_strong_b1/analysis/native_strong_b1_2_batch_clean_after_metrics.json",
+        "b_strong_b1/analysis/native_strong_b1_2_batch_clean_before_metrics.json"
+      ]
+    },
+    "b_static10": {
+      "evidence": "N1 online clean-before/after bracket",
+      "QPS": 2,
+      "output_tokens": 5269,
+      "clean_means": {
+        "TTFT_p95_ms": 5836.612308397889,
+        "TTFT_mean_ms": 2858.7521572504193,
+        "ITL_p99_ms": 5.979418111965057,
+        "TPOT_p95_ms": 4.8073230868396655
+      },
+      "batch_observer_qualified": false,
+      "actual_decode_maxima": {
+        "scheduled_requests": 1,
+        "scheduler_generation_phase_requests": 1,
+        "prepared_decode_requests": 1,
+        "prepared_query_rows": 3054,
+        "prepared_requests_after_padding": 1,
+        "prepared_query_rows_after_padding": 3054
+      },
+      "source": [
+        "b_static10/analysis/static10_b1_2_batch_clean_after_metrics.json",
+        "b_static10/analysis/static10_b1_2_batch_clean_before_metrics.json"
+      ]
+    },
+    "b_idle10": {
+      "evidence": "N1 online clean-before/after bracket",
+      "QPS": 2,
+      "output_tokens": 5269,
+      "clean_means": {
+        "TTFT_p95_ms": 4961.876757058781,
+        "TTFT_mean_ms": 2494.5924424077384,
+        "ITL_p99_ms": 6.209961939603085,
+        "TPOT_p95_ms": 4.854802098211316
+      },
+      "batch_observer_qualified": false,
+      "actual_decode_maxima": {
+        "scheduled_requests": 1,
+        "scheduler_generation_phase_requests": 1,
+        "prepared_decode_requests": 1,
+        "prepared_query_rows": 2895,
+        "prepared_requests_after_padding": 1,
+        "prepared_query_rows_after_padding": 2895
+      },
+      "source": [
+        "b_idle10/analysis/idle10_b1_2_batch_clean_after_metrics.json",
+        "b_idle10/analysis/idle10_b1_2_batch_clean_before_metrics.json"
+      ]
+    }
+  },
+  "discovery_gates": {
+    "free_q5": {
+      "status": "P_HEAVY_D_IDLE_NOT_MEASURED",
+      "checks": {
+        "trace_qualified": false,
+        "p_kernel_busy": true,
+        "p_service_proximity": true,
+        "p_scheduler_backlog": true,
+        "p_not_starved": true,
+        "d_quiet_window_coverage": true,
+        "d_kv_capacity": true,
+        "absolute_decode_slo": true
+      },
+      "qps": 5.0,
+      "batch_one": false,
+      "p_busy": 0.9294982737304306,
+      "p_service_proximity": {
+        "requests_per_second": 1.1176446346839894,
+        "tokens_per_second": 1.0413212213086531
+      },
+      "d_decode_attainment": 0.95,
+      "robust_window_160_ms": {
+        "windows": 9,
+        "p_busy_overlap_fraction": 0.2721935987215259,
+        "p_busy_overlap_without_backlog_fraction": 0.2755846149846186
+      },
+      "robust_window_225_ms": {
+        "windows": 6,
+        "p_busy_overlap_fraction": 0.21633147455269675,
+        "p_busy_overlap_without_backlog_fraction": 0.21972249081578948
+      },
+      "main100_cycles": 1
+    },
+    "free_q5_deferred": {
+      "status": "P_HEAVY_D_IDLE_NOT_MEASURED",
+      "checks": {
+        "trace_qualified": false,
+        "p_kernel_busy": true,
+        "p_service_proximity": true,
+        "p_scheduler_backlog": true,
+        "p_not_starved": true,
+        "d_quiet_window_coverage": true,
+        "d_kv_capacity": true,
+        "absolute_decode_slo": true
+      },
+      "qps": 5.0,
+      "batch_one": false,
+      "p_busy": 0.9386006263224529,
+      "p_service_proximity": {
+        "requests_per_second": 1.1463021894194765,
+        "tokens_per_second": 1.047406306356285
+      },
+      "d_decode_attainment": 0.95,
+      "robust_window_160_ms": {
+        "windows": 9,
+        "p_busy_overlap_fraction": 0.26220950353737144,
+        "p_busy_overlap_without_backlog_fraction": 0.27978301885065876
+      },
+      "robust_window_225_ms": {
+        "windows": 7,
+        "p_busy_overlap_fraction": 0.2421657694446144,
+        "p_busy_overlap_without_backlog_fraction": 0.24258093444659767
+      },
+      "main100_cycles": 1
+    },
+    "q3": {
+      "status": "P_HEAVY_D_IDLE_NOT_MEASURED",
+      "checks": {
+        "trace_qualified": false,
+        "p_kernel_busy": false,
+        "p_service_proximity": false,
+        "p_scheduler_backlog": true,
+        "p_not_starved": false,
+        "d_quiet_window_coverage": false,
+        "d_kv_capacity": true,
+        "absolute_decode_slo": true
+      },
+      "qps": 3.0,
+      "batch_one": true,
+      "p_busy": 0.6221838531775941,
+      "p_service_proximity": {
+        "requests_per_second": 0.6533922479580224,
+        "tokens_per_second": 0.666550654572148
+      },
+      "d_decode_attainment": 0.99,
+      "robust_window_160_ms": {
+        "windows": 10,
+        "p_busy_overlap_fraction": 0.06985229473022028,
+        "p_busy_overlap_without_backlog_fraction": 0.3504944285807145
+      },
+      "robust_window_225_ms": {
+        "windows": 9,
+        "p_busy_overlap_fraction": 0.06815843113977202,
+        "p_busy_overlap_without_backlog_fraction": 0.33347209691952423
+      },
+      "main100_cycles": 1
+    },
+    "q4": {
+      "status": "P_HEAVY_D_IDLE_NOT_MEASURED",
+      "checks": {
+        "trace_qualified": false,
+        "p_kernel_busy": false,
+        "p_service_proximity": true,
+        "p_scheduler_backlog": true,
+        "p_not_starved": true,
+        "d_quiet_window_coverage": false,
+        "d_kv_capacity": true,
+        "absolute_decode_slo": true
+      },
+      "qps": 4.0,
+      "batch_one": true,
+      "p_busy": 0.7970880422449526,
+      "p_service_proximity": {
+        "requests_per_second": 0.9628938390797059,
+        "tokens_per_second": 0.9169303388457143
+      },
+      "d_decode_attainment": 0.95,
+      "robust_window_160_ms": {
+        "windows": 0,
+        "p_busy_overlap_fraction": 0.0,
+        "p_busy_overlap_without_backlog_fraction": 0.0
+      },
+      "robust_window_225_ms": {
+        "windows": 0,
+        "p_busy_overlap_fraction": 0.0,
+        "p_busy_overlap_without_backlog_fraction": 0.0
+      },
+      "main100_cycles": 1
+    },
+    "q5": {
+      "status": "P_HEAVY_D_IDLE_NOT_MEASURED",
+      "checks": {
+        "trace_qualified": false,
+        "p_kernel_busy": true,
+        "p_service_proximity": true,
+        "p_scheduler_backlog": true,
+        "p_not_starved": true,
+        "d_quiet_window_coverage": false,
+        "d_kv_capacity": true,
+        "absolute_decode_slo": true
+      },
+      "qps": 5.0,
+      "batch_one": true,
+      "p_busy": 0.9682684699578155,
+      "p_service_proximity": {
+        "requests_per_second": 1.1463021894194765,
+        "tokens_per_second": 1.0514491724255062
+      },
+      "d_decode_attainment": 0.95,
+      "robust_window_160_ms": {
+        "windows": 1,
+        "p_busy_overlap_fraction": 0.047234280367636265,
+        "p_busy_overlap_without_backlog_fraction": 0.047234280367636265
+      },
+      "robust_window_225_ms": {
+        "windows": 1,
+        "p_busy_overlap_fraction": 0.047234280367636265,
+        "p_busy_overlap_without_backlog_fraction": 0.047234280367636265
+      },
+      "main100_cycles": 1
+    },
+    "q5_deferred": {
+      "status": "P_HEAVY_D_IDLE_NOT_MEASURED",
+      "checks": {
+        "trace_qualified": false,
+        "p_kernel_busy": true,
+        "p_service_proximity": true,
+        "p_scheduler_backlog": true,
+        "p_not_starved": true,
+        "d_quiet_window_coverage": false,
+        "d_kv_capacity": true,
+        "absolute_decode_slo": true
+      },
+      "qps": 5.0,
+      "batch_one": true,
+      "p_busy": 0.9640138152010553,
+      "p_service_proximity": {
+        "requests_per_second": 1.1176446346839894,
+        "tokens_per_second": 1.0429763020837777
+      },
+      "d_decode_attainment": 0.97,
+      "robust_window_160_ms": {
+        "windows": 1,
+        "p_busy_overlap_fraction": 0.07321898484173701,
+        "p_busy_overlap_without_backlog_fraction": 0.07321898484173701
+      },
+      "robust_window_225_ms": {
+        "windows": 1,
+        "p_busy_overlap_fraction": 0.07321898484173701,
+        "p_busy_overlap_without_backlog_fraction": 0.07321898484173701
+      },
+      "main100_cycles": 1
+    },
+    "q5_sustained_r3": {
+      "status": "P_HEAVY_D_IDLE_NOT_MEASURED",
+      "checks": {
+        "trace_qualified": false,
+        "p_kernel_busy": true,
+        "p_service_proximity": true,
+        "p_scheduler_backlog": true,
+        "p_not_starved": true,
+        "d_quiet_window_coverage": false,
+        "d_kv_capacity": true,
+        "absolute_decode_slo": true
+      },
+      "qps": 5.0,
+      "batch_one": true,
+      "p_busy": 0.9540966678628959,
+      "p_service_proximity": {
+        "requests_per_second": 1.0411859389709701,
+        "tokens_per_second": 1.0381504304576359
+      },
+      "d_decode_attainment": 0.9566666666666667,
+      "robust_window_160_ms": {
+        "windows": 1,
+        "p_busy_overlap_fraction": 0.008814650610458764,
+        "p_busy_overlap_without_backlog_fraction": 0.008814650610458764
+      },
+      "robust_window_225_ms": {
+        "windows": 1,
+        "p_busy_overlap_fraction": 0.008814650610458764,
+        "p_busy_overlap_without_backlog_fraction": 0.008814650610458764
+      },
+      "main100_cycles": 3
+    },
+    "q5_sustained_r3_buffer2": {
+      "status": "P_HEAVY_D_IDLE_NOT_MEASURED",
+      "checks": {
+        "trace_qualified": false,
+        "p_kernel_busy": true,
+        "p_service_proximity": true,
+        "p_scheduler_backlog": true,
+        "p_not_starved": true,
+        "d_quiet_window_coverage": false,
+        "d_kv_capacity": true,
+        "absolute_decode_slo": true
+      },
+      "qps": 5.0,
+      "batch_one": true,
+      "p_busy": 0.9508178015244325,
+      "p_service_proximity": {
+        "requests_per_second": 1.0510084478291868,
+        "tokens_per_second": 1.0305379257570955
+      },
+      "d_decode_attainment": 0.95,
+      "robust_window_160_ms": {
+        "windows": 3,
+        "p_busy_overlap_fraction": 0.016350206207036564,
+        "p_busy_overlap_without_backlog_fraction": 0.02791352576101934
+      },
+      "robust_window_225_ms": {
+        "windows": 2,
+        "p_busy_overlap_fraction": 0.011683559861602712,
+        "p_busy_overlap_without_backlog_fraction": 0.023246879415585488
+      },
+      "main100_cycles": 3
+    },
+    "q6": {
+      "status": "P_HEAVY_D_IDLE_NOT_MEASURED",
+      "checks": {
+        "trace_qualified": false,
+        "p_kernel_busy": true,
+        "p_service_proximity": true,
+        "p_scheduler_backlog": true,
+        "p_not_starved": true,
+        "d_quiet_window_coverage": false,
+        "d_kv_capacity": true,
+        "absolute_decode_slo": true
+      },
+      "qps": 6.0,
+      "batch_one": true,
+      "p_busy": 0.9381485125370247,
+      "p_service_proximity": {
+        "requests_per_second": 1.1004501018240378,
+        "tokens_per_second": 1.0342264590233694
+      },
+      "d_decode_attainment": 0.96,
+      "robust_window_160_ms": {
+        "windows": 1,
+        "p_busy_overlap_fraction": 0.0799423412677996,
+        "p_busy_overlap_without_backlog_fraction": 0.0799423412677996
+      },
+      "robust_window_225_ms": {
+        "windows": 1,
+        "p_busy_overlap_fraction": 0.0799423412677996,
+        "p_busy_overlap_without_backlog_fraction": 0.0799423412677996
+      },
+      "main100_cycles": 1
+    }
+  },
+  "observer_trials": {
+    "d_profile_b1_q3": {
+      "accepted": false,
+      "collector_passed": true,
+      "metrics": {
+        "duration_seconds": {
+          "clean_before": 43.08350246632472,
+          "profile": 43.019474716857076,
+          "clean_after": 43.022626284044236,
+          "clean_relative_spread": 0.0014139802395940373,
+          "profile_relative_deviation": 0.0007801920447446653,
+          "passed": true
+        },
+        "TTFT_p50_ms": {
+          "clean_before": 2732.592346612364,
+          "profile": 2793.6208634637296,
+          "clean_after": 2666.752743534744,
+          "clean_relative_spread": 0.02438799594334743,
+          "profile_relative_deviation": 0.03479989399514971,
+          "passed": true
+        },
+        "TTFT_p95_ms": {
+          "clean_before": 9938.238575053401,
+          "profile": 10160.709956963545,
+          "clean_after": 10133.722032606602,
+          "clean_relative_spread": 0.019478262375485,
+          "profile_relative_deviation": 0.01242824809908627,
+          "passed": true
+        },
+        "ITL_p99_ms": {
+          "clean_before": 6.588422879576682,
+          "profile": 6.571880150586367,
+          "clean_after": 5.959024932235478,
+          "clean_relative_spread": 0.10032286354659149,
+          "profile_relative_deviation": 0.047524604071212506,
+          "passed": false
+        },
+        "TPOT_p95_ms": {
+          "clean_before": 4.802767046127834,
+          "profile": 4.983122262405895,
+          "clean_after": 4.790851853234572,
+          "clean_relative_spread": 0.0024839829512206825,
+          "profile_relative_deviation": 0.03884098684325976,
+          "passed": true
+        }
+      },
+      "dropped_by_role": {
+        "encoder": 0,
+        "prefill": 0,
+        "decode": 0
+      }
+    },
+    "d_profile_b1_q4_sampled": {
+      "accepted": false,
+      "collector_passed": true,
+      "metrics": {
+        "duration_seconds": {
+          "clean_before": 37.23475224385038,
+          "profile": 37.067736610304564,
+          "clean_after": 37.677044219803065,
+          "clean_relative_spread": 0.011808339856521292,
+          "profile_relative_deviation": 0.010363164143593617,
+          "passed": true
+        },
+        "TTFT_p50_ms": {
+          "clean_before": 3840.349841862917,
+          "profile": 4398.531302111223,
+          "clean_after": 3844.0986769273877,
+          "clean_relative_spread": 0.0009756939760358793,
+          "profile_relative_deviation": 0.14478775968262858,
+          "passed": false
+        },
+        "TTFT_p95_ms": {
+          "clean_before": 11531.336626131088,
+          "profile": 11359.434550837614,
+          "clean_after": 11978.887380589731,
+          "clean_relative_spread": 0.03807286177543039,
+          "profile_relative_deviation": 0.033660032538157414,
+          "passed": true
+        },
+        "ITL_p99_ms": {
+          "clean_before": 6.402313075959676,
+          "profile": 7.275415733456583,
+          "clean_after": 6.439563427120441,
+          "clean_relative_spread": 0.005801387538936419,
+          "profile_relative_deviation": 0.13307673247154783,
+          "passed": false
+        },
+        "TPOT_p95_ms": {
+          "clean_before": 4.765471473929895,
+          "profile": 5.158544901627092,
+          "clean_after": 4.840661543888713,
+          "clean_relative_spread": 0.015654596874589585,
+          "profile_relative_deviation": 0.0740107162910204,
+          "passed": false
+        }
+      },
+      "dropped_by_role": {
+        "encoder": 0,
+        "prefill": 0,
+        "decode": 0
+      }
+    },
+    "d_profile_b1_q5_deferred": {
+      "accepted": false,
+      "collector_passed": true,
+      "metrics": {
+        "duration_seconds": {
+          "clean_before": 35.12999219773337,
+          "profile": 34.417520815040916,
+          "clean_after": 34.786288978066295,
+          "clean_relative_spread": 0.009831850718800647,
+          "profile_relative_deviation": 0.015464774835479811,
+          "passed": true
+        },
+        "TTFT_p50_ms": {
+          "clean_before": 6829.7255106735975,
+          "profile": 6554.911420447752,
+          "clean_after": 6873.375183204189,
+          "clean_relative_spread": 0.006370773083509939,
+          "profile_relative_deviation": 0.043295153865967384,
+          "passed": true
+        },
+        "TTFT_p95_ms": {
+          "clean_before": 13930.911220121197,
+          "profile": 13105.07198118139,
+          "clean_after": 13635.39335031528,
+          "clean_relative_spread": 0.021440514019630017,
+          "profile_relative_deviation": 0.04919631518285239,
+          "passed": true
+        },
+        "ITL_p99_ms": {
+          "clean_before": 6.8900098651648,
+          "profile": 6.681552580557764,
+          "clean_after": 7.128654550760985,
+          "clean_relative_spread": 0.03404670780549889,
+          "profile_relative_deviation": 0.046763317485902234,
+          "passed": true
+        },
+        "TPOT_p95_ms": {
+          "clean_before": 4.859070683268304,
+          "profile": 5.178229397655849,
+          "clean_after": 4.809324248245645,
+          "clean_relative_spread": 0.01029052606457189,
+          "profile_relative_deviation": 0.07116629685399167,
+          "passed": false
+        }
+      },
+      "dropped_by_role": {
+        "encoder": 0,
+        "prefill": 0,
+        "decode": 0
+      }
+    },
+    "d_profile_b1_q5_sampled": {
+      "accepted": false,
+      "collector_passed": true,
+      "metrics": {
+        "duration_seconds": {
+          "clean_before": 35.38157631829381,
+          "profile": 34.84654033696279,
+          "clean_after": 33.94085183599964,
+          "clean_relative_spread": 0.04156589780979683,
+          "profile_relative_deviation": 0.005346790778983701,
+          "passed": true
+        },
+        "TTFT_p50_ms": {
+          "clean_before": 6521.008159266785,
+          "profile": 6695.496901636943,
+          "clean_after": 5651.647329330444,
+          "clean_relative_spread": 0.14283831999529056,
+          "profile_relative_deviation": 0.10008812915291476,
+          "passed": false
+        },
+        "TTFT_p95_ms": {
+          "clean_before": 14180.16100595705,
+          "profile": 13543.833316862583,
+          "clean_after": 12804.56129363738,
+          "clean_relative_spread": 0.10195396469507821,
+          "profile_relative_deviation": 0.003814911748500016,
+          "passed": false
+        },
+        "ITL_p99_ms": {
+          "clean_before": 6.920864544808889,
+          "profile": 6.817387868650298,
+          "clean_after": 6.43177352845669,
+          "clean_relative_spread": 0.07325758605431663,
+          "profile_relative_deviation": 0.021129732004038226,
+          "passed": false
+        },
+        "TPOT_p95_ms": {
+          "clean_before": 4.832120577168719,
+          "profile": 5.3092573466368345,
+          "clean_after": 4.801022979183241,
+          "clean_relative_spread": 0.006456375907524524,
+          "profile_relative_deviation": 0.10228967638211595,
+          "passed": false
+        }
+      },
+      "dropped_by_role": {
+        "encoder": 0,
+        "prefill": 0,
+        "decode": 0
+      }
+    },
+    "d_profile_b1_q5_sustained_r3": {
+      "accepted": false,
+      "collector_passed": false,
+      "metrics": {
+        "duration_seconds": {
+          "clean_before": 98.02256010193378,
+          "profile": 99.96766785113141,
+          "clean_after": 97.91631900519133,
+          "clean_relative_spread": 0.0010844309942629232,
+          "profile_relative_deviation": 0.02039644512283223,
+          "passed": true
+        },
+        "TTFT_p50_ms": {
+          "clean_before": 22217.42564556189,
+          "profile": 23038.27232355252,
+          "clean_after": 22515.69895935245,
+          "clean_relative_spread": 0.013335679831218038,
+          "profile_relative_deviation": 0.030031884739907255,
+          "passed": true
+        },
+        "TTFT_p95_ms": {
+          "clean_before": 37568.79523517564,
+          "profile": 39310.93712865841,
+          "clean_after": 38018.52522359695,
+          "clean_relative_spread": 0.011899614530365806,
+          "profile_relative_deviation": 0.040146333804746304,
+          "passed": true
+        },
+        "ITL_p99_ms": {
+          "clean_before": 6.555093685165048,
+          "profile": 6.851998576894406,
+          "clean_after": 6.606330964714292,
+          "clean_relative_spread": 0.007785977720841087,
+          "profile_relative_deviation": 0.04122445087389881,
+          "passed": true
+        },
+        "TPOT_p95_ms": {
+          "clean_before": 4.816233398272257,
+          "profile": 4.985404930905335,
+          "clean_after": 4.800440272489606,
+          "clean_relative_spread": 0.003284529832943821,
+          "profile_relative_deviation": 0.03682522701435831,
+          "passed": true
+        }
+      },
+      "dropped_by_role": {
+        "encoder": 0,
+        "prefill": 0,
+        "decode": 1903688
+      }
+    },
+    "d_profile_b1_q5_sustained_r3_buffer2": {
+      "accepted": false,
+      "collector_passed": true,
+      "metrics": {
+        "duration_seconds": {
+          "clean_before": 97.21096867695451,
+          "profile": 98.35838309302926,
+          "clean_after": 97.84635811299086,
+          "clean_relative_spread": 0.006514899455385142,
+          "profile_relative_deviation": 0.008507444572436906,
+          "passed": true
+        },
+        "TTFT_p50_ms": {
+          "clean_before": 21914.59232312627,
+          "profile": 22472.499415976927,
+          "clean_after": 22332.738979253918,
+          "clean_relative_spread": 0.018900423768841094,
+          "profile_relative_deviation": 0.01576744877122427,
+          "passed": true
+        },
+        "TTFT_p95_ms": {
+          "clean_before": 36555.14390096069,
+          "profile": 37626.0139857186,
+          "clean_after": 37454.79208424222,
+          "clean_relative_spread": 0.02431155145064296,
+          "profile_relative_deviation": 0.016782773416837315,
+          "passed": true
+        },
+        "ITL_p99_ms": {
+          "clean_before": 6.147779291495681,
+          "profile": 6.581565258093178,
+          "clean_after": 6.496451990678908,
+          "clean_relative_spread": 0.05515126881216961,
+          "profile_relative_deviation": 0.04103841684257192,
+          "passed": false
+        },
+        "TPOT_p95_ms": {
+          "clean_before": 4.8232797177710625,
+          "profile": 4.976072122143316,
+          "clean_after": 4.796730469399702,
+          "clean_relative_spread": 0.005519588410990693,
+          "profile_relative_deviation": 0.03452533320170503,
+          "passed": true
+        }
+      },
+      "dropped_by_role": {
+        "encoder": 0,
+        "prefill": 0,
+        "decode": 0
+      }
+    },
+    "d_profile_b1_q6_sampled": {
+      "accepted": false,
+      "collector_passed": true,
+      "metrics": {
+        "duration_seconds": {
+          "clean_before": 33.955654522404075,
+          "profile": 34.5554925003089,
+          "clean_after": 34.511220150161535,
+          "clean_relative_spread": 0.016228742159310878,
+          "profile_relative_deviation": 0.009407619832693781,
+          "passed": true
+        },
+        "TTFT_p50_ms": {
+          "clean_before": 7925.879928283393,
+          "profile": 8560.127407778054,
+          "clean_after": 8781.57587023452,
+          "clean_relative_spread": 0.10243282427561869,
+          "profile_relative_deviation": 0.024707473239271804,
+          "passed": false
+        },
+        "TTFT_p95_ms": {
+          "clean_before": 15923.5280363122,
+          "profile": 16178.839929867536,
+          "clean_after": 16127.09286836907,
+          "clean_relative_spread": 0.012702707548928533,
+          "profile_relative_deviation": 0.009580437020767718,
+          "passed": true
+        },
+        "ITL_p99_ms": {
+          "clean_before": 6.90405499190093,
+          "profile": 6.980755049735306,
+          "clean_after": 6.618015840649607,
+          "clean_relative_spread": 0.04230700383002955,
+          "profile_relative_deviation": 0.03249792671269325,
+          "passed": true
+        },
+        "TPOT_p95_ms": {
+          "clean_before": 4.824101492555528,
+          "profile": 5.172840615010096,
+          "clean_after": 4.805780424151656,
+          "clean_relative_spread": 0.0038050452876447986,
+          "profile_relative_deviation": 0.07433105821070818,
+          "passed": false
+        }
+      },
+      "dropped_by_role": {
+        "encoder": 0,
+        "prefill": 0,
+        "decode": 0
+      }
+    },
+    "d_profile_free_q5_deferred": {
+      "accepted": false,
+      "collector_passed": true,
+      "metrics": {
+        "duration_seconds": {
+          "clean_before": 33.74063915107399,
+          "profile": 33.970912341959774,
+          "clean_after": 34.10106797283515,
+          "clean_relative_spread": 0.010625582316283924,
+          "profile_relative_deviation": 0.0014757523690780427,
+          "passed": true
+        },
+        "TTFT_p50_ms": {
+          "clean_before": 3368.822398595512,
+          "profile": 3193.757923319936,
+          "clean_after": 3648.5130426008254,
+          "clean_relative_spread": 0.07971420102375239,
+          "profile_relative_deviation": 0.08975195782419265,
+          "passed": false
+        },
+        "TTFT_p95_ms": {
+          "clean_before": 12451.043578237295,
+          "profile": 12321.456101792865,
+          "clean_after": 12398.144003120251,
+          "clean_relative_spread": 0.0042576502707662505,
+          "profile_relative_deviation": 0.008301091417836526,
+          "passed": true
+        },
+        "ITL_p99_ms": {
+          "clean_before": 13.004139121621833,
+          "profile": 13.681090995669367,
+          "clean_after": 13.182177538983524,
+          "clean_relative_spread": 0.013597820546448333,
+          "profile_relative_deviation": 0.044903807815871444,
+          "passed": true
+        },
+        "TPOT_p95_ms": {
+          "clean_before": 5.160166566516494,
+          "profile": 5.649050548284624,
+          "clean_after": 5.296185034861016,
+          "clean_relative_spread": 0.026016429731877497,
+          "profile_relative_deviation": 0.08050126155674109,
+          "passed": false
+        }
+      },
+      "dropped_by_role": {
+        "encoder": 0,
+        "prefill": 0,
+        "decode": 0
+      }
+    },
+    "d_profile_free_q5_sampled": {
+      "accepted": false,
+      "collector_passed": true,
+      "metrics": {
+        "duration_seconds": {
+          "clean_before": 34.158009483944625,
+          "profile": 32.7576659778133,
+          "clean_after": 34.17424563597888,
+          "clean_relative_spread": 0.0004752119480253752,
+          "profile_relative_deviation": 0.041223916280139994,
+          "passed": true
+        },
+        "TTFT_p50_ms": {
+          "clean_before": 3790.5191576574,
+          "profile": 3342.614803928882,
+          "clean_after": 3998.281060718,
+          "clean_relative_spread": 0.05334888486944282,
+          "profile_relative_deviation": 0.141686855430453,
+          "passed": false
+        },
+        "TTFT_p95_ms": {
+          "clean_before": 12264.497275301253,
+          "profile": 11931.247356859967,
+          "clean_after": 12258.37396434508,
+          "clean_relative_spread": 0.0004993959227965962,
+          "profile_relative_deviation": 0.026929005150863605,
+          "passed": true
+        },
+        "ITL_p99_ms": {
+          "clean_before": 14.378083879128106,
+          "profile": 14.744536168873294,
+          "clean_after": 13.68358726613224,
+          "clean_relative_spread": 0.049497879823395055,
+          "profile_relative_deviation": 0.050866578298111476,
+          "passed": false
+        },
+        "TPOT_p95_ms": {
+          "clean_before": 5.2721519345781225,
+          "profile": 5.728506192099303,
+          "clean_after": 5.327327031458047,
+          "clean_relative_spread": 0.010410907376998789,
+          "profile_relative_deviation": 0.08090335580741503,
+          "passed": false
+        }
+      },
+      "dropped_by_role": {
+        "encoder": 0,
+        "prefill": 0,
+        "decode": 0
+      }
+    }
+  },
+  "final_burners": [
+    {
+      "gpu": 0,
+      "pid": 3960523
+    },
+    {
+      "gpu": 1,
+      "pid": 3960559
+    },
+    {
+      "gpu": 2,
+      "pid": 3960577
+    },
+    {
+      "gpu": 3,
+      "pid": 3960595
+    },
+    {
+      "gpu": 4,
+      "pid": 4005604
+    },
+    {
+      "gpu": 5,
+      "pid": 4005605
+    },
+    {
+      "gpu": 6,
+      "pid": 4005606
+    },
+    {
+      "gpu": 7,
+      "pid": 3960665
+    }
+  ],
+  "final_gpu_snapshot": "index, uuid, utilization.gpu [%], memory.used [MiB]\n0, GPU-6b56b49e-2472-9e55-7d0a-74a087b4132e, 86 %, 78215 MiB\n1, GPU-4f143625-73b8-2372-5e1a-0bf13de11d61, 87 %, 78215 MiB\n2, GPU-9d1efd41-3a8a-196e-690e-4e0463a802e9, 87 %, 78215 MiB\n3, GPU-37163db1-5a6b-5702-e7dd-7791d5cb601b, 84 %, 78215 MiB\n4, GPU-7cdfd11a-6f4d-3021-186b-5cd6b14dfd1e, 92 %, 78215 MiB\n5, GPU-5b4a9509-9fe6-9390-fb6e-1990904e7fd9, 87 %, 78215 MiB\n6, GPU-ba1fe988-9759-1ffd-00f5-854a961698ce, 95 %, 78215 MiB\n7, GPU-20006e9b-3b48-7c54-cdb2-c503bde72bfc, 87 %, 78215 MiB\n"
+}

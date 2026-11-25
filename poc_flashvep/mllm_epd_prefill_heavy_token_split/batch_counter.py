@@ -48,8 +48,7 @@ class BatchCounter:
         assert isinstance(decode_only,bool)
         self.decode_only=decode_only
         if decode_only:
-            assert os.environ['MLLM_EPD_ROLE']=='decode' and not hasattr(runner,'_prepare_inputs'), (
-                'Decode-only padding evidence requires the V2 decode worker')
+            assert os.environ['MLLM_EPD_ROLE']=='decode','Decode-only evidence requires the decode worker'
         self.runner=runner;self.patches=[];self.active=False
         self.folder=ROOT/'raw/batch_counter'/name/(os.environ['MLLM_EPD_ROLE']+'_gpu'+os.environ['CUDA_VISIBLE_DEVICES'])
         assert not self.folder.exists();self.folder.mkdir(parents=True)
@@ -67,18 +66,50 @@ class BatchCounter:
         legacy=hasattr(self.runner,'_prepare_inputs')
         prepare_key='_prepare_inputs' if legacy else 'prepare_inputs'
         prepare=getattr(self.runner,prepare_key)
+        legacy_geometry=None
+        if legacy and self.decode_only:
+            from vllm.forward_context import get_forward_context
+            forward=self.runner._model_forward
         if not self.decode_only:
             encoder_owner=self.runner if legacy else self.runner.model_state.encoder_runner
             encoder_key='_execute_mm_encoder' if legacy else 'execute_mm_encoder'
             encode=getattr(encoder_owner,encoder_key)
         def prepared(output,scheduled,*args,**kwargs):
+            nonlocal legacy_geometry
+            batch=me.runner.input_batch
             try:
-                geometry=query_geometry(me.runner.input_batch,scheduled)
+                geometry=query_geometry(batch,scheduled)
                 assert geometry[4]==output.total_num_scheduled_tokens
+                if me.decode_only:
+                    assert not output.scheduled_spec_decode_tokens
+                    assert geometry[0]==len(output.num_scheduled_tokens)
+                    assert all(output.num_scheduled_tokens[request_id]==int(rows)
+                        for request_id,rows in zip(batch.req_ids,scheduled,strict=True))
             except Exception as error:
                 geometry=None;me.errors['prepare:'+type(error).__name__+': '+str(error)]+=1
             result=prepare(output,scheduled,*args,**kwargs)
             if geometry is not None:me.prepared[geometry]+=1
+            legacy_geometry=geometry
+            return result
+        def forwarded(*args,**kwargs):
+            nonlocal legacy_geometry
+            key=None
+            try:
+                actual=legacy_geometry
+                assert actual is not None,'Forward has no paired V1 prepared inputs'
+                context=get_forward_context()
+                descriptor=context.batch_descriptor
+                requests=descriptor.num_reqs if descriptor.num_reqs is not None else actual[0]
+                inputs=kwargs.get('input_ids')
+                if inputs is None:inputs=kwargs.get('inputs_embeds')
+                assert inputs is not None and int(inputs.shape[0])==descriptor.num_tokens
+                assert requests>=actual[0] and descriptor.num_tokens>=actual[4]
+                key=(actual[0],actual[2]+actual[3],actual[4],int(requests),
+                    int(descriptor.num_tokens),context.cudagraph_runtime_mode.name)
+            except Exception as error:me.errors['forward_v1:'+type(error).__name__+': '+str(error)]+=1
+            legacy_geometry=None
+            result=forward(*args,**kwargs)
+            if key is not None:me.padded[key]+=1
             return result
         def prepared_v2(output,*args,**kwargs):
             result=prepare(output,*args,**kwargs)
@@ -97,6 +128,8 @@ class BatchCounter:
             except Exception as error:me.errors['prepare_v2:'+type(error).__name__+': '+str(error)]+=1
             return result
         def executed(output,*args,**kwargs):
+            nonlocal legacy_geometry
+            legacy_geometry=None
             result=execute(output,*args,**kwargs)
             key=(len(output.num_scheduled_tokens),int(output.total_num_scheduled_tokens),
                 sum(len(value) for value in output.scheduled_encoder_inputs.values()))
@@ -119,9 +152,12 @@ class BatchCounter:
             except Exception as error:me.errors['encoder:'+type(error).__name__+': '+str(error)]+=1
             return result
         self.patch('execute_model',executed);self.patch(prepare_key,prepared if legacy else prepared_v2)
+        if legacy and self.decode_only:
+            self.patch('_model_forward',forwarded)
         if not self.decode_only:
             self.patch(encoder_key,encoded,encoder_owner)
-        self.runner_API='V1_PRIVATE_PREPARE' if legacy else 'V2_RETURNED_INPUT_BATCH'
+        self.runner_API=('V1_PRIVATE_PREPARE_AND_FORWARD_CONTEXT' if self.decode_only else 'V1_PRIVATE_PREPARE'
+            ) if legacy else 'V2_RETURNED_INPUT_BATCH'
         self.active=True;self.start=time.monotonic()
         return dict(folder=str(self.folder),observer='Counter only. No CUDA events, copies, synchronization or per-step timestamps.',
             status='DIAGNOSTIC_PENDING_CPC',counter_model_input_change=False,runner_API=self.runner_API,

@@ -95,7 +95,8 @@ def main():
         async def begin(request:Request):
             body=await request.json()
             return await app.state.engine_client.collective_rpc('campaign_profile_begin',
-                timeout=60,args=(body['name'],body.get('include_copies',True),body.get('state_interval_ms',0)))
+                timeout=60,args=(body['name'],body.get('include_copies',True),body.get('state_interval_ms',0),
+                    body.get('buffer_gib',1)))
         @app.post('/campaign/profile/end')
         async def end():
             return await app.state.engine_client.collective_rpc('campaign_profile_end',timeout=120)

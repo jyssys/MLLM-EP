@@ -24,21 +24,22 @@ def native_checks(rows, teacher_url, native_url):
     return results
 
 
-def token_checks(rows, teacher_url, token_url, proxy_name):
+def token_checks(rows, teacher_url, token_url, proxy_name, fraction=.10):
+    label = f"irteam_token{round(fraction * 100)}"
     capture = module('token_correctness_control').capture
     token = module('natural_token_correctness_control')
     prefix = module('token_split').select_prefix
     refs = {}
     for index in token.INDICES:
         row = rows[index]
-        name = f'irteam_token10_{index}_teacher'
-        capture(row, name, teacher_url, [(18841, 'P')], prefix(row['total_input_tokens'], .10))
+        name = f'{label}_{index}_teacher'
+        capture(row, name, teacher_url, [(18841, 'P')], prefix(row['total_input_tokens'], fraction))
         refs[row['request_id']] = name
     results = {}
     n8_rows = [rows[index] for index in token.INDICES]
     random.Random(2026112404).shuffle(n8_rows)
     for phase, values in [('N1', [rows[0]]), ('N8', n8_rows)]:
-        record = asyncio.run(token.cohort('irteam_token10_' + phase, values, token_url, .10, refs, proxy_name))
-        require(record['passed'], f'Token10 {phase} gate failed')
+        record = asyncio.run(token.cohort(label + '_' + phase, values, token_url, fraction, refs, proxy_name))
+        require(record['passed'], f'Static {fraction:.0%} {phase} gate failed')
         results[phase] = {'passed': record['passed'], 'requests': len(values)}
     return results

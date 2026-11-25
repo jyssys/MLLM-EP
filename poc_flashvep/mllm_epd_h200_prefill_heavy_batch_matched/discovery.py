@@ -3,7 +3,7 @@ import argparse
 import json
 from pathlib import Path
 
-from .trace import complement, elapsed, intersect, merged
+from .trace import complement, elapsed, intersect, merged, scheduler_intervals
 
 P_BUSY = .80
 P_PROXIMITY = .85
@@ -23,6 +23,7 @@ def evaluate(trace_path, capacity_path):
     profile_path = trace_path.with_name(tag + "_profile_metrics.json")
     metrics = load(profile_path)
     run = trace_path.parent.parent
+    config = load(run / "configs" / f"{tag}_profile.json")
     p_capacity = load(capacity_path) if capacity_path.is_file() else None
     l, r = trace["window_monotonic"]
     p_busy = trace["kernel_intervals"]["prefill"]
@@ -34,10 +35,16 @@ def evaluate(trace_path, capacity_path):
     d_work = [(row["P_ready"], row.get("D_http_complete", row["finished"])) for row in raw]
     d_quiet = complement(merged(d_busy + d_work, l, r), l, r)
     p_busy_seconds = elapsed(p_busy)
+    sampled_p_wait, _ = scheduler_intervals(
+        run / "raw" / "profiles" / f"{tag}_profile" / "prefill", l, r)
+    p_busy_with_backlog = intersect(p_busy, sampled_p_wait)
 
     def coverage(threshold):
         eligible = [(a, b) for a, b in d_quiet if b - a >= threshold]
-        return dict(windows=len(eligible), p_busy_overlap_fraction=elapsed(intersect(p_busy, eligible))
+        return dict(windows=len(eligible),
+                    p_busy_overlap_fraction=elapsed(intersect(p_busy_with_backlog, eligible))
+                    / p_busy_seconds if p_busy_seconds else 0,
+                    p_busy_overlap_without_backlog_fraction=elapsed(intersect(p_busy, eligible))
                     / p_busy_seconds if p_busy_seconds else 0)
 
     window = coverage(IDLE_WINDOW)
@@ -70,11 +77,15 @@ def evaluate(trace_path, capacity_path):
         status = "P_HEAVY_D_IDLE_NOT_MEASURED"
     else:
         status = "P_HEAVY_D_IDLE_NOT_CONFIRMED"
-    return dict(status=status, checks=checks, p_busy=trace["kernel_busy_fraction"]["prefill"],
+    return dict(status=status, checks=checks, qps=config["QPS"],
+                batch_one=config["workload"]["batch_one"],
+                main100_cycles=config["workload"].get("Main100_cycles", 1),
+                p_busy=trace["kernel_busy_fraction"]["prefill"],
                 p_service_proximity=proximity, d_decode_attainment=d_good / metrics["planned_count"],
                 robust_window_160_ms=window, robust_window_225_ms=coverage(IDLE_SENSITIVE),
                 p_scheduler=p_schedule, d_scheduler=d_schedule,
-                scope="Observed kernel and conservative HTTP quiet conjunction. No assertion of future Suffix safety.")
+                scope="Observed P kernels and recent sampled P backlog overlapping D kernel/HTTP quiet. "
+                      "No assertion of future Suffix safety.")
 
 
 def main():
