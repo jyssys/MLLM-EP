@@ -11,6 +11,35 @@ from . import batch_counter as module
 
 
 class CounterTest(unittest.TestCase):
+    def test_v2_real_call_order_counts_returned_batch_and_restores_nested_encoder(self):
+        sentinel=object()
+        batch=SimpleNamespace(num_reqs=2,num_scheduled_tokens=np.array([2,1]),num_tokens=3,
+            num_computed_prefill_tokens_np=np.array([6,8]),prefill_len_np=np.array([8,8]),num_draft_tokens=0)
+        class Encoder:
+            def execute_mm_encoder(self,kwargs):return [np.empty((10,4)),np.empty((20,4))]
+        class Runner:
+            def __init__(self):self.model_state=SimpleNamespace(encoder_runner=Encoder())
+            def prepare_inputs(self,output,descriptor):return batch
+            def execute_model(self,output):
+                self.prepare_inputs(output,object())
+                self.model_state.encoder_runner.execute_mm_encoder([])
+                return sentinel
+        runner=Runner();encoder=runner.model_state.encoder_runner
+        output=SimpleNamespace(num_scheduled_tokens={'p':2,'d':1},total_num_scheduled_tokens=3,scheduled_encoder_inputs={'p':[0,1]})
+        with TemporaryDirectory() as directory,patch.object(module,'ROOT',Path(directory)),\
+                patch.dict(module.os.environ,MLLM_EPD_ROLE='agg',CUDA_VISIBLE_DEVICES='4'):
+            counter=module.BatchCounter(runner,'v2_fixture');counter.begin()
+            self.assertIs(runner.execute_model(output),sentinel)
+            result=counter.close()
+        self.assertTrue(result['valid']);self.assertEqual(counter.prepared[(2,1,1,0,3,2,1)],1)
+        self.assertEqual(counter.encoded[(2,30)],1)
+        self.assertNotIn('prepare_inputs',vars(runner));self.assertNotIn('execute_mm_encoder',vars(encoder))
+
+    def test_v2_no_draft_or_geometry_error_may_be_silently_named_valid(self):
+        batch=SimpleNamespace(num_reqs=1,num_scheduled_tokens=np.array([2]),num_tokens=2,
+            num_computed_prefill_tokens_np=np.array([6]),prefill_len_np=np.array([8]),num_draft_tokens=1)
+        with self.assertRaises(AssertionError):module.v2_query_geometry(batch)
+
     def test_last_prompt_chunk_is_not_reclassified_as_decode(self):
         batch=SimpleNamespace(num_reqs=1,num_computed_tokens_cpu=np.array([8190]),num_prompt_tokens=np.array([8192]))
         self.assertEqual(module.query_geometry(batch,np.array([2])),(1,1,0,0,2,2,0))

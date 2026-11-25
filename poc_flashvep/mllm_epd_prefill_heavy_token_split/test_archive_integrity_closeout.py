@@ -7,11 +7,40 @@ from tempfile import TemporaryDirectory
 import unittest
 from zipfile import ZipFile
 
-from .archive_integrity_closeout import confined_path,verify_raw_archive,verify_source_archive,tensor_receipts
+from .archive_integrity_closeout import confined_path,verify_raw_archive,verify_source_archive,tensor_receipts,verify_executed_source
 from .common import digest
 
 
 class ArchiveIntegrityTest(unittest.TestCase):
+    def test_append_only_history_requires_explicit_allowlist_and_preserves_exact_prefix(self):
+        with TemporaryDirectory() as folder:
+            repo=Path(folder);root=repo/'evidence';raw=root/'raw';raw.mkdir(parents=True)
+            source=raw/'processor_handoff_decode_gpu6.jsonl';target=root/'raw.gz'
+            source.write_bytes(b'{"sample":1}\n');target.write_bytes(gzip.compress(source.read_bytes(),mtime=0))
+            row=dict(source=str(source.relative_to(repo)),compressed_path='evidence/raw.gz',source_bytes=source.stat().st_size,
+                compressed_bytes=target.stat().st_size,source_SHA256=digest(source),compressed_SHA256=digest(target))
+            with source.open('ab') as stream:stream.write(b'{"sample":2}\n')
+            with self.assertRaises(AssertionError):verify_raw_archive(row,repo,root)
+            value=verify_raw_archive(row,repo,root,allow_append=True)
+            self.assertEqual(value['status'],'HISTORICAL_APPEND_PREFIX_VERIFIED')
+            self.assertEqual(value['appended_JSONL_records'],1)
+            source.write_bytes(b'{"sample":9}\n{"sample":2}\n')
+            with self.assertRaises(AssertionError):verify_raw_archive(row,repo,root,allow_append=True)
+
+    def test_executed_materialization_is_independent_proof_not_a_metadata_rewrite(self):
+        with TemporaryDirectory() as folder:
+            root=Path(folder);member='poc_flashvep/mllm_epd_prefill_heavy_token_split/run.py';data=b'X=1\n'
+            sha=hashlib.sha256(data).hexdigest();archive_sha='a'*64
+            cwd=root/'runtime_sources'/('a'*16+'_original.source');(cwd/Path(member).parent).mkdir(parents=True)
+            (cwd/member).write_bytes(data)
+            manifest=[dict(member=member,bytes=len(data),SHA256=sha)]
+            (cwd/'verified_source_manifest.json').write_text(json.dumps(dict(archive_SHA256=archive_sha,files=manifest)))
+            lease=dict(executed_source_cwd=str(cwd),source_archive_SHA256=archive_sha)
+            result=verify_executed_source(lease,manifest,root)
+            self.assertTrue(result['all_materialized_members_match'])
+            (cwd/member).write_bytes(b'X=2\n')
+            with self.assertRaises(AssertionError):verify_executed_source(lease,manifest,root)
+
     def test_real_gzip_roundtrip_and_changed_source(self):
         with TemporaryDirectory() as folder:
             repo=Path(folder);root=repo/'evidence';root.mkdir();source=root/'raw.jsonl';target=root/'raw.gz'

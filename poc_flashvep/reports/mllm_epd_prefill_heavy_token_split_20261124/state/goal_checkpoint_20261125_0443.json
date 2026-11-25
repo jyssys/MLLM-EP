@@ -1,0 +1,80 @@
+{
+  "as_of_KST": "2026-11-25 04:43:01",
+  "goal_status": "ACTIVE",
+  "previous_turn_classification": "PROGRESS",
+  "budget": {
+    "start_KST": "2026-11-24 14:08:59",
+    "large_experiment_cutoff_KST": "2026-11-25 13:08:59",
+    "final_deadline_KST": "2026-11-25 15:08:59",
+    "maximum_hours": 25,
+    "scope": "Original campaign plus encoder/decoder idle addendum. Final2hours remain reserved."
+  },
+  "authoritative_live_jobs": [
+    {
+      "tag": "token_CONFIRM_C37",
+      "controller_PID": 946010,
+      "exec_session": 52994,
+      "verified_proc_alive": true,
+      "GPU_group": [4, 5, 6],
+      "phase": "Block0 NativeStrong closed all4 measured cohorts. Block0 Static10 E/P/D initialization is live.",
+      "protocol": "4methods x3 independent initializations. Main100 and Heldout50, Natural and reference-count replay, QPS2.",
+      "method_orders": [
+        ["NativeStrong", "Static10", "Idle10", "NativeCommon"],
+        ["Idle10", "Static10", "NativeStrong", "NativeCommon"],
+        ["Idle10", "NativeStrong", "Static10", "NativeCommon"]
+      ],
+      "source": "token_confirmation_control.py",
+      "log": "logs/token_CONFIRM_C37_v0.log",
+      "on_failure": "No automatic restart. Inspect the exact failed initialization and preserve the logs."
+    },
+    {
+      "tag": "ec_DOCUMENT_C39",
+      "controller_PID": 949160,
+      "exec_session": 95972,
+      "verified_proc_alive": true,
+      "phase": "WAITING for actual C37 controller process to exit. It does not own a GPU lease yet.",
+      "protocol": "Secondary all37 MMLongDoc requests from parent400 discovery, no heldout or performance filtering. NativeCommon only. Natural pilots q0.5/1/2/3, CPC replay q1/2/3, state interval50ms.",
+      "manifest": "data/secondary_document37_discovery_v0.json",
+      "source": "document_stratum_control.py",
+      "log": "logs/ec_DOCUMENT_C39_v0.log",
+      "scope": "Secondary source stratum. Never replace Main100 or claim that it proves Main100 prefill-heavy."
+    }
+  ],
+  "new_closed_evidence": {
+    "C36": "10percent N1/N8 full KV and outputs strict.25percent N1 passed, N8 rejected for KV tolerance. CPU rechecked all8 stored requests:7/8 KV tolerance;8/8 output matches. The original failure remains.",
+    "C38": "Initial diagnostic harness failed because P independently rerendered identifiers rather than consuming original E exports. Strict no-local-vision fallback correctly failed closed. Failure preserved.",
+    "C38R1": "Diagnostic-only original metadata bridge fixed that harness. Solo2images repeated twice; Joint target2 plus original companion3 repeated twice. Same target pixels/grids, token/MRoPE/query chunks. Both same-geometry repeats strict. Changing encoder batch2to5 reproduced embedding relative L2 0.104151/0.085062 and fullprompt KV maxL2 0.322317; all output17tokens same.",
+    "causal_scope": "Controlled encoder batch numerical effect is supported. Exact unrecorded encoder geometry of C36 is not known. No encoder algorithm change, KV/output correction, task-quality pass, timing claim or reclassification of rejected25percent.",
+    "report": "../mllm_epd_encoder_batch_numerical_root_cause_v1.md"
+  },
+  "verification": {
+    "CPU": "142tests PASS, logs/cpu_regression_v36.log",
+    "red_green": "Actual diagnostic target handoff failed before correction and passed after correction. logs/vision_batch_handoff_red.log and green.log.",
+    "user_checkout_index": "common.preserve() PASS",
+    "remote_checkpoint_v5": "af3bc45d3db22a18fc642a48628f6848468219ae",
+    "remote_verified": true,
+    "remote_scope": "Closed C32/C33/C34/C36/C38 evidence, raw gzip/hash verification, source/reports. Includes frozen C37 code but no confirmation result."
+  },
+  "new_code_after_publication": [
+    "document_stratum_control.py",
+    "test_document_stratum.py",
+    "token_confirmation_analysis.py",
+    "test_token_confirmation_analysis.py"
+  ],
+  "next_safe_actions": [
+    "Monitor the same C37 process/session. Timeout is not terminal. Do not restart solely because observation expired.",
+    "When C37 closes successfully, run token_confirmation_analysis.py. It requires48measured cells. Keep Natural and replay separate, paired N3 and all8SLO categories, source quality and output-work variation.",
+    "If C37 fails a correctness or output preflight, inspect that exact failure and its source before timing any affected arm. Keep unrelated Native analyses in scope.",
+    "Monitor queued C39 through its exact controller PID. Analyze all declared source-stratum points. Profiles failing any5percent observer gate remain DIAGNOSTIC.",
+    "Implement the remaining optional E/D INTERFERENCE_PROBE only after safety/correctness gates. Prefix C26 cost is DIAGNOSTIC and is not imported-KV suffix cost. Co-residency memory fit is not encode-safe headroom.",
+    "Do not use paid external answer extraction without approval. Full MMLongDoc task quality and DocVQA raw ANLS floor remain pending.",
+    "Final required reports, figures, complete requirements audit, metrics verification, resource closeout and final commit/push remain outstanding."
+  ],
+  "resource_state": {
+    "experiment_leases": "GPU4/5/6 are owned by C37, including initialization gaps. Do not burn these leased GPUs.",
+    "unused_GPUs": "Approved burners on GPU0/1/2/3/7 were observed active.",
+    "disk_available_last_observation": "976GiB filesystem,497GiB devshm",
+    "final_GPU0to7_restoration": "NOT_DONE: campaign is active"
+  },
+  "completion": "UNPROVEN. No final GO, prefill-heavy, decode-safe or encode-safe success is claimed."
+}

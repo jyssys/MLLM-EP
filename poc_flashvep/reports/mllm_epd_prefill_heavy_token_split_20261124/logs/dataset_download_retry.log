@@ -1,0 +1,128 @@
+DATASET_DOWNLOAD_START yubo2333/MMLongBench-Doc 2ff6aa9237fc777b6627dc57a486e9225ac5fb86
+Fetching 137 files:   0%|          | 0/137 [00:00<?, ?it/s]Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Fetching 137 files:  90%|████████▉ | 123/137 [00:03<00:00, 36.47it/s]
+FORCE_RETRY_SINGLE_FILE yubo2333/MMLongBench-Doc documents/mi_phone.pdf
+Traceback (most recent call last):
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/mllm_epd_prefill_heavy_token_split/dataset_download.py", line 29, in main
+    directory=Path(snapshot_download(repo,repo_type='dataset',revision=meta['revision'],
+                   ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        allow_patterns=patterns+['README.md','LICENSE','LICENSE*'],max_workers=4))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/huggingface_hub/utils/_validators.py", line 88, in _inner_fn
+    return fn(*args, **kwargs)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/huggingface_hub/_snapshot_download.py", line 522, in snapshot_download
+    hf_thread_map(
+    ~~~~~~~~~~~~~^
+        _inner_hf_hub_download,
+        ^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+        tqdm_class=tqdm_class,
+        ^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/huggingface_hub/utils/tqdm.py", line 441, in hf_thread_map
+    results[future_to_index[future]] = future.result()
+                                       ~~~~~~~~~~~~~^^
+  File "/home/esjung/anaconda3/lib/python3.14/concurrent/futures/_base.py", line 447, in result
+    return self.__get_result()
+           ~~~~~~~~~~~~~~~~~^^
+  File "/home/esjung/anaconda3/lib/python3.14/concurrent/futures/_base.py", line 396, in __get_result
+    raise self._exception
+  File "/home/esjung/anaconda3/lib/python3.14/concurrent/futures/thread.py", line 86, in run
+    result = ctx.run(self.task)
+  File "/home/esjung/anaconda3/lib/python3.14/concurrent/futures/thread.py", line 73, in run
+    return fn(*args, **kwargs)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/huggingface_hub/_snapshot_download.py", line 502, in _inner_hf_hub_download
+    hf_hub_download(  # type: ignore
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+        repo_id,
+        ^^^^^^^^
+    ...<14 lines>...
+        dry_run=dry_run,
+        ^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/huggingface_hub/utils/_validators.py", line 88, in _inner_fn
+    return fn(*args, **kwargs)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/huggingface_hub/file_download.py", line 1028, in hf_hub_download
+    return _hf_hub_download_to_cache_dir(
+        # Destination
+    ...<15 lines>...
+        dry_run=dry_run,
+    )
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/huggingface_hub/file_download.py", line 1251, in _hf_hub_download_to_cache_dir
+    _download_to_tmp_and_move(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        incomplete_path=Path(blob_path + ".incomplete"),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<8 lines>...
+        tqdm_class=tqdm_class,
+        ^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/huggingface_hub/file_download.py", line 1992, in _download_to_tmp_and_move
+    http_get(
+    ~~~~~~~~^
+        url_to_download,
+        ^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+        tqdm_class=tqdm_class,
+        ^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/huggingface_hub/utils/_validators.py", line 88, in _inner_fn
+    return fn(*args, **kwargs)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/huggingface_hub/file_download.py", line 473, in http_get
+    raise OSError(
+    ...<3 lines>...
+    )
+OSError: Consistency check failed: file should be of size 24877442 but has size 31841340 (mi_phone.pdf).
+This is usually due to network issues while downloading the file. Please retry with `force_download=True`.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/mllm_epd_prefill_heavy_token_split/dataset_download.py", line 51, in <module>
+    if __name__=='__main__':main()
+                            ~~~~^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/mllm_epd_prefill_heavy_token_split/dataset_download.py", line 39, in main
+    hf_hub_download(repo,filename,repo_type='dataset',revision=meta['revision'],force_download=True)
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/huggingface_hub/utils/_validators.py", line 88, in _inner_fn
+    return fn(*args, **kwargs)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/huggingface_hub/file_download.py", line 1028, in hf_hub_download
+    return _hf_hub_download_to_cache_dir(
+        # Destination
+    ...<15 lines>...
+        dry_run=dry_run,
+    )
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/huggingface_hub/file_download.py", line 1251, in _hf_hub_download_to_cache_dir
+    _download_to_tmp_and_move(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        incomplete_path=Path(blob_path + ".incomplete"),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<8 lines>...
+        tqdm_class=tqdm_class,
+        ^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/huggingface_hub/file_download.py", line 1992, in _download_to_tmp_and_move
+    http_get(
+    ~~~~~~~~^
+        url_to_download,
+        ^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+        tqdm_class=tqdm_class,
+        ^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/huggingface_hub/utils/_validators.py", line 88, in _inner_fn
+    return fn(*args, **kwargs)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/huggingface_hub/file_download.py", line 473, in http_get
+    raise OSError(
+    ...<3 lines>...
+    )
+OSError: Consistency check failed: file should be of size 24877442 but has size 31841340 (mi_phone.pdf).
+This is usually due to network issues while downloading the file. Please retry with `force_download=True`.

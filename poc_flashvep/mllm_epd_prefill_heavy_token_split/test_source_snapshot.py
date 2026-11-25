@@ -11,6 +11,15 @@ from zipfile import ZipFile
 
 
 class FrozenSourceTest(unittest.TestCase):
+    def test_future_boot_metadata_comes_from_the_archive_not_changed_host_files(self):
+        from . import source_snapshot as module
+        with TemporaryDirectory() as temporary:
+            root=Path(temporary);member='poc_flashvep/mllm_epd_prefill_heavy_token_split/servers.py'
+            record=self.archive(root,member)
+            (root/'servers.py').write_bytes(b'NEW_HOST_BYTES=1\n')
+            result=module.boot_source_hashes(record)
+            self.assertEqual(result,{'servers.py':hashlib.sha256(b'VALUE = 17\n').hexdigest()})
+
     def archive(self, root, member='poc_flashvep/frozen_test.py'):
         from .common import digest
         target = root / 'source.zip'

@@ -9,7 +9,7 @@ import urllib.request
 
 from .common import ROOT,digest,preserve,resources,write
 
-CONTROLLERS=['interference_PROBE_C40R4','suffix_QUANTA_C41R3','ec_INLINE_CAUSAL_C44','batch_COUNTER_C46']
+CONTROLLERS=['interference_PROBE_C40R4','suffix_QUANTA_C41R3','ec_INLINE_CAUSAL_C44','batch_COUNTER_C46','batch_COUNTER_C46R1']
 PROXY_MODULES={__package__+'.proxy',__package__+'.whole_deflection_proxy',__package__+'.interference_probe_proxy'}
 MARKER='final_resource_closeout_v0.json'
 

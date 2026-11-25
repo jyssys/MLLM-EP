@@ -1,0 +1,135 @@
+...INFO 11-24 22:35:38 [nixl_utils.py:32] Setting UCX_RCACHE_MAX_UNRELEASED to '1024' to avoid a rare memory leak in UCX when using NIXL.
+INFO 11-24 22:35:38 [nixl_utils.py:68] NIXL is available
+/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/torch/jit/_script.py:359: DeprecationWarning: `torch.jit.script_method` is not supported in Python 3.14+ and may break. Please switch to `torch.compile` or `torch.export`.
+  warnings.warn(
+.EEEEEEEEEE
+======================================================================
+ERROR: test_decoder_keeps_full_prompt_and_original_position_metadata (poc_flashvep.mllm_epd_prefill_heavy_token_split.test_token_split.TokenPrefixContractTest.test_decoder_keeps_full_prompt_and_original_position_metadata)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/mllm_epd_prefill_heavy_token_split/test_token_split.py", line 40, in test_decoder_keeps_full_prompt_and_original_position_metadata
+    value = core()
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/mllm_epd_prefill_heavy_token_split/test_token_split.py", line 14, in core
+    return EngineCoreRequest(request_id='real-core:P', prompt_token_ids=list(range(length)),
+        mm_features=[SimpleNamespace(identifier='image', mm_position=SimpleNamespace(offset=2, length=8))],
+        sampling_params=params, pooling_params=None, arrival_time=1.)
+TypeError: Missing required argument 'lora_request'
+
+======================================================================
+ERROR: test_full_length_mismatch_and_nonproducer_fail_closed (poc_flashvep.mllm_epd_prefill_heavy_token_split.test_token_split.TokenPrefixContractTest.test_full_length_mismatch_and_nonproducer_fail_closed)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/mllm_epd_prefill_heavy_token_split/test_token_split.py", line 52, in test_full_length_mismatch_and_nonproducer_fail_closed
+    value = core()
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/mllm_epd_prefill_heavy_token_split/test_token_split.py", line 14, in core
+    return EngineCoreRequest(request_id='real-core:P', prompt_token_ids=list(range(length)),
+        mm_features=[SimpleNamespace(identifier='image', mm_position=SimpleNamespace(offset=2, length=8))],
+        sampling_params=params, pooling_params=None, arrival_time=1.)
+TypeError: Missing required argument 'lora_request'
+
+======================================================================
+ERROR: test_native_unmarked_request_is_the_identical_object (poc_flashvep.mllm_epd_prefill_heavy_token_split.test_token_split.TokenPrefixContractTest.test_native_unmarked_request_is_the_identical_object)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/mllm_epd_prefill_heavy_token_split/test_token_split.py", line 22, in test_native_unmarked_request_is_the_identical_object
+    value = core(marked=False)
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/mllm_epd_prefill_heavy_token_split/test_token_split.py", line 14, in core
+    return EngineCoreRequest(request_id='real-core:P', prompt_token_ids=list(range(length)),
+        mm_features=[SimpleNamespace(identifier='image', mm_position=SimpleNamespace(offset=2, length=8))],
+        sampling_params=params, pooling_params=None, arrival_time=1.)
+TypeError: Missing required argument 'lora_request'
+
+======================================================================
+ERROR: test_prefix_cannot_be_zero_full_prompt_or_beyond_prompt (poc_flashvep.mllm_epd_prefill_heavy_token_split.test_token_split.TokenPrefixContractTest.test_prefix_cannot_be_zero_full_prompt_or_beyond_prompt) (prefix=0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/mllm_epd_prefill_heavy_token_split/test_token_split.py", line 48, in test_prefix_cannot_be_zero_full_prompt_or_beyond_prompt
+    truncate_producer_request(core(prefix=prefix), 'prefill')
+                              ~~~~^^^^^^^^^^^^^^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/mllm_epd_prefill_heavy_token_split/test_token_split.py", line 14, in core
+    return EngineCoreRequest(request_id='real-core:P', prompt_token_ids=list(range(length)),
+        mm_features=[SimpleNamespace(identifier='image', mm_position=SimpleNamespace(offset=2, length=8))],
+        sampling_params=params, pooling_params=None, arrival_time=1.)
+TypeError: Missing required argument 'lora_request'
+
+======================================================================
+ERROR: test_prefix_cannot_be_zero_full_prompt_or_beyond_prompt (poc_flashvep.mllm_epd_prefill_heavy_token_split.test_token_split.TokenPrefixContractTest.test_prefix_cannot_be_zero_full_prompt_or_beyond_prompt) (prefix=12)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/mllm_epd_prefill_heavy_token_split/test_token_split.py", line 48, in test_prefix_cannot_be_zero_full_prompt_or_beyond_prompt
+    truncate_producer_request(core(prefix=prefix), 'prefill')
+                              ~~~~^^^^^^^^^^^^^^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/mllm_epd_prefill_heavy_token_split/test_token_split.py", line 14, in core
+    return EngineCoreRequest(request_id='real-core:P', prompt_token_ids=list(range(length)),
+        mm_features=[SimpleNamespace(identifier='image', mm_position=SimpleNamespace(offset=2, length=8))],
+        sampling_params=params, pooling_params=None, arrival_time=1.)
+TypeError: Missing required argument 'lora_request'
+
+======================================================================
+ERROR: test_prefix_cannot_be_zero_full_prompt_or_beyond_prompt (poc_flashvep.mllm_epd_prefill_heavy_token_split.test_token_split.TokenPrefixContractTest.test_prefix_cannot_be_zero_full_prompt_or_beyond_prompt) (prefix=13)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/mllm_epd_prefill_heavy_token_split/test_token_split.py", line 48, in test_prefix_cannot_be_zero_full_prompt_or_beyond_prompt
+    truncate_producer_request(core(prefix=prefix), 'prefill')
+                              ~~~~^^^^^^^^^^^^^^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/mllm_epd_prefill_heavy_token_split/test_token_split.py", line 14, in core
+    return EngineCoreRequest(request_id='real-core:P', prompt_token_ids=list(range(length)),
+        mm_features=[SimpleNamespace(identifier='image', mm_position=SimpleNamespace(offset=2, length=8))],
+        sampling_params=params, pooling_params=None, arrival_time=1.)
+TypeError: Missing required argument 'lora_request'
+
+======================================================================
+ERROR: test_prefix_cannot_be_zero_full_prompt_or_beyond_prompt (poc_flashvep.mllm_epd_prefill_heavy_token_split.test_token_split.TokenPrefixContractTest.test_prefix_cannot_be_zero_full_prompt_or_beyond_prompt) (prefix=-1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/mllm_epd_prefill_heavy_token_split/test_token_split.py", line 48, in test_prefix_cannot_be_zero_full_prompt_or_beyond_prompt
+    truncate_producer_request(core(prefix=prefix), 'prefill')
+                              ~~~~^^^^^^^^^^^^^^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/mllm_epd_prefill_heavy_token_split/test_token_split.py", line 14, in core
+    return EngineCoreRequest(request_id='real-core:P', prompt_token_ids=list(range(length)),
+        mm_features=[SimpleNamespace(identifier='image', mm_position=SimpleNamespace(offset=2, length=8))],
+        sampling_params=params, pooling_params=None, arrival_time=1.)
+TypeError: Missing required argument 'lora_request'
+
+======================================================================
+ERROR: test_prefix_cannot_be_zero_full_prompt_or_beyond_prompt (poc_flashvep.mllm_epd_prefill_heavy_token_split.test_token_split.TokenPrefixContractTest.test_prefix_cannot_be_zero_full_prompt_or_beyond_prompt) (prefix=True)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/mllm_epd_prefill_heavy_token_split/test_token_split.py", line 48, in test_prefix_cannot_be_zero_full_prompt_or_beyond_prompt
+    truncate_producer_request(core(prefix=prefix), 'prefill')
+                              ~~~~^^^^^^^^^^^^^^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/mllm_epd_prefill_heavy_token_split/test_token_split.py", line 14, in core
+    return EngineCoreRequest(request_id='real-core:P', prompt_token_ids=list(range(length)),
+        mm_features=[SimpleNamespace(identifier='image', mm_position=SimpleNamespace(offset=2, length=8))],
+        sampling_params=params, pooling_params=None, arrival_time=1.)
+TypeError: Missing required argument 'lora_request'
+
+======================================================================
+ERROR: test_prefix_cannot_be_zero_full_prompt_or_beyond_prompt (poc_flashvep.mllm_epd_prefill_heavy_token_split.test_token_split.TokenPrefixContractTest.test_prefix_cannot_be_zero_full_prompt_or_beyond_prompt) (prefix=3.5)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/mllm_epd_prefill_heavy_token_split/test_token_split.py", line 48, in test_prefix_cannot_be_zero_full_prompt_or_beyond_prompt
+    truncate_producer_request(core(prefix=prefix), 'prefill')
+                              ~~~~^^^^^^^^^^^^^^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/mllm_epd_prefill_heavy_token_split/test_token_split.py", line 14, in core
+    return EngineCoreRequest(request_id='real-core:P', prompt_token_ids=list(range(length)),
+        mm_features=[SimpleNamespace(identifier='image', mm_position=SimpleNamespace(offset=2, length=8))],
+        sampling_params=params, pooling_params=None, arrival_time=1.)
+TypeError: Missing required argument 'lora_request'
+
+======================================================================
+ERROR: test_real_engine_request_keeps_all_multimodal_features_inside_image (poc_flashvep.mllm_epd_prefill_heavy_token_split.test_token_split.TokenPrefixContractTest.test_real_engine_request_keeps_all_multimodal_features_inside_image)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/mllm_epd_prefill_heavy_token_split/test_token_split.py", line 29, in test_real_engine_request_keeps_all_multimodal_features_inside_image
+    value = core()
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/mllm_epd_prefill_heavy_token_split/test_token_split.py", line 14, in core
+    return EngineCoreRequest(request_id='real-core:P', prompt_token_ids=list(range(length)),
+        mm_features=[SimpleNamespace(identifier='image', mm_position=SimpleNamespace(offset=2, length=8))],
+        sampling_params=params, pooling_params=None, arrival_time=1.)
+TypeError: Missing required argument 'lora_request'
+
+----------------------------------------------------------------------
+Ran 9 tests in 6.751s
+
+FAILED (errors=10)

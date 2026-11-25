@@ -1,0 +1,80 @@
+{
+  "observed_UTC": "2026-11-24T18:16:48Z",
+  "goal_status": "ACTIVE",
+  "previous_turn_classification": "VERIFIED_WAIT: live C30R1 controller and workers were inspected during the user's status question",
+  "this_turn_classification": "PROGRESS",
+  "objective_scope": "Original EPD and generic exact token split campaign, with the user's Main100 amendment and encoder/decoder idle addendum. No goal completion is claimed.",
+  "preservation": "User checkout, staged index and frozen old evidence passed common.preserve(). Main400 remains unchanged.",
+  "active_manifest": "data/main100_manifest_template_v2.json",
+  "active_manifest_SHA256": "910506f24984e8f83e433c169b0a03d06c89396e1ef8a5f66b514d97406844d1",
+  "model_processor_revision": "cc594898137f460bfe9f0759e9844b3ce807cfb5",
+  "verified_progress": {
+    "C30R1": "Closed. Independent common-compiled repeat passed15/15 serial exact token cases. C30 also passed15/15. All28 full prompt KV layers, imported prefixes, prepared inputs, MRoPE and output tokens match within the matched-geometry contract.",
+    "C31": "Closed. N1 and concurrent N8 prefix checks passed. Actual P and D batches reached3. All28 imported prefix KV hashes and per-request query MRoPE match. Query coverage is P0:k and Dk:L. Output cap1, EOS allowed. Not long decode, task quality or serving speedup.",
+    "C32": "Closed. Native without token adapter used the new common compiled settings. N1 plus serial N8 state gates passed. Full P teacher KV and D imported L-1 prefix are strict across28 layers. The separately checked last-query KV meets L2<=0.02 and cosine>=0.999. All9 executions have matching full teacher/native greedy tokens.",
+    "C32_Natural_Main100": {
+      "QPS": 2.0,
+      "independent_starts": 1,
+      "output_tokens": 5113,
+      "TTFT_p95_ms": 4493.31077737188,
+      "ITL_p99_ms": 16.09696795669152,
+      "TPOT_p95_ms": 6.926356343694926,
+      "raw_output_tokens_per_second": 97.08761938770782,
+      "SLO_goodput": 89.24541582676055,
+      "joint_attainment": 0.97,
+      "task_quality": "PENDING",
+      "scope": "Measured Native runtime pilot. Not token split or a paired policy improvement."
+    },
+    "C32_Replay_Main100": "Closed. Exactly5269 output tokens. TTFTp954660.348238ms, ITLp9916.261031ms, TPOTp956.908584ms. Natural and replay remain separate.",
+    "C32R1": "Closed. Second independent initialization completed preflight, warmup, Natural Main100 and equal-output replay.",
+    "C32R2": "Verified live. Third independent initialization reached warmup.",
+    "CPU": "125 tests passed in logs/cpu_regression_v27.log. Earlier failing CPU controls remain preserved.",
+    "arrival_contract": "Report initially rejected different raw JSON hashes. Diff showed only QPS2 versus2.0. All request IDs, offsets and seeds were identical. A red/green tested comparator normalizes only QPS and stores both raw hashes plus the canonical contract hash. Original traces were not edited.",
+    "publication": "Checkpointv4 was pushed and remote verified. Closed C25-C31 evidence, raw lossless gzip traces, source and reports are included. Live C32 was excluded."
+  },
+  "live_handles": {
+    "confirmation_exec_session": 67711,
+    "confirmation_controller_PID": 870418,
+    "third_start_controller_PID": 876754,
+    "third_start_tag": "ec_COMMON_C32R2",
+    "third_start_guardians": {"E4": 877344, "P5": 877367, "D6": 877370},
+    "log": "logs/ec_COMMON_C32R2_v0.log",
+    "completion_marker": "state/common_native_confirmation_C32_complete.json",
+    "observation_rule": "Revalidate these live PIDs or their authoritative terminal records. Do not restart because an observation times out."
+  },
+  "remote_branch": "flashvep/mllm-epd-prefill-heavy-token-split-20261124",
+  "remote_verified_SHA": "9466e0ea53fabef099a690e43cf73384db0e7dba",
+  "publication_receipt": "state/publication_commit_checkpoint_v4.json",
+  "not_yet_published": "C32 runtime/quality pilot artifacts and reports, the common-Native confirmation controller, arrival comparator test and this checkpoint. Publish after validation in a new version.",
+  "new_reports": [
+    "mllm_epd_compiled_token_correctness_v1.md",
+    "mllm_epd_batched_token_prefix_correctness_v1.md",
+    "mllm_epd_common_compiled_native_pilot_v1.md"
+  ],
+  "unresolved_gates": [
+    "Full official task-quality evaluation remains pending. MMLongBench-Doc answer extraction has no authorized external API. Raw-answer scores do not replace it.",
+    "DocVQA raw ANLS is zero for both reference and Common Native. This floor is not adequate evidence of quality preservation.",
+    "Stock compiled strict failures remain preserved. New common-compiled success does not repair or reclassify the old policy.",
+    "Token multirequest Natural EOS and full suffix cross-batch state gates remain incomplete. C31 generated one token per request.",
+    "Primary prefill-heavy and E-nonbottleneck proof is not established. C25 qualifies low-load physical idle only. C27 high-load observer failed5% checks.",
+    "C26 E/D prefix cost controls remain diagnostic. They do not measure imported-prefix suffix cost or safe quantum sizes.",
+    "No extra-prefill encode/decode-safe intervention, token C3 speedup, idle-aware token serving or deflection success is established."
+  ],
+  "next_safe_actions": [
+    "Await the specific live third-start controller. Recalculate separate Natural/replay common-Native N3 metrics and source/arrival provenance.",
+    "Advance generic-token multirequest Natural correctness with a real current-state D admission guard. Test first-generated-token semantics, not first SSE bytes. Do not insert extra prefill into active decode without safety evidence.",
+    "Keep NativeStrong unchanged and compare the new common compiled policy separately. Preserve quality and decode gates.",
+    "If further P-heavy discovery is useful, predeclare a source-stratum Native-only control from frozen requests. Do not alter Main100 or select by method performance. Such a control is not a Main100 result.",
+    "Complete E/D headroom interventions only after their memory, lifetime and original-stage protection checks. Mark probes as interference probes, not useful serving work.",
+    "Publish newly closed results in a new checkpoint. Keep all final required reports, figures, resource restoration and final completion audit outstanding."
+  ],
+  "resources": {
+    "active_experiment_GPUs": [4, 5, 6],
+    "unused_burner_GPUs": [0, 1, 2, 3, 7],
+    "burner_rule": "Never restore a burner on an active experiment lease. Per-start guardian restoration remains enabled.",
+    "last_disk_available": "1005GiB on repository filesystem,498GiB in /dev/shm",
+    "final_resource_closeout": "NOT_RUN"
+  },
+  "large_experiment_cutoff_KST": "2026-11-25T13:08:59+09:00",
+  "final_deadline_KST": "2026-11-25T15:08:59+09:00"
+}

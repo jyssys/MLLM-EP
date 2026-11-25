@@ -1,0 +1,108 @@
+{
+  "as_of_KST": "2026-11-25 05:30:04",
+  "goal_status": "ACTIVE",
+  "turn_classification": "PROGRESS",
+  "prior_checkpoint": "state/goal_checkpoint_20261125_0443.json",
+  "budget": {
+    "large_experiment_cutoff_KST": "2026-11-25 13:08:59",
+    "final_deadline_KST": "2026-11-25 15:08:59",
+    "maximum_hours": 25,
+    "final_two_hours_reserved": true
+  },
+  "live_verified_jobs": [
+    {
+      "tag": "token_CONFIRM_C37",
+      "PID": 946010,
+      "exec_session": 52994,
+      "actual_proc_alive": true,
+      "phase": "36of48 measured cells closed. Block2 NativeStrong Main100 replay is active. Static10 and NativeCommon follow.",
+      "GPU_leases": [4, 5, 6],
+      "log": "logs/token_CONFIRM_C37_v0.log",
+      "scope": "Four methods, independent N3, Main100/Heldout50, Natural/replay, identical fixed arrivals. Do not stop unfavorable repeats."
+    },
+    {
+      "tag": "ec_DOCUMENT_C39R1",
+      "PID": 965200,
+      "exec_session": 2323,
+      "actual_proc_alive": true,
+      "phase": "WAITING for the actual C37 PID to exit. No GPU ownership yet.",
+      "source": "document_stratum_control.py",
+      "log": "logs/ec_DOCUMENT_C39R1_v0.log",
+      "scope": "Frozen secondary37 original MMLongDoc parent-discovery requests, not a replacement Main100. Natural q0.5/1/2/3, replay CPCq1/2/3. Each profile uses a separate fresh Native E/P/D initialization."
+    },
+    {
+      "tag": "interference_PROBE_C40R1",
+      "PID": 991498,
+      "exec_session": 58508,
+      "actual_proc_alive": true,
+      "phase": "WAITING for actual C39R1 PID and closed GPU leases. No GPU ownership yet.",
+      "source": "interference_probe_control.py",
+      "log": "logs/interference_PROBE_C40R1_v0.log",
+      "scope": "Prospectively matched NativeStrong plus Common Native, no-helper and co-resident no-probe controls, E128/E512/D128/D512 actual unrelated prefix probes. Main100 online E stays real. Independent N3. Probe outputs never count as completed Main tasks or serving gain."
+    },
+    {
+      "tag": "suffix_QUANTA_C41",
+      "PID": 997388,
+      "exec_session": 7252,
+      "actual_proc_alive": true,
+      "phase": "WAITING for actual C40R1 completion. A failed predecessor stops this controller before GPU start.",
+      "source": "suffix_quantum_cost_control.py",
+      "log": "logs/suffix_QUANTA_C41_v0.log",
+      "scope": "C0 real imported-KV suffix128/256/512/1024/2048 at calibration inputs4831/2961/27840. Require15 strict same-chunk Natural teacher/token cases first. Separate non-stream one-token D completion cost, D-only CUDA events, clean/profile/clean and all30 observer checks. Not prefix costs, SSE TTFT, exclusive DMA, or C3 gain."
+    }
+  ],
+  "new_work": {
+    "probe_proxy": "Separate interference_probe_proxy.py wraps the original Native request handler. Atomic D gate rejects active/pending Native decode. Real one-token completion is required to release a probe. Native errors fail closed. E starts only with zero E HTTP requests and P HTTP work. HTTP idle is not physical GPU idle or a predicted safe window.",
+    "decode_probe": "Explicit opt-in permits a marked max1 discarded prefix on the original D model. No token adapter, eager fallback, sampling correction, imported prefix KV or Main input modification. Unmarked Native input returns unchanged.",
+    "probe_reference": "Only the unrelated calibration probe embedding is primed. All real Main100 requests still encode online. Additional original full LLM on E includes a counted duplicate vision tower, KV8GiB. C40 memory fit and prefix correctness remain to be verified on GPU before timing.",
+    "profile_capacity": "Future sampled Collector states now record free/total KV blocks and encoder cache slots. Old traces without these fields remain unmeasured. All real schedule/execute calls still run.",
+    "confirmation_analysis": "token_confirmation_analysis.py now generates paired N3 ratios, independent-start CIs, all8 SLO failure categories, descriptive TTFT CDFs, raw quality scores and separate runtime decision gates. Full quality pending never becomes a full GO.",
+    "C41_protocol": "CPU integration drives the actual trial path. E/P/D metadata identity remains equal, prefix import count must match, and E cannot be released before the D one-token response. An invalid prefix stops before D and no fake ACK is issued."
+  },
+  "preserved_pre_GPU_plan_revisions": [
+    {
+      "tag": "ec_DOCUMENT_C39",
+      "PID_was": 949160,
+      "GPU_leases_started": 0,
+      "status": "NOT_RUN",
+      "reason": "Preflight found that the actual worker RPC allows one Collector per initialization. R1 uses independent server groups for each QPS. The assertion was retained and regression-tested. The initial plan/manifest remain unchanged."
+    },
+    {
+      "tag": "interference_PROBE_C40",
+      "PID_was": 968763,
+      "GPU_leases_started": 0,
+      "status": "NOT_RUN",
+      "reason": "Added prospectively matched NativeStrong controls before any probe result. R1 keeps the same data, quanta, sampling, SLO and acceptance predicates. Original unstarted plan remains."
+    }
+  ],
+  "verification": {
+    "CPU": "153tests PASS in logs/cpu_regression_v49.log",
+    "scope": "CPU protocol/gate tests are not GPU correctness or safe-headroom proof. C39 fixture KeyError log v38 is preserved; only its missing test role fixture was repaired.",
+    "preservation": "common.preserve() PASS",
+    "latest_remote_verified_SHA": "af3bc45d3db22a18fc642a48628f6848468219ae",
+    "not_yet_published": "New C37 analysis changes, C39R1/C40R1/C41 code, CPU tests, frozen plans and these live results. Publish only closed evidence in a new checkpoint."
+  },
+  "current_observations": {
+    "C37_block0": "Static10 worsened TTFT. Idle10 did not reproduce the Discovery9percent replay gain. All unfavorable cells remain. Do not interpret incomplete N3 as a final result.",
+    "quality": "PENDING. MMLongDoc full official extraction requires authorized external API/key. Do not call it without approval. DocVQA unchanged raw ANLS floor is not a quality pass.",
+    "headroom": "Qualified low-load C25 physical idle and C16 co-residency fit do not prove QPS2 encode-safe or decode-safe headroom. No online window predictor exists."
+  },
+  "next_actions": [
+    "Monitor the same four exact PIDs/sessions. Observation timeout is not terminal. Do not restart because a log is quiet.",
+    "After C37 COMPLETE with48cells, run token_confirmation_analysis.py, inspect its real calculations and rendered figures, and publish the closed N3 results with truthful runtime and quality decisions.",
+    "Monitor C39R1 profile qualification. All failures stay DIAGNOSTIC. Do not infer P service proximity, SM/Tensor/HBM or actual safe windows from kernel busy alone.",
+    "Inspect C40R1 GPU N1/N8 and all28 E/D prefix gates before any interference timing. A probe is unrelated work, not real request offloading. Encoder HTTP completion is not necessarily GPU completion. Preserve end-to-end and decode results and unmeasured encoder-kernel scope.",
+    "Inspect C41 strict correctness and observer gates. Do not substitute C26 prefix costs for imported-KV suffix costs or non-stream one-token cost for C3 SSE TTFT.",
+    "Remaining useful scoped work includes a separate same-E-embedding correctness reference to remove the known encoder-geometry confound, and a real Whole-prefill Deflection baseline if time permits. Neither is implemented yet. Do not alter the frozen C37 fraction or replace heldout requests.",
+    "For Whole Deflection, an optional separate coordinator with on-demand E transport can decide after encode, avoiding unused inline descriptors. Keep original NativeStrong and a same-policy no-deflection Native. This is a plan, not measured performance or a Kairos reproduction.",
+    "Final reports, requirement-by-requirement audit, metric/figure checks, all-GPU resource closeout, final commit/push and remote SHA confirmation remain outstanding."
+  ],
+  "resources": {
+    "GPU4_5_6": "Reserved by C37, even during initialization or physical idle. Do not start burners on these leases.",
+    "GPU0_1_2_3_7": "Approved burners observed active, utilization100percent at the latest sample.",
+    "last_available_filesystem_GiB": 969,
+    "last_available_devshm_GiB": 496,
+    "final_resource_restoration": "NOT_DONE because the campaign is active."
+  },
+  "completion": "UNPROVEN. Keep the full goal active."
+}

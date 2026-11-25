@@ -89,10 +89,13 @@ def main():
             artifact_available=all(r['available'] for r in bundles),bundles=bundles,
             scientific_PASS_inferred_from_availability=False))
     jobs=[]
-    for tag in ['interference_PROBE_C40R4','suffix_QUANTA_C41R3','ec_INLINE_CAUSAL_C44','batch_COUNTER_C46']:
+    for tag in ['interference_PROBE_C40R4','suffix_QUANTA_C41R3','ec_INLINE_CAUSAL_C44','batch_COUNTER_C46','batch_COUNTER_C46R1']:
         marker=ROOT/'state'/f'{tag}_controller_complete.json'
-        jobs.append(dict(tag=tag,terminal_marker_available=marker.exists(),
-            marker_SHA256=digest(marker) if marker.exists() else None,
+        failure=ROOT/'state'/f'{tag}_failure.json'
+        terminal=marker if marker.exists() else failure if failure.exists() else None
+        jobs.append(dict(tag=tag,terminal_marker_available=terminal is not None,
+            terminal_status='COMPLETE' if marker.exists() else 'FAILED_EXECUTION' if failure.exists() else 'NOT_TERMINAL',
+            marker_SHA256=digest(terminal) if terminal else None,
             scope='File availability only. Live PID and GPU lease checks are required separately.'))
     write(output,dict(time=time.time(),reports=reports,figures=figures,jobs=jobs,
         missing_report_files=[r['file'] for r in reports if not r['available']],

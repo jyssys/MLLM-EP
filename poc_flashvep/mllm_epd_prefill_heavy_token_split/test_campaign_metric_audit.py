@@ -1,10 +1,21 @@
 """Use actual timestamp and SLO boundaries, including empty single-token ITL."""
 import unittest
 
-from .campaign_metric_audit import request_contract
+from .campaign_metric_audit import request_contract,non_serving_reason
 
 
 class MetricAuditTest(unittest.TestCase):
+    def test_known_correctness_runs_are_not_missing_serving_cohorts(self):
+        for run in ['base_C14_agg_S1_N1_natural_v0','ec_NATIVE_C11_S2_N8_natural_v0',
+                'token_CONFIRM_C37_B0_Static10_KV_TEACHER','token_CONFIRM_C37_B0_Static10_KV_TOKEN']:
+            self.assertEqual(non_serving_reason(run),'CORRECTNESS_ONLY')
+
+    def test_real_incomplete_or_unknown_run_is_not_silently_excluded(self):
+        for run in ['token_CONFIRM_C37_B0_Static10_Main100_natural',
+                'batch_COUNTER_C46_B0_AggDP3_counter','base_C14_agg_S1_unrecognized_failure']:
+            self.assertIsNone(non_serving_reason(run))
+        self.assertEqual(non_serving_reason('batch_COUNTER_C46_B0_AggDP3_warmup'),'WARMUP_OR_SMOKE')
+
     def sample(self,times):
         count=len(times);finish=times[-1]+.1
         return dict(status='MEASURED_ONLINE',scheduled_arrival=0.,token_times=times,token_ids=list(range(count)),

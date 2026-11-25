@@ -11,7 +11,14 @@ from .metrics import gates
 from .token_discovery_analysis import table
 
 PREFIXES=('ec_NATIVE_C11_S','base_C14_','token_CONFIRM_C37_B','whole_DEFLECTION_C43R4_B',
-    'interference_PROBE_C40R4_B','ec_INLINE_CAUSAL_C44_B','batch_COUNTER_C46_B')
+    'interference_PROBE_C40R4_B','ec_INLINE_CAUSAL_C44_B','batch_COUNTER_C46_B','batch_COUNTER_C46R1_B')
+
+
+def non_serving_reason(run):
+    if any(part in run.lower() for part in ['warmup','smoke']):return 'WARMUP_OR_SMOKE'
+    if any(part in run for part in ['_N1_','_N8_','_KV_TEACHER','_KV_TOKEN']) or 'correct' in run.lower():
+        return 'CORRECTNESS_ONLY'
+    return None
 
 
 def request_contract(row):
@@ -76,10 +83,13 @@ def main():
     parser.add_argument('--closed-only',action='store_true');args=parser.parse_args();preserve()
     assert args.closed_only, 'Explicit partial scope is required until final completion is audited'
     report=ROOT/'analysis'/f'campaign_metric_audit_{args.version}.json';assert not report.exists()
-    results=[];incomplete=[]
+    results=[];incomplete=[];excluded=[]
     for raw in sorted((ROOT/'raw').glob('*_requests.jsonl')):
         run=raw.name.removesuffix('_requests.jsonl')
-        if not run.startswith(PREFIXES) or any(part in run.lower() for part in ['warmup','smoke','correct']):continue
+        if not run.startswith(PREFIXES):continue
+        reason=non_serving_reason(run)
+        if reason:
+            excluded.append(dict(run=run,reason=reason,raw_SHA256=digest(raw)));continue
         completion=ROOT/'state'/f'{run}_complete.json';cached=ROOT/'analysis'/f'{run}_metrics.json'
         if not completion.exists() or not cached.exists():
             incomplete.append(dict(run=run,status='NOT_AUDITED_LIVE_OR_MISSING_COMPLETION'));continue
@@ -93,6 +103,7 @@ def main():
     table(ROOT/'analysis'/f'campaign_metric_audit_{args.version}.csv',results)
     write(report,dict(time=time.time(),status='CLOSED_COHORTS_RECALCULATED_NOT_FINAL_CLOSEOUT',
         cohorts=len(results),requests=sum(r['requests'] for r in results),results=results,incomplete=incomplete,
+        excluded_non_serving=excluded,
         frozen_SLO=dict(TTFT_ms=5000,every_client_ITL_ms=34,TPOT_ms=33),
         evidence='Metric integrity only. This audit does not prove output quality, profiler validity or safe windows.',
         absolute_decode='Per-request All-ITL AND TPOT. Separate95% pass rates alone are not this gate.',

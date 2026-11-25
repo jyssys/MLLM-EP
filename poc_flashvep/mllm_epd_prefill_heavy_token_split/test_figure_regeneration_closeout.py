@@ -5,10 +5,16 @@ import unittest
 
 from PIL import Image
 
-from .figure_regeneration_closeout import allowed_write,compare_bundle
+from .figure_regeneration_closeout import allowed_write,compare_bundle,analysis_link_allowed
 
 
 class FigureRegenerationTest(unittest.TestCase):
+    def test_baseline_metric_outputs_cannot_remain_links_to_frozen_summaries(self):
+        job=dict(module='baseline_confirmation_analysis',drop=['main100_C14_'])
+        self.assertFalse(analysis_link_allowed(job,'base_C14_agg_S1_natural100_q2_v0_metrics.json'))
+        self.assertFalse(analysis_link_allowed(job,'main100_C14_natural_TTFT_p95_ms_v0.csv'))
+        self.assertTrue(analysis_link_allowed(job,'base_C14_agg_S1.json'))
+
     def test_original_symlink_write_is_rejected(self):
         with TemporaryDirectory() as folder:
             root=Path(folder);sandbox=root/'output';sandbox.mkdir();original=root/'original';original.write_text('frozen')

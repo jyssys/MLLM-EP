@@ -1,0 +1,214 @@
+test_cancellation_before_d_headers_does_not_leak_a_gate_lease (poc_flashvep.mllm_epd_prefill_heavy_token_split.test_idle_proxy.IdleProxyTest.test_cancellation_before_d_headers_does_not_leak_a_gate_lease) ... ERROR
+test_role_only_sse_does_not_release_prefix_owner_and_completion_closes_it (poc_flashvep.mllm_epd_prefill_heavy_token_split.test_idle_proxy.IdleProxyTest.test_role_only_sse_does_not_release_prefix_owner_and_completion_closes_it) ... ERROR
+
+======================================================================
+ERROR: test_cancellation_before_d_headers_does_not_leak_a_gate_lease (poc_flashvep.mllm_epd_prefill_heavy_token_split.test_idle_proxy.IdleProxyTest.test_cancellation_before_d_headers_does_not_leak_a_gate_lease)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/mllm_epd_prefill_heavy_token_split/proxy.py", line 171, in completion
+    reply=await session.post(target+'/v1/chat/completions',json=body,
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        headers=headers(request_id,request_id+':D'))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/mllm_epd_prefill_heavy_token_split/test_idle_proxy.py", line 62, in result
+    if self.headers_block is not None:await self.headers_block.wait()
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/anaconda3/lib/python3.14/asyncio/locks.py", line 213, in wait
+    await fut
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/esjung/anaconda3/lib/python3.14/asyncio/runners.py", line 128, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/esjung/anaconda3/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/mllm_epd_prefill_heavy_token_split/test_idle_proxy.py", line 117, in test_cancellation_before_d_headers_does_not_leak_a_gate_lease
+    with self.assertRaises(asyncio.CancelledError):await task
+                                                   ^^^^^^^^^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/httpx/_client.py", line 1859, in post
+    return await self.request(
+           ^^^^^^^^^^^^^^^^^^^
+    ...<13 lines>...
+    )
+    ^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/httpx/_client.py", line 1540, in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/httpx/_client.py", line 1629, in send
+    response = await self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<4 lines>...
+    )
+    ^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/httpx/_client.py", line 1657, in _send_handling_auth
+    response = await self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/httpx/_client.py", line 1694, in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/httpx/_client.py", line 1730, in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/httpx/_transports/asgi.py", line 170, in handle_async_request
+    await self.app(scope, receive, send)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/fastapi/applications.py", line 1159, in __call__
+    await super().__call__(scope, receive, send)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/starlette/applications.py", line 96, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/starlette/middleware/errors.py", line 186, in __call__
+    raise exc
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/starlette/routing.py", line 670, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/starlette/routing.py", line 690, in app
+    await route.handle(scope, receive, send)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/starlette/routing.py", line 280, in handle
+    await self.app(scope, receive, send)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/fastapi/routing.py", line 134, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/fastapi/routing.py", line 120, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/fastapi/routing.py", line 674, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/fastapi/routing.py", line 328, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/mllm_epd_prefill_heavy_token_split/proxy.py", line 217, in completion
+    append(ROOT/'raw'/('proxy_'+name+'.jsonl'),trace);state['failed']+=1
+    ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/dense_ar_slo_layer_pd/common.py", line 44, in append
+    with Path(path).open('a') as stream:stream.write(json.dumps(value,ensure_ascii=False)+'\n')
+         ~~~~~~~~~~~~~~~^^^^^
+  File "/home/esjung/anaconda3/lib/python3.14/pathlib/__init__.py", line 771, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/tmp/tmp0uevb0uv/raw/proxy_cpu_cancel.jsonl'
+
+======================================================================
+ERROR: test_role_only_sse_does_not_release_prefix_owner_and_completion_closes_it (poc_flashvep.mllm_epd_prefill_heavy_token_split.test_idle_proxy.IdleProxyTest.test_role_only_sse_does_not_release_prefix_owner_and_completion_closes_it)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/esjung/anaconda3/lib/python3.14/asyncio/runners.py", line 128, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/esjung/anaconda3/lib/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/mllm_epd_prefill_heavy_token_split/test_idle_proxy.py", line 93, in test_role_only_sse_does_not_release_prefix_owner_and_completion_closes_it
+    response=await task
+             ^^^^^^^^^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/httpx/_client.py", line 1859, in post
+    return await self.request(
+           ^^^^^^^^^^^^^^^^^^^
+    ...<13 lines>...
+    )
+    ^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/httpx/_client.py", line 1540, in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/httpx/_client.py", line 1629, in send
+    response = await self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<4 lines>...
+    )
+    ^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/httpx/_client.py", line 1657, in _send_handling_auth
+    response = await self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/httpx/_client.py", line 1694, in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/httpx/_client.py", line 1730, in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/httpx/_transports/asgi.py", line 170, in handle_async_request
+    await self.app(scope, receive, send)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/fastapi/applications.py", line 1159, in __call__
+    await super().__call__(scope, receive, send)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/starlette/applications.py", line 96, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/starlette/middleware/errors.py", line 186, in __call__
+    raise exc
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/starlette/routing.py", line 670, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/starlette/routing.py", line 690, in app
+    await route.handle(scope, receive, send)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/starlette/routing.py", line 280, in handle
+    await self.app(scope, receive, send)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/fastapi/routing.py", line 134, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/fastapi/routing.py", line 121, in app
+    await response(scope, receive, send)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/starlette/responses.py", line 273, in __call__
+    async with create_collapsing_task_group() as task_group:
+               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home/esjung/anaconda3/lib/python3.14/contextlib.py", line 235, in __aexit__
+    await self.gen.athrow(value)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/starlette/_utils.py", line 93, in create_collapsing_task_group
+    raise exc from exc.__cause__ or context
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/anyio/_core/_tasks.py", line 327, in _run_coro
+    retval = await self._coro
+             ^^^^^^^^^^^^^^^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/starlette/responses.py", line 276, in wrap
+    await func()
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/starlette/responses.py", line 250, in stream_response
+    async for chunk in self.body_iterator:
+    ...<2 lines>...
+        await send({"type": "http.response.body", "body": chunk, "more_body": True})
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/mllm_epd_prefill_heavy_token_split/proxy.py", line 212, in stream
+    append(ROOT/'raw'/('proxy_'+name+'.jsonl'),trace)
+    ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/dense_ar_slo_layer_pd/common.py", line 44, in append
+    with Path(path).open('a') as stream:stream.write(json.dumps(value,ensure_ascii=False)+'\n')
+         ~~~~~~~~~~~~~~~^^^^^
+  File "/home/esjung/anaconda3/lib/python3.14/pathlib/__init__.py", line 771, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/tmp/tmp243zyb1x/raw/proxy_cpu_idle.jsonl'
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.035s
+
+FAILED (errors=2)

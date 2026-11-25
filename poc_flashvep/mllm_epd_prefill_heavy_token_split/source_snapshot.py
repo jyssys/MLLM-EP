@@ -60,6 +60,20 @@ def snapshot(label, include_runtime=False):
     return record
 
 
+def boot_source_hashes(record):
+    """Record exact archive bytes, not a later observation of host source files."""
+    archive=Path(record['archive']);assert digest(archive)==record['archive_SHA256']
+    result={}
+    with ZipFile(archive) as source:
+        for row in json.loads(source.read('source_manifest.json')):
+            member=Path(row['member'])
+            if member.parent.as_posix()!='poc_flashvep/mllm_epd_prefill_heavy_token_split':continue
+            actual=hashlib.sha256(source.read(row['member'])).hexdigest();assert actual==row['SHA256']
+            result[member.name]=actual
+    assert result
+    return result
+
+
 def materialize(record):
     """Run future workers from verified boot bytes, not a changing worktree."""
     archive=Path(record['archive'])

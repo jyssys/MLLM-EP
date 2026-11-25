@@ -44,6 +44,14 @@ def allowed_write(sandbox,path):
         raise PermissionError('Figure reproduction cannot write outside its fresh output folder: '+str(resolved))
 
 
+def analysis_link_allowed(job,name):
+    if name.startswith(tuple(job['drop'])):return False
+    # This generator calls the actual metric writer. Its derived outputs must
+    # be new files, never links that resolve to frozen original metrics.
+    if job['module']=='baseline_confirmation_analysis' and name.endswith('_metrics.json'):return False
+    return True
+
+
 def install_write_guard(sandbox):
     """Guard Python file writes, not an arbitrary external-process sandbox."""
     flags=os.O_WRONLY|os.O_RDWR|os.O_CREAT|os.O_TRUNC|os.O_APPEND
@@ -96,11 +104,14 @@ def worker(job,sandbox):
         path.mkdir(parents=True,exist_ok=True)
     for name in ['data','raw','configs','state','references']:(namespace/name).symlink_to(ROOT/name,target_is_directory=True)
     for path in (ROOT/'analysis').iterdir():
-        if path.is_file() and not path.name.startswith(tuple(job['drop'])):
+        if path.is_file() and analysis_link_allowed(job,path.name):
             (namespace/'analysis'/path.name).symlink_to(path)
     if 'input_report' in job:(sandbox/job['input_report']).symlink_to(ROOT.parent/job['input_report'])
     install_write_guard(sandbox)
     module=importlib.import_module('poc_flashvep.mllm_epd_prefill_heavy_token_split.'+job['module'])
+    if job['module']=='baseline_confirmation_analysis':
+        from . import metrics
+        metrics.ROOT=namespace
     module.ROOT=namespace;sys.argv=[job['module']]+job['args'];module.main()
 
 

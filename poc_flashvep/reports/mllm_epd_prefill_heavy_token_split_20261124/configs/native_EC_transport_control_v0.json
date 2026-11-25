@@ -1,0 +1,37 @@
+{
+  "time": 1795523492.0583718,
+  "status": "FROZEN_BEFORE_NATIVE_CANDIDATE",
+  "source_archive_SHA256": "632611fe838163dd56c6180dce1f9897c2dcd8c2c8deb16f6d07ecb0526fbe0d",
+  "GPU_group": [
+    4,
+    5,
+    6
+  ],
+  "arms": [
+    "ec_CPU_C6",
+    "ec_IPC_C7"
+  ],
+  "one_factor": "Original E embedding transport",
+  "fixed": [
+    "Model and processor revision",
+    "BF16 BI0",
+    "Full28 LLM and original vision encoder",
+    "E cache0/T2/B114688 sync",
+    "P/D B8192/S1024 async and KV42GiB/Block128",
+    "Grid metadata reuse",
+    "Main100 and order/arrival seeds",
+    "Immediate client evidence recording",
+    "All SLO thresholds"
+  ],
+  "differences": "CUDA IPC retains original E GPU backing storage until successful downstream completion. Fresh per-consumer descriptors and GPU clone-completion ACKs are mandatory. No unused D image copy is forced.",
+  "bound": "Maximum12GiB live unique E backing storage; exceeding it fails the experiment without freeing live tensors.",
+  "hypotheses": [
+    "CPU staging may delay E supply.",
+    "IPC open/RPC costs may offset removed CPU copies.",
+    "Original E computation or other host work may remain the bottleneck."
+  ],
+  "no_generic_token_split": true,
+  "no_online_prefill_insertion": true,
+  "primary_quality": "PENDING",
+  "independent_starts_per_arm": 1
+}

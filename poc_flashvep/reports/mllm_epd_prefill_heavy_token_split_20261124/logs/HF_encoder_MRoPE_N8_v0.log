@@ -1,0 +1,41 @@
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/mllm_epd_prefill_heavy_token_split/hf_correctness.py", line 75, in <module>
+    if __name__=='__main__':main()
+                            ~~~~^^
+  File "/home/esjung/MLLM-EP-github/poc_flashvep/mllm_epd_prefill_heavy_token_split/hf_correctness.py", line 29, in main
+    model=Qwen2_5_VLForConditionalGeneration.from_pretrained(model_receipt['directory'],
+          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        dtype=torch.bfloat16,attn_implementation='flash_attention_2').eval()
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/transformers/modeling_utils.py", line 4350, in from_pretrained
+    model = cls(config, *model_args, **model_kwargs)
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/transformers/models/qwen2_5_vl/modeling_qwen2_5_vl.py", line 1274, in __init__
+    super().__init__(config)
+    ~~~~~~~~~~~~~~~~^^^^^^^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/transformers/modeling_utils.py", line 1345, in __init__
+    self.config._attn_implementation_internal = self._check_and_adjust_attn_implementation(
+                                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        self.config._attn_implementation,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<2 lines>...
+        allow_all_kernels=hub_kernels.ALLOW_ALL_KERNELS,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/transformers/modeling_utils.py", line 1903, in _check_and_adjust_attn_implementation
+    applicable_attn_implementation = self.get_correct_attn_implementation(
+        applicable_attn_implementation, is_init_check
+    )
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/transformers/modeling_utils.py", line 1950, in get_correct_attn_implementation
+    self._flash_attn_can_dispatch(flash_attn_version=fa_version, is_init_check=is_init_check)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/transformers/modeling_utils.py", line 1689, in _flash_attn_can_dispatch
+    self._flash_attn_import_error(**FLASH_ATTENTION_COMPATIBILITY_MATRIX[flash_attn_version])
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/esjung/.venvs/cp-composition-vllm026/lib/python3.14/site-packages/transformers/modeling_utils.py", line 1644, in _flash_attn_import_error
+    raise ImportError(
+        f"{preface} the package for FlashAttention{flash_attn_version} doesn't seem to be installed."
+    )
+ImportError: FlashAttention2 has been toggled on, but it cannot be used due to the following error: the package for FlashAttention2 doesn't seem to be installed.

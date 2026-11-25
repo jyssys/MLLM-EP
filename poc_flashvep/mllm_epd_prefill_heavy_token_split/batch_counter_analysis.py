@@ -32,13 +32,15 @@ def summarize_worker(value,role):
 
 
 def main():
-    preserve();source=ROOT/'analysis'/f'{TAG}_summary.json';summary=json.loads(source.read_text())
-    assert summary['status']=='COMPLETE' and len(summary['results'])==24
-    assert (ROOT/'state'/f'{TAG}_controller_complete.json').exists()
+    preserve();source=ROOT/'analysis/batch_COUNTER_C46R1_summary.json';summary=json.loads(source.read_text())
+    assert summary['status']=='COMPLETE_COLLECTION' and len(summary['results'])==24
+    assert (ROOT/'state/batch_COUNTER_C46R1_controller_complete.json').exists()
+    prior=ROOT/'state/batch_COUNTER_C46_failure.json'
+    assert digest(prior)==summary['previous_failure_SHA256']
     target=ROOT/'analysis'/f'{TAG}_audit_v0.json';assert not target.exists()
     node_rows=[];histograms=[];encoder_histograms=[];gates=[];metric_checks=[];provenance=[]
     for method in METHODS:
-        tag=f'{TAG}_B0_{method}';qualification=ROOT/'analysis'/f'{tag}_counter_qualification.json'
+        tag=summary['method_tags'][method];qualification=ROOT/'analysis'/f'{tag}_counter_qualification.json'
         info=json.loads(qualification.read_text());replies=json.loads((ROOT/'state'/f'{tag}_counter_RPC.json').read_text())
         assert info['independent_initializations']==1 and info['task_quality']=='PENDING' and not info['full_GO']
         expected=qualify(info['stages'],info['collector_valid'])
@@ -96,6 +98,10 @@ def main():
     plt.close(figure);table(ROOT/'figures'/f'{name}.csv',figure_rows)
     target=ROOT.parent/'mllm_epd_actual_batch_counter_validation_v1.md';assert not target.exists()
     lines=['# 실제 Prepared Batch: Counter-only C3 검사','',
+        'C46은 Agg DP3의 V2 Runner Counter API에서 실패했다. 실패 Raw와 종료 상태는 보존했다.',
+        '완료된 NativeStrong·NativeCommon·Static10·Idle10은 반복하지 않았다.',
+        'C46R1은 V2 Counter만 수정하고 Agg DP3·E+PD DP2를 새 초기화로 검사했다.',
+        'V2는 반환된 InputBatch와 중첩 EncoderRunner 출력을 읽었다. V1 Hook과 모델 실행은 유지했다.',
         '각 Method는 같은 GPU4/5/6에서 새 초기화 1회로 실행했다. 독립 N3가 아니다.',
         '동일 Main100·QPS2·요청별 Output 수를 사용했다. Natural EOS 결과와 합쳐 평균내지 않았다.',
         '측정 순서는 Warm-up→Clean Before→Counter→Clean After다.',

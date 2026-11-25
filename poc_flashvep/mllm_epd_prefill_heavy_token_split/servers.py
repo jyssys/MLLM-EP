@@ -118,7 +118,7 @@ def serve(name,gpu,role,port,ec_path,side_port,observe=False,encoder_native_ops=
     if observe:
         from .worker_observer import prepare_artifact
         prepare_artifact()
-    from .source_snapshot import snapshot,materialize
+    from .source_snapshot import snapshot,materialize,boot_source_hashes
     archived_source=snapshot('server_'+name)
     frozen_cwd=materialize(archived_source)
     env=dict(os.environ,PATH=str(PYTHON.parent)+os.pathsep+os.environ.get('PATH',''),
@@ -143,7 +143,7 @@ def serve(name,gpu,role,port,ec_path,side_port,observe=False,encoder_native_ops=
     assert subprocess.run(['ninja','--version'],env=env,capture_output=True).returncode==0
     data=dict(name=name,gpu=gpu,role=role,port=port,EC_path=str(ec_path),command=cmd,
         guardian=os.getpid(),guardian_sid=os.getsid(0),started=started,ready=False,finished=False,legacy_runner=legacy_runner,
-        source_SHA256={p.name:digest(p) for p in Path(__file__).parent.glob('*.py')},
+        source_SHA256=boot_source_hashes(archived_source),
         source_archive=archived_source['archive'],source_archive_SHA256=archived_source['archive_SHA256'],
         executed_source_cwd=str(frozen_cwd),source_execution='Verified extracted boot snapshot',
         GPU_info=subprocess.check_output(['nvidia-smi','-i',str(gpu),
