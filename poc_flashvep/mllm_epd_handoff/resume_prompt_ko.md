@@ -33,9 +33,15 @@ E는 원래 Processor/Encoder를 유지한다. 상세 설정은 README를 따른
 원래 `common.py`와 Resource Guard의 경로·Budget·UUID를 감사하라.
 기존 Evidence는 수정하지 않는다. 별도 새 서버 Namespace와 Resource Guard를 먼저 준비하라.
 
-`mllm_epd_handoff.assets verify`로 전송한 이미지와 Token Metadata를 검사하라.
-`prepare`로 새 경로의 파생 Manifest를 만들어라. 원본 Manifest를 덮어쓰지 않는다.
-Model은 고정 Revision으로 확보하라. 원래 환경 목록은 `source_environment.json`에 있다.
+원래 서버 SSH·rsync·수동 파일 이전을 사용자에게 요구하지 않는다.
+Token Metadata는 GitHub의 원래 NPZ를 사용한다. 실제 이미지·Model은 `bootstrap_download`로 자동 준비한다.
+기본 범위는 기존 Main100+Calibration32다. 필요한 공식 Parquet/PDF만 고정 Revision에서 다운로드한다.
+원래 Request ID·질문·정답·이미지 순서·PDF 전체 페이지를 보존한다. Dataset을 다시 Sampling하지 않는다.
+이미지와 Pixel·PDF·Model의 Hash를 검사한다. 실패한 Request를 다른 Sample로 대체하지 않는다.
+Source 접근이나 Renderer 차이를 해결할 수 없으면 실패를 기록한다. 필요한 접근 권한만 사용자에게 요청한다.
+새 경로의 파생 Manifest와 준비 Receipt를 만든다. 원본 Manifest를 덮어쓰지 않는다.
+기존 대형 Tensor는 다운로드하지 않는다. 새 정합성 Teacher가 필요하면 새 서버에서 생성한다.
+Model은 고정 Revision으로 확보한다. 원래 환경 목록은 `source_environment.json`에 있다.
 vLLM Version 문자열이 같아도 Wheel Hash가 다르면 새 Runtime으로 기록하라.
 
 원래 Encoder Batch Geometry 변화에서 Embedding/KV 차이가 있었다.
@@ -57,6 +63,6 @@ Native-relative ITL p99와 TPOT p95의 Paired CI 상한≤1.05를 별도 검사�
 Physical Idle을 Decode-safe Window나 실제 Speedup으로 표기하지 않는다.
 폐기 Sample의 Probe는 실제 요청의 Prefill 절감으로 계산하지 않는다.
 
-새 서버 사용 예산과 Burner 경로는 사용자에게 확인하라.
-Burner 복원은 새 서버에서 승인된 Model·GPU·Process에만 수행하라.
+새 서버 사용 예산과 GPU 범위는 사용자에게 확인하라.
+원래 서버 Burner는 사용자 요청으로 종료했다. 새 서버에서도 별도 승인 없이 Burner를 실행하지 않는다.
 중간 보고는 최소화하라. 새 결과와 실패를 보존하고 Commit/Push 후 Remote SHA를 확인하라.
