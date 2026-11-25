@@ -301,7 +301,7 @@ class OwnedProcesses:
             raise RuntimeError('; '.join(errors))
 
 
-def launch_models(group, tag, ec, uuid_by_gpu, media, token=False, common=True):
+def launch_models(group, tag, ec, uuid_by_gpu, media, token=False, common=True, prefill_kv_ttl=None):
     servers = module('servers')
     ready = []
     for role, gpu, port, side_port in ROLES:
@@ -315,6 +315,11 @@ def launch_models(group, tag, ec, uuid_by_gpu, media, token=False, common=True):
             fixed_reduction=common and not encoder, deterministic_reductions=common and not encoder,
         )
         command[command.index('--allowed-local-media-path') + 1] = str(media)
+        if prefill_kv_ttl is not None and not encoder:
+            config_index = command.index('--kv-transfer-config') + 1
+            config = json.loads(command[config_index])
+            config.setdefault('kv_connector_extra_config', {})['kv_lease_duration'] = prefill_kv_ttl
+            command[config_index] = json.dumps(config)
         process = group.start(
             label, command, CUDA_VISIBLE_DEVICES=uuid_by_gpu[gpu],
             VLLM_NIXL_SIDE_CHANNEL_PORT=str(side_port), MLLM_EPD_ROLE=role,
@@ -335,7 +340,7 @@ def launch_models(group, tag, ec, uuid_by_gpu, media, token=False, common=True):
     module('native_common_control').set_common_ipc_policy()
 
 
-def launch_proxy(group, label, mode, port, token=False, batch_one=False, idle=False, fraction=.10):
+def launch_proxy(group, label, mode, port, token=False, batch_one=False, idle=False, fraction=.10, decode_cap=None):
     command = [sys.executable, '-m', f'poc_flashvep.{PACKAGE}.proxy', '--mode', mode,
                '--name', label, '--encoder', 'http://127.0.0.1:18840',
                '--prefill', 'http://127.0.0.1:18841',
@@ -346,6 +351,8 @@ def launch_proxy(group, label, mode, port, token=False, batch_one=False, idle=Fa
                     '--token-policy', 'idle_fallback' if idle else 'static']
     if batch_one:
         command += ['--decode-batch-one']
+    if decode_cap not in (None, 'free'):
+        command += ['--decode-cap', str(decode_cap)]
     process = group.start(label, command)
     group.ready(process, port, label)
     return f'http://127.0.0.1:{port}'

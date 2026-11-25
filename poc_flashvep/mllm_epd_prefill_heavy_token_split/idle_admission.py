@@ -4,6 +4,9 @@ import json
 import time
 
 
+DECODE_CAPS = (1, 2, 4, 8, 16, 32, 64)
+
+
 class FirstToken:
     def __init__(self):
         self.pending = b''
@@ -31,9 +34,13 @@ class FirstToken:
 
 
 class IdleAdmission:
-    def __init__(self, batch_one=False):
+    def __init__(self, batch_one=False, decode_cap=None):
+        if batch_one:
+            assert decode_cap in (None, 1)
+            decode_cap = 1
+        assert decode_cap is None or type(decode_cap) is int and decode_cap in DECODE_CAPS
         self.condition = asyncio.Condition()
-        self.batch_one = batch_one
+        self.decode_cap = decode_cap
         self.active = {}
         self.pending = {}
         self.prefill_owner = None
@@ -41,22 +48,36 @@ class IdleAdmission:
         self.events = []
         self.failure = None
 
+    @property
+    def cap_binding(self):
+        return self.decode_cap is not None and len(self.active) >= self.decode_cap
+
     def state(self):
         return dict(active_http_requests=len(self.active), prefill_owner=self.prefill_owner,
             admission_waiting=self.waiting,failed_closed=self.failure is not None,
-            max_active_http_requests=1 if self.batch_one else None,
-            policy='FIFO_P_READY' if self.batch_one else 'IDLE_SUFFIX',
+            max_active_http_requests=self.decode_cap,cap_binding=self.cap_binding,
+            policy='FIFO_P_READY' if self.decode_cap is not None else 'IDLE_SUFFIX',
             scope='Sole-coordinator HTTP lifetime, not engine decode-ready or GPU kernel activity.')
 
     def can_enter(self, request_id, extra_prefill):
-        if self.batch_one:
-            return not self.active and next(iter(self.pending)) == request_id
-        return self.prefill_owner is None and (not extra_prefill or not self.active)
+        return (not self.cap_binding and self.prefill_owner is None
+                and (not extra_prefill or not self.active)
+                and (self.decode_cap is None or next(iter(self.pending)) == request_id))
+
+    def enqueued_blockers(self, extra_prefill):
+        return [name for name, blocked in (
+            ('CAP_FULL', self.cap_binding),
+            ('FIFO_AHEAD', self.decode_cap is not None and bool(self.pending)),
+            ('SUFFIX_NEEDS_EMPTY_D', extra_prefill and bool(self.active)),
+            ('SUFFIX_PREFILL_IN_PROGRESS', self.prefill_owner is not None),
+        ) if blocked]
 
     async def enter(self, request_id, extra_prefill):
         async with self.condition:
             assert request_id not in self.active and request_id not in self.pending
             begin = time.monotonic()
+            enqueued = self.state()
+            blocked_on_enqueue = self.enqueued_blockers(extra_prefill)
             self.waiting += 1
             self.pending[request_id] = None
             try:
@@ -69,13 +90,15 @@ class IdleAdmission:
                 if extra_prefill:
                     self.prefill_owner = request_id
                 event = dict(request_id=request_id, extra_prefill=extra_prefill, begin=begin,
-                    admitted=time.monotonic(), before=before, after=self.state())
+                    admitted=time.monotonic(), before=before, after=self.state(), enqueued=enqueued,
+                    blocked_on_enqueue=blocked_on_enqueue,
+                    suffix_isolated=before['active_http_requests']==0 if extra_prefill else None)
                 self.events.append(event)
                 return event
             finally:
                 self.waiting -= 1
                 del self.pending[request_id]
-                if self.batch_one and not self.active:
+                if self.decode_cap is not None:
                     self.condition.notify_all()
 
     async def first_token(self, request_id):

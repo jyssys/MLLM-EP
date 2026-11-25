@@ -114,7 +114,7 @@ async def one(session,url,row,body,arrival,run,index,host_observer=None,evidence
 
 
 async def execute(rows,urls,run,qps,seed,output_count,serial=False,metadata=None,observe_host=False,
-                  freeze_static_heap=False,defer_raw=False,unique_media_occurrence=False):
+                  freeze_static_heap=False,defer_raw=False,unique_media_occurrence=False,timing_hook=None):
     import aiohttp
     rng=random.Random(seed);offset=0;trace=[]
     for i,row in enumerate(rows):
@@ -151,6 +151,8 @@ async def execute(rows,urls,run,qps,seed,output_count,serial=False,metadata=None
         from .client_evidence import DeferredEvidence
         evidence_sink=DeferredEvidence(ROOT/'raw'/(run+'_requests.jsonl'),
             ROOT/'raw'/(run+'_completion_journal.jsonl'),host_observer)
+    measurement_done=asyncio.Event() if timing_hook is not None else None
+    timing_task=asyncio.create_task(timing_hook(start,trace,measurement_done)) if timing_hook is not None else None
     try:
         async with aiohttp.ClientSession(timeout=timeout,connector=connector,trust_env=False) as session:
             if serial:
@@ -164,9 +166,14 @@ async def execute(rows,urls,run,qps,seed,output_count,serial=False,metadata=None
                     row,f"{run}_{t['index']:04d}" if unique_media_occurrence else run,resolve_output_count(output_count,row)),
                     start+t['offset_seconds'],run,t['index'],host_observer,evidence_sink) for row,t in zip(rows,trace)))
     finally:
-        if host_observer is not None:await host_observer.close()
-        if evidence_sink is not None:evidence_state=evidence_sink.flush()
-        if heap is not None:heap.close()
+        try:
+            if timing_task is not None:
+                measurement_done.set()
+                await timing_task
+        finally:
+            if host_observer is not None:await host_observer.close()
+            if evidence_sink is not None:evidence_state=evidence_sink.flush()
+            if heap is not None:heap.close()
     measured_start=duration_anchor(serial,start,results)
     record=dict(run=run,wall_start=wall,monotonic_start=measured_start,wall_end=time.time(),
         planned_count=len(rows),actual_count=len(results),not_run_count=len(rows)-len(results),

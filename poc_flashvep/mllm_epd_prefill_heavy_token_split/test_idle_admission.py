@@ -2,10 +2,66 @@
 import asyncio
 import unittest
 
-from .idle_admission import FirstToken, IdleAdmission
+from .idle_admission import DECODE_CAPS, FirstToken, IdleAdmission
 
 
 class IdleAdmissionTest(unittest.IsolatedAsyncioTestCase):
+    async def test_each_bounded_cap_holds_its_slots_through_completion(self):
+        for cap in DECODE_CAPS:
+            with self.subTest(cap=cap):
+                gate=IdleAdmission(decode_cap=cap)
+                for index in range(cap):
+                    await gate.enter(str(index),False)
+                self.assertEqual(gate.state()['max_active_http_requests'],cap)
+                self.assertTrue(gate.state()['cap_binding'])
+                queued=asyncio.create_task(gate.enter('next',False))
+                await asyncio.sleep(0)
+                await gate.first_token('0')
+                self.assertFalse(queued.done())
+                await gate.leave('0')
+                receipt=await asyncio.wait_for(queued,1)
+                self.assertEqual(receipt['blocked_on_enqueue'],['CAP_FULL'])
+                self.assertEqual(receipt['after']['active_http_requests'],cap)
+
+    async def test_fifo_suffix_reserves_empty_d_and_other_streams_wait_for_first_token(self):
+        gate=IdleAdmission(decode_cap=2)
+        await gate.enter('a',False)
+        await gate.enter('b',False)
+        suffix=asyncio.create_task(gate.enter('suffix',True))
+        await asyncio.sleep(0)
+        native=asyncio.create_task(gate.enter('native',False))
+        await asyncio.sleep(0)
+        await gate.leave('a')
+        await asyncio.sleep(0)
+        self.assertFalse(gate.state()['cap_binding'])
+        self.assertFalse(suffix.done())
+        self.assertFalse(native.done())
+        await gate.leave('b')
+        receipt=await asyncio.wait_for(suffix,1)
+        self.assertTrue(receipt['suffix_isolated'])
+        self.assertEqual(receipt['before']['active_http_requests'],0)
+        self.assertEqual(receipt['after']['prefill_owner'],'suffix')
+        self.assertIn('SUFFIX_NEEDS_EMPTY_D',receipt['blocked_on_enqueue'])
+        self.assertFalse(native.done())
+        await gate.first_token('suffix')
+        receipt=await asyncio.wait_for(native,1)
+        self.assertIn('FIFO_AHEAD',receipt['blocked_on_enqueue'])
+        self.assertEqual(receipt['after']['active_http_requests'],2)
+        self.assertIsNone(gate.state()['prefill_owner'])
+
+    async def test_cancelled_suffix_queue_head_unblocks_following_native(self):
+        gate=IdleAdmission(decode_cap=2)
+        await gate.enter('current',False)
+        suffix=asyncio.create_task(gate.enter('cancelled',True))
+        await asyncio.sleep(0)
+        native=asyncio.create_task(gate.enter('next',False))
+        await asyncio.sleep(0)
+        self.assertFalse(native.done())
+        suffix.cancel()
+        with self.assertRaises(asyncio.CancelledError):await suffix
+        await asyncio.wait_for(native,1)
+        self.assertEqual(set(gate.active),{'current','next'})
+
     async def test_unknown_d_termination_fails_closed_instead_of_admitting_more_work(self):
         gate=IdleAdmission()
         await gate.enter('disconnected',True)
