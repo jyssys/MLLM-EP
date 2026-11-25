@@ -11,7 +11,7 @@ from .metrics import gates
 from .token_discovery_analysis import table
 
 PREFIXES=('ec_NATIVE_C11_S','base_C14_','token_CONFIRM_C37_B','whole_DEFLECTION_C43R4_B',
-    'interference_PROBE_C40R4_B','ec_INLINE_CAUSAL_C44_B')
+    'interference_PROBE_C40R4_B','ec_INLINE_CAUSAL_C44_B','batch_COUNTER_C46_B')
 
 
 def request_contract(row):
