@@ -52,7 +52,7 @@ def percentile(values, proportion):
 def csv_file(path, rows, minimum_fields=()):
     fields = list(dict.fromkeys((*minimum_fields, *(field for row in rows for field in row))))
     with path.open("w", newline="") as stream:
-        writer = csv.DictWriter(stream, fieldnames=fields)
+        writer = csv.DictWriter(stream, fieldnames=fields, lineterminator="\n")
         writer.writeheader()
         writer.writerows(rows)
 
@@ -100,7 +100,7 @@ class Cohort:
         )
 
 
-def cohort_records(campaign):
+def cohort_records(campaign, cohort_factory=Cohort):
     cohorts, excluded = [], []
     for run in sorted(campaign.iterdir()):
         if not (run / "state/environment.json").is_file():
@@ -121,29 +121,41 @@ def cohort_records(campaign):
         for metrics_path in metrics_paths:
             metrics = read(metrics_path)
             tag = metrics.get("run")
-            if not tag or metrics.get("planned_count") != 100:
+            if not tag:
                 continue
             config = read(run / "configs" / f"{tag}.json")
             if config.get("serial") or "method" not in config.get("workload", {}):
+                continue
+            workload = config["workload"]
+            cycles = workload.get("Main100_cycles", 1)
+            if type(cycles) is not int or cycles < 1:
+                raise ValueError(f"Invalid Main100 repetition in {run.name}/{tag}")
+            subset = workload.get("subset", "all")
+            unique_count = {"all": 100, "discovery": 50, "heldout": 50}.get(subset)
+            if unique_count is None:
+                continue
+            expected_count = unique_count * cycles
+            if metrics.get("planned_count") != expected_count:
                 continue
             completion = read(run / "state" / f"{tag}_complete.json")
             raw_path = run / "raw" / f"{tag}_requests.jsonl"
             raw_digest = digest(raw_path)
             arrival_path = run / "configs" / f"{tag}_arrival.json"
             if (not metrics["primary_execution_valid"] or not completion["passed"]
-                    or metrics["completed_count"] != 100
+                    or metrics["completed_count"] != expected_count
                     or not raw_digest == metrics["raw_SHA256"] == completion["raw_SHA256"]
                     or digest(arrival_path) != config["arrival_SHA256"]):
                 excluded.append({"start": run.name, "cohort": tag, "evidence": "FAILED_EXECUTION",
                                  "reason": "Incomplete cohort or raw client/arrival hash mismatch"})
                 continue
             client_rows = jsonl(raw_path)
-            if (len(client_rows) != 100 or len({row["request_id"] for row in client_rows}) != 100
+            roster = Counter(row["request_id"] for row in client_rows)
+            if (len(client_rows) != expected_count or len(roster) != unique_count or set(roster.values()) != {cycles}
                     or any(row["status"] != "MEASURED_ONLINE" for row in client_rows)):
                 raise ValueError(f"Invalid Main100 roster in {run.name}/{tag}")
             arrival = read(arrival_path)["trace"]
             by_index = {row["index"]: row for row in client_rows}
-            if len(arrival) != 100 or any(
+            if len(arrival) != expected_count or len(by_index) != expected_count or any(
                 t["request_id"] != by_index[t["index"]]["request_id"]
                 or abs(by_index[t["index"]]["scheduled_arrival"] -
                        completion["monotonic_start"] - t["offset_seconds"]) > 5e-6
@@ -165,8 +177,8 @@ def cohort_records(campaign):
                 gate_path = run / "analysis" / f"{tag.removesuffix('_observed')}_batch_qualification.json"
                 if gate_path.exists() and read(gate_path)["passed"]:
                     evidence = "TRACE_ANALYSIS"
-            cohorts.append(Cohort(run, tag, config, environment, metrics, client_rows,
-                                  aligned, observation, evidence))
+            cohorts.append(cohort_factory(run, tag, config, environment, metrics, client_rows,
+                                          aligned, observation, evidence))
     return cohorts, excluded
 
 
@@ -404,7 +416,9 @@ def capacity_table(campaign):
     output = []
     for path in sorted(campaign.glob("*/analysis/capacity_*.json")):
         value = read(path)
-        if value.get("evidence") != "ISOLATED_GPU_MEASUREMENT" or "requests_per_second" not in value:
+        if (value.get("evidence") != "ISOLATED_GPU_MEASUREMENT"
+                or value.get("stage") not in ("encoder", "prefill", "decode")
+                or "requests_per_second" not in value):
             continue
         environment = read(path.parent.parent / "state/environment.json")
         output.append({key: value.get(key) for key in (

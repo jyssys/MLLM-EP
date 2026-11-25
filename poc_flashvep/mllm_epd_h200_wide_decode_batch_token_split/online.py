@@ -69,6 +69,8 @@ def parse_args():
     parser.add_argument("--decode-cap", choices=("1","2","4","8","16","32","64","free"), default="free")
     parser.add_argument("--all-burners-off", action="store_true")
     parser.add_argument("--wide-capacity", action="store_true")
+    parser.add_argument("--capacity-caps", choices=("1", "2", "4", "8", "16", "32", "64", "free"),
+                        nargs="+", help="Repeat selected D-only arms after an incomplete full sweep")
     parser.add_argument("--sanity", choices=("stock", "native"))
     parser.add_argument("--observe-batch", action="store_true")
     parser.add_argument("--screen", action="store_true",
@@ -90,6 +92,7 @@ def parse_args():
     parser.add_argument("--capacity-stage", choices=("encoder", "prefill", "decode-b1", "decode-free"))
     parser.add_argument("--capacity-p-profile", action="store_true")
     parser.add_argument("--seed", type=int, default=SEED)
+    parser.add_argument("--paired-start-id", help="Pair only independent arms assigned to the same block")
     parser.add_argument("--replay", type=Path)
     parser.add_argument("--wall-seconds", type=int, default=3600)
     return parser.parse_args()
@@ -146,6 +149,7 @@ def measured_cohorts(args, run, url, manifests):
                                                      metadata={"order_seed": ORDER_SEED, "method": args.mode,
                                                                "batch_one": args.decode_cap == "1", "decode_cap": args.decode_cap,
                                                                "Main100_cycles": args.repeat_main100, "subset": args.subset,
+                                                               "paired_start_id": args.paired_start_id,
                                                                "nvml_sampling": args.screen,
                                                                "manifest_SHA256": rt.sha(manifests[rt.MAIN100])}))
         finally:
@@ -288,6 +292,7 @@ def main():
     rt.require(not args.short_roi or args.profile, "Short ROI requires --profile")
     rt.require(args.repeat_main100 == 1 or args.subset == "all", "Sustained run needs all Main100")
     rt.require(not args.wide_capacity or args.mode == "native-common" and args.replay, "Wide capacity requires NativeCommon replay")
+    rt.require(not args.capacity_caps or args.wide_capacity, "--capacity-caps needs --wide-capacity")
     rt.require(not args.sanity or not (args.qps or args.capacity or args.wide_capacity or args.regression),
                "Calibration sanity is a separate worker epoch")
     rt.git_check(asset_repo)
@@ -357,10 +362,11 @@ def main():
                 if args.sanity == "native":
                     calibration_sanity(url, manifests, args.seed)
                 if args.wide_capacity:
-                    from .decode_capacity import measure_decode_sweep
+                    from .decode_capacity import CAPS, measure_decode_sweep
                     rows = rt.read(manifests[rt.MAIN100])["requests"]
                     random.Random(ORDER_SEED).shuffle(rows)
-                    asyncio.run(measure_decode_sweep(run, rows, load_replay(args.replay, rows), lease_seconds=180))
+                    asyncio.run(measure_decode_sweep(run, rows, load_replay(args.replay, rows),
+                                                     caps=args.capacity_caps or CAPS, lease_seconds=180))
                 if args.qps:
                     measured_cohorts(args, run, url, manifests)
                 if args.capacity:

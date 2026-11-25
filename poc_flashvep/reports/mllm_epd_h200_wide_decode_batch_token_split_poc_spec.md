@@ -42,3 +42,18 @@ Decode Cap 설정과 실제 Batch를 나눠 보고한다. P/E와 전체 Client�
 TTFT ≤5,000ms, 모든 Client ITL ≤34ms, TPOT ≤33ms/token을 그대로 적용한다. 같은 cap Native 대비 C3 TTFT p95가 5% 이상 감소하고 Paired CI가 개선 방향을 지지해야 한다. TTFT p50 비열등, ITL p99·TPOT p95 ratio의 Paired 95% CI 상한 ≤1.05, Absolute Decode ≥95%, 품질 유지와 Joint/Goodput 보호도 확인한다. 실제 Free 비교와 모든 통제는 같은 GPU 그룹을 사용한다. 독립 Start를 반복 단위로 삼고 Natural·Replay와 H100·H200의 결과를 따로 보고한다.
 
 최종 보고는 Runtime Sanity, Capability·Actual geometry, QPS trade-off, Qualification, E Busy 조건, Static·Idle·Critical Path, 같은 cap 및 Free 대비 두 효과, 품질과 향후 Modality-aware 근거에 답한다. 미실행·실패는 수치가 있는 관측과 함께 보존한다.
+
+## 재현 자료
+
+각 Start의 실제 인자, 입력 Hash, Runtime 및 GPU 배치는 실행 인벤토리에 있다. 원본 Timestamp·요청별 출력·Worker Counter·CUPTI Trace는 인벤토리의 `raw_root` 아래에 있다. 저장소의 결과 CSV와 PDF는 해당 원격 GPU를 사용하지 않고 재생성할 수 있다. [실행 인벤토리](../mllm_epd_h200_wide_decode_batch_token_split/results/execution_metadata.json)
+
+저장소 루트에서 `RAW_RUNS`에 기존 실행 경로, `RESULTS`에 새 출력 경로를 지정하고 Matplotlib이 설치된 Python으로 실행한다.
+
+```bash
+package=poc_flashvep.mllm_epd_h200_wide_decode_batch_token_split
+python -m "$package.analysis" --runs "$RAW_RUNS" --output "$RESULTS"
+python -m "$package.figures" --runs "$RAW_RUNS" --results "$RESULTS"
+python -m "$package.quality" --runs "$RAW_RUNS" --output "$RESULTS"
+python -m "$package.report" --runs "$RAW_RUNS" --docs poc_flashvep/reports \
+  --analysis "$RESULTS" --extra-output "$RESULTS"
+```
