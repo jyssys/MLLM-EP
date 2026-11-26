@@ -13,7 +13,7 @@ from urllib.parse import urlsplit
 LATE_KEY = "campaign_late_bound_v1"
 PLAN_KEY = "campaign_token_split_v1"
 _STATE = "_campaign_late_bound_cut_state"
-MAX_CUTS = 12
+MAX_CUTS = 14
 RPC_TIMEOUT_SECONDS = .025
 
 
@@ -213,6 +213,10 @@ def install(url):
         return
     update_after_schedule = Scheduler._update_after_schedule
     update_from_output = Scheduler.update_from_output
+    causal_slack = os.environ.get("MLLM_EPD_CAUSAL_SLACK") == "1"
+    if causal_slack:
+        from ..mllm_epd_h200_dynamic_correctness_slice_aware.prefill_progress import candidates
+
     decide = CoordinatorDecision(url, os.environ["MLLM_EPD_RUN_NONCE"])
     log = ROOT / "raw" / f"late_prefill_cut_{os.getpid()}.jsonl"
     skipped_log = ROOT / "raw" / f"late_prefill_natural_skips_{os.getpid()}.jsonl"
@@ -284,6 +288,17 @@ def install(url):
                 "boundary_ready": observed,
                 "lease": {"request_id": state.request_id, "prefix_tokens": prefix},
             }
+            if causal_slack:
+                payload["progress"] = {
+                    "competitors": candidates(scheduler, request_id, {}),
+                    "running": len(scheduler.running),
+                    "waiting": len(scheduler.waiting) + len(scheduler.skipped_waiting),
+                    "ready_competitors": sum(
+                        entry.request_id != request_id and bool(entry.new_token_ids)
+                        for bundle in outputs.values() for entry in bundle.outputs),
+                    "batch_size": len(scheduled.num_scheduled_tokens),
+                    "batch_tokens": scheduled.total_num_scheduled_tokens,
+                }
             if state.natural:
                 held_from = state.first_held_at
                 payload.update(

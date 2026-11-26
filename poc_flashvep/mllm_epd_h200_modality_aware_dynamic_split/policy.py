@@ -62,10 +62,11 @@ class DecisionPolicy:
     natural: bool = False
     natural_hold: bool = False
     shadow: bool = False
+    restrict_late10: bool = False
 
     def natural_bands(self):
         if self.mode == "late10":
-            return [(.05, .15)]
+            return [NATURAL_RATIO_BANDS[.10] if self.restrict_late10 else (.05, .15)]
         return [NATURAL_RATIO_BANDS[ratio] for ratio in sorted(self.ratios)]
 
     def choose(self, *, length, prefix, spans, cuts, competitors, state_observed, E_http_ms=0.0):
@@ -97,7 +98,7 @@ class DecisionPolicy:
 
 
 def load_policy(mode, cost_model=None, *, ratios=RATIOS, max_idle_budget_ms=160.0, safety_ms=10.0,
-                natural=False, natural_hold=False, shadow=False):
+                natural=False, natural_hold=False, shadow=False, qualified_ratios=None):
     if mode not in POLICIES or not ratios or any(ratio not in RATIOS for ratio in ratios):
         raise ValueError("Invalid late decision policy or ratio set")
     if natural and mode in ("generic_pure", "fake_boundary"):
@@ -105,7 +106,12 @@ def load_policy(mode, cost_model=None, *, ratios=RATIOS, max_idle_budget_ms=160.
     if natural_hold and not natural:
         raise ValueError("A retirement hold requires a natural P boundary")
     if mode == "late10":
-        return DecisionPolicy(mode, natural=natural, natural_hold=natural_hold, shadow=shadow)
+        if qualified_ratios and (tuple(qualified_ratios) != (.10,) or not natural):
+            raise ValueError("Scoped Late10 requires the natural 10% ratio band")
+        return DecisionPolicy(mode, natural=natural, natural_hold=natural_hold, shadow=shadow,
+                              restrict_late10=bool(qualified_ratios))
+    if qualified_ratios:
+        raise ValueError("Use the causal policy to scope dynamic ratios")
     from .calibration import model_features, suffix_upper_ms
 
     if cost_model is None:

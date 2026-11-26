@@ -24,8 +24,8 @@ SEED = 2026112402
 ORDER_SEED = 2026112404
 
 
-def configure(worktree, asset_repo, run, deadline):
-    source = rt.prepare_overlay(asset_repo, run, research=worktree)
+def configure(worktree, asset_repo, run, deadline, *, freeze_auxiliary=False):
+    source = rt.prepare_overlay(asset_repo, run, research=worktree, freeze_auxiliary=freeze_auxiliary)
     runtime = Path(sys.executable).parent.parent
     compilers = runtime / 'bin'
     nvidia = runtime / 'lib/python3.14/site-packages/nvidia'
@@ -201,7 +201,14 @@ def measured_cohorts(args, run, url, manifests):
                       "evidence": "TRACE_ANALYSIS" if passed else "DIAGNOSTIC"})
             continue
         if not args.profile:
-            measure(tag, qps)
+            if getattr(args, "native_aa", False):
+                from ..mllm_epd_h200_dynamic_correctness_slice_aware.native_aa import compare_online_native
+
+                first, second = tag + "_aa_first", tag + "_aa_second"
+                paired_metrics = [measure(first, qps), measure(second, qps)]
+                compare_online_native(run, first, second, paired_metrics)
+            else:
+                measure(tag, qps)
             continue
         from ..mllm_epd_h200_prefill_heavy_batch_matched.trace import cpc_gate, profile_session, summarize_trace
 

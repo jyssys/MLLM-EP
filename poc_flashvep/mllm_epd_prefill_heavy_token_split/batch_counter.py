@@ -1,5 +1,6 @@
 """Count actual prepared query geometry without CUDA events or tensor copies."""
 from collections import Counter
+import json
 import os
 import re
 import time
@@ -42,6 +43,18 @@ def geometry(count,scheduled,computed_counts,prompt_counts):
     return (count,prompt_only,decode_only,mixed,prompt_rows+decode_rows,prompt_rows,decode_rows)
 
 
+def request_query_rows(batch, scheduled):
+    rows = []
+    for identifier, count, computed, prompt in zip(
+        batch.req_ids, scheduled, batch.num_computed_tokens_cpu[:batch.num_reqs],
+        batch.num_prompt_tokens[:batch.num_reqs], strict=True,
+    ):
+        count, computed, prompt = map(int, (count, computed, prompt))
+        prompt_rows = min(count, max(0, prompt - computed))
+        rows.append({"request_id": identifier, "prompt_rows": prompt_rows, "decode_rows": count - prompt_rows})
+    return rows
+
+
 class BatchCounter:
     def __init__(self,runner,name,decode_only=False):
         assert re.fullmatch('[A-Za-z0-9_.-]+',name)
@@ -54,6 +67,8 @@ class BatchCounter:
         assert not self.folder.exists();self.folder.mkdir(parents=True)
         self.prepared=Counter();self.executed=Counter();self.encoded=Counter();self.errors=Counter()
         self.padded=Counter();self.generation_schedule=Counter()
+        self.record_identities=decode_only and os.environ.get('MLLM_EPD_DECODE_COUNTER_IDENTITIES')=='1'
+        self.identity_steps=[]
 
     def patch(self,key,wrapped,owner=None):
         owner=self.runner if owner is None else owner
@@ -67,6 +82,9 @@ class BatchCounter:
         prepare_key='_prepare_inputs' if legacy else 'prepare_inputs'
         prepare=getattr(self.runner,prepare_key)
         legacy_geometry=None
+        identities=None
+        if self.record_identities and not legacy:
+            raise ValueError('Per-request decode identities are qualified on the V1 worker only')
         if legacy and self.decode_only:
             from vllm.forward_context import get_forward_context
             forward=self.runner._model_forward
@@ -75,7 +93,7 @@ class BatchCounter:
             encoder_key='_execute_mm_encoder' if legacy else 'execute_mm_encoder'
             encode=getattr(encoder_owner,encoder_key)
         def prepared(output,scheduled,*args,**kwargs):
-            nonlocal legacy_geometry
+            nonlocal legacy_geometry,identities
             batch=me.runner.input_batch
             try:
                 geometry=query_geometry(batch,scheduled)
@@ -85,6 +103,8 @@ class BatchCounter:
                     assert geometry[0]==len(output.num_scheduled_tokens)
                     assert all(output.num_scheduled_tokens[request_id]==int(rows)
                         for request_id,rows in zip(batch.req_ids,scheduled,strict=True))
+                if me.record_identities:
+                    identities=request_query_rows(batch,scheduled)
             except Exception as error:
                 geometry=None;me.errors['prepare:'+type(error).__name__+': '+str(error)]+=1
             result=prepare(output,scheduled,*args,**kwargs)
@@ -92,7 +112,7 @@ class BatchCounter:
             legacy_geometry=geometry
             return result
         def forwarded(*args,**kwargs):
-            nonlocal legacy_geometry
+            nonlocal legacy_geometry,identities
             key=None
             try:
                 actual=legacy_geometry
@@ -108,8 +128,14 @@ class BatchCounter:
                     int(descriptor.num_tokens),context.cudagraph_runtime_mode.name)
             except Exception as error:me.errors['forward_v1:'+type(error).__name__+': '+str(error)]+=1
             legacy_geometry=None
+            observed=identities
+            identities=None
+            before=time.monotonic() if observed else None
             result=forward(*args,**kwargs)
             if key is not None:me.padded[key]+=1
+            if observed and key is not None:
+                me.identity_steps.append({"begin": before, "end": time.monotonic(),
+                                          "graph_mode": key[-1], "requests": observed})
             return result
         def prepared_v2(output,*args,**kwargs):
             result=prepare(output,*args,**kwargs)
@@ -128,8 +154,9 @@ class BatchCounter:
             except Exception as error:me.errors['prepare_v2:'+type(error).__name__+': '+str(error)]+=1
             return result
         def executed(output,*args,**kwargs):
-            nonlocal legacy_geometry
+            nonlocal legacy_geometry,identities
             legacy_geometry=None
+            identities=None
             result=execute(output,*args,**kwargs)
             key=(len(output.num_scheduled_tokens),int(output.total_num_scheduled_tokens),
                 sum(len(value) for value in output.scheduled_encoder_inputs.values()))
@@ -159,9 +186,9 @@ class BatchCounter:
         self.runner_API=('V1_PRIVATE_PREPARE_AND_FORWARD_CONTEXT' if self.decode_only else 'V1_PRIVATE_PREPARE'
             ) if legacy else 'V2_RETURNED_INPUT_BATCH'
         self.active=True;self.start=time.monotonic()
-        return dict(folder=str(self.folder),observer='Counter only. No CUDA events, copies, synchronization or per-step timestamps.',
+        return dict(folder=str(self.folder),observer='CPU geometry counter. No CUDA events, copies or synchronization.',
             status='DIAGNOSTIC_PENDING_CPC',counter_model_input_change=False,runner_API=self.runner_API,
-            decode_only=self.decode_only)
+            decode_only=self.decode_only,decode_identities_enabled=self.record_identities)
 
     def close(self):
         assert self.active
@@ -202,6 +229,12 @@ class BatchCounter:
                 prepared_query_rows=max((key[2] for key in self.padded),default=0),
                 prepared_requests_after_padding=max((key[3] for key in self.padded),default=0),
                 prepared_query_rows_after_padding=max((key[4] for key in self.padded),default=0))
+        if self.record_identities:
+            result["decode_identity_steps"] = len(self.identity_steps)
+            result["valid"] = result["valid"] and len(self.identity_steps) == sum(self.padded.values())
+            with (self.folder / "decode_identities.jsonl").open("x") as stream:
+                for step in self.identity_steps:
+                    stream.write(json.dumps(step, separators=(",", ":")) + "\n")
         write(self.folder/'histograms.json',result)
         receipt=dict(folder=str(self.folder),valid=result['valid'],errors=result['errors'],
             prepared_calls=sum(self.prepared.values()),worker_calls=sum(self.executed.values()),

@@ -124,7 +124,8 @@ def buffer_observation(ec_path, image_keys):
             "source_tensor_payload_by_key": payload}
 
 
-async def trial(session, row, cell, name, ec_path, sample_nvlink=None):
+async def trial(session, row, cell, name, ec_path, sample_nvlink=None, *,
+                decode_params=None, natural_decode=False):
     from ..mllm_epd_prefill_heavy_token_split.batch_token_correctness_control import headers, post
     from ..mllm_epd_prefill_heavy_token_split.client import payload
     from ..mllm_epd_prefill_heavy_token_split.token_split import PLAN_KEY
@@ -133,6 +134,8 @@ async def trial(session, row, cell, name, ec_path, sample_nvlink=None):
     length = row["total_input_tokens"]
     prefix, suffix = cell["prefix_tokens"], cell["suffix_tokens"]
     body = payload(row, name, 1, False)
+    if natural_decode:
+        body["ignore_eos"] = False
     # Encode the original input without prescribing future P/D image ownership.
     # The epoch's transport determines whether E issues P descriptors in advance.
     mark = time.monotonic()
@@ -164,12 +167,14 @@ async def trial(session, row, cell, name, ec_path, sample_nvlink=None):
     else:
         producer_state = None
     mark = time.monotonic()
+    decode_body = dict(body, max_tokens=2048) if natural_decode else body
     output = await post(session, dp, "/v1/chat/completions",
-                        dict(body, kv_transfer_params=params | transfer_plan), headers(name, "D"))
+                        dict(decode_body, kv_transfer_params=params | transfer_plan | (decode_params or {})),
+                        headers(name, "D"))
     d_ms = 1000 * (time.monotonic() - mark)
     ids = output["choices"][0]["token_ids"]
-    require(output["usage"]["prompt_tokens"] == length and output["usage"]["completion_tokens"] == len(ids) == 1,
-            "D did not complete the same original input with one greedy token")
+    require(output["usage"]["prompt_tokens"] == length and output["usage"]["completion_tokens"] == len(ids) > 0
+            and (natural_decode or len(ids) == 1), "D generation violated the original prompt and output contract")
     d_snapshot = sample_nvlink() if p_snapshot is not None else None
     if nixl_before is not None:
         nixl_after = parse_nixl_metrics(await get(session, dp, "/metrics", as_text=True))
@@ -195,9 +200,11 @@ async def trial(session, row, cell, name, ec_path, sample_nvlink=None):
     require(state["live_images"] == state["outstanding_exports"] == 0,
             "Serial diagnostic did not release EC buffers and import handles")
     observations = buffer_observation(ec_path, image_keys)
+    natural_result = {"token_ids": ids, "finish_reason": output["choices"][0]["finish_reason"],
+                      "D_completion_http_ms": d_ms} if natural_decode else {"D_first_token_http_ms": d_ms}
     return cell | {
         "trial": name, "input_tokens": length, "image_count": row["image_count"],
-        "E_request_http_ms": e_ms, "P_source_http_ms": p_ms, "D_first_token_http_ms": d_ms,
+        "E_request_http_ms": e_ms, "P_source_http_ms": p_ms,
         "E_release_rpc_ms": release_ms, "first_token": ids[0], "image_keys": image_keys,
         "logical_prefix_kv_bytes": prefix * NATIVE_KV_BYTES_PER_TOKEN,
         "nixl_D_counters": nixl_delta,
@@ -205,7 +212,7 @@ async def trial(session, row, cell, name, ec_path, sample_nvlink=None):
         "NVLink_D_stage_device_delta": counter_delta(p_snapshot, d_snapshot) if d_snapshot is not None else None,
         "producer_buffer_storage_snapshot_bytes": producer_state["live_storage_bytes"] if producer_state else None,
         "E_registry_released": True,
-    } | observations
+    } | natural_result | observations
 
 
 def add_observed_clones(run, records):

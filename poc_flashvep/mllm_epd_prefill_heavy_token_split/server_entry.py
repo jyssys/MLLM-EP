@@ -77,6 +77,12 @@ def main():
             assert manifest['key']==body['key']
             return await app.state.engine_client.collective_rpc('campaign_ec_ipc_release',timeout=60,
                 args=(manifest['image_hashes'],))
+        @app.post('/campaign/ec_ipc/cancel_crossing')
+        async def ipc_cancel_crossing(request:Request):
+            require_ipc_producer()
+            body = await request.json()
+            return await app.state.engine_client.collective_rpc('campaign_ec_ipc_cancel_crossing', timeout=60,
+                                                               args=(body['key'],))
         @app.get('/campaign/ec_ipc/state')
         async def ipc_state():
             require_ipc_producer()
@@ -125,6 +131,10 @@ def main():
         @app.post('/campaign/runtime_state')
         async def runtime_state():
             return await app.state.engine_client.collective_rpc('campaign_runtime_state',timeout=30)
+        @app.post('/campaign/stock_cut_trace/flush')
+        async def flush_stock_cut_trace():
+            assert os.environ.get('MLLM_EPD_STOCK_CUT_TRACE') == '1'
+            return await app.state.engine_client.collective_rpc('campaign_stock_cut_trace_flush',timeout=60)
         @app.post('/campaign/vision_fingerprint')
         async def vision_fingerprint():
             return await app.state.engine_client.collective_rpc('campaign_vision_fingerprint',timeout=120)
@@ -145,6 +155,14 @@ def main():
         @app.post('/campaign/batch_prefix/end')
         async def batch_prefix_end():
             return await app.state.engine_client.collective_rpc('campaign_batch_prefix_end',timeout=180)
+        @app.post('/campaign/greedy_probe/begin')
+        async def greedy_probe_begin(request:Request):
+            body=await request.json()
+            return await app.state.engine_client.collective_rpc('campaign_greedy_probe_begin',timeout=60,
+                args=(body['name'],body['ids'],body.get('targets',{})))
+        @app.post('/campaign/greedy_probe/end')
+        async def greedy_probe_end():
+            return await app.state.engine_client.collective_rpc('campaign_greedy_probe_end',timeout=180)
         @app.post('/campaign/boundary_teacher/install')
         async def boundary_teacher_install():
             return await app.state.engine_client.collective_rpc('campaign_boundary_teacher_install',timeout=30)

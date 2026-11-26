@@ -27,6 +27,8 @@ class FakeTensor:
     def clone(self):return FakeTensor(self.pointer+1)
     def numel(self):return 3*3584
     def element_size(self):return 2
+    def stride(self):return (3584,1)
+    def storage_offset(self):return 0
 
 
 class CodecTest(unittest.TestCase):

@@ -35,7 +35,8 @@ class CounterTest(unittest.TestCase):
             scheduled_cached_reqs=SimpleNamespace(req_ids=['d'],num_output_tokens=[1]))
         with TemporaryDirectory() as directory,patch.object(module,'ROOT',Path(directory)),\
                 patch.dict(sys.modules,{'vllm.forward_context':context_module}),\
-                patch.dict(module.os.environ,MLLM_EPD_ROLE='decode',CUDA_VISIBLE_DEVICES='6'):
+                patch.dict(module.os.environ,MLLM_EPD_ROLE='decode',CUDA_VISIBLE_DEVICES='6',
+                           MLLM_EPD_DECODE_COUNTER_IDENTITIES='1'):
             runner=Runner();counter=module.BatchCounter(runner,'v1_decode_fixture',decode_only=True)
             info=counter.begin()
             self.assertIs(runner.execute_model(output),sentinel)
@@ -45,10 +46,14 @@ class CounterTest(unittest.TestCase):
             self.assertIs(runner.execute_model(output),sentinel)
             result=counter.close()
             values=json.loads((Path(result['folder'])/'histograms.json').read_text())
+            identities=[json.loads(line) for line in (Path(result['folder'])/'decode_identities.jsonl').read_text().splitlines()]
         self.assertEqual(info['runner_API'],'V1_PRIVATE_PREPARE_AND_FORWARD_CONTEXT')
         self.assertTrue(result['valid'])
         self.assertEqual(result['decode_maxima']['prepared_decode_requests'],1)
         self.assertEqual(result['decode_maxima']['prepared_requests_after_padding'],2)
+        self.assertEqual(values['decode_identity_steps'],2)
+        self.assertTrue(all(step['end']>=step['begin'] and step['requests']==[
+            dict(request_id='d',prompt_rows=0,decode_rows=1)] for step in identities))
         self.assertEqual(values['prepared_decode_padding_histogram'],
             [dict(requests=1,decode_requests=1,query_rows=1,requests_after_padding=1,
                 query_rows_after_padding=1,graph_mode='NONE',calls=1),

@@ -1,0 +1,312 @@
+{
+  "source": "active",
+  "run": "a_bi1_slice_natural",
+  "cohort": "late10_b8_5",
+  "observed_evidence": "DIAGNOSTIC",
+  "future_evidence": "OFFLINE_ORACLE",
+  "CUPTI_scope": "NOT_MEASURED",
+  "clock": "System-wide time.monotonic for workers, arrival client and HTTP coordinator.",
+  "operational_scope": "A request occupies D from its P-ready timestamp until its D HTTP EOF. The optional D transition log supplies scheduler/KV state on the same clock. Neither trace establishes exclusive GPU-idle time.",
+  "counterfactual_scope": "Exclude the source's own native D interval when measuring time until next other P-ready. All other native completions are frozen.",
+  "censoring": "p20\u2013p80 scheduled-arrival ROI for central cuts. Windows extending beyond p80 are lower bounds excluded from error evaluation. Noncentral cuts are bounded by last D EOF and explicitly identify post-arrival drain.",
+  "central": {
+    "requests": 100,
+    "cuts": 4,
+    "cuts_with_positive_future_HTTP_slack": 0,
+    "stages": {
+      "internal_chunk": {
+        "cuts": 4,
+        "requests": 4
+      },
+      "candidate_geometry": {
+        "cuts": 4,
+        "requests": 4
+      },
+      "candidate_and_no_later_inflight": {
+        "cuts": 4,
+        "requests": 4
+      },
+      "callback": {
+        "cuts": 4,
+        "requests": 4
+      },
+      "callback_and_D_idle": {
+        "cuts": 0,
+        "requests": 0
+      },
+      "sampled_D_KV": {
+        "cuts": 0,
+        "requests": 0
+      },
+      "sampled_KV_at_least_32768_tokens": {
+        "cuts": 0,
+        "requests": 0
+      },
+      "traced_D_KV_at_least_32768_tokens": {
+        "cuts": 0,
+        "requests": 0
+      },
+      "old_supported_cost": {
+        "cuts": 0,
+        "requests": 0
+      },
+      "old_predicted_fit": {
+        "cuts": 0,
+        "requests": 0
+      },
+      "new_absolute_fit": {
+        "cuts": 0,
+        "requests": 0
+      },
+      "new_absolute_fit_and_positive_gain": {
+        "cuts": 0,
+        "requests": 0
+      },
+      "shadow_would_reserve": {
+        "cuts": 0,
+        "requests": 0
+      },
+      "reservation": {
+        "cuts": 0,
+        "requests": 0
+      },
+      "actual_offload": {
+        "cuts": 0,
+        "requests": 0
+      },
+      "actual_offload_and_decode_SLO": {
+        "cuts": 0,
+        "requests": 0
+      }
+    },
+    "geometry_and_operationally_idle": 0,
+    "geometry_without_hold_and_operationally_idle": 0,
+    "geometry_engine_and_HTTP_idle": 0,
+    "engine_state_available_at_cut": 0,
+    "cut_aligned_thresholds": {
+      "32": {
+        "observed_D_HTTP_gap_ms": 0,
+        "oracle_other_D_HTTP_gap_ms": 0,
+        "P_own_native_ready_after_cut_ms": 0,
+        "D_cupti_kernel_and_operational_gap_ms": 0
+      },
+      "64": {
+        "observed_D_HTTP_gap_ms": 0,
+        "oracle_other_D_HTTP_gap_ms": 0,
+        "P_own_native_ready_after_cut_ms": 0,
+        "D_cupti_kernel_and_operational_gap_ms": 0
+      },
+      "100": {
+        "observed_D_HTTP_gap_ms": 0,
+        "oracle_other_D_HTTP_gap_ms": 0,
+        "P_own_native_ready_after_cut_ms": 0,
+        "D_cupti_kernel_and_operational_gap_ms": 0
+      },
+      "128": {
+        "observed_D_HTTP_gap_ms": 0,
+        "oracle_other_D_HTTP_gap_ms": 0,
+        "P_own_native_ready_after_cut_ms": 0,
+        "D_cupti_kernel_and_operational_gap_ms": 0
+      },
+      "160": {
+        "observed_D_HTTP_gap_ms": 0,
+        "oracle_other_D_HTTP_gap_ms": 0,
+        "P_own_native_ready_after_cut_ms": 0,
+        "D_cupti_kernel_and_operational_gap_ms": 0
+      },
+      "225": {
+        "observed_D_HTTP_gap_ms": 0,
+        "oracle_other_D_HTTP_gap_ms": 0,
+        "P_own_native_ready_after_cut_ms": 0,
+        "D_cupti_kernel_and_operational_gap_ms": 0
+      },
+      "300": {
+        "observed_D_HTTP_gap_ms": 0,
+        "oracle_other_D_HTTP_gap_ms": 0,
+        "P_own_native_ready_after_cut_ms": 0,
+        "D_cupti_kernel_and_operational_gap_ms": 0
+      },
+      "500": {
+        "observed_D_HTTP_gap_ms": 0,
+        "oracle_other_D_HTTP_gap_ms": 0,
+        "P_own_native_ready_after_cut_ms": 0,
+        "D_cupti_kernel_and_operational_gap_ms": 0
+      }
+    },
+    "D_cupti_coverage_cuts": 0,
+    "absolute_suffix_targets_in_actual_chunks": {},
+    "ratio_bands_in_actual_chunks": {
+      "0.01": 0,
+      "0.025": 0,
+      "0.05": 0,
+      "0.1": 4,
+      "0.2": 0,
+      "0.3": 0
+    },
+    "right_censored_other_windows": 0,
+    "old_reasons": {
+      "D_ADMISSION_BUSY": 4
+    },
+    "active_budget_exceeded": 0,
+    "callback_with_actual_retirement_hold": 4,
+    "max_held_schedule_attempts": 1,
+    "P_median_retirement_to_callback_end_ms": 1.3395773712545633,
+    "cut_with_later_delivery_from_active_D": 4,
+    "median_to_next_active_D_client_token_ms": 12.055765138939023,
+    "median_observed_D_HTTP_gap_ms": null,
+    "median_oracle_other_D_HTTP_gap_ms": null,
+    "median_P_own_native_ready_after_cut_ms": null,
+    "median_old_budget_ms": null,
+    "median_old_cost_ms": null
+  },
+  "full": {
+    "requests": 100,
+    "cuts": 12,
+    "cuts_with_positive_future_HTTP_slack": 0,
+    "stages": {
+      "internal_chunk": {
+        "cuts": 12,
+        "requests": 12
+      },
+      "candidate_geometry": {
+        "cuts": 12,
+        "requests": 12
+      },
+      "candidate_and_no_later_inflight": {
+        "cuts": 12,
+        "requests": 12
+      },
+      "callback": {
+        "cuts": 12,
+        "requests": 12
+      },
+      "callback_and_D_idle": {
+        "cuts": 0,
+        "requests": 0
+      },
+      "sampled_D_KV": {
+        "cuts": 0,
+        "requests": 0
+      },
+      "sampled_KV_at_least_32768_tokens": {
+        "cuts": 0,
+        "requests": 0
+      },
+      "traced_D_KV_at_least_32768_tokens": {
+        "cuts": 0,
+        "requests": 0
+      },
+      "old_supported_cost": {
+        "cuts": 0,
+        "requests": 0
+      },
+      "old_predicted_fit": {
+        "cuts": 0,
+        "requests": 0
+      },
+      "new_absolute_fit": {
+        "cuts": 0,
+        "requests": 0
+      },
+      "new_absolute_fit_and_positive_gain": {
+        "cuts": 0,
+        "requests": 0
+      },
+      "shadow_would_reserve": {
+        "cuts": 0,
+        "requests": 0
+      },
+      "reservation": {
+        "cuts": 0,
+        "requests": 0
+      },
+      "actual_offload": {
+        "cuts": 0,
+        "requests": 0
+      },
+      "actual_offload_and_decode_SLO": {
+        "cuts": 0,
+        "requests": 0
+      }
+    },
+    "geometry_and_operationally_idle": 0,
+    "geometry_without_hold_and_operationally_idle": 0,
+    "geometry_engine_and_HTTP_idle": 0,
+    "engine_state_available_at_cut": 0,
+    "cut_aligned_thresholds": {
+      "32": {
+        "observed_D_HTTP_gap_ms": 0,
+        "oracle_other_D_HTTP_gap_ms": 0,
+        "P_own_native_ready_after_cut_ms": 0,
+        "D_cupti_kernel_and_operational_gap_ms": 0
+      },
+      "64": {
+        "observed_D_HTTP_gap_ms": 0,
+        "oracle_other_D_HTTP_gap_ms": 0,
+        "P_own_native_ready_after_cut_ms": 0,
+        "D_cupti_kernel_and_operational_gap_ms": 0
+      },
+      "100": {
+        "observed_D_HTTP_gap_ms": 0,
+        "oracle_other_D_HTTP_gap_ms": 0,
+        "P_own_native_ready_after_cut_ms": 0,
+        "D_cupti_kernel_and_operational_gap_ms": 0
+      },
+      "128": {
+        "observed_D_HTTP_gap_ms": 0,
+        "oracle_other_D_HTTP_gap_ms": 0,
+        "P_own_native_ready_after_cut_ms": 0,
+        "D_cupti_kernel_and_operational_gap_ms": 0
+      },
+      "160": {
+        "observed_D_HTTP_gap_ms": 0,
+        "oracle_other_D_HTTP_gap_ms": 0,
+        "P_own_native_ready_after_cut_ms": 0,
+        "D_cupti_kernel_and_operational_gap_ms": 0
+      },
+      "225": {
+        "observed_D_HTTP_gap_ms": 0,
+        "oracle_other_D_HTTP_gap_ms": 0,
+        "P_own_native_ready_after_cut_ms": 0,
+        "D_cupti_kernel_and_operational_gap_ms": 0
+      },
+      "300": {
+        "observed_D_HTTP_gap_ms": 0,
+        "oracle_other_D_HTTP_gap_ms": 0,
+        "P_own_native_ready_after_cut_ms": 0,
+        "D_cupti_kernel_and_operational_gap_ms": 0
+      },
+      "500": {
+        "observed_D_HTTP_gap_ms": 0,
+        "oracle_other_D_HTTP_gap_ms": 0,
+        "P_own_native_ready_after_cut_ms": 0,
+        "D_cupti_kernel_and_operational_gap_ms": 0
+      }
+    },
+    "D_cupti_coverage_cuts": 0,
+    "absolute_suffix_targets_in_actual_chunks": {},
+    "ratio_bands_in_actual_chunks": {
+      "0.01": 0,
+      "0.025": 0,
+      "0.05": 0,
+      "0.1": 12,
+      "0.2": 0,
+      "0.3": 0
+    },
+    "right_censored_other_windows": 0,
+    "old_reasons": {
+      "D_ADMISSION_BUSY": 12
+    },
+    "active_budget_exceeded": 0,
+    "callback_with_actual_retirement_hold": 12,
+    "max_held_schedule_attempts": 1,
+    "P_median_retirement_to_callback_end_ms": 1.4461136888712645,
+    "cut_with_later_delivery_from_active_D": 12,
+    "median_to_next_active_D_client_token_ms": 12.055765138939023,
+    "median_observed_D_HTTP_gap_ms": null,
+    "median_oracle_other_D_HTTP_gap_ms": null,
+    "median_P_own_native_ready_after_cut_ms": null,
+    "median_old_budget_ms": null,
+    "median_old_cost_ms": null
+  }
+}

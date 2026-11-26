@@ -13,6 +13,7 @@ from vllm.multimodal.inputs import MultiModalKwargsItem,MultiModalKwargsItems,Pl
 from vllm.v1.serial_utils import MsgpackEncoder,MsgpackDecoder
 
 from .common import ROOT,append,digest,write
+from .crossing_ipc import CROSSING_PLAN, MAX_FRACTION_ENV, MAX_TOKENS_ENV, PREISSUE_ENV, crossing_candidates, try_mark
 
 
 HANDOFF_CONTEXT=ContextVar('campaign_processor_handoff',default=None)
@@ -52,6 +53,22 @@ class RenderStore:
         consumer_plan=build(request,inputs[0])
         if consumer_plan is not None:
             persist(os.environ['MLLM_EPD_EC_PATH'],key,consumer_plan)
+        crossing = []
+        if consumer_plan is None and os.environ.get(PREISSUE_ENV) == "1":
+            fraction = float(os.environ.get(MAX_FRACTION_ENV, ".35"))
+            tokens = int(os.environ.get(MAX_TOKENS_ENV, "0"))
+            crossing = crossing_candidates(inputs[0], fraction, tokens)
+            ec_path = Path(os.environ["MLLM_EPD_EC_PATH"])
+            for identifier, start, end in crossing:
+                if not re.fullmatch("[A-Za-z0-9_-]+", identifier):
+                    raise ValueError("Invalid crossing image identifier")
+                target = ec_path / identifier / CROSSING_PLAN
+                if target.parent.is_symlink():
+                    raise ValueError("Crossing image plan cannot replace a request owner")
+                target.parent.mkdir(mode=0o700, exist_ok=True)
+                if not try_mark(target, dict(key=identifier, request_key=key, start=start, end=end,
+                                             prompt_tokens=len(inputs[0]["prompt_token_ids"]))):
+                    raise ValueError("Crossing image plan cannot replace a request owner")
         prompt=dict(inputs[0]);kwargs=prompt.pop('mm_kwargs');placeholders=prompt.pop('mm_placeholders')
         assert set(kwargs)==set(placeholders)==set(prompt['mm_hashes'])=={'image'}, 'Only original image-only Qwen2.5-VL inputs are supported'
         assert all(item is not None for item in kwargs['image']), 'A producer-side omitted processor item is unsupported'
@@ -79,6 +96,8 @@ class RenderStore:
             manifest['image_consumer_plan']=consumer_plan['images']
         if os.environ.get('MLLM_EPD_LATE_METADATA')=='1':
             manifest['image_spans']=[[item.offset,item.offset+item.length] for item in placeholders['image']]
+        if crossing:
+            manifest["crossing_descriptor_plan"] = [identifier for identifier, _, _ in crossing]
         write(folder/'manifest.json',manifest)
         return manifest
 

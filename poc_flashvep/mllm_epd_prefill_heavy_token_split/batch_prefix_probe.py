@@ -46,6 +46,7 @@ class BatchPrefixProbe:
         assert not capture_full_prompt or self.role == 'D' or all(
             row.get('prefill_full_prompt', False) for row in contracts.values())
         self.runner = worker.model_runner
+        self.pre_forward_embeddings = getattr(getattr(self.runner, 'model_config', None), 'enforce_eager', False)
         assert len(self.runner.kv_caches) == 28
         self.folder = ROOT / 'raw/batch_prefix' / name
         assert not self.folder.exists()
@@ -93,6 +94,15 @@ class BatchPrefixProbe:
             event = dict(index=len(me.events), actual_batch=len(requests), actual_query_tokens=offset,
                 cudagraph_mode=str(context.cudagraph_runtime_mode),
                 batch_descriptor=str(context.batch_descriptor), requests=requests)
+            embeddings = kwargs.get('inputs_embeds')
+            original_rows = {}
+            if me.pre_forward_embeddings and embeddings is not None:
+                # Eager vllm_c fused residual operations may update this view
+                # in place. Clone on the current stream, and hash after forward.
+                for record in requests:
+                    if record['phase'] == 'prefill' and me.contracts[record['base']].get('prefill_full_prompt'):
+                        index = record['query_offset']
+                        original_rows[record['base']] = embeddings[index:index + record['query_tokens']].detach().clone()
             result = original_forward(*args, **kwargs)
             # These CPU copies occur only after the real forward and its NIXL
             # dependencies. They invalidate timing, but do not replace a tensor.
@@ -117,7 +127,12 @@ class BatchPrefixProbe:
                     for field in ('input_ids', 'inputs_embeds'):
                         value = kwargs.get(field)
                         if value is not None:
-                            record[field] = tensor_signature(value[offset:offset + count])
+                            after = tensor_signature(value[offset:offset + count])
+                            if field == 'inputs_embeds' and base in original_rows:
+                                record[field] = tensor_signature(original_rows[base])
+                                record['inputs_embeds_changed_during_forward'] = record[field] != after
+                            else:
+                                record[field] = after
                 prefix = contract['prefix_tokens']
                 ready = start + count == prefix if me.role == 'P' else start == prefix
                 if ready and base not in me.snapshots:
@@ -177,6 +192,7 @@ class BatchPrefixProbe:
                 full_files[base] = dict(path=str(path),SHA256=digest(path))
         record = dict(time=time.time(), role=self.role, contracts=self.contracts,
             events=self.events, snapshots=self.snapshots, evidence='CORRECTNESS_ONLY',
+            pre_forward_embedding_snapshot=self.pre_forward_embeddings,
             allow_decode=self.allow_decode,full_prompt_tensor_files=full_files,
             scope='Prefix hashes and actual per-request query positions. '
                 'Not a suffix KV equivalence, task-quality, latency or active-decode safety result.')

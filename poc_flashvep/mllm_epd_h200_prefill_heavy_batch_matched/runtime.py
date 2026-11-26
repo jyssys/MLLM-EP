@@ -181,14 +181,20 @@ def resources():
 """
 
 
-def prepare_overlay(repo, run, research=None):
+def prepare_overlay(repo, run, research=None, *, freeze_auxiliary=False):
     source = (research or repo) / 'poc_flashvep'
     package = run / 'source/poc_flashvep'
     package.mkdir(parents=True)
     shutil.copyfile(source / '__init__.py', package / '__init__.py')
     for entry in source.iterdir():
         if entry.is_dir() and entry.name not in (PACKAGE, 'reports', '__pycache__'):
-            (package / entry.name).symlink_to(entry, target_is_directory=True)
+            if freeze_auxiliary:
+                auxiliary = package / entry.name
+                auxiliary.mkdir()
+                for module_path in entry.glob('*.py'):
+                    shutil.copyfile(module_path, auxiliary / module_path.name)
+            else:
+                (package / entry.name).symlink_to(entry, target_is_directory=True)
     target = package / PACKAGE
     target.mkdir()
     for source_file in (source / PACKAGE).glob('*.py'):
@@ -302,7 +308,7 @@ class OwnedProcesses:
 
 
 def launch_models(group, tag, ec, uuid_by_gpu, media, token=False, common=True, prefill_kv_ttl=None,
-                  role_environment=None):
+                  role_environment=None, eager_pd=False, no_graphs_pd=False, fixed_d_graph_size=None):
     servers = module('servers')
     ready = []
     for role, gpu, port, side_port in ROLES:
@@ -315,6 +321,28 @@ def launch_models(group, tag, ec, uuid_by_gpu, media, token=False, common=True, 
             ec_transport='cuda_ipc', token_split=token and not encoder,
             fixed_reduction=common and not encoder, deterministic_reductions=common and not encoder,
         )
+        if eager_pd and not encoder:
+            command.append('--enforce-eager')
+        compilation_overrides = {}
+        if no_graphs_pd and not encoder:
+            compilation_overrides['cudagraph_mode'] = 'NONE'
+        if role == 'decode' and fixed_d_graph_size is not None:
+            compilation_overrides.update(cudagraph_capture_sizes=[fixed_d_graph_size],
+                                         max_cudagraph_capture_size=fixed_d_graph_size)
+        if compilation_overrides:
+            if '--compilation-config' in command:
+                config_index = command.index('--compilation-config') + 1
+                config = json.loads(command[config_index])
+                config.update(compilation_overrides)
+                command[config_index] = json.dumps(config)
+            else:
+                command.extend(['--compilation-config', json.dumps(compilation_overrides)])
+        role_env = (role_environment or {}).get(role, {})
+        if role_env.get('MLLM_EPD_STOCK_CUT_TRACE') == '1':
+            observer = {'prefill': 'StockCutScheduler', 'decode': 'DecodeQueueScheduler'}.get(role)
+            require(observer is not None, 'Stock cut trace observes only P and D schedulers')
+            command.extend(['--scheduler-cls',
+                f'poc_flashvep.mllm_epd_h200_dynamic_correctness_slice_aware.stock_cut_observer.{observer}'])
         command[command.index('--allowed-local-media-path') + 1] = str(media)
         if prefill_kv_ttl is not None and not encoder:
             config_index = command.index('--kv-transfer-config') + 1
@@ -327,7 +355,7 @@ def launch_models(group, tag, ec, uuid_by_gpu, media, token=False, common=True, 
             MLLM_EPD_TOKEN_SPLIT='1' if token and not encoder else '0',
             VLLM_CACHE_ROOT=str(group.run / 'runtime_cache' / role),
             MLLM_EPD_EC_PATH=str(ec), MLLM_EPD_METADATA_PATH=str(ec / 'processed_prompts'),
-            **(role_environment or {}).get(role, {}),
+            **role_env,
         )
         ready.append((process, port, label, role))
     for process, port, label, role in ready:

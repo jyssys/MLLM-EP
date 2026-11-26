@@ -13,7 +13,7 @@ from ..mllm_epd_prefill_heavy_token_split import quality_audit
 from .online_evidence import DynamicCohort
 
 
-def compare(runs, root, output):
+def compare(runs, root, output, *, recovery_comparisons=False):
     manifest = root / "data/main100_manifest_template_v2.json"
     require(shared.digest(manifest) == FROZEN_SHA, "Frozen Main100 hash mismatch")
     frozen = {row["request_id"]: row for row in shared.read(manifest)["requests"]}
@@ -26,6 +26,11 @@ def compare(runs, root, output):
         if cohort.observation == "clean" and cohort.cycles == 1 and cohort.config["output_mode"] == "Natural EOS":
             groups[cohort.match].append(cohort)
     details, tasks = [], []
+    native_prefixes = ("native-common", "native-strong", "native-matched") if recovery_comparisons else (
+        "native-common", "native-strong",
+    )
+    modality_prefixes = ("hard", "soft", "c-new") if recovery_comparisons else ("hard", "soft")
+    generic_prefixes = ("generic", "b-new") if recovery_comparisons else ("generic",)
     for arms in groups.values():
         if len(arms) < 2:
             continue
@@ -41,8 +46,8 @@ def compare(runs, root, output):
             scored[(cohort.run.name, cohort.tag)] = values
         for candidate in arms:
             references = [arm for arm in arms if arm.run != candidate.run and (
-                arm.method.startswith(("native-common", "native-strong"))
-                or candidate.method.startswith(("hard", "soft")) and arm.method.startswith("generic"))]
+                arm.method.startswith(native_prefixes)
+                or candidate.method.startswith(modality_prefixes) and arm.method.startswith(generic_prefixes))]
             for baseline in references:
                 candidate_rows = scored[(candidate.run.name, candidate.tag)]
                 baseline_rows = scored[(baseline.run.name, baseline.tag)]
@@ -92,9 +97,10 @@ def main():
     parser.add_argument("--runs", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--source-root", type=Path, default=SOURCE_ROOT)
+    parser.add_argument("--recovery-comparisons", action="store_true")
     args = parser.parse_args()
     with redirect_stdout(io.StringIO()):
-        compare(args.runs, args.source_root, args.output)
+        compare(args.runs, args.source_root, args.output, recovery_comparisons=args.recovery_comparisons)
 
 
 if __name__ == "__main__":

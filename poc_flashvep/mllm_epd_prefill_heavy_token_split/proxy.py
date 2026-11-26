@@ -15,13 +15,14 @@ import aiohttp
 
 from . import idle_admission
 from .common import ROOT,append,write,digest
+from .crossing_ipc import PREISSUE_ENV, cancellation_marker, try_mark
 from .idle_admission import DECODE_CAPS,FirstToken
 from .token_split import select_prefix as token_prefix, PLAN_KEY, POLICY_KEY
 
 
 def application(mode,encoder,prefill,decoders,name,encoder_policy='whole_request',processor_handoff='none',
         release_encoder_ipc=False,token_suffix_fraction=0.,token_prefix_tokens=0,token_admission='none',
-        token_policy='static',decode_batch_one=False,decode_cap=None,late_policy=None):
+        token_policy='static',decode_batch_one=False,decode_cap=None,late_policy=None,late_require_ready_transport=False):
     assert processor_handoff in ('none','full','grid_only')
     assert processor_handoff=='none' or mode in ('epd','e_pd') and encoder_policy=='whole_request'
     assert not release_encoder_ipc or processor_handoff!='none' and mode in ('epd','e_pd')
@@ -44,7 +45,8 @@ def application(mode,encoder,prefill,decoders,name,encoder_policy='whole_request
         assert mode=='epd' and len(decoders)==1 and release_encoder_ipc and processor_handoff!='none'
         assert not token_suffix_fraction and not token_prefix_tokens and token_admission=='none'
         admission=LateAdmission(decode_cap)
-        late=LateCoordinator(admission,late_policy,decoders[0],os.environ['MLLM_EPD_METADATA_PATH'])
+        late=LateCoordinator(admission,late_policy,decoders[0],os.environ['MLLM_EPD_METADATA_PATH'],
+                             require_ready_transport=late_require_ready_transport)
     elif decode_cap is not None:
         admission=idle_admission.IdleAdmission(decode_cap=decode_cap)
     elif token_admission=='decode_idle':
@@ -54,13 +56,19 @@ def application(mode,encoder,prefill,decoders,name,encoder_policy='whole_request
     serial_encoder = asyncio.Lock() if os.environ.get('MLLM_EPD_LATE_VERIFY_E_SERIAL')=='1' else None
     correctness_barriers = {}
     correctness_leads = {}
+    crossing_cleanup = set()
+    crossing_preissue = os.environ.get(PREISSUE_ENV) == '1'
     @asynccontextmanager
     async def lifespan(app):
         nonlocal session
         session=aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=7200,sock_read=3600),
             connector=aiohttp.TCPConnector(limit=0,limit_per_host=0,keepalive_timeout=1),trust_env=False)
-        yield
-        await session.close()
+        try:
+            yield
+        finally:
+            if crossing_cleanup:
+                await asyncio.gather(*tuple(crossing_cleanup), return_exceptions=True)
+            await session.close()
     app=FastAPI(lifespan=lifespan)
 
     def headers(base,stage):
@@ -186,6 +194,37 @@ def application(mode,encoder,prefill,decoders,name,encoder_policy='whole_request
         assert len(value)==1
         trace['E_embedding_release']=dict(begin=begin,end=time.monotonic(),state=value[0])
 
+    def cancel_unused_crossing(request_id, trace):
+        if not crossing_preissue or 'E_submit' not in trace or trace.get('crossing_cancel_scheduled'):
+            return
+        trace['crossing_cancel_scheduled'] = True
+        key = hashlib.sha256(request_id.encode()).hexdigest()
+
+        async def reconcile():
+            record = dict(request_id=request_id, request_key=key, begin=time.monotonic())
+            try:
+                async with session.post(encoder+'/campaign/ec_ipc/cancel_crossing', json=dict(key=key),
+                                        timeout=aiohttp.ClientTimeout(total=30)) as reply:
+                    reply.raise_for_status()
+                    record['producer'] = await reply.json()
+            except Exception as error:
+                record['error'] = f'{type(error).__name__}: {error}'
+            record['end'] = time.monotonic()
+            append(ROOT/'raw'/'crossing_descriptor_cancellations.jsonl', record)
+
+        # Publish cancellation before an awaited cleanup can itself be
+        # cancelled. The producer suppresses future preissues for this key
+        # and a separate task retires any already-created unused references.
+        try:
+            marker = cancellation_marker(os.environ['MLLM_EPD_EC_PATH'], key)
+            marker.parent.mkdir(mode=0o700, exist_ok=True)
+            try_mark(marker, dict(request_key=key, time=time.time(), origin='proxy'))
+        except OSError as error:
+            trace['crossing_cancel_marker_error'] = str(error)
+        task = asyncio.create_task(reconcile())
+        crossing_cleanup.add(task)
+        task.add_done_callback(crossing_cleanup.discard)
+
     @app.post('/v1/chat/completions')
     async def completion(request:Request):
         nonlocal cursor
@@ -302,6 +341,7 @@ def application(mode,encoder,prefill,decoders,name,encoder_policy='whole_request
                     trace['D_http_complete']=time.monotonic()
                     trace['status']='MEASURED_ONLINE';state['completed']+=1
                 except BaseException as error:
+                    cancel_unused_crossing(request_id, trace)
                     trace['error']=type(error).__name__+': '+str(error);state['failed']+=1
                     raise
                 finally:
@@ -309,6 +349,7 @@ def application(mode,encoder,prefill,decoders,name,encoder_policy='whole_request
                     try:
                         if trace['status']=='MEASURED_ONLINE':await release_encoder(request_id,trace)
                     except BaseException as error:
+                        cancel_unused_crossing(request_id, trace)
                         trace.update(status='FAILED_EXECUTION',error='EC_RELEASE: '+type(error).__name__+': '+str(error))
                         state['completed']-=1;state['failed']+=1
                         raise
@@ -317,6 +358,7 @@ def application(mode,encoder,prefill,decoders,name,encoder_policy='whole_request
                         append(ROOT/'raw'/('proxy_'+name+'.jsonl'),trace)
             return StreamingResponse(stream(),media_type='text/event-stream')
         except BaseException as error:
+            cancel_unused_crossing(request_id, trace)
             if late is not None:
                 await late.expire(request_id)
             await close_admission(failed=True)
@@ -344,23 +386,41 @@ def main():
         help='Admit one D request at a time in P-ready FIFO order through completion')
     decode.add_argument('--decode-cap',choices=('free',*map(str,DECODE_CAPS)),
         help='Limit active D HTTP requests through completion using a P-ready FIFO')
-    p.add_argument('--late-policy',choices=('late10','generic','generic_pure','hard','soft','fake_boundary'))
+    from ..mllm_epd_h200_dynamic_correctness_slice_aware.slack_policy import MODES as causal_policies
+
+    p.add_argument('--late-policy',choices=('late10','generic','generic_pure','hard','soft','fake_boundary',*causal_policies))
     p.add_argument('--late-cost-model')
+    p.add_argument('--late-causal-model')
+    p.add_argument('--late-adaptive-budget',action='store_true')
+    p.add_argument('--late-gain-estimate',choices=('lower','point'),default='lower')
+    p.add_argument('--late-qualified-ratios',type=float,nargs='+')
+    p.add_argument('--late-qualified-token-cuts',type=int,nargs='+')
     p.add_argument('--late-ratios',type=float,nargs='+',default=(.30,.20,.10,.05))
     p.add_argument('--late-idle-budget-ms',type=float,default=160.)
     p.add_argument('--late-safety-ms',type=float,default=10.)
     p.add_argument('--late-natural-boundaries',action='store_true')
     p.add_argument('--late-natural-hold',action='store_true')
     p.add_argument('--late-shadow',action='store_true')
+    p.add_argument('--late-require-ready-transport',action='store_true')
     p.add_argument('--encoder-policy',choices=['whole_request','image_fanout'],default='whole_request');args=p.parse_args()
     decode_cap=1 if args.decode_batch_one else None if args.decode_cap in (None,'free') else int(args.decode_cap)
     late_policy=None
-    if args.late_policy is not None:
+    if args.late_policy in causal_policies:
+        from ..mllm_epd_h200_dynamic_correctness_slice_aware.slack_policy import load_policy as load_causal_policy
+
+        late_policy=load_causal_policy(args.late_policy,args.late_cost_model,args.late_causal_model,
+            max_idle_budget_ms=None if args.late_adaptive_budget else args.late_idle_budget_ms,
+            safety_ms=args.late_safety_ms,natural=args.late_natural_boundaries,
+            natural_hold=args.late_natural_hold,shadow=args.late_shadow,
+            qualified_ratios=args.late_qualified_ratios,qualified_token_cuts=args.late_qualified_token_cuts,
+            gain_estimate=args.late_gain_estimate)
+    elif args.late_policy is not None:
         from ..mllm_epd_h200_modality_aware_dynamic_split.policy import load_policy
 
         late_policy=load_policy(args.late_policy,args.late_cost_model,ratios=tuple(args.late_ratios),
             max_idle_budget_ms=args.late_idle_budget_ms,safety_ms=args.late_safety_ms,
-            natural=args.late_natural_boundaries,natural_hold=args.late_natural_hold,shadow=args.late_shadow)
+            natural=args.late_natural_boundaries,natural_hold=args.late_natural_hold,shadow=args.late_shadow,
+            qualified_ratios=args.late_qualified_ratios)
     if args.decode_cap=='free' and (args.token_suffix_fraction or args.token_prefix_tokens) and args.token_admission!='decode_idle':
         p.error('Unrestricted Token Split requires --token-admission decode_idle to isolate the suffix')
     if late_policy is not None:
@@ -378,7 +438,8 @@ def main():
         cache='mm_processor_cache_gb=1 preserves per-request UUIDs. Unique media UUIDs prevent cross-request reuse in every baseline.'))
     uvicorn.run(application(args.mode,args.encoder,args.prefill,args.decoders.split(','),args.name,args.encoder_policy,
         args.processor_handoff,args.release_encoder_ipc,args.token_suffix_fraction,args.token_prefix_tokens,
-        args.token_admission,args.token_policy,decode_cap=decode_cap,late_policy=late_policy),
+        args.token_admission,args.token_policy,decode_cap=decode_cap,late_policy=late_policy,
+        late_require_ready_transport=args.late_require_ready_transport),
         host='127.0.0.1',port=args.port,log_level='warning')
 
 

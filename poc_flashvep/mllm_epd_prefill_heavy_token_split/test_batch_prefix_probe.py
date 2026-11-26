@@ -48,6 +48,42 @@ class BatchPrefixProbeTest(unittest.TestCase):
         for rid in ['chatcmpl-a-b:D-deadbeef','chatcmpl-other:P-deadbeef','a-b:P-deadbeef']:
             with self.assertRaises(AssertionError):probe.request_base(rid,'P',{'a-b':{}})
 
+    def test_eager_inplace_residual_preserves_original_input_receipt(self):
+        rid = 'chatcmpl-r:P-deadbeef'
+        positions = torch.arange(4).repeat(3, 1)
+        embeddings = torch.ones((1, 3), dtype=torch.bfloat16)
+        expected = probe.tensor_signature(embeddings)
+        contracts = {'r': dict(prefix_tokens=2, full_prompt_tokens=4, prefill_full_prompt=True)}
+
+        class Runner:
+            model_config = SimpleNamespace(enforce_eager=True)
+            kv_caches = [None] * 28
+            input_batch = SimpleNamespace(req_ids=[rid], num_prompt_tokens=[4], num_computed_tokens_cpu=[0])
+            requests = {rid: SimpleNamespace(mrope_positions=positions)}
+
+            def execute_model(self, output):
+                return self._model_forward(positions=positions[:, :1], inputs_embeds=embeddings)
+
+            def _model_forward(self, positions, inputs_embeds):
+                inputs_embeds.add_(1)
+
+        with TemporaryDirectory() as directory, patch.object(probe, 'ROOT', Path(directory)), \
+             patch.dict(os.environ, MLLM_EPD_ROLE='prefill'), patch.object(
+                 probe, 'forward_context', return_value=SimpleNamespace(
+                     cudagraph_runtime_mode='NONE', batch_descriptor='eager_fixture'
+                 )
+             ):
+            runner = Runner()
+            capture = probe.BatchPrefixProbe(SimpleNamespace(model_runner=runner), 'eager', contracts)
+            capture.begin()
+            runner.execute_model(SimpleNamespace(num_scheduled_tokens={rid: 1}, total_num_scheduled_tokens=1))
+            capture.close()
+            record = json.loads((Path(directory) / 'raw/batch_prefix/eager/manifest.json').read_text())
+        actual = record['events'][0]['requests'][0]
+        self.assertEqual(actual['inputs_embeds'], expected)
+        self.assertTrue(actual['inputs_embeds_changed_during_forward'])
+        self.assertNotEqual(probe.tensor_signature(embeddings), expected)
+
     def test_actual_wrappers_update_batch_then_capture_both_rows(self):
         contracts={'first':dict(prefix_tokens=2,full_prompt_tokens=4),
                    'second':dict(prefix_tokens=3,full_prompt_tokens=6)}

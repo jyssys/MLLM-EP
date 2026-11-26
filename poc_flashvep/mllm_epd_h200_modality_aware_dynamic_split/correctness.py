@@ -77,7 +77,7 @@ async def request(row, url, tag, cut, choice, natural=False):
 
 
 def capture_late(row, url, tag, cut, choice, natural=False):
-    if choice == "continue":
+    if choice in ("continue", "native"):
         operation = "llm_probe"
         probe_args = {"max_logits": 16, "include_decode_inputs": True}
     else:

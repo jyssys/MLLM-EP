@@ -387,8 +387,8 @@ def native_aa(cohorts):
     return summary, details
 
 
-def aggregate(runs, output):
-    cohorts, excluded = shared.cohort_records(runs, DynamicCohort)
+def aggregate(runs, output, cohort_factory=DynamicCohort):
+    cohorts, excluded = shared.cohort_records(runs, cohort_factory)
     tables = {"requests": [], "cohorts": [], "actual_d_batch": [], "observer": [],
               "ec_enclosures": [], "excluded": excluded}
     worker_by_run = {}

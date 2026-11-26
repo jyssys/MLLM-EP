@@ -8,6 +8,12 @@ import time
 
 from .common import ROOT,write,digest
 
+fixed_decode_splits = os.environ.get("MLLM_EPD_BI1_D_SPLITS")
+if fixed_decode_splits is not None:
+    from ..mllm_epd_h200_dynamic_correctness_slice_aware.fixed_decode_attention import install
+
+    install(int(fixed_decode_splits))
+
 
 def prepare_artifact():
     import shutil
@@ -136,6 +142,11 @@ class Collector:
 
 
 class CampaignWorkerExtension:
+    def campaign_stock_cut_trace_flush(self):
+        assert os.environ.get('MLLM_EPD_STOCK_CUT_TRACE') == '1'
+        from ..mllm_epd_h200_dynamic_correctness_slice_aware.stock_cut_observer import flush_stock_trace
+        return flush_stock_trace()
+
     def campaign_ec_ipc_inline_policy(self,enabled,consumer_role='prefill'):
         from .cuda_ipc_ec import REGISTRY
         assert REGISTRY is not None and type(enabled) is bool
@@ -167,6 +178,11 @@ class CampaignWorkerExtension:
         from .cuda_ipc_ec import REGISTRY
         assert REGISTRY is not None
         return REGISTRY.release(keys)
+
+    def campaign_ec_ipc_cancel_crossing(self, request_key):
+        from .cuda_ipc_ec import REGISTRY
+        assert REGISTRY is not None
+        return REGISTRY.cancel_crossing(request_key)
 
     def campaign_ec_ipc_state(self):
         from .cuda_ipc_ec import REGISTRY
@@ -202,6 +218,20 @@ class CampaignWorkerExtension:
         result=self._campaign_batch_prefix.close()
         self._campaign_batch_prefix_active=False
         return result
+
+    def campaign_greedy_probe_begin(self,name,ids,targets):
+        assert not getattr(self,'_campaign_greedy_probe',None)
+        assert not getattr(self,'_campaign_batch_prefix_active',False)
+        from ..mllm_epd_h200_dynamic_correctness_slice_aware.greedy_probe import GreedyProbe
+        probe=GreedyProbe(self,name,ids,targets)
+        result=probe.begin()
+        self._campaign_greedy_probe=probe
+        return result
+
+    def campaign_greedy_probe_end(self):
+        probe=self._campaign_greedy_probe
+        self._campaign_greedy_probe=None
+        return probe.close()
 
     def campaign_boundary_teacher_install(self):
         role=os.environ['MLLM_EPD_ROLE']
@@ -300,6 +330,7 @@ class CampaignWorkerExtension:
 
     def campaign_worker_info(self):
         import torch
+        from vllm import envs
         config=self.model_runner.vllm_config
         mm=getattr(self.model_runner,'mm_budget',None)
         model=self.model_runner.model
@@ -311,6 +342,11 @@ class CampaignWorkerExtension:
         free,total=torch.cuda.mem_get_info()
         caches=[x for x in getattr(self.model_runner,'kv_caches',[]) if isinstance(x,torch.Tensor)]
         kv_storage={x.untyped_storage().data_ptr():x.untyped_storage().nbytes() for x in caches}
+        fixed_splits = None
+        if fixed_decode_splits is not None:
+            from ..mllm_epd_h200_dynamic_correctness_slice_aware.fixed_decode_attention import USES
+
+            fixed_splits = {"requested_splits": int(fixed_decode_splits), "metadata_uses": dict(USES)}
         return dict(pid=os.getpid(),role=os.environ['MLLM_EPD_ROLE'],
             model_runner=type(self.model_runner).__module__+'.'+type(self.model_runner).__name__,
             allocated_bytes=torch.cuda.memory_allocated(),reserved_bytes=torch.cuda.memory_reserved(),
@@ -321,6 +357,12 @@ class CampaignWorkerExtension:
             unique_KV_storage_bytes=sum(kv_storage.values()),
             device_properties=str(torch.cuda.get_device_properties(0)),
             model_type=type(self.model_runner.model).__name__,
+            numerics=dict(batch_invariant=envs.VLLM_BATCH_INVARIANT,
+                enforce_eager=config.model_config.enforce_eager,
+                compilation_mode=str(config.compilation_config.mode),
+                cudagraph_mode=str(config.compilation_config.cudagraph_mode),
+                cudagraph_capture_sizes=config.compilation_config.cudagraph_capture_sizes,
+                fixed_single_query_FA3=fixed_splits),
             scheduler=dict(B=config.scheduler_config.max_num_batched_tokens,S=config.scheduler_config.max_num_seqs,
                 async_scheduling=config.scheduler_config.async_scheduling,
                 chunked_prefill=config.scheduler_config.enable_chunked_prefill,

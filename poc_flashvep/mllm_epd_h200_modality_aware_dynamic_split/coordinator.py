@@ -21,6 +21,7 @@ class Prefill:
     ratio_bands: list
     force_continue: bool = False
     decisions: list = field(default_factory=list)
+    image_keys: tuple = ()
 
     def supports(self, prefix):
         if not 0 < prefix < self.length:
@@ -30,12 +31,13 @@ class Prefill:
 
 
 class LateCoordinator:
-    def __init__(self, admission, policy, decoder, metadata_root):
+    def __init__(self, admission, policy, decoder, metadata_root, *, require_ready_transport=False):
         self.admission = admission
         self.policy = policy
         self.decoder = decoder
         self.metadata_root = Path(metadata_root)
         self.prefills = {}
+        self.require_ready_transport = require_ready_transport
 
     def register(self, request_id, length, max_output, trace):
         key = hashlib.sha256(request_id.encode()).hexdigest()
@@ -51,15 +53,26 @@ class LateCoordinator:
         natural = self.policy.natural or trace.get("late_correctness_natural", False)
         hold = self.policy.natural_hold or trace.get("late_correctness_natural_hold", False)
         if natural:
-            bands = self.policy.natural_bands() if forced is None else [((length - forced) / length,) * 2]
+            if forced is not None:
+                bands = [((length - forced) / length,) * 2]
+            elif hasattr(self.policy, "candidate_offsets"):
+                bands = self.policy.natural_bands(length)
+            else:
+                bands = self.policy.natural_bands()
             cuts = []
         else:
             bands = []
-            cuts = [forced] if forced is not None else candidate_offsets(length, spans, self.policy.mode, self.policy.ratios)
+            if forced is not None:
+                cuts = [forced]
+            elif hasattr(self.policy, "candidate_offsets"):
+                cuts = self.policy.candidate_offsets(length)
+            else:
+                cuts = candidate_offsets(length, spans, self.policy.mode, self.policy.ratios)
         item = Prefill(length, cuts, spans, max(256, (length + max_output + BLOCK - 1) // BLOCK),
                        (trace["E_complete"] - trace["E_submit"]) * 1000,
                        bands,
-                       force_continue=trace.get("late_correctness_continue", False))
+                       force_continue=trace.get("late_correctness_continue", False),
+                       image_keys=tuple(record.get("image_hashes", ())))
         if request_id in self.prefills:
             raise RuntimeError("Duplicate P decision owner")
         self.prefills[request_id] = item
@@ -74,6 +87,20 @@ class LateCoordinator:
             if hold:
                 plan["hold"] = True
         return plan
+
+    def ready_suffix_transport(self, item, prefix):
+        from ..mllm_epd_prefill_heavy_token_split.crossing_ipc import decode_inline_roles, inline_available
+
+        if len(item.image_keys) != len(item.spans):
+            return False, 0, None
+        required = [key for (_, end), key in zip(item.spans, item.image_keys, strict=True) if end > prefix]
+        missing = 0
+        for key in required:
+            folder = self.metadata_root.parent / key
+            if (not (folder / "cuda_ipc_ready.json").is_file()
+                    or not any(inline_available(folder, role) for role in decode_inline_roles(folder, True))):
+                missing += 1
+        return missing == 0, len(required), missing
 
     async def expire(self, request_id):
         self.prefills.pop(request_id, None)
@@ -101,10 +128,17 @@ class LateCoordinator:
             return finish(False, "D_ADMISSION_BUSY")
         if item.force_continue:
             return finish(False, "CORRECTNESS_CONTINUATION_CONTROL")
+        if self.require_ready_transport:
+            ready, required_images, missing = self.ready_suffix_transport(item, prefix)
+            note.update(transport_required_suffix_images=required_images,
+                        transport_missing_inline_images=missing, transport_ready_at_cut=ready)
+            if not ready:
+                return finish(False, "SUFFIX_INLINE_TRANSPORT_UNAVAILABLE")
+        policy_keywords = {"progress": body.get("progress")} if hasattr(self.policy, "candidate_offsets") else {}
         accepted, reason, policy_data = self.policy.choose(
             length=item.length, prefix=prefix, spans=item.spans, cuts=item.cuts,
             competitors=body.get("competitors", []), state_observed=body.get("competitors_observed") is True,
-            E_http_ms=item.E_http_ms)
+            E_http_ms=item.E_http_ms, **policy_keywords)
         note.update(policy_data)
         if not accepted:
             return finish(False, reason)

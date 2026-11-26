@@ -178,20 +178,21 @@ def run_geometry_control(rows, tag, url, teacher_url, ec_path, *, ratio=.10, nat
                          targets=None, use_native_cuts=True, lead=False):
     """Verify serialized original E inputs, then burst P/D with both policies."""
     require(len(rows) == 8 and len({row["request_id"] for row in rows}) == 8, "Use eight unique frozen rows")
-    require(ratio in (.05, .10, .20, .30), "Use a frozen nominal cutoff")
+    require(ratio in (.01, .025, .05, .10, .20, .30), "Use a frozen nominal cutoff")
     variant = boundary_variant(natural)
     nominal = [round(row["total_input_tokens"] * (1 - ratio)) for row in rows]
     cuts = nominal if targets is None else [
         value if value is not None else default for value, default in zip(targets, nominal, strict=True)
     ]
     if lead:
-        require(variant == "natural_hold" and targets is not None and targets[0] is not None,
-                "Specify the previously reached lead boundary for the natural-hold control")
+        require(variant in (None, "natural_hold") and targets is not None and targets[0] is not None,
+                "Specify the lead boundary for the forced or natural-hold control")
     require(len(cuts) == len(rows) and all(0 < cut < row["total_input_tokens"]
             for row, cut in zip(rows, cuts, strict=True)), "Invalid geometry target cuts")
     target_sources = ["FROZEN_NOMINAL_TARGET"] * len(rows)
     if lead:
-        target_sources = ["PREDECLARED_SINGLETON_CHUNK"] + ["NATIVE_FOLLOWER"] * (len(rows) - 1)
+        source = "PREDECLARED_SINGLETON_CHUNK" if variant else "PREDECLARED_FORCED_CUT"
+        target_sources = [source] + ["NATIVE_FOLLOWER"] * (len(rows) - 1)
     ec_path = Path(ec_path)
     tags = {role: f"{tag}_{role}" for role in ("teacher", "native", "late")}
     if variant:
@@ -203,7 +204,7 @@ def run_geometry_control(rows, tag, url, teacher_url, ec_path, *, ratio=.10, nat
         for index, (row, cut) in enumerate(zip(rows, cuts, strict=True))
     ]
     if not variant:
-        native, n_capture = capture_cohort(rows, url, tags["native"], cuts, native=True)
+        native, n_capture = capture_cohort(rows, url, tags["native"], cuts, native=True, lead=lead)
     late, d_capture = capture_cohort(rows, url, tags["late"], cuts, native=False, natural=natural, lead=lead)
     known = {f"{tags['late']}_{index:04d}" for index in range(len(rows))}
     offers = [
@@ -213,7 +214,8 @@ def run_geometry_control(rows, tag, url, teacher_url, ec_path, *, ratio=.10, nat
     by_offer = {item["request_id"]: item for item in offers}
     require(len(offers) == len(by_offer) and set(by_offer) <= known,
             "Native must have zero offers and each late request may offer once")
-    require(variant or set(by_offer) == known, "Each fixed-cut late request must reach its clamped boundary")
+    expected_offers = known if not lead else {f"{tags['late']}_0000"}
+    require(variant or set(by_offer) == expected_offers, "Each fixed-cut late request must reach its clamped boundary")
     skips = [
         item for path in (ROOT / "raw").glob("late_prefill_natural_skips_*.jsonl") for item in rows_in(path)
         if item["request_id"] in known
