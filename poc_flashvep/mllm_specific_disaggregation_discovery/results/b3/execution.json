@@ -1,0 +1,42 @@
+{
+  "evidence": "ISOLATED_GPU_MEASUREMENT",
+  "selected_gpu_uuids": {
+    "1": "GPU-4f143625-73b8-2372-5e1a-0bf13de11d61",
+    "2": "GPU-9d1efd41-3a8a-196e-690e-4e0463a802e9"
+  },
+  "command": [
+    "../mllm_epd_runtime_env/bin/python",
+    "-u",
+    "-m",
+    "poc_flashvep.mllm_specific_disaggregation_discovery.dense_parallel",
+    "--snapshot",
+    "../mllm_epd_autosetup/hf_cache/models--Qwen--Qwen2.5-VL-7B-Instruct/snapshots/cc594898137f460bfe9f0759e9844b3ce807cfb5",
+    "--manifest",
+    "../h200_discovery_runs/dataset/grouped_v2/tier1_24.json",
+    "--out",
+    "../h200_discovery_runs/dense_parallel/h200_dense_two_gpu.json",
+    "--id",
+    "lmms-lab__DocVQA__56399",
+    "--id",
+    "TIGER-Lab__Mantis-Eval__wc_22",
+    "--id",
+    "yubo2333__MMLongBench-Doc__658",
+    "--id",
+    "HuanjinYao__MMReason__896",
+    "--id",
+    "AI4Math__MathVista__849",
+    "--real-activations"
+  ],
+  "start_unix": 1795710141.702574,
+  "state": {
+    "status": "COMPLETE",
+    "end_unix": 1795710173.1222599
+  },
+  "first_attempt": {
+    "state": {
+      "type": "RuntimeError",
+      "message": "Owned GPU command exited with status 1"
+    },
+    "cause": "Pinned checkpoint writes text config at the root. No CUDA work or timing ran in this attempt."
+  }
+}

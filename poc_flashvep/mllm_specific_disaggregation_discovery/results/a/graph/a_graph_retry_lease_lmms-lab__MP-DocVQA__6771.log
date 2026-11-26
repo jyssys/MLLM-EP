@@ -1,0 +1,42 @@
+Loading weights:   0%|          | 0/729 [00:00<?, ?it/s]Loading weights: 100%|██████████| 729/729 [00:00<00:00, 9187.51it/s]
+local graph captured
+Traceback (most recent call last):
+  File "/home1/irteam/MLLM_PD/h200-discovery/poc_flashvep/mllm_specific_disaggregation_discovery/attention_graph_control.py", line 34, in capture
+    captured, _ = decoder.step(token, position, state, 0)
+                  ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home1/irteam/MLLM_PD/h200-discovery/poc_flashvep/mllm_specific_disaggregation_discovery/track_a.py", line 230, in step
+    out = self.kernel.split(q, view, state.remote[index], timing)
+  File "/home1/irteam/MLLM_PD/h200-discovery/poc_flashvep/mllm_specific_disaggregation_discovery/remote_attention.py", line 127, in split
+    self.peer(self.q_remote, q, self.remote_stream)
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home1/irteam/MLLM_PD/h200-discovery/poc_flashvep/mllm_specific_disaggregation_discovery/remote_attention.py", line 48, in __call__
+    raise RuntimeError(f"cudaMemcpyPeerAsync rc={code}")
+RuntimeError: cudaMemcpyPeerAsync rc=900
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home1/irteam/MLLM_PD/h200-discovery/poc_flashvep/mllm_specific_disaggregation_discovery/attention_graph_control.py", line 114, in <module>
+    main()
+    ~~~~^^
+  File "/home1/irteam/MLLM_PD/mllm_epd_runtime_env/lib/python3.14/site-packages/torch/utils/_contextlib.py", line 124, in decorate_context
+    return func(*args, **kwargs)
+  File "/home1/irteam/MLLM_PD/h200-discovery/poc_flashvep/mllm_specific_disaggregation_discovery/attention_graph_control.py", line 83, in main
+    captured[mode] = capture(decoder, cache, visual, token, pos, mode, stream)
+                     ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home1/irteam/MLLM_PD/h200-discovery/poc_flashvep/mllm_specific_disaggregation_discovery/attention_graph_control.py", line 33, in capture
+    with torch.cuda.graph(graph, stream=stream, capture_error_mode="thread_local"):
+         ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home1/irteam/MLLM_PD/mllm_epd_runtime_env/lib/python3.14/site-packages/torch/cuda/graphs.py", line 265, in __exit__
+    self.cuda_graph.capture_end()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/home1/irteam/MLLM_PD/mllm_epd_runtime_env/lib/python3.14/site-packages/torch/cuda/graphs.py", line 126, in capture_end
+    super().capture_end()
+    ~~~~~~~~~~~~~~~~~~~^^
+torch.AcceleratorError: CUDA error: operation failed due to a previous error during capture
+Search for `cudaErrorStreamCaptureInvalidated' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
+CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+For debugging consider passing CUDA_LAUNCH_BLOCKING=1
+Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.

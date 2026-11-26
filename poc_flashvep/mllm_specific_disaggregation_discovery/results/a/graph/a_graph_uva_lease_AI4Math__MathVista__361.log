@@ -1,0 +1,28 @@
+Loading weights:   0%|          | 0/729 [00:00<?, ?it/s]Loading weights: 100%|██████████| 729/729 [00:00<00:00, 11874.27it/s]
+local graph captured
+visual graph captured
+balanced graph captured
+equal_count_prefix graph captured
+prefix graph captured
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home1/irteam/MLLM_PD/h200-discovery/poc_flashvep/mllm_specific_disaggregation_discovery/attention_graph_control.py", line 134, in <module>
+    main()
+    ~~~~^^
+  File "/home1/irteam/MLLM_PD/mllm_epd_runtime_env/lib/python3.14/site-packages/torch/utils/_contextlib.py", line 124, in decorate_context
+    return func(*args, **kwargs)
+  File "/home1/irteam/MLLM_PD/h200-discovery/poc_flashvep/mllm_specific_disaggregation_discovery/attention_graph_control.py", line 115, in main
+    timings[mode].append(time_replay(captured[mode][0], stream, 32))
+                         ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home1/irteam/MLLM_PD/h200-discovery/poc_flashvep/mllm_specific_disaggregation_discovery/attention_graph_control.py", line 67, in time_replay
+    graph.replay()
+    ~~~~~~~~~~~~^^
+  File "/home1/irteam/MLLM_PD/mllm_epd_runtime_env/lib/python3.14/site-packages/torch/cuda/graphs.py", line 139, in replay
+    super().replay()
+    ~~~~~~~~~~~~~~^^
+torch.AcceleratorError: CUDA error: invalid argument
+Search for `cudaErrorInvalidValue' in https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__TYPES.html for more information.
+CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+For debugging consider passing CUDA_LAUNCH_BLOCKING=1
+Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.
