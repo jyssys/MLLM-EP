@@ -33,14 +33,18 @@ class BatchPrefixProbe:
         self.role = dict(prefill='P', decode='D')[os.environ['MLLM_EPD_ROLE']]
         assert contracts and len(contracts) <= 32
         self.contracts = contracts
-        assert not (allow_decode or capture_full_prompt) or self.role == 'D'
+        assert not allow_decode or self.role == 'D'
         self.allow_decode = allow_decode
         self.capture_full_prompt = capture_full_prompt
         self.full_tensors = {}
         for base, row in contracts.items():
             assert re.fullmatch('[A-Za-z0-9_.-]+', base)
-            assert set(row) == {'prefix_tokens', 'full_prompt_tokens'}
+            fields = {'prefix_tokens', 'full_prompt_tokens'}
+            assert set(row) in (fields, fields | {'prefill_full_prompt'})
+            assert type(row.get('prefill_full_prompt', False)) is bool
             assert 0 < row['prefix_tokens'] < row['full_prompt_tokens']
+        assert not capture_full_prompt or self.role == 'D' or all(
+            row.get('prefill_full_prompt', False) for row in contracts.values())
         self.runner = worker.model_runner
         assert len(self.runner.kv_caches) == 28
         self.folder = ROOT / 'raw/batch_prefix' / name
@@ -76,7 +80,8 @@ class BatchPrefixProbe:
                 contract = me.contracts[base]
                 length = int(batch.num_prompt_tokens[index])
                 start = int(batch.num_computed_tokens_cpu[index])
-                expected = contract['prefix_tokens'] if me.role == 'P' else contract['full_prompt_tokens']
+                truncated = me.role == 'P' and not contract.get('prefill_full_prompt', False)
+                expected = contract['prefix_tokens'] if truncated else contract['full_prompt_tokens']
                 phase = 'decode' if start >= length else 'prefill'
                 assert length == expected
                 assert (phase == 'decode' and me.allow_decode) or start + count <= length, (
@@ -107,7 +112,13 @@ class BatchPrefixProbe:
                 record['expected_positions'] = tensor_signature(expected)
                 assert record['positions'] == record['expected_positions'], ('MRoPE query mismatch', record)
                 base = record['base']
-                prefix = me.contracts[base]['prefix_tokens']
+                contract = me.contracts[base]
+                if contract.get('prefill_full_prompt', False) and record['phase'] == 'prefill':
+                    for field in ('input_ids', 'inputs_embeds'):
+                        value = kwargs.get(field)
+                        if value is not None:
+                            record[field] = tensor_signature(value[offset:offset + count])
+                prefix = contract['prefix_tokens']
                 ready = start + count == prefix if me.role == 'P' else start == prefix
                 if ready and base not in me.snapshots:
                     index = record['row']
@@ -136,6 +147,12 @@ class BatchPrefixProbe:
                     me.full_tensors[base] = {f'prompt_KV_{layer}':
                         gather_prompt_kv(cache,blocks,length).detach().cpu().contiguous().clone()
                         for layer,cache in enumerate(me.runner.kv_caches)}
+                    if me.contracts[base].get('prefill_full_prompt', False):
+                        import torch
+                        me.full_tensors[base].update(
+                            prompt_token_ids=torch.tensor(state.prompt_token_ids, dtype=torch.int64),
+                            full_prompt_mrope=state.mrope_positions[..., :length].detach().cpu().contiguous().clone(),
+                        )
             me.events.append(event)
             return result
 

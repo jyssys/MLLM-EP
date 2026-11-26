@@ -77,6 +77,8 @@ class RenderStore:
         if consumer_plan is not None:
             manifest['token_split_plan']={k:consumer_plan[k] for k in ['prefix_tokens','full_prompt_tokens']}
             manifest['image_consumer_plan']=consumer_plan['images']
+        if os.environ.get('MLLM_EPD_LATE_METADATA')=='1':
+            manifest['image_spans']=[[item.offset,item.offset+item.length] for item in placeholders['image']]
         write(folder/'manifest.json',manifest)
         return manifest
 

@@ -301,7 +301,8 @@ class OwnedProcesses:
             raise RuntimeError('; '.join(errors))
 
 
-def launch_models(group, tag, ec, uuid_by_gpu, media, token=False, common=True, prefill_kv_ttl=None):
+def launch_models(group, tag, ec, uuid_by_gpu, media, token=False, common=True, prefill_kv_ttl=None,
+                  role_environment=None):
     servers = module('servers')
     ready = []
     for role, gpu, port, side_port in ROLES:
@@ -326,6 +327,7 @@ def launch_models(group, tag, ec, uuid_by_gpu, media, token=False, common=True, 
             MLLM_EPD_TOKEN_SPLIT='1' if token and not encoder else '0',
             VLLM_CACHE_ROOT=str(group.run / 'runtime_cache' / role),
             MLLM_EPD_EC_PATH=str(ec), MLLM_EPD_METADATA_PATH=str(ec / 'processed_prompts'),
+            **(role_environment or {}).get(role, {}),
         )
         ready.append((process, port, label, role))
     for process, port, label, role in ready:

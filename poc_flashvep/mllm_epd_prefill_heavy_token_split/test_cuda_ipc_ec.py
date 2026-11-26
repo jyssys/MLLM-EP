@@ -1,9 +1,11 @@
 """Check JSON geometry and exact E ownership before any serving trial."""
 import json
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import nullcontext
 import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from threading import Barrier
 from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
@@ -112,6 +114,69 @@ class RegistryTest(unittest.TestCase):
 
 
 class ConsumerTest(unittest.TestCase):
+    def test_prefill_and_decode_share_one_exclusive_claim(self):
+        from .cuda_ipc_ec import claim_inline
+        with TemporaryDirectory() as folder:
+            path=Path(folder)
+            (path/'cuda_ipc_inline_prefill.json').write_text(json.dumps(dict(consumer='prefill',items=[dict(key='image-A')])))
+            barrier=Barrier(2)
+            def attempt(role):
+                barrier.wait(timeout=5)
+                return claim_inline(path,'image-A','prefill',role)
+            with ThreadPoolExecutor(max_workers=2) as pool:
+                claimed=list(pool.map(attempt,['prefill','decode']))
+            self.assertEqual(sum(descriptor is not None for descriptor in claimed),1)
+            self.assertTrue((path/'cuda_ipc_inline_prefill_taken.json').exists())
+            self.assertFalse((path/'cuda_ipc_inline_decode_taken.json').exists())
+
+    def test_late_decode_redirect_clones_then_acks_the_original_prefill_export(self):
+        from vllm.distributed.ec_transfer.ec_connector.example_connector import ECExampleConnectorMetadata,MMMeta
+        from .cuda_ipc_codec import encode_reduction_args
+        from .cuda_ipc_ec import CUDAIPCEncoderConnector
+        scenarios=[('1',False,False,True),('1',True,False,False),('0',False,False,False),('1',False,True,False)]
+        for flag,prefill_claimed,static_plan,redirected in scenarios:
+            with self.subTest(flag=flag,prefill_claimed=prefill_claimed,static_plan=static_plan), TemporaryDirectory() as folder:
+                path=Path(folder)/'image-A';path.mkdir()
+                token='a'*32 if redirected else 'b'*32
+                args=encode_reduction_args(reduction())
+                (path/'cuda_ipc_ready.json').write_text(json.dumps(dict(producer_pid=os.getpid(),shape=[3,3584],dtype='torch.bfloat16')))
+                (path/'cuda_ipc_inline_prefill.json').write_text(json.dumps(dict(producer_pid=os.getpid(),token='a'*32,
+                    consumer='prefill',items=[dict(key='image-A',args=args)])))
+                taken=path/'cuda_ipc_inline_prefill_taken.json'
+                if prefill_claimed:taken.write_text('{}')
+                if static_plan:(path/'cuda_ipc_consumers.json').write_text('{}')
+                original_taken=taken.read_text() if prefill_claimed else None
+                calls=[]
+                connector=object.__new__(CUDAIPCEncoderConnector);connector._storage_path=folder;connector.ack_mode='file'
+                connector._connector_metadata=ECExampleConnectorMetadata()
+                connector._connector_metadata.mm_datas=[MMMeta('image-A',3)]
+                class Event:
+                    def record(self):calls.append('record')
+                    def synchronize(event):
+                        self.assertFalse((Path(folder)/'_ipc_acks'/(token+'.json')).exists())
+                        calls.append('synchronize')
+                def rpc(operation,body):
+                    calls.append(operation)
+                    self.assertEqual(operation,'export')
+                    self.assertEqual(body['consumer'],f'decode_{os.getpid()}')
+                    return dict(producer_pid=os.getpid(),token='b'*32,consumer=f'decode_{os.getpid()}',
+                                items=[dict(key='image-A',args=args)])
+                connector._rpc=rpc
+                with patch('torch.multiprocessing.reductions.rebuild_cuda_tensor',return_value=FakeTensor()),\
+                     patch('torch.cuda.Event',Event),\
+                     patch.dict(os.environ,MLLM_EPD_ROLE='decode',CUDA_VISIBLE_DEVICES='6',MLLM_EPD_LATE_INLINE_REDIRECT=flag),\
+                     patch('poc_flashvep.mllm_epd_prefill_heavy_token_split.cuda_ipc_ec.append') as evidence:
+                    cache={};connector.start_load_caches(cache)
+                self.assertEqual(calls,['record','synchronize'] if redirected else ['export','record','synchronize'])
+                self.assertEqual(cache['image-A'].pointer,101)
+                ack=json.loads((Path(folder)/'_ipc_acks'/(token+'.json')).read_text())
+                self.assertEqual(ack['consumer'],'prefill' if redirected else f'decode_{os.getpid()}')
+                self.assertTrue(ack['clone_complete'])
+                self.assertEqual(evidence.call_args.args[1]['redirected_inline_images'],int(redirected))
+                self.assertEqual(taken.exists(),prefill_claimed or redirected)
+                if redirected:self.assertEqual(json.loads(taken.read_text())['consumer_role'],'decode')
+                if prefill_claimed:self.assertEqual(taken.read_text(),original_taken)
+
     def test_inline_export_is_consumed_once_and_never_waits_for_export_rpc(self):
         from vllm.distributed.ec_transfer.ec_connector.example_connector import ECExampleConnectorMetadata,MMMeta
         from .cuda_ipc_codec import encode_reduction_args

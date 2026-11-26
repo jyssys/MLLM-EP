@@ -25,11 +25,30 @@ def directory(root,key):
     return path
 
 
+def claim_inline(folder,key,issued_role,worker_role):
+    inline=folder/f'cuda_ipc_inline_{issued_role}.json'
+    taken=folder/f'cuda_ipc_inline_{issued_role}_taken.json'
+    if not inline.exists() or taken.exists():
+        return None
+    data=json.loads(inline.read_text())
+    assert data['consumer']==issued_role and [item['key'] for item in data['items']]==[key]
+    witness=dict(consumer_pid=os.getpid(),time=time.time())
+    if issued_role!=worker_role:
+        witness['consumer_role']=worker_role
+    try:
+        with taken.open('x') as stream:
+            json.dump(witness,stream)
+    except FileExistsError:
+        return None
+    return data
+
+
 class ProducerRegistry:
     def __init__(self,root,max_storage_bytes=12*1024**3):
         self.root=Path(root);self.held={};self.ready={};self.exports={};self.max_storage_bytes=max_storage_bytes
         self.export_stream=None
         self.inline_role=None
+        self.capture_correctness_hashes=os.environ.get('MLLM_EPD_LATE_VERIFY_E_SERIAL')=='1'
         self.peak_storage_bytes=0;self.saved_count=0;self.released_count=0
 
     def storage_bytes(self):
@@ -49,9 +68,13 @@ class ProducerRegistry:
         if size>self.max_storage_bytes:
             raise MemoryError('Live EC backing storage exceeds the frozen12GiB research bound. Do not free in-flight tensors.')
         self.saved_count+=1
-        write(path/'cuda_ipc_ready.json',dict(key=key,producer_pid=os.getpid(),
+        ready=dict(key=key,producer_pid=os.getpid(),
             shape=list(tensor.shape),dtype=str(tensor.dtype),transport='cuda_ipc',
-            source_original_E=True,scope='Marker only. Original GPU tensor remains owned by E until safe request completion.'))
+            source_original_E=True,scope='Marker only. Original GPU tensor remains owned by E until safe request completion.')
+        if self.capture_correctness_hashes:
+            from .batch_prefix_probe import tensor_signature
+            ready['original_embedding_signature']=tensor_signature(tensor)
+        write(path/'cuda_ipc_ready.json',ready)
         plan_file=path/'cuda_ipc_consumers.json'
         if plan_file.exists():
             plan=json.loads(plan_file.read_text())
@@ -167,19 +190,25 @@ class CUDAIPCEncoderConnector(ECExampleConnector):
         pid=records[0]['producer_pid'];proc=Path('/proc',str(pid))
         assert proc.exists() and proc.stat().st_uid==os.getuid(),'The exact producer process must remain alive'
         begin=time.monotonic()
-        role=os.environ['MLLM_EPD_ROLE'];groups=[];remaining=[];inline_images=0;rpc_ms=0.
+        role=os.environ['MLLM_EPD_ROLE'];groups=[];remaining=[];inline_images=0;redirected_inline_images=0;rpc_ms=0.
+        allow_redirect=role=='decode' and os.environ.get('MLLM_EPD_LATE_INLINE_REDIRECT')=='1'
         for key in keys:
             folder=directory(self._storage_path,key)
-            inline=folder/f'cuda_ipc_inline_{role}.json'
-            taken=folder/f'cuda_ipc_inline_{role}_taken.json'
-            if inline.exists() and not taken.exists():
-                data=json.loads(inline.read_text())
-                assert data['consumer']==role and [r['key'] for r in data['items']]==[key]
-                try:
-                    with taken.open('x') as stream:json.dump(dict(consumer_pid=os.getpid(),time=time.time()),stream)
-                except FileExistsError:remaining.append(key)
-                else:groups.append(data);inline_images+=1
-            else:remaining.append(key)
+            issued_role=role
+            if (allow_redirect and not (folder/'cuda_ipc_inline_decode.json').exists()
+                    and not (folder/'cuda_ipc_consumers.json').exists()):
+                # D only starts after P stops at the committed cutoff. Compete
+                # for P's original one-shot claim so a crossing image already
+                # used by P still obtains a fresh export. Preserve the issued
+                # consumer tag for E's clone-completion ACK checks.
+                issued_role='prefill'
+            data=claim_inline(folder,key,issued_role,role)
+            if data is None:
+                remaining.append(key)
+            else:
+                groups.append(data)
+                inline_images+=1
+                redirected_inline_images+=int(issued_role!=role)
         if remaining:
             sent=time.monotonic()
             groups.append(self._rpc('export',dict(keys=remaining,consumer=f'{role}_{os.getpid()}')))
@@ -213,7 +242,8 @@ class CUDAIPCEncoderConnector(ECExampleConnector):
         append(ROOT/'raw'/f'ec_cuda_ipc_{os.environ["MLLM_EPD_ROLE"]}_gpu{os.environ["CUDA_VISIBLE_DEVICES"]}.jsonl',
             dict(begin=begin,end=ended,images=len(keys),keys=keys,producer_pid=pid,consumer_pid=os.getpid(),
                 export_RPC_ms=rpc_ms,descriptor_prepare_host_ms=(exported-begin)*1000,
-                inline_images=inline_images,import_clone_sync_host_ms=(cloned-exported)*1000,
+                inline_images=inline_images,redirected_inline_images=redirected_inline_images,
+                import_clone_sync_host_ms=(cloned-exported)*1000,
                 completion_ACK_host_ms=(ended-cloned)*1000,ack_mode=ack_mode,
                 logical_bytes=sum(encoder_cache[key].numel()*encoder_cache[key].element_size() for key in keys),
                 clone_complete_before_ACK=True,scope='Original E tensor transport host enclosure, not exclusive GPU cost.'))

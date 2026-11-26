@@ -350,6 +350,7 @@ class CampaignWorkerExtension:
         if obj is not None:
             cache=obj.encoder_cache_manager
             rows.append(dict(type=type(obj).__name__,running=len(obj.running),waiting=len(obj.waiting),
+                skipped_waiting=len(obj.skipped_waiting),unfinished=obj.get_num_unfinished_requests(),
                 waiting_requests=[dict(request_id=r.request_id,prompt_tokens=r.num_prompt_tokens,
                     computed_tokens=r.num_computed_tokens,status=str(r.status),
                     encoder_lengths=[r.get_num_encoder_embeds(i) for i in range(len(r.mm_features or []))]) for r in list(obj.waiting)[:8]],
@@ -359,4 +360,4 @@ class CampaignWorkerExtension:
                 KV_free_blocks=obj.kv_cache_manager.block_pool.get_num_free_blocks()))
         return dict(pid=os.getpid(),monotonic_ns=time.monotonic_ns(),schedulers=rows,
             watcher_status='SCHEDULER_OBSERVED' if rows else 'WATCH_INSTALLED_PENDING_FIRST_SCHEDULE',
-            scope='DIAGNOSTIC read-only scheduler snapshot. Do not include this RPC in measured serving latency.')
+            scope='Read-only engine scheduler snapshot. New late-bound admission charges the RPC on its serving path.')

@@ -1,0 +1,3406 @@
+{
+  "evidence": "ISOLATED_GPU_MEASUREMENT",
+  "cost_scope": "D HTTP from imported prefix submit to one greedy token completion. Includes KV import, EC, suffix scheduling and output delivery.",
+  "predictor_scope": "Same Ridge family with fixed lambda 0.1 and disjoint request IDs. No C3 decision accuracy or future idle truth measured. Upper estimate is not an SLA guarantee.",
+  "base_features": [
+    "input_tokens/8192",
+    "prefix_tokens/8192",
+    "suffix_tokens/1024",
+    "causal_attention_pairs_per_layer/(8192*1024)"
+  ],
+  "additional_features": [
+    "image_count/10",
+    "observed_E_request_http_ms/1000",
+    "cross_boundary_image_count",
+    "cross_boundary_tensor_payload_bytes/MiB"
+  ],
+  "training_observed_bounds": {
+    "input_tokens": [
+      2044,
+      30195
+    ],
+    "prefix_tokens": [
+      1431,
+      29171
+    ],
+    "suffix_tokens": [
+      102,
+      9059
+    ]
+  },
+  "train_requests": [
+    "TIGER-Lab__Mantis-Eval__w_13",
+    "TIGER-Lab__Mantis-Eval__wc_25",
+    "lmms-lab__DocVQA__59420",
+    "lmms-lab__DocVQA__7621",
+    "lmms-lab__MP-DocVQA__50310",
+    "lmms-lab__MP-DocVQA__54147",
+    "lmms-lab__MP-DocVQA__60933",
+    "yubo2333__MMLongBench-Doc__863"
+  ],
+  "heldout_calibration_requests": [
+    "TIGER-Lab__Mantis-Eval__cw_9",
+    "lmms-lab__DocVQA__40799",
+    "lmms-lab__MP-DocVQA__43773",
+    "yubo2333__MMLongBench-Doc__610",
+    "yubo2333__MMLongBench-Doc__688",
+    "yubo2333__MMLongBench-Doc__754",
+    "yubo2333__MMLongBench-Doc__975"
+  ],
+  "generic": {
+    "intercept": 76.4910269832799,
+    "weights": [
+      4.683627877928746,
+      3.5101259456501057,
+      9.3880154582757,
+      12.815238345017946
+    ],
+    "training_p95_underprediction_ms": 46.884978945876775,
+    "validation_MAE_ms": 22.66761440674673,
+    "validation_relative_MAE": 0.12486422935246935,
+    "validation_p95_underprediction_ms": 57.26629963487446,
+    "validation_model_cpu_median_us": 3.6710000000000003,
+    "validation_safety_at_fixed_budgets": {
+      "16": {
+        "predicted_safe": 0,
+        "actual_safe": 0,
+        "both_safe": 0,
+        "false_safe_rate_among_predictions": null,
+        "false_reject_rate_among_actual_safe": null
+      },
+      "32": {
+        "predicted_safe": 0,
+        "actual_safe": 0,
+        "both_safe": 0,
+        "false_safe_rate_among_predictions": null,
+        "false_reject_rate_among_actual_safe": null
+      },
+      "64": {
+        "predicted_safe": 0,
+        "actual_safe": 0,
+        "both_safe": 0,
+        "false_safe_rate_among_predictions": null,
+        "false_reject_rate_among_actual_safe": null
+      },
+      "100": {
+        "predicted_safe": 0,
+        "actual_safe": 19,
+        "both_safe": 0,
+        "false_safe_rate_among_predictions": null,
+        "false_reject_rate_among_actual_safe": 1.0
+      },
+      "160": {
+        "predicted_safe": 34,
+        "actual_safe": 54,
+        "both_safe": 32,
+        "false_safe_rate_among_predictions": 0.05882352941176472,
+        "false_reject_rate_among_actual_safe": 0.40740740740740744
+      }
+    },
+    "validation_points": [
+      {
+        "trial": "dynamic_cost_0_000",
+        "request_id": "yubo2333__MMLongBench-Doc__610",
+        "prediction_ms": 214.80467994666537,
+        "upper_ms": 261.6896588925421,
+        "actual_ms": 187.59548105299473,
+        "prediction_cpu_us": 35.415
+      },
+      {
+        "trial": "dynamic_cost_0_003",
+        "request_id": "lmms-lab__DocVQA__40799",
+        "prediction_ms": 92.28927199705875,
+        "upper_ms": 139.17425094293552,
+        "actual_ms": 81.6365978680551,
+        "prediction_cpu_us": 12.598
+      },
+      {
+        "trial": "dynamic_cost_0_004",
+        "request_id": "yubo2333__MMLongBench-Doc__610",
+        "prediction_ms": 159.39370135498382,
+        "upper_ms": 206.2786803008606,
+        "actual_ms": 168.71976479887962,
+        "prediction_cpu_us": 5.776
+      },
+      {
+        "trial": "dynamic_cost_0_012",
+        "request_id": "lmms-lab__MP-DocVQA__43773",
+        "prediction_ms": 109.447233098906,
+        "upper_ms": 156.33221204478278,
+        "actual_ms": 93.69290200993419,
+        "prediction_cpu_us": 4.376
+      },
+      {
+        "trial": "dynamic_cost_0_013",
+        "request_id": "lmms-lab__MP-DocVQA__43773",
+        "prediction_ms": 147.98153481873317,
+        "upper_ms": 194.86651376460995,
+        "actual_ms": 150.82250209525228,
+        "prediction_cpu_us": 5.249
+      },
+      {
+        "trial": "dynamic_cost_0_016",
+        "request_id": "yubo2333__MMLongBench-Doc__975",
+        "prediction_ms": 111.66182528022017,
+        "upper_ms": 158.54680422609695,
+        "actual_ms": 117.24222917109728,
+        "prediction_cpu_us": 4.04
+      },
+      {
+        "trial": "dynamic_cost_0_018",
+        "request_id": "yubo2333__MMLongBench-Doc__688",
+        "prediction_ms": 174.22656646335622,
+        "upper_ms": 221.111545409233,
+        "actual_ms": 181.23334227129817,
+        "prediction_cpu_us": 3.858
+      },
+      {
+        "trial": "dynamic_cost_0_021",
+        "request_id": "lmms-lab__DocVQA__40799",
+        "prediction_ms": 104.70277075614426,
+        "upper_ms": 151.58774970202103,
+        "actual_ms": 95.66448302939534,
+        "prediction_cpu_us": 3.673
+      },
+      {
+        "trial": "dynamic_cost_0_022",
+        "request_id": "yubo2333__MMLongBench-Doc__610",
+        "prediction_ms": 194.7574713977035,
+        "upper_ms": 241.6424503435803,
+        "actual_ms": 178.9675187319517,
+        "prediction_cpu_us": 3.66
+      },
+      {
+        "trial": "dynamic_cost_0_023",
+        "request_id": "yubo2333__MMLongBench-Doc__975",
+        "prediction_ms": 152.57326232798263,
+        "upper_ms": 199.45824127385941,
+        "actual_ms": 151.79169084876776,
+        "prediction_cpu_us": 3.499
+      },
+      {
+        "trial": "dynamic_cost_0_025",
+        "request_id": "yubo2333__MMLongBench-Doc__754",
+        "prediction_ms": 119.59268878969809,
+        "upper_ms": 166.47766773557487,
+        "actual_ms": 108.94639370962977,
+        "prediction_cpu_us": 4.657
+      },
+      {
+        "trial": "dynamic_cost_0_026",
+        "request_id": "lmms-lab__DocVQA__40799",
+        "prediction_ms": 100.02928657699607,
+        "upper_ms": 146.91426552287285,
+        "actual_ms": 142.79219089075923,
+        "prediction_cpu_us": 3.954
+      },
+      {
+        "trial": "dynamic_cost_0_027",
+        "request_id": "yubo2333__MMLongBench-Doc__754",
+        "prediction_ms": 109.89989756354365,
+        "upper_ms": 156.78487650942043,
+        "actual_ms": 124.4518430903554,
+        "prediction_cpu_us": 3.606
+      },
+      {
+        "trial": "dynamic_cost_0_028",
+        "request_id": "yubo2333__MMLongBench-Doc__688",
+        "prediction_ms": 366.1343411663455,
+        "upper_ms": 413.01932011222226,
+        "actual_ms": 323.6093311570585,
+        "prediction_cpu_us": 3.772
+      },
+      {
+        "trial": "dynamic_cost_0_035",
+        "request_id": "yubo2333__MMLongBench-Doc__754",
+        "prediction_ms": 198.22732802800948,
+        "upper_ms": 245.11230697388626,
+        "actual_ms": 199.75054962560534,
+        "prediction_cpu_us": 3.626
+      },
+      {
+        "trial": "dynamic_cost_0_039",
+        "request_id": "lmms-lab__MP-DocVQA__43773",
+        "prediction_ms": 108.19341305565649,
+        "upper_ms": 155.07839200153327,
+        "actual_ms": 111.4619430154562,
+        "prediction_cpu_us": 3.666
+      },
+      {
+        "trial": "dynamic_cost_0_044",
+        "request_id": "lmms-lab__DocVQA__40799",
+        "prediction_ms": 123.4879349114359,
+        "upper_ms": 170.37291385731268,
+        "actual_ms": 93.94444478675723,
+        "prediction_cpu_us": 3.705
+      },
+      {
+        "trial": "dynamic_cost_0_047",
+        "request_id": "TIGER-Lab__Mantis-Eval__cw_9",
+        "prediction_ms": 81.1379088091996,
+        "upper_ms": 128.02288775507637,
+        "actual_ms": 64.38912218436599,
+        "prediction_cpu_us": 3.89
+      },
+      {
+        "trial": "dynamic_cost_0_048",
+        "request_id": "yubo2333__MMLongBench-Doc__688",
+        "prediction_ms": 479.2720551701856,
+        "upper_ms": 526.1570341160624,
+        "actual_ms": 471.23251110315323,
+        "prediction_cpu_us": 3.69
+      },
+      {
+        "trial": "dynamic_cost_0_054",
+        "request_id": "lmms-lab__MP-DocVQA__43773",
+        "prediction_ms": 97.36971118758439,
+        "upper_ms": 144.25469013346117,
+        "actual_ms": 128.39384097605944,
+        "prediction_cpu_us": 3.636
+      },
+      {
+        "trial": "dynamic_cost_0_056",
+        "request_id": "yubo2333__MMLongBench-Doc__688",
+        "prediction_ms": 241.15598519064986,
+        "upper_ms": 288.0409641365266,
+        "actual_ms": 213.06080045178533,
+        "prediction_cpu_us": 3.6
+      },
+      {
+        "trial": "dynamic_cost_0_058",
+        "request_id": "TIGER-Lab__Mantis-Eval__cw_9",
+        "prediction_ms": 86.0434739529777,
+        "upper_ms": 132.9284528988545,
+        "actual_ms": 100.78060114756227,
+        "prediction_cpu_us": 3.575
+      },
+      {
+        "trial": "dynamic_cost_0_059",
+        "request_id": "yubo2333__MMLongBench-Doc__975",
+        "prediction_ms": 123.79146264688801,
+        "upper_ms": 170.67644159276477,
+        "actual_ms": 121.44922418519855,
+        "prediction_cpu_us": 3.534
+      },
+      {
+        "trial": "dynamic_cost_0_060",
+        "request_id": "lmms-lab__DocVQA__40799",
+        "prediction_ms": 114.82695025623234,
+        "upper_ms": 161.7119292021091,
+        "actual_ms": 118.40781290084124,
+        "prediction_cpu_us": 3.68
+      },
+      {
+        "trial": "dynamic_cost_0_062",
+        "request_id": "lmms-lab__MP-DocVQA__43773",
+        "prediction_ms": 169.67921001533688,
+        "upper_ms": 216.56418896121366,
+        "actual_ms": 163.37959887459874,
+        "prediction_cpu_us": 3.466
+      },
+      {
+        "trial": "dynamic_cost_0_066",
+        "request_id": "lmms-lab__MP-DocVQA__43773",
+        "prediction_ms": 131.12646353084352,
+        "upper_ms": 178.0114424767203,
+        "actual_ms": 154.90223420783877,
+        "prediction_cpu_us": 3.472
+      },
+      {
+        "trial": "dynamic_cost_0_069",
+        "request_id": "yubo2333__MMLongBench-Doc__754",
+        "prediction_ms": 165.03063888733055,
+        "upper_ms": 211.91561783320734,
+        "actual_ms": 172.54424188286066,
+        "prediction_cpu_us": 3.88
+      },
+      {
+        "trial": "dynamic_cost_0_070",
+        "request_id": "lmms-lab__MP-DocVQA__43773",
+        "prediction_ms": 128.81275935567558,
+        "upper_ms": 175.69773830155236,
+        "actual_ms": 113.8277081772685,
+        "prediction_cpu_us": 3.889
+      },
+      {
+        "trial": "dynamic_cost_0_071",
+        "request_id": "yubo2333__MMLongBench-Doc__975",
+        "prediction_ms": 102.79534117276548,
+        "upper_ms": 149.68032011864224,
+        "actual_ms": 101.21333785355091,
+        "prediction_cpu_us": 3.737
+      },
+      {
+        "trial": "dynamic_cost_0_073",
+        "request_id": "yubo2333__MMLongBench-Doc__610",
+        "prediction_ms": 318.4590577691514,
+        "upper_ms": 365.34403671502815,
+        "actual_ms": 288.08320220559835,
+        "prediction_cpu_us": 3.657
+      },
+      {
+        "trial": "dynamic_cost_0_079",
+        "request_id": "TIGER-Lab__Mantis-Eval__cw_9",
+        "prediction_ms": 83.31181206600215,
+        "upper_ms": 130.19679101187893,
+        "actual_ms": 376.32292695343494,
+        "prediction_cpu_us": 3.524
+      },
+      {
+        "trial": "dynamic_cost_0_080",
+        "request_id": "yubo2333__MMLongBench-Doc__688",
+        "prediction_ms": 206.13681457342642,
+        "upper_ms": 253.0217935193032,
+        "actual_ms": 190.52141578868032,
+        "prediction_cpu_us": 3.563
+      },
+      {
+        "trial": "dynamic_cost_0_083",
+        "request_id": "yubo2333__MMLongBench-Doc__754",
+        "prediction_ms": 198.39049196084983,
+        "upper_ms": 245.2754709067266,
+        "actual_ms": 192.13597709313035,
+        "prediction_cpu_us": 3.541
+      },
+      {
+        "trial": "dynamic_cost_0_084",
+        "request_id": "TIGER-Lab__Mantis-Eval__cw_9",
+        "prediction_ms": 90.62856269581181,
+        "upper_ms": 137.5135416416886,
+        "actual_ms": 82.08696637302637,
+        "prediction_cpu_us": 3.575
+      },
+      {
+        "trial": "dynamic_cost_0_085",
+        "request_id": "yubo2333__MMLongBench-Doc__975",
+        "prediction_ms": 256.3252561406404,
+        "upper_ms": 303.2102350865172,
+        "actual_ms": 318.53758078068495,
+        "prediction_cpu_us": 3.697
+      },
+      {
+        "trial": "dynamic_cost_0_089",
+        "request_id": "yubo2333__MMLongBench-Doc__754",
+        "prediction_ms": 128.9958444823473,
+        "upper_ms": 175.8808234282241,
+        "actual_ms": 180.87798403576016,
+        "prediction_cpu_us": 3.563
+      },
+      {
+        "trial": "dynamic_cost_0_095",
+        "request_id": "TIGER-Lab__Mantis-Eval__cw_9",
+        "prediction_ms": 87.03711266355442,
+        "upper_ms": 133.9220916094312,
+        "actual_ms": 100.16220202669501,
+        "prediction_cpu_us": 3.739
+      },
+      {
+        "trial": "dynamic_cost_0_096",
+        "request_id": "yubo2333__MMLongBench-Doc__975",
+        "prediction_ms": 98.3245544754492,
+        "upper_ms": 145.20953342132597,
+        "actual_ms": 132.90181290358305,
+        "prediction_cpu_us": 3.728
+      },
+      {
+        "trial": "dynamic_cost_0_097",
+        "request_id": "TIGER-Lab__Mantis-Eval__cw_9",
+        "prediction_ms": 82.79812695285159,
+        "upper_ms": 129.68310589872837,
+        "actual_ms": 88.72236870229244,
+        "prediction_cpu_us": 3.576
+      },
+      {
+        "trial": "dynamic_cost_0_099",
+        "request_id": "yubo2333__MMLongBench-Doc__610",
+        "prediction_ms": 281.5269264112671,
+        "upper_ms": 328.41190535714384,
+        "actual_ms": 259.00073582306504,
+        "prediction_cpu_us": 3.666
+      },
+      {
+        "trial": "dynamic_cost_0_101",
+        "request_id": "yubo2333__MMLongBench-Doc__610",
+        "prediction_ms": 148.96988670123085,
+        "upper_ms": 195.85486564710763,
+        "actual_ms": 171.95652332156897,
+        "prediction_cpu_us": 3.716
+      },
+      {
+        "trial": "dynamic_cost_0_102",
+        "request_id": "lmms-lab__DocVQA__40799",
+        "prediction_ms": 128.67089549248595,
+        "upper_ms": 175.55587443836274,
+        "actual_ms": 119.19654672965407,
+        "prediction_cpu_us": 3.661
+      },
+      {
+        "trial": "dynamic_cost_0_103",
+        "request_id": "yubo2333__MMLongBench-Doc__754",
+        "prediction_ms": 147.46052797320925,
+        "upper_ms": 194.34550691908603,
+        "actual_ms": 134.8159248009324,
+        "prediction_cpu_us": 3.534
+      },
+      {
+        "trial": "dynamic_cost_0_105",
+        "request_id": "lmms-lab__DocVQA__40799",
+        "prediction_ms": 156.25254884263745,
+        "upper_ms": 203.13752778851423,
+        "actual_ms": 155.28450720012188,
+        "prediction_cpu_us": 3.574
+      },
+      {
+        "trial": "dynamic_cost_0_107",
+        "request_id": "yubo2333__MMLongBench-Doc__688",
+        "prediction_ms": 156.03785330482617,
+        "upper_ms": 202.92283225070295,
+        "actual_ms": 170.55899510160089,
+        "prediction_cpu_us": 3.597
+      },
+      {
+        "trial": "dynamic_cost_0_110",
+        "request_id": "yubo2333__MMLongBench-Doc__610",
+        "prediction_ms": 412.46090463060546,
+        "upper_ms": 459.3458835764822,
+        "actual_ms": 367.95528791844845,
+        "prediction_cpu_us": 3.557
+      },
+      {
+        "trial": "dynamic_cost_0_113",
+        "request_id": "TIGER-Lab__Mantis-Eval__cw_9",
+        "prediction_ms": 81.39896780524045,
+        "upper_ms": 128.2839467511172,
+        "actual_ms": 87.23932318389416,
+        "prediction_cpu_us": 3.933
+      },
+      {
+        "trial": "dynamic_cost_0_115",
+        "request_id": "yubo2333__MMLongBench-Doc__975",
+        "prediction_ms": 206.75960125655507,
+        "upper_ms": 253.64458020243185,
+        "actual_ms": 196.2705380283296,
+        "prediction_cpu_us": 4.015
+      },
+      {
+        "trial": "dynamic_cost_0_117",
+        "request_id": "yubo2333__MMLongBench-Doc__688",
+        "prediction_ms": 301.5290227312452,
+        "upper_ms": 348.414001677122,
+        "actual_ms": 416.31923895329237,
+        "prediction_cpu_us": 3.753
+      },
+      {
+        "trial": "dynamic_cost_1_000",
+        "request_id": "lmms-lab__DocVQA__40799",
+        "prediction_ms": 156.25254884263745,
+        "upper_ms": 203.13752778851423,
+        "actual_ms": 199.02186188846827,
+        "prediction_cpu_us": 3.664
+      },
+      {
+        "trial": "dynamic_cost_1_002",
+        "request_id": "yubo2333__MMLongBench-Doc__975",
+        "prediction_ms": 102.79534117276548,
+        "upper_ms": 149.68032011864224,
+        "actual_ms": 98.4981288202107,
+        "prediction_cpu_us": 3.691
+      },
+      {
+        "trial": "dynamic_cost_1_003",
+        "request_id": "TIGER-Lab__Mantis-Eval__cw_9",
+        "prediction_ms": 82.79812695285159,
+        "upper_ms": 129.68310589872837,
+        "actual_ms": 74.41948307678103,
+        "prediction_cpu_us": 3.57
+      },
+      {
+        "trial": "dynamic_cost_1_004",
+        "request_id": "TIGER-Lab__Mantis-Eval__cw_9",
+        "prediction_ms": 87.03711266355442,
+        "upper_ms": 133.9220916094312,
+        "actual_ms": 92.884860932827,
+        "prediction_cpu_us": 3.545
+      },
+      {
+        "trial": "dynamic_cost_1_008",
+        "request_id": "yubo2333__MMLongBench-Doc__610",
+        "prediction_ms": 159.39370135498382,
+        "upper_ms": 206.2786803008606,
+        "actual_ms": 152.889892924577,
+        "prediction_cpu_us": 3.707
+      },
+      {
+        "trial": "dynamic_cost_1_009",
+        "request_id": "yubo2333__MMLongBench-Doc__610",
+        "prediction_ms": 412.46090463060546,
+        "upper_ms": 459.3458835764822,
+        "actual_ms": 353.6985218524933,
+        "prediction_cpu_us": 3.695
+      },
+      {
+        "trial": "dynamic_cost_1_012",
+        "request_id": "TIGER-Lab__Mantis-Eval__cw_9",
+        "prediction_ms": 86.0434739529777,
+        "upper_ms": 132.9284528988545,
+        "actual_ms": 78.68571393191814,
+        "prediction_cpu_us": 3.574
+      },
+      {
+        "trial": "dynamic_cost_1_017",
+        "request_id": "yubo2333__MMLongBench-Doc__975",
+        "prediction_ms": 111.66182528022017,
+        "upper_ms": 158.54680422609695,
+        "actual_ms": 107.27218724787235,
+        "prediction_cpu_us": 3.545
+      },
+      {
+        "trial": "dynamic_cost_1_020",
+        "request_id": "TIGER-Lab__Mantis-Eval__cw_9",
+        "prediction_ms": 81.39896780524045,
+        "upper_ms": 128.2839467511172,
+        "actual_ms": 75.01905178651214,
+        "prediction_cpu_us": 4.044
+      },
+      {
+        "trial": "dynamic_cost_1_021",
+        "request_id": "lmms-lab__MP-DocVQA__43773",
+        "prediction_ms": 97.36971118758439,
+        "upper_ms": 144.25469013346117,
+        "actual_ms": 79.346286598593,
+        "prediction_cpu_us": 3.814
+      },
+      {
+        "trial": "dynamic_cost_1_024",
+        "request_id": "yubo2333__MMLongBench-Doc__610",
+        "prediction_ms": 281.5269264112671,
+        "upper_ms": 328.41190535714384,
+        "actual_ms": 260.2698877453804,
+        "prediction_cpu_us": 3.675
+      },
+      {
+        "trial": "dynamic_cost_1_025",
+        "request_id": "yubo2333__MMLongBench-Doc__688",
+        "prediction_ms": 479.2720551701856,
+        "upper_ms": 526.1570341160624,
+        "actual_ms": 426.66404414922,
+        "prediction_cpu_us": 3.609
+      },
+      {
+        "trial": "dynamic_cost_1_027",
+        "request_id": "yubo2333__MMLongBench-Doc__610",
+        "prediction_ms": 194.7574713977035,
+        "upper_ms": 241.6424503435803,
+        "actual_ms": 176.86246475204825,
+        "prediction_cpu_us": 3.588
+      },
+      {
+        "trial": "dynamic_cost_1_029",
+        "request_id": "yubo2333__MMLongBench-Doc__754",
+        "prediction_ms": 198.22732802800948,
+        "upper_ms": 245.11230697388626,
+        "actual_ms": 204.84379818663,
+        "prediction_cpu_us": 3.657
+      },
+      {
+        "trial": "dynamic_cost_1_030",
+        "request_id": "yubo2333__MMLongBench-Doc__975",
+        "prediction_ms": 152.57326232798263,
+        "upper_ms": 199.45824127385941,
+        "actual_ms": 139.15792386978865,
+        "prediction_cpu_us": 3.552
+      },
+      {
+        "trial": "dynamic_cost_1_033",
+        "request_id": "yubo2333__MMLongBench-Doc__610",
+        "prediction_ms": 148.96988670123085,
+        "upper_ms": 195.85486564710763,
+        "actual_ms": 188.2930900901556,
+        "prediction_cpu_us": 3.516
+      },
+      {
+        "trial": "dynamic_cost_1_038",
+        "request_id": "lmms-lab__DocVQA__40799",
+        "prediction_ms": 100.02928657699607,
+        "upper_ms": 146.91426552287285,
+        "actual_ms": 115.32643297687173,
+        "prediction_cpu_us": 3.697
+      },
+      {
+        "trial": "dynamic_cost_1_041",
+        "request_id": "lmms-lab__MP-DocVQA__43773",
+        "prediction_ms": 108.19341305565649,
+        "upper_ms": 155.07839200153327,
+        "actual_ms": 107.72809199988842,
+        "prediction_cpu_us": 3.669
+      },
+      {
+        "trial": "dynamic_cost_1_043",
+        "request_id": "yubo2333__MMLongBench-Doc__688",
+        "prediction_ms": 241.15598519064986,
+        "upper_ms": 288.0409641365266,
+        "actual_ms": 280.81302996724844,
+        "prediction_cpu_us": 3.532
+      },
+      {
+        "trial": "dynamic_cost_1_044",
+        "request_id": "lmms-lab__DocVQA__40799",
+        "prediction_ms": 92.28927199705875,
+        "upper_ms": 139.17425094293552,
+        "actual_ms": 68.2154200039804,
+        "prediction_cpu_us": 3.686
+      },
+      {
+        "trial": "dynamic_cost_1_045",
+        "request_id": "yubo2333__MMLongBench-Doc__975",
+        "prediction_ms": 98.3245544754492,
+        "upper_ms": 145.20953342132597,
+        "actual_ms": 191.86645792797208,
+        "prediction_cpu_us": 3.834
+      },
+      {
+        "trial": "dynamic_cost_1_047",
+        "request_id": "yubo2333__MMLongBench-Doc__754",
+        "prediction_ms": 128.9958444823473,
+        "upper_ms": 175.8808234282241,
+        "actual_ms": 185.389316175133,
+        "prediction_cpu_us": 4.017
+      },
+      {
+        "trial": "dynamic_cost_1_050",
+        "request_id": "lmms-lab__MP-DocVQA__43773",
+        "prediction_ms": 169.67921001533688,
+        "upper_ms": 216.56418896121366,
+        "actual_ms": 157.85216493532062,
+        "prediction_cpu_us": 3.739
+      },
+      {
+        "trial": "dynamic_cost_1_058",
+        "request_id": "lmms-lab__DocVQA__40799",
+        "prediction_ms": 114.82695025623234,
+        "upper_ms": 161.7119292021091,
+        "actual_ms": 98.54591684415936,
+        "prediction_cpu_us": 3.554
+      },
+      {
+        "trial": "dynamic_cost_1_060",
+        "request_id": "yubo2333__MMLongBench-Doc__754",
+        "prediction_ms": 109.89989756354365,
+        "upper_ms": 156.78487650942043,
+        "actual_ms": 109.28174899891019,
+        "prediction_cpu_us": 3.72
+      },
+      {
+        "trial": "dynamic_cost_1_067",
+        "request_id": "yubo2333__MMLongBench-Doc__610",
+        "prediction_ms": 318.4590577691514,
+        "upper_ms": 365.34403671502815,
+        "actual_ms": 305.2944829687476,
+        "prediction_cpu_us": 3.557
+      },
+      {
+        "trial": "dynamic_cost_1_068",
+        "request_id": "lmms-lab__DocVQA__40799",
+        "prediction_ms": 128.67089549248595,
+        "upper_ms": 175.55587443836274,
+        "actual_ms": 151.93695900961757,
+        "prediction_cpu_us": 3.664
+      },
+      {
+        "trial": "dynamic_cost_1_072",
+        "request_id": "lmms-lab__MP-DocVQA__43773",
+        "prediction_ms": 131.12646353084352,
+        "upper_ms": 178.0114424767203,
+        "actual_ms": 114.57204632461071,
+        "prediction_cpu_us": 3.605
+      },
+      {
+        "trial": "dynamic_cost_1_079",
+        "request_id": "yubo2333__MMLongBench-Doc__688",
+        "prediction_ms": 174.22656646335622,
+        "upper_ms": 221.111545409233,
+        "actual_ms": 196.80126011371613,
+        "prediction_cpu_us": 3.713
+      },
+      {
+        "trial": "dynamic_cost_1_080",
+        "request_id": "yubo2333__MMLongBench-Doc__688",
+        "prediction_ms": 301.5290227312452,
+        "upper_ms": 348.414001677122,
+        "actual_ms": 275.817281100899,
+        "prediction_cpu_us": 3.454
+      },
+      {
+        "trial": "dynamic_cost_1_085",
+        "request_id": "lmms-lab__DocVQA__40799",
+        "prediction_ms": 123.4879349114359,
+        "upper_ms": 170.37291385731268,
+        "actual_ms": 112.94934991747141,
+        "prediction_cpu_us": 3.56
+      },
+      {
+        "trial": "dynamic_cost_1_086",
+        "request_id": "yubo2333__MMLongBench-Doc__754",
+        "prediction_ms": 165.03063888733055,
+        "upper_ms": 211.91561783320734,
+        "actual_ms": 172.97559697180986,
+        "prediction_cpu_us": 3.561
+      },
+      {
+        "trial": "dynamic_cost_1_087",
+        "request_id": "yubo2333__MMLongBench-Doc__754",
+        "prediction_ms": 119.59268878969809,
+        "upper_ms": 166.47766773557487,
+        "actual_ms": 113.86051680892706,
+        "prediction_cpu_us": 10.489
+      },
+      {
+        "trial": "dynamic_cost_1_088",
+        "request_id": "TIGER-Lab__Mantis-Eval__cw_9",
+        "prediction_ms": 81.1379088091996,
+        "upper_ms": 128.02288775507637,
+        "actual_ms": 97.38704888150096,
+        "prediction_cpu_us": 5.08
+      },
+      {
+        "trial": "dynamic_cost_1_089",
+        "request_id": "yubo2333__MMLongBench-Doc__688",
+        "prediction_ms": 156.03785330482617,
+        "upper_ms": 202.92283225070295,
+        "actual_ms": 193.68210108950734,
+        "prediction_cpu_us": 4.014
+      },
+      {
+        "trial": "dynamic_cost_1_095",
+        "request_id": "yubo2333__MMLongBench-Doc__975",
+        "prediction_ms": 206.75960125655507,
+        "upper_ms": 253.64458020243185,
+        "actual_ms": 184.69265289604664,
+        "prediction_cpu_us": 3.776
+      },
+      {
+        "trial": "dynamic_cost_1_096",
+        "request_id": "lmms-lab__MP-DocVQA__43773",
+        "prediction_ms": 128.81275935567558,
+        "upper_ms": 175.69773830155236,
+        "actual_ms": 192.08641070872545,
+        "prediction_cpu_us": 3.936
+      },
+      {
+        "trial": "dynamic_cost_1_097",
+        "request_id": "lmms-lab__MP-DocVQA__43773",
+        "prediction_ms": 109.447233098906,
+        "upper_ms": 156.33221204478278,
+        "actual_ms": 137.50619301572442,
+        "prediction_cpu_us": 3.844
+      },
+      {
+        "trial": "dynamic_cost_1_099",
+        "request_id": "yubo2333__MMLongBench-Doc__688",
+        "prediction_ms": 366.1343411663455,
+        "upper_ms": 413.01932011222226,
+        "actual_ms": 314.3648477271199,
+        "prediction_cpu_us": 3.731
+      },
+      {
+        "trial": "dynamic_cost_1_100",
+        "request_id": "TIGER-Lab__Mantis-Eval__cw_9",
+        "prediction_ms": 90.62856269581181,
+        "upper_ms": 137.5135416416886,
+        "actual_ms": 87.26519579067826,
+        "prediction_cpu_us": 3.68
+      },
+      {
+        "trial": "dynamic_cost_1_101",
+        "request_id": "yubo2333__MMLongBench-Doc__610",
+        "prediction_ms": 214.80467994666537,
+        "upper_ms": 261.6896588925421,
+        "actual_ms": 211.596614215523,
+        "prediction_cpu_us": 3.657
+      },
+      {
+        "trial": "dynamic_cost_1_102",
+        "request_id": "yubo2333__MMLongBench-Doc__754",
+        "prediction_ms": 198.39049196084983,
+        "upper_ms": 245.2754709067266,
+        "actual_ms": 194.5270779542625,
+        "prediction_cpu_us": 3.828
+      },
+      {
+        "trial": "dynamic_cost_1_107",
+        "request_id": "lmms-lab__MP-DocVQA__43773",
+        "prediction_ms": 147.98153481873317,
+        "upper_ms": 194.86651376460995,
+        "actual_ms": 134.92871914058924,
+        "prediction_cpu_us": 3.717
+      },
+      {
+        "trial": "dynamic_cost_1_109",
+        "request_id": "yubo2333__MMLongBench-Doc__975",
+        "prediction_ms": 256.3252561406404,
+        "upper_ms": 303.2102350865172,
+        "actual_ms": 271.71998796984553,
+        "prediction_cpu_us": 3.62
+      },
+      {
+        "trial": "dynamic_cost_1_110",
+        "request_id": "yubo2333__MMLongBench-Doc__754",
+        "prediction_ms": 147.46052797320925,
+        "upper_ms": 194.34550691908603,
+        "actual_ms": 135.78923838213086,
+        "prediction_cpu_us": 3.628
+      },
+      {
+        "trial": "dynamic_cost_1_111",
+        "request_id": "yubo2333__MMLongBench-Doc__975",
+        "prediction_ms": 123.79146264688801,
+        "upper_ms": 170.67644159276477,
+        "actual_ms": 133.64335196092725,
+        "prediction_cpu_us": 3.543
+      },
+      {
+        "trial": "dynamic_cost_1_112",
+        "request_id": "TIGER-Lab__Mantis-Eval__cw_9",
+        "prediction_ms": 83.31181206600215,
+        "upper_ms": 130.19679101187893,
+        "actual_ms": 120.50484493374825,
+        "prediction_cpu_us": 3.483
+      },
+      {
+        "trial": "dynamic_cost_1_114",
+        "request_id": "lmms-lab__DocVQA__40799",
+        "prediction_ms": 104.70277075614426,
+        "upper_ms": 151.58774970202103,
+        "actual_ms": 93.86243484914303,
+        "prediction_cpu_us": 3.673
+      },
+      {
+        "trial": "dynamic_cost_1_117",
+        "request_id": "yubo2333__MMLongBench-Doc__688",
+        "prediction_ms": 206.13681457342642,
+        "upper_ms": 253.0217935193032,
+        "actual_ms": 197.47035764157772,
+        "prediction_cpu_us": 3.664
+      }
+    ]
+  },
+  "encoding_only": {
+    "intercept": 75.84368618467303,
+    "weights": [
+      3.551704167253668,
+      2.1386584035226526,
+      11.304366109933744,
+      11.897773268163931,
+      2.548172598768094,
+      4.213645063472125
+    ],
+    "training_p95_underprediction_ms": 48.41817870178857,
+    "validation_MAE_ms": 23.179738328474087,
+    "validation_relative_MAE": 0.12858300530101965,
+    "validation_p95_underprediction_ms": 53.72624755117979,
+    "validation_model_cpu_median_us": 4.226,
+    "validation_safety_at_fixed_budgets": {
+      "16": {
+        "predicted_safe": 0,
+        "actual_safe": 0,
+        "both_safe": 0,
+        "false_safe_rate_among_predictions": null,
+        "false_reject_rate_among_actual_safe": null
+      },
+      "32": {
+        "predicted_safe": 0,
+        "actual_safe": 0,
+        "both_safe": 0,
+        "false_safe_rate_among_predictions": null,
+        "false_reject_rate_among_actual_safe": null
+      },
+      "64": {
+        "predicted_safe": 0,
+        "actual_safe": 0,
+        "both_safe": 0,
+        "false_safe_rate_among_predictions": null,
+        "false_reject_rate_among_actual_safe": null
+      },
+      "100": {
+        "predicted_safe": 0,
+        "actual_safe": 19,
+        "both_safe": 0,
+        "false_safe_rate_among_predictions": null,
+        "false_reject_rate_among_actual_safe": 1.0
+      },
+      "160": {
+        "predicted_safe": 30,
+        "actual_safe": 54,
+        "both_safe": 28,
+        "false_safe_rate_among_predictions": 0.06666666666666665,
+        "false_reject_rate_among_actual_safe": 0.4814814814814815
+      }
+    },
+    "validation_points": [
+      {
+        "trial": "dynamic_cost_0_000",
+        "request_id": "yubo2333__MMLongBench-Doc__610",
+        "prediction_ms": 221.07358240983595,
+        "upper_ms": 269.4917611116245,
+        "actual_ms": 187.59548105299473,
+        "prediction_cpu_us": 12.318
+      },
+      {
+        "trial": "dynamic_cost_0_003",
+        "request_id": "lmms-lab__DocVQA__40799",
+        "prediction_ms": 92.33280349733876,
+        "upper_ms": 140.75098219912732,
+        "actual_ms": 81.6365978680551,
+        "prediction_cpu_us": 6.048
+      },
+      {
+        "trial": "dynamic_cost_0_004",
+        "request_id": "yubo2333__MMLongBench-Doc__610",
+        "prediction_ms": 164.4710459149445,
+        "upper_ms": 212.8892246167331,
+        "actual_ms": 168.71976479887962,
+        "prediction_cpu_us": 4.675
+      },
+      {
+        "trial": "dynamic_cost_0_012",
+        "request_id": "lmms-lab__MP-DocVQA__43773",
+        "prediction_ms": 109.29542008423732,
+        "upper_ms": 157.7135987860259,
+        "actual_ms": 93.69290200993419,
+        "prediction_cpu_us": 4.38
+      },
+      {
+        "trial": "dynamic_cost_0_013",
+        "request_id": "lmms-lab__MP-DocVQA__43773",
+        "prediction_ms": 149.83739825529608,
+        "upper_ms": 198.25557695708466,
+        "actual_ms": 150.82250209525228,
+        "prediction_cpu_us": 4.379
+      },
+      {
+        "trial": "dynamic_cost_0_016",
+        "request_id": "yubo2333__MMLongBench-Doc__975",
+        "prediction_ms": 115.19968826952439,
+        "upper_ms": 163.61786697131296,
+        "actual_ms": 117.24222917109728,
+        "prediction_cpu_us": 4.543
+      },
+      {
+        "trial": "dynamic_cost_0_018",
+        "request_id": "yubo2333__MMLongBench-Doc__688",
+        "prediction_ms": 177.73460609643357,
+        "upper_ms": 226.15278479822214,
+        "actual_ms": 181.23334227129817,
+        "prediction_cpu_us": 5.04
+      },
+      {
+        "trial": "dynamic_cost_0_021",
+        "request_id": "lmms-lab__DocVQA__40799",
+        "prediction_ms": 104.97304612399415,
+        "upper_ms": 153.39122482578273,
+        "actual_ms": 95.66448302939534,
+        "prediction_cpu_us": 4.474
+      },
+      {
+        "trial": "dynamic_cost_0_022",
+        "request_id": "yubo2333__MMLongBench-Doc__610",
+        "prediction_ms": 199.14519327741436,
+        "upper_ms": 247.56337197920294,
+        "actual_ms": 178.9675187319517,
+        "prediction_cpu_us": 4.311
+      },
+      {
+        "trial": "dynamic_cost_0_023",
+        "request_id": "yubo2333__MMLongBench-Doc__975",
+        "prediction_ms": 156.13724841951205,
+        "upper_ms": 204.55542712130062,
+        "actual_ms": 151.79169084876776,
+        "prediction_cpu_us": 4.446
+      },
+      {
+        "trial": "dynamic_cost_0_025",
+        "request_id": "yubo2333__MMLongBench-Doc__754",
+        "prediction_ms": 123.53753888424426,
+        "upper_ms": 171.95571758603282,
+        "actual_ms": 108.94639370962977,
+        "prediction_cpu_us": 4.886
+      },
+      {
+        "trial": "dynamic_cost_0_026",
+        "request_id": "lmms-lab__DocVQA__40799",
+        "prediction_ms": 99.95762954410027,
+        "upper_ms": 148.37580824588883,
+        "actual_ms": 142.79219089075923,
+        "prediction_cpu_us": 4.269
+      },
+      {
+        "trial": "dynamic_cost_0_027",
+        "request_id": "yubo2333__MMLongBench-Doc__754",
+        "prediction_ms": 112.63978366842935,
+        "upper_ms": 161.05796237021792,
+        "actual_ms": 124.4518430903554,
+        "prediction_cpu_us": 4.209
+      },
+      {
+        "trial": "dynamic_cost_0_028",
+        "request_id": "yubo2333__MMLongBench-Doc__688",
+        "prediction_ms": 368.0247323484065,
+        "upper_ms": 416.44291105019505,
+        "actual_ms": 323.6093311570585,
+        "prediction_cpu_us": 4.323
+      },
+      {
+        "trial": "dynamic_cost_0_035",
+        "request_id": "yubo2333__MMLongBench-Doc__754",
+        "prediction_ms": 204.0048268366521,
+        "upper_ms": 252.42300553844066,
+        "actual_ms": 199.75054962560534,
+        "prediction_cpu_us": 4.347
+      },
+      {
+        "trial": "dynamic_cost_0_039",
+        "request_id": "lmms-lab__MP-DocVQA__43773",
+        "prediction_ms": 107.7351814103475,
+        "upper_ms": 156.15336011213606,
+        "actual_ms": 111.4619430154562,
+        "prediction_cpu_us": 4.411
+      },
+      {
+        "trial": "dynamic_cost_0_044",
+        "request_id": "lmms-lab__DocVQA__40799",
+        "prediction_ms": 125.00083297016741,
+        "upper_ms": 173.41901167195599,
+        "actual_ms": 93.94444478675723,
+        "prediction_cpu_us": 4.226
+      },
+      {
+        "trial": "dynamic_cost_0_047",
+        "request_id": "TIGER-Lab__Mantis-Eval__cw_9",
+        "prediction_ms": 81.33931420048829,
+        "upper_ms": 129.75749290227685,
+        "actual_ms": 64.38912218436599,
+        "prediction_cpu_us": 4.357
+      },
+      {
+        "trial": "dynamic_cost_0_048",
+        "request_id": "yubo2333__MMLongBench-Doc__688",
+        "prediction_ms": 479.9137369743165,
+        "upper_ms": 528.331915676105,
+        "actual_ms": 471.23251110315323,
+        "prediction_cpu_us": 4.237
+      },
+      {
+        "trial": "dynamic_cost_0_054",
+        "request_id": "lmms-lab__MP-DocVQA__43773",
+        "prediction_ms": 96.35096521442414,
+        "upper_ms": 144.7691439162127,
+        "actual_ms": 128.39384097605944,
+        "prediction_cpu_us": 4.325
+      },
+      {
+        "trial": "dynamic_cost_0_056",
+        "request_id": "yubo2333__MMLongBench-Doc__688",
+        "prediction_ms": 243.76580804454636,
+        "upper_ms": 292.18398674633494,
+        "actual_ms": 213.06080045178533,
+        "prediction_cpu_us": 4.289
+      },
+      {
+        "trial": "dynamic_cost_0_058",
+        "request_id": "TIGER-Lab__Mantis-Eval__cw_9",
+        "prediction_ms": 86.78404606165459,
+        "upper_ms": 135.20222476344316,
+        "actual_ms": 100.78060114756227,
+        "prediction_cpu_us": 4.196
+      },
+      {
+        "trial": "dynamic_cost_0_059",
+        "request_id": "yubo2333__MMLongBench-Doc__975",
+        "prediction_ms": 127.17059606507812,
+        "upper_ms": 175.5887747668667,
+        "actual_ms": 121.44922418519855,
+        "prediction_cpu_us": 5.507
+      },
+      {
+        "trial": "dynamic_cost_0_060",
+        "request_id": "lmms-lab__DocVQA__40799",
+        "prediction_ms": 115.8898984296401,
+        "upper_ms": 164.30807713142866,
+        "actual_ms": 118.40781290084124,
+        "prediction_cpu_us": 4.553
+      },
+      {
+        "trial": "dynamic_cost_0_062",
+        "request_id": "lmms-lab__MP-DocVQA__43773",
+        "prediction_ms": 173.0296604093997,
+        "upper_ms": 221.44783911118827,
+        "actual_ms": 163.37959887459874,
+        "prediction_cpu_us": 4.385
+      },
+      {
+        "trial": "dynamic_cost_0_066",
+        "request_id": "lmms-lab__MP-DocVQA__43773",
+        "prediction_ms": 131.69308035472181,
+        "upper_ms": 180.1112590565104,
+        "actual_ms": 154.90223420783877,
+        "prediction_cpu_us": 4.226
+      },
+      {
+        "trial": "dynamic_cost_0_069",
+        "request_id": "yubo2333__MMLongBench-Doc__754",
+        "prediction_ms": 169.16713339075392,
+        "upper_ms": 217.5853120925425,
+        "actual_ms": 172.54424188286066,
+        "prediction_cpu_us": 4.1
+      },
+      {
+        "trial": "dynamic_cost_0_070",
+        "request_id": "lmms-lab__MP-DocVQA__43773",
+        "prediction_ms": 129.2284507381713,
+        "upper_ms": 177.64662943995987,
+        "actual_ms": 113.8277081772685,
+        "prediction_cpu_us": 4.203
+      },
+      {
+        "trial": "dynamic_cost_0_071",
+        "request_id": "yubo2333__MMLongBench-Doc__975",
+        "prediction_ms": 105.8873205003338,
+        "upper_ms": 154.30549920212238,
+        "actual_ms": 101.21333785355091,
+        "prediction_cpu_us": 4.244
+      },
+      {
+        "trial": "dynamic_cost_0_073",
+        "request_id": "yubo2333__MMLongBench-Doc__610",
+        "prediction_ms": 321.8220066628056,
+        "upper_ms": 370.2401853645942,
+        "actual_ms": 288.08320220559835,
+        "prediction_cpu_us": 4.195
+      },
+      {
+        "trial": "dynamic_cost_0_079",
+        "request_id": "TIGER-Lab__Mantis-Eval__cw_9",
+        "prediction_ms": 83.79090940779699,
+        "upper_ms": 132.20908810958557,
+        "actual_ms": 376.32292695343494,
+        "prediction_cpu_us": 4.36
+      },
+      {
+        "trial": "dynamic_cost_0_080",
+        "request_id": "yubo2333__MMLongBench-Doc__688",
+        "prediction_ms": 209.74310064578563,
+        "upper_ms": 258.1612793475742,
+        "actual_ms": 190.52141578868032,
+        "prediction_cpu_us": 4.231
+      },
+      {
+        "trial": "dynamic_cost_0_083",
+        "request_id": "yubo2333__MMLongBench-Doc__754",
+        "prediction_ms": 204.02006214142466,
+        "upper_ms": 252.43824084321324,
+        "actual_ms": 192.13597709313035,
+        "prediction_cpu_us": 11.657
+      },
+      {
+        "trial": "dynamic_cost_0_084",
+        "request_id": "TIGER-Lab__Mantis-Eval__cw_9",
+        "prediction_ms": 92.11399489188611,
+        "upper_ms": 140.53217359367468,
+        "actual_ms": 82.08696637302637,
+        "prediction_cpu_us": 4.269
+      },
+      {
+        "trial": "dynamic_cost_0_085",
+        "request_id": "yubo2333__MMLongBench-Doc__975",
+        "prediction_ms": 261.7866312376177,
+        "upper_ms": 310.2048099394063,
+        "actual_ms": 318.53758078068495,
+        "prediction_cpu_us": 4.307
+      },
+      {
+        "trial": "dynamic_cost_0_089",
+        "request_id": "yubo2333__MMLongBench-Doc__754",
+        "prediction_ms": 132.67425401928585,
+        "upper_ms": 181.09243272107443,
+        "actual_ms": 180.87798403576016,
+        "prediction_cpu_us": 4.32
+      },
+      {
+        "trial": "dynamic_cost_0_095",
+        "request_id": "TIGER-Lab__Mantis-Eval__cw_9",
+        "prediction_ms": 88.0489000591349,
+        "upper_ms": 136.46707876092347,
+        "actual_ms": 100.16220202669501,
+        "prediction_cpu_us": 4.152
+      },
+      {
+        "trial": "dynamic_cost_0_096",
+        "request_id": "yubo2333__MMLongBench-Doc__975",
+        "prediction_ms": 101.66750306712228,
+        "upper_ms": 150.08568176891086,
+        "actual_ms": 132.90181290358305,
+        "prediction_cpu_us": 4.485
+      },
+      {
+        "trial": "dynamic_cost_0_097",
+        "request_id": "TIGER-Lab__Mantis-Eval__cw_9",
+        "prediction_ms": 82.92339870883983,
+        "upper_ms": 131.3415774106284,
+        "actual_ms": 88.72236870229244,
+        "prediction_cpu_us": 4.28
+      },
+      {
+        "trial": "dynamic_cost_0_099",
+        "request_id": "yubo2333__MMLongBench-Doc__610",
+        "prediction_ms": 285.23144979567144,
+        "upper_ms": 333.64962849746,
+        "actual_ms": 259.00073582306504,
+        "prediction_cpu_us": 4.52
+      },
+      {
+        "trial": "dynamic_cost_0_101",
+        "request_id": "yubo2333__MMLongBench-Doc__610",
+        "prediction_ms": 153.8332281705753,
+        "upper_ms": 202.25140687236387,
+        "actual_ms": 171.95652332156897,
+        "prediction_cpu_us": 4.187
+      },
+      {
+        "trial": "dynamic_cost_0_102",
+        "request_id": "lmms-lab__DocVQA__40799",
+        "prediction_ms": 130.711307899806,
+        "upper_ms": 179.12948660159458,
+        "actual_ms": 119.19654672965407,
+        "prediction_cpu_us": 4.148
+      },
+      {
+        "trial": "dynamic_cost_0_103",
+        "request_id": "yubo2333__MMLongBench-Doc__754",
+        "prediction_ms": 151.22836451731666,
+        "upper_ms": 199.64654321910524,
+        "actual_ms": 134.8159248009324,
+        "prediction_cpu_us": 4.103
+      },
+      {
+        "trial": "dynamic_cost_0_105",
+        "request_id": "lmms-lab__DocVQA__40799",
+        "prediction_ms": 160.92249655490127,
+        "upper_ms": 209.34067525668985,
+        "actual_ms": 155.28450720012188,
+        "prediction_cpu_us": 4.119
+      },
+      {
+        "trial": "dynamic_cost_0_107",
+        "request_id": "yubo2333__MMLongBench-Doc__688",
+        "prediction_ms": 159.73889308366617,
+        "upper_ms": 208.15707178545475,
+        "actual_ms": 170.55899510160089,
+        "prediction_cpu_us": 4.289
+      },
+      {
+        "trial": "dynamic_cost_0_110",
+        "request_id": "yubo2333__MMLongBench-Doc__610",
+        "prediction_ms": 415.61156783340937,
+        "upper_ms": 464.02974653519794,
+        "actual_ms": 367.95528791844845,
+        "prediction_cpu_us": 4.284
+      },
+      {
+        "trial": "dynamic_cost_0_113",
+        "request_id": "TIGER-Lab__Mantis-Eval__cw_9",
+        "prediction_ms": 81.16381582293766,
+        "upper_ms": 129.58199452472624,
+        "actual_ms": 87.23932318389416,
+        "prediction_cpu_us": 4.109
+      },
+      {
+        "trial": "dynamic_cost_0_115",
+        "request_id": "yubo2333__MMLongBench-Doc__975",
+        "prediction_ms": 210.7697663353377,
+        "upper_ms": 259.18794503712627,
+        "actual_ms": 196.2705380283296,
+        "prediction_cpu_us": 4.148
+      },
+      {
+        "trial": "dynamic_cost_0_117",
+        "request_id": "yubo2333__MMLongBench-Doc__688",
+        "prediction_ms": 302.9603598598644,
+        "upper_ms": 351.378538561653,
+        "actual_ms": 416.31923895329237,
+        "prediction_cpu_us": 4.176
+      },
+      {
+        "trial": "dynamic_cost_1_000",
+        "request_id": "lmms-lab__DocVQA__40799",
+        "prediction_ms": 160.8165725638442,
+        "upper_ms": 209.23475126563278,
+        "actual_ms": 199.02186188846827,
+        "prediction_cpu_us": 4.306
+      },
+      {
+        "trial": "dynamic_cost_1_002",
+        "request_id": "yubo2333__MMLongBench-Doc__975",
+        "prediction_ms": 105.60406655242704,
+        "upper_ms": 154.02224525421562,
+        "actual_ms": 98.4981288202107,
+        "prediction_cpu_us": 4.233
+      },
+      {
+        "trial": "dynamic_cost_1_003",
+        "request_id": "TIGER-Lab__Mantis-Eval__cw_9",
+        "prediction_ms": 83.1371812092635,
+        "upper_ms": 131.55535991105208,
+        "actual_ms": 74.41948307678103,
+        "prediction_cpu_us": 4.264
+      },
+      {
+        "trial": "dynamic_cost_1_004",
+        "request_id": "TIGER-Lab__Mantis-Eval__cw_9",
+        "prediction_ms": 88.02766187250577,
+        "upper_ms": 136.44584057429435,
+        "actual_ms": 92.884860932827,
+        "prediction_cpu_us": 4.174
+      },
+      {
+        "trial": "dynamic_cost_1_008",
+        "request_id": "yubo2333__MMLongBench-Doc__610",
+        "prediction_ms": 164.03635581266565,
+        "upper_ms": 212.45453451445422,
+        "actual_ms": 152.889892924577,
+        "prediction_cpu_us": 4.045
+      },
+      {
+        "trial": "dynamic_cost_1_009",
+        "request_id": "yubo2333__MMLongBench-Doc__610",
+        "prediction_ms": 415.7771895129076,
+        "upper_ms": 464.1953682146962,
+        "actual_ms": 353.6985218524933,
+        "prediction_cpu_us": 4.133
+      },
+      {
+        "trial": "dynamic_cost_1_012",
+        "request_id": "TIGER-Lab__Mantis-Eval__cw_9",
+        "prediction_ms": 86.86918203984823,
+        "upper_ms": 135.2873607416368,
+        "actual_ms": 78.68571393191814,
+        "prediction_cpu_us": 4.078
+      },
+      {
+        "trial": "dynamic_cost_1_017",
+        "request_id": "yubo2333__MMLongBench-Doc__975",
+        "prediction_ms": 115.04757261531893,
+        "upper_ms": 163.4657513171075,
+        "actual_ms": 107.27218724787235,
+        "prediction_cpu_us": 4.086
+      },
+      {
+        "trial": "dynamic_cost_1_020",
+        "request_id": "TIGER-Lab__Mantis-Eval__cw_9",
+        "prediction_ms": 81.55115354558842,
+        "upper_ms": 129.969332247377,
+        "actual_ms": 75.01905178651214,
+        "prediction_cpu_us": 4.201
+      },
+      {
+        "trial": "dynamic_cost_1_021",
+        "request_id": "lmms-lab__MP-DocVQA__43773",
+        "prediction_ms": 96.31247594315467,
+        "upper_ms": 144.73065464494323,
+        "actual_ms": 79.346286598593,
+        "prediction_cpu_us": 4.135
+      },
+      {
+        "trial": "dynamic_cost_1_024",
+        "request_id": "yubo2333__MMLongBench-Doc__610",
+        "prediction_ms": 285.35658750113475,
+        "upper_ms": 333.77476620292333,
+        "actual_ms": 260.2698877453804,
+        "prediction_cpu_us": 4.14
+      },
+      {
+        "trial": "dynamic_cost_1_025",
+        "request_id": "yubo2333__MMLongBench-Doc__688",
+        "prediction_ms": 479.8834682290743,
+        "upper_ms": 528.3016469308628,
+        "actual_ms": 426.66404414922,
+        "prediction_cpu_us": 4.242
+      },
+      {
+        "trial": "dynamic_cost_1_027",
+        "request_id": "yubo2333__MMLongBench-Doc__610",
+        "prediction_ms": 198.85911139980112,
+        "upper_ms": 247.2772901015897,
+        "actual_ms": 176.86246475204825,
+        "prediction_cpu_us": 4.439
+      },
+      {
+        "trial": "dynamic_cost_1_029",
+        "request_id": "yubo2333__MMLongBench-Doc__754",
+        "prediction_ms": 203.59055607256016,
+        "upper_ms": 252.00873477434874,
+        "actual_ms": 204.84379818663,
+        "prediction_cpu_us": 4.109
+      },
+      {
+        "trial": "dynamic_cost_1_030",
+        "request_id": "yubo2333__MMLongBench-Doc__975",
+        "prediction_ms": 155.84557302528637,
+        "upper_ms": 204.26375172707495,
+        "actual_ms": 139.15792386978865,
+        "prediction_cpu_us": 4.121
+      },
+      {
+        "trial": "dynamic_cost_1_033",
+        "request_id": "yubo2333__MMLongBench-Doc__610",
+        "prediction_ms": 153.5854719165877,
+        "upper_ms": 202.00365061837627,
+        "actual_ms": 188.2930900901556,
+        "prediction_cpu_us": 4.057
+      },
+      {
+        "trial": "dynamic_cost_1_038",
+        "request_id": "lmms-lab__DocVQA__40799",
+        "prediction_ms": 99.97617501934516,
+        "upper_ms": 148.39435372113374,
+        "actual_ms": 115.32643297687173,
+        "prediction_cpu_us": 4.111
+      },
+      {
+        "trial": "dynamic_cost_1_041",
+        "request_id": "lmms-lab__MP-DocVQA__43773",
+        "prediction_ms": 107.57803187079456,
+        "upper_ms": 155.99621057258312,
+        "actual_ms": 107.72809199988842,
+        "prediction_cpu_us": 4.049
+      },
+      {
+        "trial": "dynamic_cost_1_043",
+        "request_id": "yubo2333__MMLongBench-Doc__688",
+        "prediction_ms": 243.66566247351489,
+        "upper_ms": 292.08384117530346,
+        "actual_ms": 280.81302996724844,
+        "prediction_cpu_us": 4.079
+      },
+      {
+        "trial": "dynamic_cost_1_044",
+        "request_id": "lmms-lab__DocVQA__40799",
+        "prediction_ms": 91.74308848668849,
+        "upper_ms": 140.16126718847707,
+        "actual_ms": 68.2154200039804,
+        "prediction_cpu_us": 4.091
+      },
+      {
+        "trial": "dynamic_cost_1_045",
+        "request_id": "yubo2333__MMLongBench-Doc__975",
+        "prediction_ms": 101.38858892216916,
+        "upper_ms": 149.80676762395774,
+        "actual_ms": 191.86645792797208,
+        "prediction_cpu_us": 4.358
+      },
+      {
+        "trial": "dynamic_cost_1_047",
+        "request_id": "yubo2333__MMLongBench-Doc__754",
+        "prediction_ms": 132.196839563698,
+        "upper_ms": 180.61501826548658,
+        "actual_ms": 185.389316175133,
+        "prediction_cpu_us": 4.197
+      },
+      {
+        "trial": "dynamic_cost_1_050",
+        "request_id": "lmms-lab__MP-DocVQA__43773",
+        "prediction_ms": 173.15670623073265,
+        "upper_ms": 221.57488493252123,
+        "actual_ms": 157.85216493532062,
+        "prediction_cpu_us": 4.196
+      },
+      {
+        "trial": "dynamic_cost_1_058",
+        "request_id": "lmms-lab__DocVQA__40799",
+        "prediction_ms": 116.04804924680067,
+        "upper_ms": 164.46622794858925,
+        "actual_ms": 98.54591684415936,
+        "prediction_cpu_us": 4.16
+      },
+      {
+        "trial": "dynamic_cost_1_060",
+        "request_id": "yubo2333__MMLongBench-Doc__754",
+        "prediction_ms": 112.7303892055852,
+        "upper_ms": 161.14856790737377,
+        "actual_ms": 109.28174899891019,
+        "prediction_cpu_us": 4.228
+      },
+      {
+        "trial": "dynamic_cost_1_067",
+        "request_id": "yubo2333__MMLongBench-Doc__610",
+        "prediction_ms": 321.9774593687964,
+        "upper_ms": 370.395638070585,
+        "actual_ms": 305.2944829687476,
+        "prediction_cpu_us": 4.321
+      },
+      {
+        "trial": "dynamic_cost_1_068",
+        "request_id": "lmms-lab__DocVQA__40799",
+        "prediction_ms": 130.75872985857512,
+        "upper_ms": 179.1769085603637,
+        "actual_ms": 151.93695900961757,
+        "prediction_cpu_us": 4.315
+      },
+      {
+        "trial": "dynamic_cost_1_072",
+        "request_id": "lmms-lab__MP-DocVQA__43773",
+        "prediction_ms": 132.0450835072082,
+        "upper_ms": 180.46326220899678,
+        "actual_ms": 114.57204632461071,
+        "prediction_cpu_us": 4.281
+      },
+      {
+        "trial": "dynamic_cost_1_079",
+        "request_id": "yubo2333__MMLongBench-Doc__688",
+        "prediction_ms": 178.13580190176293,
+        "upper_ms": 226.5539806035515,
+        "actual_ms": 196.80126011371613,
+        "prediction_cpu_us": 4.175
+      },
+      {
+        "trial": "dynamic_cost_1_080",
+        "request_id": "yubo2333__MMLongBench-Doc__688",
+        "prediction_ms": 303.4359718466227,
+        "upper_ms": 351.85415054841127,
+        "actual_ms": 275.817281100899,
+        "prediction_cpu_us": 4.12
+      },
+      {
+        "trial": "dynamic_cost_1_085",
+        "request_id": "lmms-lab__DocVQA__40799",
+        "prediction_ms": 125.36636784205709,
+        "upper_ms": 173.78454654384566,
+        "actual_ms": 112.94934991747141,
+        "prediction_cpu_us": 4.12
+      },
+      {
+        "trial": "dynamic_cost_1_086",
+        "request_id": "yubo2333__MMLongBench-Doc__754",
+        "prediction_ms": 169.31989060698245,
+        "upper_ms": 217.73806930877103,
+        "actual_ms": 172.97559697180986,
+        "prediction_cpu_us": 4.164
+      },
+      {
+        "trial": "dynamic_cost_1_087",
+        "request_id": "yubo2333__MMLongBench-Doc__754",
+        "prediction_ms": 122.37057507436849,
+        "upper_ms": 170.78875377615705,
+        "actual_ms": 113.86051680892706,
+        "prediction_cpu_us": 4.205
+      },
+      {
+        "trial": "dynamic_cost_1_088",
+        "request_id": "TIGER-Lab__Mantis-Eval__cw_9",
+        "prediction_ms": 81.04988301757925,
+        "upper_ms": 129.46806171936782,
+        "actual_ms": 97.38704888150096,
+        "prediction_cpu_us": 4.28
+      },
+      {
+        "trial": "dynamic_cost_1_089",
+        "request_id": "yubo2333__MMLongBench-Doc__688",
+        "prediction_ms": 160.24480484677457,
+        "upper_ms": 208.66298354856315,
+        "actual_ms": 193.68210108950734,
+        "prediction_cpu_us": 4.11
+      },
+      {
+        "trial": "dynamic_cost_1_095",
+        "request_id": "yubo2333__MMLongBench-Doc__975",
+        "prediction_ms": 211.12609648394618,
+        "upper_ms": 259.54427518573476,
+        "actual_ms": 184.69265289604664,
+        "prediction_cpu_us": 4.059
+      },
+      {
+        "trial": "dynamic_cost_1_096",
+        "request_id": "lmms-lab__MP-DocVQA__43773",
+        "prediction_ms": 129.43517237930712,
+        "upper_ms": 177.8533510810957,
+        "actual_ms": 192.08641070872545,
+        "prediction_cpu_us": 4.242
+      },
+      {
+        "trial": "dynamic_cost_1_097",
+        "request_id": "lmms-lab__MP-DocVQA__43773",
+        "prediction_ms": 109.04527569659604,
+        "upper_ms": 157.4634543983846,
+        "actual_ms": 137.50619301572442,
+        "prediction_cpu_us": 4.128
+      },
+      {
+        "trial": "dynamic_cost_1_099",
+        "request_id": "yubo2333__MMLongBench-Doc__688",
+        "prediction_ms": 367.4483391875866,
+        "upper_ms": 415.8665178893752,
+        "actual_ms": 314.3648477271199,
+        "prediction_cpu_us": 4.149
+      },
+      {
+        "trial": "dynamic_cost_1_100",
+        "request_id": "TIGER-Lab__Mantis-Eval__cw_9",
+        "prediction_ms": 92.0700820363549,
+        "upper_ms": 140.48826073814348,
+        "actual_ms": 87.26519579067826,
+        "prediction_cpu_us": 4.06
+      },
+      {
+        "trial": "dynamic_cost_1_101",
+        "request_id": "yubo2333__MMLongBench-Doc__610",
+        "prediction_ms": 219.25387971929126,
+        "upper_ms": 267.67205842107984,
+        "actual_ms": 211.596614215523,
+        "prediction_cpu_us": 4.642
+      },
+      {
+        "trial": "dynamic_cost_1_102",
+        "request_id": "yubo2333__MMLongBench-Doc__754",
+        "prediction_ms": 204.114995173084,
+        "upper_ms": 252.53317387487257,
+        "actual_ms": 194.5270779542625,
+        "prediction_cpu_us": 4.058
+      },
+      {
+        "trial": "dynamic_cost_1_107",
+        "request_id": "lmms-lab__MP-DocVQA__43773",
+        "prediction_ms": 149.64603901784233,
+        "upper_ms": 198.0642177196309,
+        "actual_ms": 134.92871914058924,
+        "prediction_cpu_us": 4.543
+      },
+      {
+        "trial": "dynamic_cost_1_109",
+        "request_id": "yubo2333__MMLongBench-Doc__975",
+        "prediction_ms": 261.7193066189085,
+        "upper_ms": 310.13748532069707,
+        "actual_ms": 271.71998796984553,
+        "prediction_cpu_us": 4.073
+      },
+      {
+        "trial": "dynamic_cost_1_110",
+        "request_id": "yubo2333__MMLongBench-Doc__754",
+        "prediction_ms": 151.30585367904072,
+        "upper_ms": 199.7240323808293,
+        "actual_ms": 135.78923838213086,
+        "prediction_cpu_us": 4.031
+      },
+      {
+        "trial": "dynamic_cost_1_111",
+        "request_id": "yubo2333__MMLongBench-Doc__975",
+        "prediction_ms": 127.07151999692465,
+        "upper_ms": 175.48969869871323,
+        "actual_ms": 133.64335196092725,
+        "prediction_cpu_us": 4.06
+      },
+      {
+        "trial": "dynamic_cost_1_112",
+        "request_id": "TIGER-Lab__Mantis-Eval__cw_9",
+        "prediction_ms": 83.57749726752067,
+        "upper_ms": 131.99567596930925,
+        "actual_ms": 120.50484493374825,
+        "prediction_cpu_us": 4.125
+      },
+      {
+        "trial": "dynamic_cost_1_114",
+        "request_id": "lmms-lab__DocVQA__40799",
+        "prediction_ms": 105.08194962529352,
+        "upper_ms": 153.50012832708208,
+        "actual_ms": 93.86243484914303,
+        "prediction_cpu_us": 4.055
+      },
+      {
+        "trial": "dynamic_cost_1_117",
+        "request_id": "yubo2333__MMLongBench-Doc__688",
+        "prediction_ms": 209.02133017843673,
+        "upper_ms": 257.4395088802253,
+        "actual_ms": 197.47035764157772,
+        "prediction_cpu_us": 4.092
+      }
+    ]
+  },
+  "boundary_only": {
+    "intercept": 79.7325278130414,
+    "weights": [
+      5.445120081167844,
+      3.99869310561503,
+      11.571415804657102,
+      11.836347731652387,
+      -1.1006019025255674e-13,
+      -0.2100311447379992
+    ],
+    "training_p95_underprediction_ms": 47.70463161643272,
+    "validation_MAE_ms": 22.962782858990774,
+    "validation_relative_MAE": 0.12589973061380325,
+    "validation_p95_underprediction_ms": 51.818527688161296,
+    "validation_model_cpu_median_us": 4.1455,
+    "validation_safety_at_fixed_budgets": {
+      "16": {
+        "predicted_safe": 0,
+        "actual_safe": 0,
+        "both_safe": 0,
+        "false_safe_rate_among_predictions": null,
+        "false_reject_rate_among_actual_safe": null
+      },
+      "32": {
+        "predicted_safe": 0,
+        "actual_safe": 0,
+        "both_safe": 0,
+        "false_safe_rate_among_predictions": null,
+        "false_reject_rate_among_actual_safe": null
+      },
+      "64": {
+        "predicted_safe": 0,
+        "actual_safe": 0,
+        "both_safe": 0,
+        "false_safe_rate_among_predictions": null,
+        "false_reject_rate_among_actual_safe": null
+      },
+      "100": {
+        "predicted_safe": 0,
+        "actual_safe": 19,
+        "both_safe": 0,
+        "false_safe_rate_among_predictions": null,
+        "false_reject_rate_among_actual_safe": 1.0
+      },
+      "160": {
+        "predicted_safe": 32,
+        "actual_safe": 54,
+        "both_safe": 30,
+        "false_safe_rate_among_predictions": 0.0625,
+        "false_reject_rate_among_actual_safe": 0.4444444444444444
+      }
+    },
+    "validation_points": [
+      {
+        "trial": "dynamic_cost_0_000",
+        "request_id": "yubo2333__MMLongBench-Doc__610",
+        "prediction_ms": 219.28348101782495,
+        "upper_ms": 266.9881126342577,
+        "actual_ms": 187.59548105299473,
+        "prediction_cpu_us": 10.357
+      },
+      {
+        "trial": "dynamic_cost_0_003",
+        "request_id": "lmms-lab__DocVQA__40799",
+        "prediction_ms": 86.00229552580255,
+        "upper_ms": 133.70692714223526,
+        "actual_ms": 81.6365978680551,
+        "prediction_cpu_us": 5.388
+      },
+      {
+        "trial": "dynamic_cost_0_004",
+        "request_id": "yubo2333__MMLongBench-Doc__610",
+        "prediction_ms": 164.66891192743014,
+        "upper_ms": 212.37354354386287,
+        "actual_ms": 168.71976479887962,
+        "prediction_cpu_us": 4.614
+      },
+      {
+        "trial": "dynamic_cost_0_012",
+        "request_id": "lmms-lab__MP-DocVQA__43773",
+        "prediction_ms": 108.27345022360159,
+        "upper_ms": 155.9780818400343,
+        "actual_ms": 93.69290200993419,
+        "prediction_cpu_us": 4.215
+      },
+      {
+        "trial": "dynamic_cost_0_013",
+        "request_id": "lmms-lab__MP-DocVQA__43773",
+        "prediction_ms": 149.01032123671843,
+        "upper_ms": 196.71495285315115,
+        "actual_ms": 150.82250209525228,
+        "prediction_cpu_us": 4.285
+      },
+      {
+        "trial": "dynamic_cost_0_016",
+        "request_id": "yubo2333__MMLongBench-Doc__975",
+        "prediction_ms": 116.70476219342771,
+        "upper_ms": 164.40939380986043,
+        "actual_ms": 117.24222917109728,
+        "prediction_cpu_us": 4.342
+      },
+      {
+        "trial": "dynamic_cost_0_018",
+        "request_id": "yubo2333__MMLongBench-Doc__688",
+        "prediction_ms": 179.30767317109456,
+        "upper_ms": 227.01230478752728,
+        "actual_ms": 181.23334227129817,
+        "prediction_cpu_us": 4.335
+      },
+      {
+        "trial": "dynamic_cost_0_021",
+        "request_id": "lmms-lab__DocVQA__40799",
+        "prediction_ms": 99.20210751900751,
+        "upper_ms": 146.90673913544023,
+        "actual_ms": 95.66448302939534,
+        "prediction_cpu_us": 4.134
+      },
+      {
+        "trial": "dynamic_cost_0_022",
+        "request_id": "yubo2333__MMLongBench-Doc__610",
+        "prediction_ms": 199.5071058559597,
+        "upper_ms": 247.21173747239243,
+        "actual_ms": 178.9675187319517,
+        "prediction_cpu_us": 4.217
+      },
+      {
+        "trial": "dynamic_cost_0_023",
+        "request_id": "yubo2333__MMLongBench-Doc__975",
+        "prediction_ms": 157.83691061586916,
+        "upper_ms": 205.54154223230188,
+        "actual_ms": 151.79169084876776,
+        "prediction_cpu_us": 4.057
+      },
+      {
+        "trial": "dynamic_cost_0_025",
+        "request_id": "yubo2333__MMLongBench-Doc__754",
+        "prediction_ms": 124.58435440670989,
+        "upper_ms": 172.28898602314263,
+        "actual_ms": 108.94639370962977,
+        "prediction_cpu_us": 4.72
+      },
+      {
+        "trial": "dynamic_cost_0_026",
+        "request_id": "lmms-lab__DocVQA__40799",
+        "prediction_ms": 94.2224898417889,
+        "upper_ms": 141.92712145822162,
+        "actual_ms": 142.79219089075923,
+        "prediction_cpu_us": 4.174
+      },
+      {
+        "trial": "dynamic_cost_0_027",
+        "request_id": "yubo2333__MMLongBench-Doc__754",
+        "prediction_ms": 114.6920734365977,
+        "upper_ms": 162.39670505303042,
+        "actual_ms": 124.4518430903554,
+        "prediction_cpu_us": 4.191
+      },
+      {
+        "trial": "dynamic_cost_0_028",
+        "request_id": "yubo2333__MMLongBench-Doc__688",
+        "prediction_ms": 367.9994729873473,
+        "upper_ms": 415.70410460378,
+        "actual_ms": 323.6093311570585,
+        "prediction_cpu_us": 4.199
+      },
+      {
+        "trial": "dynamic_cost_0_035",
+        "request_id": "yubo2333__MMLongBench-Doc__754",
+        "prediction_ms": 205.611064853215,
+        "upper_ms": 253.31569646964772,
+        "actual_ms": 199.75054962560534,
+        "prediction_cpu_us": 4.242
+      },
+      {
+        "trial": "dynamic_cost_0_039",
+        "request_id": "lmms-lab__MP-DocVQA__43773",
+        "prediction_ms": 106.95921435486481,
+        "upper_ms": 154.66384597129752,
+        "actual_ms": 111.4619430154562,
+        "prediction_cpu_us": 4.101
+      },
+      {
+        "trial": "dynamic_cost_0_044",
+        "request_id": "lmms-lab__DocVQA__40799",
+        "prediction_ms": 119.35828585083925,
+        "upper_ms": 167.06291746727197,
+        "actual_ms": 93.94444478675723,
+        "prediction_cpu_us": 4.079
+      },
+      {
+        "trial": "dynamic_cost_0_047",
+        "request_id": "TIGER-Lab__Mantis-Eval__cw_9",
+        "prediction_ms": 84.73021002530609,
+        "upper_ms": 132.4348416417388,
+        "actual_ms": 64.38912218436599,
+        "prediction_cpu_us": 4.432
+      },
+      {
+        "trial": "dynamic_cost_0_048",
+        "request_id": "yubo2333__MMLongBench-Doc__688",
+        "prediction_ms": 480.12376145012377,
+        "upper_ms": 527.8283930665565,
+        "actual_ms": 471.23251110315323,
+        "prediction_cpu_us": 4.152
+      },
+      {
+        "trial": "dynamic_cost_0_054",
+        "request_id": "lmms-lab__MP-DocVQA__43773",
+        "prediction_ms": 95.6387857754595,
+        "upper_ms": 143.34341739189222,
+        "actual_ms": 128.39384097605944,
+        "prediction_cpu_us": 4.12
+      },
+      {
+        "trial": "dynamic_cost_0_056",
+        "request_id": "yubo2333__MMLongBench-Doc__688",
+        "prediction_ms": 244.93898872612385,
+        "upper_ms": 292.6436203425566,
+        "actual_ms": 213.06080045178533,
+        "prediction_cpu_us": 4.08
+      },
+      {
+        "trial": "dynamic_cost_0_058",
+        "request_id": "TIGER-Lab__Mantis-Eval__cw_9",
+        "prediction_ms": 86.77269933628591,
+        "upper_ms": 134.47733095271863,
+        "actual_ms": 100.78060114756227,
+        "prediction_cpu_us": 4.109
+      },
+      {
+        "trial": "dynamic_cost_0_059",
+        "request_id": "yubo2333__MMLongBench-Doc__975",
+        "prediction_ms": 128.88063291075758,
+        "upper_ms": 176.5852645271903,
+        "actual_ms": 121.44922418519855,
+        "prediction_cpu_us": 4.143
+      },
+      {
+        "trial": "dynamic_cost_0_060",
+        "request_id": "lmms-lab__DocVQA__40799",
+        "prediction_ms": 110.03537556079868,
+        "upper_ms": 157.7400071772314,
+        "actual_ms": 118.40781290084124,
+        "prediction_cpu_us": 4.28
+      },
+      {
+        "trial": "dynamic_cost_0_062",
+        "request_id": "lmms-lab__MP-DocVQA__43773",
+        "prediction_ms": 172.3223648185883,
+        "upper_ms": 220.02699643502103,
+        "actual_ms": 163.37959887459874,
+        "prediction_cpu_us": 4.203
+      },
+      {
+        "trial": "dynamic_cost_0_066",
+        "request_id": "lmms-lab__MP-DocVQA__43773",
+        "prediction_ms": 131.10263188838704,
+        "upper_ms": 178.80726350481976,
+        "actual_ms": 154.90223420783877,
+        "prediction_cpu_us": 4.086
+      },
+      {
+        "trial": "dynamic_cost_0_069",
+        "request_id": "yubo2333__MMLongBench-Doc__754",
+        "prediction_ms": 171.21527237969326,
+        "upper_ms": 218.91990399612598,
+        "actual_ms": 172.54424188286066,
+        "prediction_cpu_us": 4.089
+      },
+      {
+        "trial": "dynamic_cost_0_070",
+        "request_id": "lmms-lab__MP-DocVQA__43773",
+        "prediction_ms": 128.65602244161167,
+        "upper_ms": 176.3606540580444,
+        "actual_ms": 113.8277081772685,
+        "prediction_cpu_us": 4.226
+      },
+      {
+        "trial": "dynamic_cost_0_071",
+        "request_id": "yubo2333__MMLongBench-Doc__975",
+        "prediction_ms": 107.8140642943501,
+        "upper_ms": 155.5186959107828,
+        "actual_ms": 101.21333785355091,
+        "prediction_cpu_us": 4.221
+      },
+      {
+        "trial": "dynamic_cost_0_073",
+        "request_id": "yubo2333__MMLongBench-Doc__610",
+        "prediction_ms": 321.8952747755648,
+        "upper_ms": 369.59990639199754,
+        "actual_ms": 288.08320220559835,
+        "prediction_cpu_us": 4.129
+      },
+      {
+        "trial": "dynamic_cost_0_079",
+        "request_id": "TIGER-Lab__Mantis-Eval__cw_9",
+        "prediction_ms": 83.6578220473787,
+        "upper_ms": 131.36245366381144,
+        "actual_ms": 376.32292695343494,
+        "prediction_cpu_us": 4.129
+      },
+      {
+        "trial": "dynamic_cost_0_080",
+        "request_id": "yubo2333__MMLongBench-Doc__688",
+        "prediction_ms": 210.5780009216922,
+        "upper_ms": 258.2826325381249,
+        "actual_ms": 190.52141578868032,
+        "prediction_cpu_us": 4.131
+      },
+      {
+        "trial": "dynamic_cost_0_083",
+        "request_id": "yubo2333__MMLongBench-Doc__754",
+        "prediction_ms": 205.78094659926137,
+        "upper_ms": 253.4855782156941,
+        "actual_ms": 192.13597709313035,
+        "prediction_cpu_us": 4.515
+      },
+      {
+        "trial": "dynamic_cost_0_084",
+        "request_id": "TIGER-Lab__Mantis-Eval__cw_9",
+        "prediction_ms": 92.03785418968371,
+        "upper_ms": 139.74248580611643,
+        "actual_ms": 82.08696637302637,
+        "prediction_cpu_us": 4.365
+      },
+      {
+        "trial": "dynamic_cost_0_085",
+        "request_id": "yubo2333__MMLongBench-Doc__975",
+        "prediction_ms": 263.1639307976086,
+        "upper_ms": 310.8685624140413,
+        "actual_ms": 318.53758078068495,
+        "prediction_cpu_us": 4.42
+      },
+      {
+        "trial": "dynamic_cost_0_089",
+        "request_id": "yubo2333__MMLongBench-Doc__754",
+        "prediction_ms": 134.19816300960372,
+        "upper_ms": 181.90279462603644,
+        "actual_ms": 180.87798403576016,
+        "prediction_cpu_us": 4.31
+      },
+      {
+        "trial": "dynamic_cost_0_095",
+        "request_id": "TIGER-Lab__Mantis-Eval__cw_9",
+        "prediction_ms": 87.90965132060576,
+        "upper_ms": 135.61428293703847,
+        "actual_ms": 100.16220202669501,
+        "prediction_cpu_us": 4.208
+      },
+      {
+        "trial": "dynamic_cost_0_096",
+        "request_id": "yubo2333__MMLongBench-Doc__975",
+        "prediction_ms": 103.33403854481622,
+        "upper_ms": 151.03867016124894,
+        "actual_ms": 132.90181290358305,
+        "prediction_cpu_us": 4.675
+      },
+      {
+        "trial": "dynamic_cost_0_097",
+        "request_id": "TIGER-Lab__Mantis-Eval__cw_9",
+        "prediction_ms": 83.07376858647099,
+        "upper_ms": 130.7784002029037,
+        "actual_ms": 88.72236870229244,
+        "prediction_cpu_us": 4.255
+      },
+      {
+        "trial": "dynamic_cost_0_099",
+        "request_id": "yubo2333__MMLongBench-Doc__610",
+        "prediction_ms": 285.2605191798365,
+        "upper_ms": 332.9651507962692,
+        "actual_ms": 259.00073582306504,
+        "prediction_cpu_us": 4.2
+      },
+      {
+        "trial": "dynamic_cost_0_101",
+        "request_id": "yubo2333__MMLongBench-Doc__610",
+        "prediction_ms": 154.41108399433648,
+        "upper_ms": 202.1157156107692,
+        "actual_ms": 171.95652332156897,
+        "prediction_cpu_us": 4.436
+      },
+      {
+        "trial": "dynamic_cost_0_102",
+        "request_id": "lmms-lab__DocVQA__40799",
+        "prediction_ms": 124.96465236505631,
+        "upper_ms": 172.66928398148903,
+        "actual_ms": 119.19654672965407,
+        "prediction_cpu_us": 4.371
+      },
+      {
+        "trial": "dynamic_cost_0_103",
+        "request_id": "yubo2333__MMLongBench-Doc__754",
+        "prediction_ms": 153.12942860401694,
+        "upper_ms": 200.83406022044966,
+        "actual_ms": 134.8159248009324,
+        "prediction_cpu_us": 3.984
+      },
+      {
+        "trial": "dynamic_cost_0_105",
+        "request_id": "lmms-lab__DocVQA__40799",
+        "prediction_ms": 155.23201211513305,
+        "upper_ms": 202.93664373156577,
+        "actual_ms": 155.28450720012188,
+        "prediction_cpu_us": 3.977
+      },
+      {
+        "trial": "dynamic_cost_0_107",
+        "request_id": "yubo2333__MMLongBench-Doc__688",
+        "prediction_ms": 161.4999265273011,
+        "upper_ms": 209.20455814373383,
+        "actual_ms": 170.55899510160089,
+        "prediction_cpu_us": 4.068
+      },
+      {
+        "trial": "dynamic_cost_0_110",
+        "request_id": "yubo2333__MMLongBench-Doc__610",
+        "prediction_ms": 415.58910496637327,
+        "upper_ms": 463.293736582806,
+        "actual_ms": 367.95528791844845,
+        "prediction_cpu_us": 4.02
+      },
+      {
+        "trial": "dynamic_cost_0_113",
+        "request_id": "TIGER-Lab__Mantis-Eval__cw_9",
+        "prediction_ms": 85.02613112294691,
+        "upper_ms": 132.73076273937963,
+        "actual_ms": 87.23932318389416,
+        "prediction_cpu_us": 4.289
+      },
+      {
+        "trial": "dynamic_cost_0_115",
+        "request_id": "yubo2333__MMLongBench-Doc__975",
+        "prediction_ms": 212.63565757679763,
+        "upper_ms": 260.3402891932303,
+        "actual_ms": 196.2705380283296,
+        "prediction_cpu_us": 4.255
+      },
+      {
+        "trial": "dynamic_cost_0_117",
+        "request_id": "yubo2333__MMLongBench-Doc__688",
+        "prediction_ms": 304.2955193111046,
+        "upper_ms": 352.00015092753733,
+        "actual_ms": 416.31923895329237,
+        "prediction_cpu_us": 4.217
+      },
+      {
+        "trial": "dynamic_cost_1_000",
+        "request_id": "lmms-lab__DocVQA__40799",
+        "prediction_ms": 155.23201211513305,
+        "upper_ms": 202.93664373156577,
+        "actual_ms": 199.02186188846827,
+        "prediction_cpu_us": 4.211
+      },
+      {
+        "trial": "dynamic_cost_1_002",
+        "request_id": "yubo2333__MMLongBench-Doc__975",
+        "prediction_ms": 107.8140642943501,
+        "upper_ms": 155.5186959107828,
+        "actual_ms": 98.4981288202107,
+        "prediction_cpu_us": 4.196
+      },
+      {
+        "trial": "dynamic_cost_1_003",
+        "request_id": "TIGER-Lab__Mantis-Eval__cw_9",
+        "prediction_ms": 83.07376858647099,
+        "upper_ms": 130.7784002029037,
+        "actual_ms": 74.41948307678103,
+        "prediction_cpu_us": 5.3
+      },
+      {
+        "trial": "dynamic_cost_1_004",
+        "request_id": "TIGER-Lab__Mantis-Eval__cw_9",
+        "prediction_ms": 87.90965132060576,
+        "upper_ms": 135.61428293703847,
+        "actual_ms": 92.884860932827,
+        "prediction_cpu_us": 4.2
+      },
+      {
+        "trial": "dynamic_cost_1_008",
+        "request_id": "yubo2333__MMLongBench-Doc__610",
+        "prediction_ms": 164.66891192743014,
+        "upper_ms": 212.37354354386287,
+        "actual_ms": 152.889892924577,
+        "prediction_cpu_us": 4.119
+      },
+      {
+        "trial": "dynamic_cost_1_009",
+        "request_id": "yubo2333__MMLongBench-Doc__610",
+        "prediction_ms": 415.58910496637327,
+        "upper_ms": 463.293736582806,
+        "actual_ms": 353.6985218524933,
+        "prediction_cpu_us": 4.105
+      },
+      {
+        "trial": "dynamic_cost_1_012",
+        "request_id": "TIGER-Lab__Mantis-Eval__cw_9",
+        "prediction_ms": 86.77269933628591,
+        "upper_ms": 134.47733095271863,
+        "actual_ms": 78.68571393191814,
+        "prediction_cpu_us": 4.162
+      },
+      {
+        "trial": "dynamic_cost_1_017",
+        "request_id": "yubo2333__MMLongBench-Doc__975",
+        "prediction_ms": 116.70476219342771,
+        "upper_ms": 164.40939380986043,
+        "actual_ms": 107.27218724787235,
+        "prediction_cpu_us": 4.048
+      },
+      {
+        "trial": "dynamic_cost_1_020",
+        "request_id": "TIGER-Lab__Mantis-Eval__cw_9",
+        "prediction_ms": 85.02613112294691,
+        "upper_ms": 132.73076273937963,
+        "actual_ms": 75.01905178651214,
+        "prediction_cpu_us": 4.106
+      },
+      {
+        "trial": "dynamic_cost_1_021",
+        "request_id": "lmms-lab__MP-DocVQA__43773",
+        "prediction_ms": 95.6387857754595,
+        "upper_ms": 143.34341739189222,
+        "actual_ms": 79.346286598593,
+        "prediction_cpu_us": 4.04
+      },
+      {
+        "trial": "dynamic_cost_1_024",
+        "request_id": "yubo2333__MMLongBench-Doc__610",
+        "prediction_ms": 285.2605191798365,
+        "upper_ms": 332.9651507962692,
+        "actual_ms": 260.2698877453804,
+        "prediction_cpu_us": 4.16
+      },
+      {
+        "trial": "dynamic_cost_1_025",
+        "request_id": "yubo2333__MMLongBench-Doc__688",
+        "prediction_ms": 480.12376145012377,
+        "upper_ms": 527.8283930665565,
+        "actual_ms": 426.66404414922,
+        "prediction_cpu_us": 4.035
+      },
+      {
+        "trial": "dynamic_cost_1_027",
+        "request_id": "yubo2333__MMLongBench-Doc__610",
+        "prediction_ms": 199.5071058559597,
+        "upper_ms": 247.21173747239243,
+        "actual_ms": 176.86246475204825,
+        "prediction_cpu_us": 3.928
+      },
+      {
+        "trial": "dynamic_cost_1_029",
+        "request_id": "yubo2333__MMLongBench-Doc__754",
+        "prediction_ms": 205.611064853215,
+        "upper_ms": 253.31569646964772,
+        "actual_ms": 204.84379818663,
+        "prediction_cpu_us": 4.111
+      },
+      {
+        "trial": "dynamic_cost_1_030",
+        "request_id": "yubo2333__MMLongBench-Doc__975",
+        "prediction_ms": 157.83691061586916,
+        "upper_ms": 205.54154223230188,
+        "actual_ms": 139.15792386978865,
+        "prediction_cpu_us": 4.029
+      },
+      {
+        "trial": "dynamic_cost_1_033",
+        "request_id": "yubo2333__MMLongBench-Doc__610",
+        "prediction_ms": 154.41108399433648,
+        "upper_ms": 202.1157156107692,
+        "actual_ms": 188.2930900901556,
+        "prediction_cpu_us": 4.072
+      },
+      {
+        "trial": "dynamic_cost_1_038",
+        "request_id": "lmms-lab__DocVQA__40799",
+        "prediction_ms": 94.2224898417889,
+        "upper_ms": 141.92712145822162,
+        "actual_ms": 115.32643297687173,
+        "prediction_cpu_us": 4.194
+      },
+      {
+        "trial": "dynamic_cost_1_041",
+        "request_id": "lmms-lab__MP-DocVQA__43773",
+        "prediction_ms": 106.95921435486481,
+        "upper_ms": 154.66384597129752,
+        "actual_ms": 107.72809199988842,
+        "prediction_cpu_us": 4.07
+      },
+      {
+        "trial": "dynamic_cost_1_043",
+        "request_id": "yubo2333__MMLongBench-Doc__688",
+        "prediction_ms": 244.93898872612385,
+        "upper_ms": 292.6436203425566,
+        "actual_ms": 280.81302996724844,
+        "prediction_cpu_us": 4.115
+      },
+      {
+        "trial": "dynamic_cost_1_044",
+        "request_id": "lmms-lab__DocVQA__40799",
+        "prediction_ms": 86.00229552580255,
+        "upper_ms": 133.70692714223526,
+        "actual_ms": 68.2154200039804,
+        "prediction_cpu_us": 4.22
+      },
+      {
+        "trial": "dynamic_cost_1_045",
+        "request_id": "yubo2333__MMLongBench-Doc__975",
+        "prediction_ms": 103.33403854481622,
+        "upper_ms": 151.03867016124894,
+        "actual_ms": 191.86645792797208,
+        "prediction_cpu_us": 4.24
+      },
+      {
+        "trial": "dynamic_cost_1_047",
+        "request_id": "yubo2333__MMLongBench-Doc__754",
+        "prediction_ms": 134.19816300960372,
+        "upper_ms": 181.90279462603644,
+        "actual_ms": 185.389316175133,
+        "prediction_cpu_us": 4.001
+      },
+      {
+        "trial": "dynamic_cost_1_050",
+        "request_id": "lmms-lab__MP-DocVQA__43773",
+        "prediction_ms": 172.3223648185883,
+        "upper_ms": 220.02699643502103,
+        "actual_ms": 157.85216493532062,
+        "prediction_cpu_us": 3.994
+      },
+      {
+        "trial": "dynamic_cost_1_058",
+        "request_id": "lmms-lab__DocVQA__40799",
+        "prediction_ms": 110.03537556079868,
+        "upper_ms": 157.7400071772314,
+        "actual_ms": 98.54591684415936,
+        "prediction_cpu_us": 4.054
+      },
+      {
+        "trial": "dynamic_cost_1_060",
+        "request_id": "yubo2333__MMLongBench-Doc__754",
+        "prediction_ms": 114.6920734365977,
+        "upper_ms": 162.39670505303042,
+        "actual_ms": 109.28174899891019,
+        "prediction_cpu_us": 4.146
+      },
+      {
+        "trial": "dynamic_cost_1_067",
+        "request_id": "yubo2333__MMLongBench-Doc__610",
+        "prediction_ms": 321.8952747755648,
+        "upper_ms": 369.59990639199754,
+        "actual_ms": 305.2944829687476,
+        "prediction_cpu_us": 4.003
+      },
+      {
+        "trial": "dynamic_cost_1_068",
+        "request_id": "lmms-lab__DocVQA__40799",
+        "prediction_ms": 124.96465236505631,
+        "upper_ms": 172.66928398148903,
+        "actual_ms": 151.93695900961757,
+        "prediction_cpu_us": 4.155
+      },
+      {
+        "trial": "dynamic_cost_1_072",
+        "request_id": "lmms-lab__MP-DocVQA__43773",
+        "prediction_ms": 131.10263188838704,
+        "upper_ms": 178.80726350481976,
+        "actual_ms": 114.57204632461071,
+        "prediction_cpu_us": 4.132
+      },
+      {
+        "trial": "dynamic_cost_1_079",
+        "request_id": "yubo2333__MMLongBench-Doc__688",
+        "prediction_ms": 179.30767317109456,
+        "upper_ms": 227.01230478752728,
+        "actual_ms": 196.80126011371613,
+        "prediction_cpu_us": 4.179
+      },
+      {
+        "trial": "dynamic_cost_1_080",
+        "request_id": "yubo2333__MMLongBench-Doc__688",
+        "prediction_ms": 304.2955193111046,
+        "upper_ms": 352.00015092753733,
+        "actual_ms": 275.817281100899,
+        "prediction_cpu_us": 4.055
+      },
+      {
+        "trial": "dynamic_cost_1_085",
+        "request_id": "lmms-lab__DocVQA__40799",
+        "prediction_ms": 119.35828585083925,
+        "upper_ms": 167.06291746727197,
+        "actual_ms": 112.94934991747141,
+        "prediction_cpu_us": 4.134
+      },
+      {
+        "trial": "dynamic_cost_1_086",
+        "request_id": "yubo2333__MMLongBench-Doc__754",
+        "prediction_ms": 171.21527237969326,
+        "upper_ms": 218.91990399612598,
+        "actual_ms": 172.97559697180986,
+        "prediction_cpu_us": 4.139
+      },
+      {
+        "trial": "dynamic_cost_1_087",
+        "request_id": "yubo2333__MMLongBench-Doc__754",
+        "prediction_ms": 124.58435440670989,
+        "upper_ms": 172.28898602314263,
+        "actual_ms": 113.86051680892706,
+        "prediction_cpu_us": 4.026
+      },
+      {
+        "trial": "dynamic_cost_1_088",
+        "request_id": "TIGER-Lab__Mantis-Eval__cw_9",
+        "prediction_ms": 84.73021002530609,
+        "upper_ms": 132.4348416417388,
+        "actual_ms": 97.38704888150096,
+        "prediction_cpu_us": 4.203
+      },
+      {
+        "trial": "dynamic_cost_1_089",
+        "request_id": "yubo2333__MMLongBench-Doc__688",
+        "prediction_ms": 161.4999265273011,
+        "upper_ms": 209.20455814373383,
+        "actual_ms": 193.68210108950734,
+        "prediction_cpu_us": 4.016
+      },
+      {
+        "trial": "dynamic_cost_1_095",
+        "request_id": "yubo2333__MMLongBench-Doc__975",
+        "prediction_ms": 212.63565757679763,
+        "upper_ms": 260.3402891932303,
+        "actual_ms": 184.69265289604664,
+        "prediction_cpu_us": 4.078
+      },
+      {
+        "trial": "dynamic_cost_1_096",
+        "request_id": "lmms-lab__MP-DocVQA__43773",
+        "prediction_ms": 128.65602244161167,
+        "upper_ms": 176.3606540580444,
+        "actual_ms": 192.08641070872545,
+        "prediction_cpu_us": 4.102
+      },
+      {
+        "trial": "dynamic_cost_1_097",
+        "request_id": "lmms-lab__MP-DocVQA__43773",
+        "prediction_ms": 108.27345022360159,
+        "upper_ms": 155.9780818400343,
+        "actual_ms": 137.50619301572442,
+        "prediction_cpu_us": 4.065
+      },
+      {
+        "trial": "dynamic_cost_1_099",
+        "request_id": "yubo2333__MMLongBench-Doc__688",
+        "prediction_ms": 367.9994729873473,
+        "upper_ms": 415.70410460378,
+        "actual_ms": 314.3648477271199,
+        "prediction_cpu_us": 4.02
+      },
+      {
+        "trial": "dynamic_cost_1_100",
+        "request_id": "TIGER-Lab__Mantis-Eval__cw_9",
+        "prediction_ms": 92.03785418968371,
+        "upper_ms": 139.74248580611643,
+        "actual_ms": 87.26519579067826,
+        "prediction_cpu_us": 4.145
+      },
+      {
+        "trial": "dynamic_cost_1_101",
+        "request_id": "yubo2333__MMLongBench-Doc__610",
+        "prediction_ms": 219.28348101782495,
+        "upper_ms": 266.9881126342577,
+        "actual_ms": 211.596614215523,
+        "prediction_cpu_us": 4.147
+      },
+      {
+        "trial": "dynamic_cost_1_102",
+        "request_id": "yubo2333__MMLongBench-Doc__754",
+        "prediction_ms": 205.78094659926137,
+        "upper_ms": 253.4855782156941,
+        "actual_ms": 194.5270779542625,
+        "prediction_cpu_us": 4.046
+      },
+      {
+        "trial": "dynamic_cost_1_107",
+        "request_id": "lmms-lab__MP-DocVQA__43773",
+        "prediction_ms": 149.01032123671843,
+        "upper_ms": 196.71495285315115,
+        "actual_ms": 134.92871914058924,
+        "prediction_cpu_us": 4.15
+      },
+      {
+        "trial": "dynamic_cost_1_109",
+        "request_id": "yubo2333__MMLongBench-Doc__975",
+        "prediction_ms": 263.1639307976086,
+        "upper_ms": 310.8685624140413,
+        "actual_ms": 271.71998796984553,
+        "prediction_cpu_us": 4.088
+      },
+      {
+        "trial": "dynamic_cost_1_110",
+        "request_id": "yubo2333__MMLongBench-Doc__754",
+        "prediction_ms": 153.12942860401694,
+        "upper_ms": 200.83406022044966,
+        "actual_ms": 135.78923838213086,
+        "prediction_cpu_us": 4.151
+      },
+      {
+        "trial": "dynamic_cost_1_111",
+        "request_id": "yubo2333__MMLongBench-Doc__975",
+        "prediction_ms": 128.88063291075758,
+        "upper_ms": 176.5852645271903,
+        "actual_ms": 133.64335196092725,
+        "prediction_cpu_us": 4.051
+      },
+      {
+        "trial": "dynamic_cost_1_112",
+        "request_id": "TIGER-Lab__Mantis-Eval__cw_9",
+        "prediction_ms": 83.6578220473787,
+        "upper_ms": 131.36245366381144,
+        "actual_ms": 120.50484493374825,
+        "prediction_cpu_us": 4.052
+      },
+      {
+        "trial": "dynamic_cost_1_114",
+        "request_id": "lmms-lab__DocVQA__40799",
+        "prediction_ms": 99.20210751900751,
+        "upper_ms": 146.90673913544023,
+        "actual_ms": 93.86243484914303,
+        "prediction_cpu_us": 4.16
+      },
+      {
+        "trial": "dynamic_cost_1_117",
+        "request_id": "yubo2333__MMLongBench-Doc__688",
+        "prediction_ms": 210.5780009216922,
+        "upper_ms": 258.2826325381249,
+        "actual_ms": 197.47035764157772,
+        "prediction_cpu_us": 4.085
+      }
+    ]
+  },
+  "modality": {
+    "intercept": 78.08229602257201,
+    "weights": [
+      4.523152790858839,
+      3.066323876314478,
+      11.654631316628612,
+      11.759061018870705,
+      0.7006094167292907,
+      6.927140111896948,
+      -0.0,
+      -0.17332837646314572
+    ],
+    "training_p95_underprediction_ms": 47.899897601019156,
+    "validation_MAE_ms": 23.143483327101674,
+    "validation_relative_MAE": 0.12756086814379766,
+    "validation_p95_underprediction_ms": 52.10359091032253,
+    "validation_model_cpu_median_us": 4.6405,
+    "validation_safety_at_fixed_budgets": {
+      "16": {
+        "predicted_safe": 0,
+        "actual_safe": 0,
+        "both_safe": 0,
+        "false_safe_rate_among_predictions": null,
+        "false_reject_rate_among_actual_safe": null
+      },
+      "32": {
+        "predicted_safe": 0,
+        "actual_safe": 0,
+        "both_safe": 0,
+        "false_safe_rate_among_predictions": null,
+        "false_reject_rate_among_actual_safe": null
+      },
+      "64": {
+        "predicted_safe": 0,
+        "actual_safe": 0,
+        "both_safe": 0,
+        "false_safe_rate_among_predictions": null,
+        "false_reject_rate_among_actual_safe": null
+      },
+      "100": {
+        "predicted_safe": 0,
+        "actual_safe": 19,
+        "both_safe": 0,
+        "false_safe_rate_among_predictions": null,
+        "false_reject_rate_among_actual_safe": 1.0
+      },
+      "160": {
+        "predicted_safe": 31,
+        "actual_safe": 54,
+        "both_safe": 29,
+        "false_safe_rate_among_predictions": 0.06451612903225812,
+        "false_reject_rate_among_actual_safe": 0.4629629629629629
+      }
+    },
+    "validation_points": [
+      {
+        "trial": "dynamic_cost_0_000",
+        "request_id": "yubo2333__MMLongBench-Doc__610",
+        "prediction_ms": 222.99836014978905,
+        "upper_ms": 270.8982577508082,
+        "actual_ms": 187.59548105299473,
+        "prediction_cpu_us": 10.923
+      },
+      {
+        "trial": "dynamic_cost_0_003",
+        "request_id": "lmms-lab__DocVQA__40799",
+        "prediction_ms": 88.52731695521732,
+        "upper_ms": 136.42721455623646,
+        "actual_ms": 81.6365978680551,
+        "prediction_cpu_us": 5.969
+      },
+      {
+        "trial": "dynamic_cost_0_004",
+        "request_id": "yubo2333__MMLongBench-Doc__610",
+        "prediction_ms": 165.41979195553105,
+        "upper_ms": 213.3196895565502,
+        "actual_ms": 168.71976479887962,
+        "prediction_cpu_us": 4.932
+      },
+      {
+        "trial": "dynamic_cost_0_012",
+        "request_id": "lmms-lab__MP-DocVQA__43773",
+        "prediction_ms": 108.98705191644095,
+        "upper_ms": 156.8869495174601,
+        "actual_ms": 93.69290200993419,
+        "prediction_cpu_us": 4.752
+      },
+      {
+        "trial": "dynamic_cost_0_013",
+        "request_id": "lmms-lab__MP-DocVQA__43773",
+        "prediction_ms": 149.56631261896726,
+        "upper_ms": 197.4662102199864,
+        "actual_ms": 150.82250209525228,
+        "prediction_cpu_us": 4.543
+      },
+      {
+        "trial": "dynamic_cost_0_016",
+        "request_id": "yubo2333__MMLongBench-Doc__975",
+        "prediction_ms": 116.98158103758934,
+        "upper_ms": 164.88147863860848,
+        "actual_ms": 117.24222917109728,
+        "prediction_cpu_us": 4.712
+      },
+      {
+        "trial": "dynamic_cost_0_018",
+        "request_id": "yubo2333__MMLongBench-Doc__688",
+        "prediction_ms": 178.6809975076103,
+        "upper_ms": 226.58089510862945,
+        "actual_ms": 181.23334227129817,
+        "prediction_cpu_us": 4.71
+      },
+      {
+        "trial": "dynamic_cost_0_021",
+        "request_id": "lmms-lab__DocVQA__40799",
+        "prediction_ms": 100.8700762984548,
+        "upper_ms": 148.76997389947397,
+        "actual_ms": 95.66448302939534,
+        "prediction_cpu_us": 4.759
+      },
+      {
+        "trial": "dynamic_cost_0_022",
+        "request_id": "yubo2333__MMLongBench-Doc__610",
+        "prediction_ms": 199.79181989548204,
+        "upper_ms": 247.69171749650118,
+        "actual_ms": 178.9675187319517,
+        "prediction_cpu_us": 4.608
+      },
+      {
+        "trial": "dynamic_cost_0_023",
+        "request_id": "yubo2333__MMLongBench-Doc__975",
+        "prediction_ms": 157.6790739315711,
+        "upper_ms": 205.57897153259026,
+        "actual_ms": 151.79169084876776,
+        "prediction_cpu_us": 4.54
+      },
+      {
+        "trial": "dynamic_cost_0_025",
+        "request_id": "yubo2333__MMLongBench-Doc__754",
+        "prediction_ms": 125.78419176292063,
+        "upper_ms": 173.6840893639398,
+        "actual_ms": 108.94639370962977,
+        "prediction_cpu_us": 4.622
+      },
+      {
+        "trial": "dynamic_cost_0_026",
+        "request_id": "lmms-lab__DocVQA__40799",
+        "prediction_ms": 95.80656608128298,
+        "upper_ms": 143.70646368230214,
+        "actual_ms": 142.79219089075923,
+        "prediction_cpu_us": 4.832
+      },
+      {
+        "trial": "dynamic_cost_0_027",
+        "request_id": "yubo2333__MMLongBench-Doc__754",
+        "prediction_ms": 114.24613190282955,
+        "upper_ms": 162.1460295038487,
+        "actual_ms": 124.4518430903554,
+        "prediction_cpu_us": 4.642
+      },
+      {
+        "trial": "dynamic_cost_0_028",
+        "request_id": "yubo2333__MMLongBench-Doc__688",
+        "prediction_ms": 368.8847835759401,
+        "upper_ms": 416.7846811769593,
+        "actual_ms": 323.6093311570585,
+        "prediction_cpu_us": 4.56
+      },
+      {
+        "trial": "dynamic_cost_0_035",
+        "request_id": "yubo2333__MMLongBench-Doc__754",
+        "prediction_ms": 205.93788758551216,
+        "upper_ms": 253.8377851865313,
+        "actual_ms": 199.75054962560534,
+        "prediction_cpu_us": 5.02
+      },
+      {
+        "trial": "dynamic_cost_0_039",
+        "request_id": "lmms-lab__MP-DocVQA__43773",
+        "prediction_ms": 107.26462389807818,
+        "upper_ms": 155.16452149909733,
+        "actual_ms": 111.4619430154562,
+        "prediction_cpu_us": 4.535
+      },
+      {
+        "trial": "dynamic_cost_0_044",
+        "request_id": "lmms-lab__DocVQA__40799",
+        "prediction_ms": 120.93491085330942,
+        "upper_ms": 168.83480845432857,
+        "actual_ms": 93.94444478675723,
+        "prediction_cpu_us": 4.742
+      },
+      {
+        "trial": "dynamic_cost_0_047",
+        "request_id": "TIGER-Lab__Mantis-Eval__cw_9",
+        "prediction_ms": 84.31055402799532,
+        "upper_ms": 132.21045162901447,
+        "actual_ms": 64.38912218436599,
+        "prediction_cpu_us": 4.668
+      },
+      {
+        "trial": "dynamic_cost_0_048",
+        "request_id": "yubo2333__MMLongBench-Doc__688",
+        "prediction_ms": 480.08440852617315,
+        "upper_ms": 527.9843061271923,
+        "actual_ms": 471.23251110315323,
+        "prediction_cpu_us": 4.713
+      },
+      {
+        "trial": "dynamic_cost_0_054",
+        "request_id": "lmms-lab__MP-DocVQA__43773",
+        "prediction_ms": 95.8101645293253,
+        "upper_ms": 143.71006213034445,
+        "actual_ms": 128.39384097605944,
+        "prediction_cpu_us": 4.634
+      },
+      {
+        "trial": "dynamic_cost_0_056",
+        "request_id": "yubo2333__MMLongBench-Doc__688",
+        "prediction_ms": 244.5566638292948,
+        "upper_ms": 292.45656143031397,
+        "actual_ms": 213.06080045178533,
+        "prediction_cpu_us": 4.589
+      },
+      {
+        "trial": "dynamic_cost_0_058",
+        "request_id": "TIGER-Lab__Mantis-Eval__cw_9",
+        "prediction_ms": 86.81897929170427,
+        "upper_ms": 134.71887689272342,
+        "actual_ms": 100.78060114756227,
+        "prediction_cpu_us": 4.56
+      },
+      {
+        "trial": "dynamic_cost_0_059",
+        "request_id": "yubo2333__MMLongBench-Doc__975",
+        "prediction_ms": 128.78386559627782,
+        "upper_ms": 176.68376319729697,
+        "actual_ms": 121.44922418519855,
+        "prediction_cpu_us": 4.763
+      },
+      {
+        "trial": "dynamic_cost_0_060",
+        "request_id": "lmms-lab__DocVQA__40799",
+        "prediction_ms": 111.90123378994377,
+        "upper_ms": 159.80113139096292,
+        "actual_ms": 118.40781290084124,
+        "prediction_cpu_us": 4.613
+      },
+      {
+        "trial": "dynamic_cost_0_062",
+        "request_id": "lmms-lab__MP-DocVQA__43773",
+        "prediction_ms": 172.8239113267225,
+        "upper_ms": 220.72380892774166,
+        "actual_ms": 163.37959887459874,
+        "prediction_cpu_us": 4.571
+      },
+      {
+        "trial": "dynamic_cost_0_066",
+        "request_id": "lmms-lab__MP-DocVQA__43773",
+        "prediction_ms": 131.186292389217,
+        "upper_ms": 179.08618999023614,
+        "actual_ms": 154.90223420783877,
+        "prediction_cpu_us": 4.605
+      },
+      {
+        "trial": "dynamic_cost_0_069",
+        "request_id": "yubo2333__MMLongBench-Doc__754",
+        "prediction_ms": 170.77021866434148,
+        "upper_ms": 218.67011626536063,
+        "actual_ms": 172.54424188286066,
+        "prediction_cpu_us": 4.625
+      },
+      {
+        "trial": "dynamic_cost_0_070",
+        "request_id": "lmms-lab__MP-DocVQA__43773",
+        "prediction_ms": 128.70019464524108,
+        "upper_ms": 176.60009224626023,
+        "actual_ms": 113.8277081772685,
+        "prediction_cpu_us": 4.689
+      },
+      {
+        "trial": "dynamic_cost_0_071",
+        "request_id": "yubo2333__MMLongBench-Doc__975",
+        "prediction_ms": 107.42574517196276,
+        "upper_ms": 155.32564277298192,
+        "actual_ms": 101.21333785355091,
+        "prediction_cpu_us": 4.618
+      },
+      {
+        "trial": "dynamic_cost_0_073",
+        "request_id": "yubo2333__MMLongBench-Doc__610",
+        "prediction_ms": 322.038542000061,
+        "upper_ms": 369.9384396010802,
+        "actual_ms": 288.08320220559835,
+        "prediction_cpu_us": 4.585
+      },
+      {
+        "trial": "dynamic_cost_0_079",
+        "request_id": "TIGER-Lab__Mantis-Eval__cw_9",
+        "prediction_ms": 83.86186384057349,
+        "upper_ms": 131.76176144159265,
+        "actual_ms": 376.32292695343494,
+        "prediction_cpu_us": 4.574
+      },
+      {
+        "trial": "dynamic_cost_0_080",
+        "request_id": "yubo2333__MMLongBench-Doc__688",
+        "prediction_ms": 210.9650675662606,
+        "upper_ms": 258.86496516727976,
+        "actual_ms": 190.52141578868032,
+        "prediction_cpu_us": 5.03
+      },
+      {
+        "trial": "dynamic_cost_0_083",
+        "request_id": "yubo2333__MMLongBench-Doc__754",
+        "prediction_ms": 205.85386903930345,
+        "upper_ms": 253.7537666403226,
+        "actual_ms": 192.13597709313035,
+        "prediction_cpu_us": 4.96
+      },
+      {
+        "trial": "dynamic_cost_0_084",
+        "request_id": "TIGER-Lab__Mantis-Eval__cw_9",
+        "prediction_ms": 92.26678674885979,
+        "upper_ms": 140.16668434987895,
+        "actual_ms": 82.08696637302637,
+        "prediction_cpu_us": 4.523
+      },
+      {
+        "trial": "dynamic_cost_0_085",
+        "request_id": "yubo2333__MMLongBench-Doc__975",
+        "prediction_ms": 263.38290437018253,
+        "upper_ms": 311.2828019712017,
+        "actual_ms": 318.53758078068495,
+        "prediction_cpu_us": 4.664
+      },
+      {
+        "trial": "dynamic_cost_0_089",
+        "request_id": "yubo2333__MMLongBench-Doc__754",
+        "prediction_ms": 134.60901101678533,
+        "upper_ms": 182.50890861780448,
+        "actual_ms": 180.87798403576016,
+        "prediction_cpu_us": 4.725
+      },
+      {
+        "trial": "dynamic_cost_0_095",
+        "request_id": "TIGER-Lab__Mantis-Eval__cw_9",
+        "prediction_ms": 88.1821462185963,
+        "upper_ms": 136.08204381961545,
+        "actual_ms": 100.16220202669501,
+        "prediction_cpu_us": 4.68
+      },
+      {
+        "trial": "dynamic_cost_0_096",
+        "request_id": "yubo2333__MMLongBench-Doc__975",
+        "prediction_ms": 103.388057490417,
+        "upper_ms": 151.28795509143615,
+        "actual_ms": 132.90181290358305,
+        "prediction_cpu_us": 4.863
+      },
+      {
+        "trial": "dynamic_cost_0_097",
+        "request_id": "TIGER-Lab__Mantis-Eval__cw_9",
+        "prediction_ms": 82.80407409042193,
+        "upper_ms": 130.7039716914411,
+        "actual_ms": 88.72236870229244,
+        "prediction_cpu_us": 4.643
+      },
+      {
+        "trial": "dynamic_cost_0_099",
+        "request_id": "yubo2333__MMLongBench-Doc__610",
+        "prediction_ms": 285.64748381732255,
+        "upper_ms": 333.54738141834173,
+        "actual_ms": 259.00073582306504,
+        "prediction_cpu_us": 4.643
+      },
+      {
+        "trial": "dynamic_cost_0_101",
+        "request_id": "yubo2333__MMLongBench-Doc__610",
+        "prediction_ms": 154.59668565893895,
+        "upper_ms": 202.4965832599581,
+        "actual_ms": 171.95652332156897,
+        "prediction_cpu_us": 4.588
+      },
+      {
+        "trial": "dynamic_cost_0_102",
+        "request_id": "lmms-lab__DocVQA__40799",
+        "prediction_ms": 126.75159252161919,
+        "upper_ms": 174.65149012263834,
+        "actual_ms": 119.19654672965407,
+        "prediction_cpu_us": 4.65
+      },
+      {
+        "trial": "dynamic_cost_0_103",
+        "request_id": "yubo2333__MMLongBench-Doc__754",
+        "prediction_ms": 152.91828268232436,
+        "upper_ms": 200.8181802833435,
+        "actual_ms": 134.8159248009324,
+        "prediction_cpu_us": 4.644
+      },
+      {
+        "trial": "dynamic_cost_0_105",
+        "request_id": "lmms-lab__DocVQA__40799",
+        "prediction_ms": 157.1937538987359,
+        "upper_ms": 205.09365149975505,
+        "actual_ms": 155.28450720012188,
+        "prediction_cpu_us": 4.729
+      },
+      {
+        "trial": "dynamic_cost_0_107",
+        "request_id": "yubo2333__MMLongBench-Doc__688",
+        "prediction_ms": 160.68031840345657,
+        "upper_ms": 208.58021600447572,
+        "actual_ms": 170.55899510160089,
+        "prediction_cpu_us": 4.6
+      },
+      {
+        "trial": "dynamic_cost_0_110",
+        "request_id": "yubo2333__MMLongBench-Doc__610",
+        "prediction_ms": 415.51537989071045,
+        "upper_ms": 463.4152774917296,
+        "actual_ms": 367.95528791844845,
+        "prediction_cpu_us": 4.702
+      },
+      {
+        "trial": "dynamic_cost_0_113",
+        "request_id": "TIGER-Lab__Mantis-Eval__cw_9",
+        "prediction_ms": 83.8352825913052,
+        "upper_ms": 131.73518019232435,
+        "actual_ms": 87.23932318389416,
+        "prediction_cpu_us": 4.736
+      },
+      {
+        "trial": "dynamic_cost_0_115",
+        "request_id": "yubo2333__MMLongBench-Doc__975",
+        "prediction_ms": 212.09601814083993,
+        "upper_ms": 259.9959157418591,
+        "actual_ms": 196.2705380283296,
+        "prediction_cpu_us": 4.52
+      },
+      {
+        "trial": "dynamic_cost_0_117",
+        "request_id": "yubo2333__MMLongBench-Doc__688",
+        "prediction_ms": 303.295285980923,
+        "upper_ms": 351.19518358194216,
+        "actual_ms": 416.31923895329237,
+        "prediction_cpu_us": 4.566
+      },
+      {
+        "trial": "dynamic_cost_1_000",
+        "request_id": "lmms-lab__DocVQA__40799",
+        "prediction_ms": 157.01961717952707,
+        "upper_ms": 204.91951478054622,
+        "actual_ms": 199.02186188846827,
+        "prediction_cpu_us": 4.532
+      },
+      {
+        "trial": "dynamic_cost_1_002",
+        "request_id": "yubo2333__MMLongBench-Doc__975",
+        "prediction_ms": 106.9600818911592,
+        "upper_ms": 154.85997949217835,
+        "actual_ms": 98.4981288202107,
+        "prediction_cpu_us": 4.499
+      },
+      {
+        "trial": "dynamic_cost_1_003",
+        "request_id": "TIGER-Lab__Mantis-Eval__cw_9",
+        "prediction_ms": 83.1555278345316,
+        "upper_ms": 131.05542543555075,
+        "actual_ms": 74.41948307678103,
+        "prediction_cpu_us": 4.762
+      },
+      {
+        "trial": "dynamic_cost_1_004",
+        "request_id": "TIGER-Lab__Mantis-Eval__cw_9",
+        "prediction_ms": 88.14723110536623,
+        "upper_ms": 136.0471287063854,
+        "actual_ms": 92.884860932827,
+        "prediction_cpu_us": 4.56
+      },
+      {
+        "trial": "dynamic_cost_1_008",
+        "request_id": "yubo2333__MMLongBench-Doc__610",
+        "prediction_ms": 164.70517095675638,
+        "upper_ms": 212.60506855777552,
+        "actual_ms": 152.889892924577,
+        "prediction_cpu_us": 4.656
+      },
+      {
+        "trial": "dynamic_cost_1_009",
+        "request_id": "yubo2333__MMLongBench-Doc__610",
+        "prediction_ms": 415.7876583010108,
+        "upper_ms": 463.68755590203,
+        "actual_ms": 353.6985218524933,
+        "prediction_cpu_us": 4.529
+      },
+      {
+        "trial": "dynamic_cost_1_012",
+        "request_id": "TIGER-Lab__Mantis-Eval__cw_9",
+        "prediction_ms": 86.95894097348503,
+        "upper_ms": 134.85883857450418,
+        "actual_ms": 78.68571393191814,
+        "prediction_cpu_us": 4.626
+      },
+      {
+        "trial": "dynamic_cost_1_017",
+        "request_id": "yubo2333__MMLongBench-Doc__975",
+        "prediction_ms": 116.7315062367883,
+        "upper_ms": 164.63140383780745,
+        "actual_ms": 107.27218724787235,
+        "prediction_cpu_us": 4.575
+      },
+      {
+        "trial": "dynamic_cost_1_020",
+        "request_id": "TIGER-Lab__Mantis-Eval__cw_9",
+        "prediction_ms": 84.47205731604055,
+        "upper_ms": 132.3719549170597,
+        "actual_ms": 75.01905178651214,
+        "prediction_cpu_us": 4.628
+      },
+      {
+        "trial": "dynamic_cost_1_021",
+        "request_id": "lmms-lab__MP-DocVQA__43773",
+        "prediction_ms": 95.74688901112856,
+        "upper_ms": 143.6467866121477,
+        "actual_ms": 79.346286598593,
+        "prediction_cpu_us": 4.821
+      },
+      {
+        "trial": "dynamic_cost_1_024",
+        "request_id": "yubo2333__MMLongBench-Doc__610",
+        "prediction_ms": 285.853207461808,
+        "upper_ms": 333.75310506282716,
+        "actual_ms": 260.2698877453804,
+        "prediction_cpu_us": 4.805
+      },
+      {
+        "trial": "dynamic_cost_1_025",
+        "request_id": "yubo2333__MMLongBench-Doc__688",
+        "prediction_ms": 480.034647372553,
+        "upper_ms": 527.9345449735722,
+        "actual_ms": 426.66404414922,
+        "prediction_cpu_us": 4.646
+      },
+      {
+        "trial": "dynamic_cost_1_027",
+        "request_id": "yubo2333__MMLongBench-Doc__610",
+        "prediction_ms": 199.32150756023557,
+        "upper_ms": 247.22140516125472,
+        "actual_ms": 176.86246475204825,
+        "prediction_cpu_us": 4.639
+      },
+      {
+        "trial": "dynamic_cost_1_029",
+        "request_id": "yubo2333__MMLongBench-Doc__754",
+        "prediction_ms": 205.25683553107962,
+        "upper_ms": 253.15673313209876,
+        "actual_ms": 204.84379818663,
+        "prediction_cpu_us": 4.735
+      },
+      {
+        "trial": "dynamic_cost_1_030",
+        "request_id": "yubo2333__MMLongBench-Doc__975",
+        "prediction_ms": 157.19956597763607,
+        "upper_ms": 205.09946357865522,
+        "actual_ms": 139.15792386978865,
+        "prediction_cpu_us": 4.587
+      },
+      {
+        "trial": "dynamic_cost_1_033",
+        "request_id": "yubo2333__MMLongBench-Doc__610",
+        "prediction_ms": 154.18937980875023,
+        "upper_ms": 202.08927740976938,
+        "actual_ms": 188.2930900901556,
+        "prediction_cpu_us": 4.656
+      },
+      {
+        "trial": "dynamic_cost_1_038",
+        "request_id": "lmms-lab__DocVQA__40799",
+        "prediction_ms": 95.8370544360276,
+        "upper_ms": 143.73695203704676,
+        "actual_ms": 115.32643297687173,
+        "prediction_cpu_us": 4.625
+      },
+      {
+        "trial": "dynamic_cost_1_041",
+        "request_id": "lmms-lab__MP-DocVQA__43773",
+        "prediction_ms": 107.00627350011983,
+        "upper_ms": 154.906171101139,
+        "actual_ms": 107.72809199988842,
+        "prediction_cpu_us": 4.571
+      },
+      {
+        "trial": "dynamic_cost_1_043",
+        "request_id": "yubo2333__MMLongBench-Doc__688",
+        "prediction_ms": 244.3920267059322,
+        "upper_ms": 292.2919243069514,
+        "actual_ms": 280.81302996724844,
+        "prediction_cpu_us": 4.584
+      },
+      {
+        "trial": "dynamic_cost_1_044",
+        "request_id": "lmms-lab__DocVQA__40799",
+        "prediction_ms": 87.55783840557008,
+        "upper_ms": 135.45773600658924,
+        "actual_ms": 68.2154200039804,
+        "prediction_cpu_us": 4.6
+      },
+      {
+        "trial": "dynamic_cost_1_045",
+        "request_id": "yubo2333__MMLongBench-Doc__975",
+        "prediction_ms": 102.92952875053112,
+        "upper_ms": 150.82942635155027,
+        "actual_ms": 191.86645792797208,
+        "prediction_cpu_us": 4.642
+      },
+      {
+        "trial": "dynamic_cost_1_047",
+        "request_id": "yubo2333__MMLongBench-Doc__754",
+        "prediction_ms": 133.82415211778334,
+        "upper_ms": 181.7240497188025,
+        "actual_ms": 185.389316175133,
+        "prediction_cpu_us": 4.7
+      },
+      {
+        "trial": "dynamic_cost_1_050",
+        "request_id": "lmms-lab__MP-DocVQA__43773",
+        "prediction_ms": 173.03277187186748,
+        "upper_ms": 220.93266947288663,
+        "actual_ms": 157.85216493532062,
+        "prediction_cpu_us": 4.789
+      },
+      {
+        "trial": "dynamic_cost_1_058",
+        "request_id": "lmms-lab__DocVQA__40799",
+        "prediction_ms": 112.16123026633886,
+        "upper_ms": 160.061127867358,
+        "actual_ms": 98.54591684415936,
+        "prediction_cpu_us": 4.56
+      },
+      {
+        "trial": "dynamic_cost_1_060",
+        "request_id": "yubo2333__MMLongBench-Doc__754",
+        "prediction_ms": 114.39508541963932,
+        "upper_ms": 162.29498302065846,
+        "actual_ms": 109.28174899891019,
+        "prediction_cpu_us": 4.498
+      },
+      {
+        "trial": "dynamic_cost_1_067",
+        "request_id": "yubo2333__MMLongBench-Doc__610",
+        "prediction_ms": 322.29410284084156,
+        "upper_ms": 370.19400044186074,
+        "actual_ms": 305.2944829687476,
+        "prediction_cpu_us": 4.555
+      },
+      {
+        "trial": "dynamic_cost_1_068",
+        "request_id": "lmms-lab__DocVQA__40799",
+        "prediction_ms": 126.82955318224103,
+        "upper_ms": 174.72945078326018,
+        "actual_ms": 151.93695900961757,
+        "prediction_cpu_us": 4.46
+      },
+      {
+        "trial": "dynamic_cost_1_072",
+        "request_id": "lmms-lab__MP-DocVQA__43773",
+        "prediction_ms": 131.76497785521434,
+        "upper_ms": 179.6648754562335,
+        "actual_ms": 114.57204632461071,
+        "prediction_cpu_us": 4.479
+      },
+      {
+        "trial": "dynamic_cost_1_079",
+        "request_id": "yubo2333__MMLongBench-Doc__688",
+        "prediction_ms": 179.34055461646932,
+        "upper_ms": 227.24045221748847,
+        "actual_ms": 196.80126011371613,
+        "prediction_cpu_us": 4.515
+      },
+      {
+        "trial": "dynamic_cost_1_080",
+        "request_id": "yubo2333__MMLongBench-Doc__688",
+        "prediction_ms": 304.07718166068344,
+        "upper_ms": 351.9770792617026,
+        "actual_ms": 275.817281100899,
+        "prediction_cpu_us": 24.42
+      },
+      {
+        "trial": "dynamic_cost_1_085",
+        "request_id": "lmms-lab__DocVQA__40799",
+        "prediction_ms": 121.53584216936044,
+        "upper_ms": 169.4357397703796,
+        "actual_ms": 112.94934991747141,
+        "prediction_cpu_us": 4.848
+      },
+      {
+        "trial": "dynamic_cost_1_086",
+        "request_id": "yubo2333__MMLongBench-Doc__754",
+        "prediction_ms": 171.02134817904397,
+        "upper_ms": 218.92124578006312,
+        "actual_ms": 172.97559697180986,
+        "prediction_cpu_us": 4.933
+      },
+      {
+        "trial": "dynamic_cost_1_087",
+        "request_id": "yubo2333__MMLongBench-Doc__754",
+        "prediction_ms": 123.86572884192145,
+        "upper_ms": 171.7656264429406,
+        "actual_ms": 113.86051680892706,
+        "prediction_cpu_us": 4.633
+      },
+      {
+        "trial": "dynamic_cost_1_088",
+        "request_id": "TIGER-Lab__Mantis-Eval__cw_9",
+        "prediction_ms": 83.83473550826673,
+        "upper_ms": 131.73463310928588,
+        "actual_ms": 97.38704888150096,
+        "prediction_cpu_us": 4.818
+      },
+      {
+        "trial": "dynamic_cost_1_089",
+        "request_id": "yubo2333__MMLongBench-Doc__688",
+        "prediction_ms": 161.51202625129818,
+        "upper_ms": 209.41192385231733,
+        "actual_ms": 193.68210108950734,
+        "prediction_cpu_us": 4.768
+      },
+      {
+        "trial": "dynamic_cost_1_095",
+        "request_id": "yubo2333__MMLongBench-Doc__975",
+        "prediction_ms": 212.68181709360465,
+        "upper_ms": 260.5817146946238,
+        "actual_ms": 184.69265289604664,
+        "prediction_cpu_us": 4.936
+      },
+      {
+        "trial": "dynamic_cost_1_096",
+        "request_id": "lmms-lab__MP-DocVQA__43773",
+        "prediction_ms": 129.04004049147125,
+        "upper_ms": 176.9399380924904,
+        "actual_ms": 192.08641070872545,
+        "prediction_cpu_us": 4.969
+      },
+      {
+        "trial": "dynamic_cost_1_097",
+        "request_id": "lmms-lab__MP-DocVQA__43773",
+        "prediction_ms": 108.5758200268788,
+        "upper_ms": 156.47571762789795,
+        "actual_ms": 137.50619301572442,
+        "prediction_cpu_us": 4.624
+      },
+      {
+        "trial": "dynamic_cost_1_099",
+        "request_id": "yubo2333__MMLongBench-Doc__688",
+        "prediction_ms": 367.93720585536954,
+        "upper_ms": 415.8371034563887,
+        "actual_ms": 314.3648477271199,
+        "prediction_cpu_us": 4.616
+      },
+      {
+        "trial": "dynamic_cost_1_100",
+        "request_id": "TIGER-Lab__Mantis-Eval__cw_9",
+        "prediction_ms": 92.19459497703372,
+        "upper_ms": 140.09449257805286,
+        "actual_ms": 87.26519579067826,
+        "prediction_cpu_us": 4.598
+      },
+      {
+        "trial": "dynamic_cost_1_101",
+        "request_id": "yubo2333__MMLongBench-Doc__610",
+        "prediction_ms": 220.00680881845506,
+        "upper_ms": 267.90670641947423,
+        "actual_ms": 211.596614215523,
+        "prediction_cpu_us": 4.6
+      },
+      {
+        "trial": "dynamic_cost_1_102",
+        "request_id": "yubo2333__MMLongBench-Doc__754",
+        "prediction_ms": 206.00993686220863,
+        "upper_ms": 253.90983446322778,
+        "actual_ms": 194.5270779542625,
+        "prediction_cpu_us": 4.609
+      },
+      {
+        "trial": "dynamic_cost_1_107",
+        "request_id": "lmms-lab__MP-DocVQA__43773",
+        "prediction_ms": 149.2517222276125,
+        "upper_ms": 197.15161982863165,
+        "actual_ms": 134.92871914058924,
+        "prediction_cpu_us": 4.763
+      },
+      {
+        "trial": "dynamic_cost_1_109",
+        "request_id": "yubo2333__MMLongBench-Doc__975",
+        "prediction_ms": 263.2722241729296,
+        "upper_ms": 311.1721217739488,
+        "actual_ms": 271.71998796984553,
+        "prediction_cpu_us": 4.481
+      },
+      {
+        "trial": "dynamic_cost_1_110",
+        "request_id": "yubo2333__MMLongBench-Doc__754",
+        "prediction_ms": 153.04567316546428,
+        "upper_ms": 200.94557076648343,
+        "actual_ms": 135.78923838213086,
+        "prediction_cpu_us": 4.685
+      },
+      {
+        "trial": "dynamic_cost_1_111",
+        "request_id": "yubo2333__MMLongBench-Doc__975",
+        "prediction_ms": 128.62098671220082,
+        "upper_ms": 176.52088431321997,
+        "actual_ms": 133.64335196092725,
+        "prediction_cpu_us": 4.725
+      },
+      {
+        "trial": "dynamic_cost_1_112",
+        "request_id": "TIGER-Lab__Mantis-Eval__cw_9",
+        "prediction_ms": 83.51101896042697,
+        "upper_ms": 131.41091656144613,
+        "actual_ms": 120.50484493374825,
+        "prediction_cpu_us": 4.581
+      },
+      {
+        "trial": "dynamic_cost_1_114",
+        "request_id": "lmms-lab__DocVQA__40799",
+        "prediction_ms": 101.04911126718454,
+        "upper_ms": 148.9490088682037,
+        "actual_ms": 93.86243484914303,
+        "prediction_cpu_us": 4.583
+      },
+      {
+        "trial": "dynamic_cost_1_117",
+        "request_id": "yubo2333__MMLongBench-Doc__688",
+        "prediction_ms": 209.77849274074947,
+        "upper_ms": 257.67839034176865,
+        "actual_ms": 197.47035764157772,
+        "prediction_cpu_us": 4.789
+      }
+    ]
+  }
+}

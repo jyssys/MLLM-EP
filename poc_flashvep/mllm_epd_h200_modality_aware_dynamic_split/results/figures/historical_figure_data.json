@@ -1,0 +1,241 @@
+{
+  "historical_commit": "55870ccafb210d32dc956320d02226d26f2efee6",
+  "sources": {
+    "discovery_gates_wide.json": "38192b6083857322f00e7b1e95d8eeab4745e91b192bdeaa016a0802f35510ba",
+    "decode_cap.csv": "daf96da736a520b0f031f9e3759e2698c5c91def5280271967e6b5b0b246146c",
+    "critical_path.csv": "4da3bcc7b6e59c3e3b28bfe41bc41328b883d8e559f7cb4f6efcc30a53ba27ca"
+  },
+  "panels": [
+    {
+      "figure": 1,
+      "start": "free_q5_full_lowfreq_burners_on",
+      "evidence": "DIAGNOSTIC",
+      "kernel_busy_fraction_by_gpu": {
+        "encoder": 0.8863975063645952,
+        "prefill": 0.9396824454122195,
+        "decode": 0.5976957002515219
+      },
+      "p_scheduler_recent_wait_fraction_central": 1.0,
+      "d_physical_idle_fraction_central": 0.40230429974847814,
+      "quiet_160ms_fraction_of_p_busy": 0.31295720581122016,
+      "quiet_160ms_windows": 8,
+      "motivation_status": "P_HEAVY_D_IDLE_NOT_MEASURED"
+    },
+    {
+      "figure": 2,
+      "arms": [
+        {
+          "start": "pilot_free_native_common",
+          "method": "NativeCommon Free",
+          "counter_evidence": "DIAGNOSTIC",
+          "prepared_decode_call_histogram": {
+            "1": 2762,
+            "2": 976,
+            "3": 126,
+            "4": 65,
+            "5": 28
+          },
+          "host_evidence": "MEASURED_ONLINE",
+          "mean_coordinator_wait_ms": 0.17979460768401623
+        },
+        {
+          "start": "pilot_free_static10",
+          "method": "Static10 Free",
+          "counter_evidence": "DIAGNOSTIC",
+          "prepared_decode_call_histogram": {
+            "1": 5405
+          },
+          "host_evidence": "MEASURED_ONLINE",
+          "mean_coordinator_wait_ms": 5320.524394288659
+        },
+        {
+          "start": "pilot_free_idle10",
+          "method": "Idle10 Free",
+          "counter_evidence": "DIAGNOSTIC",
+          "prepared_decode_call_histogram": {
+            "1": 3530,
+            "2": 652,
+            "3": 113,
+            "4": 18
+          },
+          "host_evidence": "MEASURED_ONLINE",
+          "mean_coordinator_wait_ms": 320.200202036649
+        }
+      ]
+    }
+  ],
+  "new_dynamic_method_observations": "NOT_MEASURED_IN_THESE_HISTORICAL_PANELS",
+  "current_motivation": {
+    "figure": 1,
+    "current": [
+      {
+        "run": "native_common_b8_profile",
+        "evidence": "DIAGNOSTIC",
+        "motivation_status": "P_HEAVY_D_IDLE_NOT_MEASURED"
+      },
+      {
+        "run": "native_common_free_profile",
+        "evidence": "DIAGNOSTIC",
+        "motivation_status": "P_HEAVY_D_IDLE_NOT_MEASURED"
+      }
+    ]
+  },
+  "current_motivation_sha256": "f32324f331ea9abdd0d6a8e491b8d68bc240cf156449702995b75edc999d73ff",
+  "current_correctness": {
+    "figures": [
+      2,
+      12
+    ],
+    "evidence": "DIAGNOSTIC",
+    "probes": [
+      "mixed_05",
+      "mixed_10",
+      "mixed_20",
+      "mixed_30"
+    ],
+    "scope": "Instrumented probes establish mixed-route execution, without a clean serving attribution."
+  },
+  "current_correctness_sha256": "3661b19e0779824a851ac215af90ef00d8decf1fe4a620612e528d3c63d9d09c",
+  "natural_correctness": {
+    "figure": 12,
+    "evidence": "DIAGNOSTIC",
+    "raw_chunk_ends": [
+      {
+        "case": "natural_doc05",
+        "target": 16384,
+        "actual": [
+          8192,
+          16083,
+          17334
+        ],
+        "skipped_in_flight": 0
+      },
+      {
+        "case": "natural_doc10",
+        "target": 16384,
+        "actual": [
+          8192,
+          15947,
+          18237
+        ],
+        "skipped_in_flight": 0
+      },
+      {
+        "case": "natural_doc30",
+        "target": 8192,
+        "actual": [
+          8192,
+          12053
+        ],
+        "skipped_in_flight": 1
+      },
+      {
+        "case": "natural_long10",
+        "target": 24576,
+        "actual": [
+          8192,
+          16083,
+          24275,
+          27840
+        ],
+        "skipped_in_flight": 0
+      },
+      {
+        "case": "natural_multi20",
+        "target": 16384,
+        "actual": [
+          8192,
+          15929,
+          21193
+        ],
+        "skipped_in_flight": 0
+      }
+    ],
+    "outcomes": [
+      {
+        "run": "natural_nohold_correctness",
+        "tests": 6,
+        "exact": 0,
+        "executed_suffix": 0
+      },
+      {
+        "run": "natural_hold_correctness",
+        "tests": 6,
+        "exact": 1,
+        "executed_suffix": 1
+      },
+      {
+        "run": "natural_hold_inline_correctness",
+        "tests": 6,
+        "exact": 5,
+        "executed_suffix": 5
+      },
+      {
+        "run": "natural_nohold_inline_observed",
+        "tests": 6,
+        "exact": 0,
+        "executed_suffix": 0
+      }
+    ],
+    "scope": "Exact counts include Greedy sequence against the serial E+P teacher. The same-D continuation receipt is separate. No online timing attribution."
+  },
+  "natural_lead_decode": {
+    "figure": 2,
+    "evidence": "DIAGNOSTIC",
+    "prepared_decode_histograms": {
+      "Image interior\nNative": {
+        "1": 65,
+        "2": 34,
+        "3": 7,
+        "4": 4,
+        "5": 11
+      },
+      "Image interior\nLate": {
+        "1": 49,
+        "2": 2,
+        "3": 22,
+        "4": 2,
+        "5": 4,
+        "6": 5,
+        "7": 4,
+        "8": 2
+      },
+      "Image edge\nNative": {
+        "1": 101,
+        "2": 33,
+        "3": 12,
+        "4": 5
+      },
+      "Image edge\nLate": {
+        "1": 32,
+        "2": 4,
+        "3": 21,
+        "4": 3,
+        "5": 3,
+        "6": 6,
+        "7": 5,
+        "8": 1
+      }
+    },
+    "lead_shared_decode": {
+      "Image interior\nNative": {
+        "shared_steps": 31,
+        "max_decode_batch": 5
+      },
+      "Image interior\nLate": {
+        "shared_steps": 41,
+        "max_decode_batch": 8
+      },
+      "Image edge\nNative": {
+        "shared_steps": 12,
+        "max_decode_batch": 2
+      },
+      "Image edge\nLate": {
+        "shared_steps": 43,
+        "max_decode_batch": 8
+      }
+    },
+    "scope": "The lead first passes P. Native followers are released at the lead P response. Batch co-execution is observed under this correctness fixture."
+  },
+  "natural_correctness_sha256": "2b9c3297557f1ec2c1b1e7475668698c3a346d882fb4ff738aa20ab96bb10b9a"
+}
