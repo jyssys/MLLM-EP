@@ -1,0 +1,27 @@
+{
+  "workload": "Natural149 frozen original media and question order",
+  "manifest_SHA256": "798d27ed31b120cdc0be8191283f3f6a5d8c5f39998a4a94e1e43856c65cafa3",
+  "offered_requests_per_second": 2.5,
+  "arrival_seed": 2026112402,
+  "outcome_contract": "Natural EOS with original prompt and 2048 cap",
+  "gpu_group": [4, 5, 6],
+  "retained_embedding_budget_GiB": 12,
+  "P_and_D_local_KV_GiB_each": 42,
+  "cases": {
+    "GPU": "Scoped immutable E embeddings with native P/D APC",
+    "Host": "Scoped immutable pinned-host embeddings with native P/D APC, batched D2H and temporary E staging on misses of device residency"
+  },
+  "independent_server_start_pairs": 3,
+  "run_sequence": ["gpu_r1", "host_r1", "host_r2", "gpu_r2", "gpu_r3", "host_r3"],
+  "timed_cohorts_per_start": ["first sequence after the unrelated runtime calibration", "complete warm repeat"],
+  "heuristic_budget_frozen": true,
+  "quality_scope": "Unchanged outputs, pinned local scorers when supported, official MMLongBench-Doc extraction unavailable",
+  "target_and_protection": {
+    "TTFT_p95_ratio_max": 0.85,
+    "goodput_ratio_min": 1.15,
+    "E2E_p95_ratio_max": 0.90,
+    "TPOT_p95_ratio_max": 1.05,
+    "ITL_p99_ratio_max": 1.05
+  },
+  "analysis": "Host reference, VRAM numerator. Report each independent start plus paired-start bootstrap. The older synchronous host pilot is not counted. This tests the same E-side bridge. P-local host embedding bypass is outside this intervention."
+}

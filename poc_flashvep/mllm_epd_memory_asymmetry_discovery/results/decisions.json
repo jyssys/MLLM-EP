@@ -1,0 +1,20 @@
+{
+  "overall": "NO_GO_ONLINE_BENEFIT",
+  "scope": "Dense Qwen2.5-VL BF16, three H200s, pinned native runtime, frozen Natural149, Unique91 and controlled stress188. The conclusions are scoped to these tested traces and paths.",
+  "directions": [
+    {"direction": "A. Pending KV", "online_evidence": "Native P KV peaks at 6.81%. At most one D wait in Natural149", "verdict": "NO_GO_MEMORY_PRESSURE", "evidence": ["MEASURED_ONLINE", "MEASURED_PHYSICAL"], "unrun": "Active pending pool without observed qualifying Native pressure"},
+    {"direction": "B. Vision embeddings", "online_evidence": "Explicit reuse skips E. Single representation trails NativeStrong", "verdict": "NO_GO_NOVELTY", "evidence": ["MEASURED_ONLINE", "CORRECTNESS_ONLY", "MEASURED_PHYSICAL"], "unrun": "Direct P-local pinned-host embedding cache that bypasses E HTTP"},
+    {"direction": "C. Exact prefix KV", "online_evidence": "94/188 peer hits and 54.4 GiB loaded. Local APC leads on TTFT", "verdict": "NO_GO_ONLINE_BENEFIT", "evidence": ["MEASURED_ONLINE", "CORRECTNESS_ONLY", "MEASURED_PHYSICAL"], "unrun": "Direct E→D prefix placement with separate P→D suffix"},
+    {"direction": "D. Preempted KV", "online_evidence": "No Native P/D preemptions at 1, 2.5 or 5 offered req/s", "verdict": "NO_GO_MEMORY_PRESSURE", "evidence": ["MEASURED_ONLINE", "MEASURED_PHYSICAL"], "unrun": "Runtime swap and resume under actual native pressure"},
+    {"direction": "E. Weight cache", "online_evidence": "Actual checkpoint copy. Single-model serving has no switching", "verdict": "INCONCLUSIVE", "evidence": ["MEASURED_PHYSICAL", "NOT_RUN"], "unrun": "Multi-model runtime switch, graph rebuild, and online SLO"},
+    {"direction": "Joint representation policy", "online_evidence": "Static two-level path ran online. Extra policy feature screened offline", "verdict": "NO_GO_ONLINE_BENEFIT", "evidence": ["MEASURED_ONLINE", "OFFLINE_ORACLE"], "unrun": "Online learned/queue-aware joint allocator; policy screen provided no incremental target"}
+  ],
+  "gates": [
+    {"id": 0, "status": "PHYSICAL_CAPACITY_CONFIRMED", "evidence": "MEASURED_ONLINE", "scope": "Up to 80 GiB residency-only and 64 GiB active peer. Typical Native P/D has no P/D KV pressure on the measured natural traces."},
+    {"id": 1, "status": "PHYSICAL_BENEFIT_CONFIRMED", "evidence": "MEASURED_PHYSICAL", "scope": "Exact BF16 restore, ratio of storage densities, and faster peer DMA than pinned-host DMA."},
+    {"id": 2, "status": "FAILED_FOR_PROPOSED_MULTILEVEL_PATH", "evidence": "MEASURED_ONLINE", "scope": "Primary benefit versus strongest baseline, 5% decode limits, and cold negative control do not hold jointly."},
+    {"id": 3, "status": "NO_QUALIFIED_EXTRA_BENEFIT", "evidence": "MEASURED_ONLINE", "scope": "Native APC, local P72, same-scope static layouts, and CPU tier are kept in the comparisons."},
+    {"id": 4, "status": "MODALITY_ECONOMICS_ONLY", "evidence": "MEASURED_PHYSICAL", "scope": "Image embedding reuse scope and size differ from causal KV. Qwen native text PD reproduces the generic peer mechanism.", "policy_evidence": "OFFLINE_ORACLE"},
+    {"id": 5, "status": "SECOND_FAMILY_ONLINE_NOT_RUN", "evidence": "NOT_RUN", "scope": "InternVL3 has physical and numerical diagnostics with one ragged embedding-injection failure preserved."}
+  ]
+}
