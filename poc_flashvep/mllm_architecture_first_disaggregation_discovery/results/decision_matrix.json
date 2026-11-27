@@ -1,0 +1,44 @@
+[
+  {
+    "candidate": "CogVLM2",
+    "structure": "Dormant visual QKV/O/FFN in D",
+    "evidence": "GPU storage + online N1",
+    "decision": "MEMORY_CAPACITY_ONLY",
+    "outcome": "13.0 GiB measured weight reduction. Same generic reachability result. 2/24 joint SLO in all arms."
+  },
+  {
+    "candidate": "IDEFICS visibility",
+    "structure": "Fixed image access mask",
+    "evidence": "Two-GPU full model",
+    "decision": "GENERIC_OPTIMIZATION_ONLY",
+    "outcome": "16x raw transfer reduction for the 16-image case. Generic fixed-mask liveness can obtain the same effect."
+  },
+  {
+    "candidate": "IDEFICS preprojection",
+    "structure": "Immutable visual K/V",
+    "evidence": "Two-GPU full model",
+    "decision": "NO_GO_INSUFFICIENT_HEADROOM",
+    "outcome": "Pinned all-slot P projection requires 51.2x state payload per image. Same-visibility P/D difference around 0.1%."
+  },
+  {
+    "candidate": "ERNIE-4.5-VL",
+    "structure": "Dormant visual FFN in D",
+    "evidence": "Native single-GPU diagnostic",
+    "decision": "ARCHITECTURE_OPPORTUNITY_CONFIRMED",
+    "outcome": "27 prefill visual experts per image request, no D accesses. 12.67 GiB live allocation reclaimed with 12/12 token agreement on one terminal request."
+  },
+  {
+    "candidate": "BAGEL understanding",
+    "structure": "Task-exclusive MoT and VAE",
+    "evidence": "Source audit",
+    "decision": "PRIOR_WORK_OVERLAP",
+    "outcome": "Native scoped vLLM already elides synthesis-only weights."
+  },
+  {
+    "candidate": "DeepSeek-OCR2",
+    "structure": "Asymmetric patch/flow-query mask",
+    "evidence": "Source audit",
+    "decision": "NOT_RUN",
+    "outcome": "Native visual encoder split would need additional state materialization and input-scope validation."
+  }
+]

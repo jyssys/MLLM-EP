@@ -1,0 +1,20 @@
+{
+  "evidence_if_completed": "MEASURED_ONLINE",
+  "runtime_scope": "In-process eager finite-cohort open loop. Two real GPUs. Fixed four slots per decoder. DP2 can use both workers for generation. Both PD arms sustain one P and one D.",
+  "load_selection": {
+    "independent_baseline": "dp2",
+    "validation": "Before seeing candidate traffic results, choose the highest screened load with at least 75% request SLO and a finite completion rate within 85% of the measured planned arrival average. If none pass, choose the lowest load and label the validation quality of the historical SLO.",
+    "screen_qps": [0.5, 1.0, 2.0],
+    "screen_requests": 8,
+    "pilot_requests": 24,
+    "exact_seed": 2026112707
+  },
+  "historical_slo": {
+    "ttft_ms": 5000,
+    "all_itl_ms": 34,
+    "tpot_ms": 33
+  },
+  "evaluation": "Compare same request IDs and timestamps with natural generation up to tokenizer EOS or cap 2048. Report request SLO-goodput first, plus latency non-regression, batch and outputs. Fraction missed also stays visible when all SLO-goodput is zero.",
+  "minimum_online_headroom_fraction": 0.05,
+  "second_phase": "Expand to independent N3 and untouched internal validation only when exact-isolated and practical online gates show a positive result. The pilot is not a sustained-capacity estimate."
+}

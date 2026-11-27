@@ -1,0 +1,101 @@
+{
+  "phases": [
+    "Isolated image encoding",
+    "Image + text prefill",
+    "Text-only prefill",
+    "Text decode from image prompt"
+  ],
+  "rows": [
+    {
+      "module": "CogVLM2 · vision encoder",
+      "called": [
+        null,
+        true,
+        false,
+        false
+      ],
+      "source": "cogvlm2/profile_ordinary.json"
+    },
+    {
+      "module": "CogVLM2 · visual QKV/O/MLP",
+      "called": [
+        null,
+        true,
+        false,
+        false
+      ],
+      "source": "cogvlm2/profile_deterministic.json and ordinary text guard"
+    },
+    {
+      "module": "CogVLM2 · language QKV/O/MLP",
+      "called": [
+        null,
+        true,
+        true,
+        true
+      ],
+      "source": "cogvlm2/profile_deterministic.json and ordinary text guard"
+    },
+    {
+      "module": "IDEFICS · ViT and Perceiver",
+      "called": [
+        true,
+        false,
+        null,
+        false
+      ],
+      "source": "idefics/mask_geometry.csv"
+    },
+    {
+      "module": "IDEFICS · 8 gated cross blocks",
+      "called": [
+        false,
+        true,
+        null,
+        true
+      ],
+      "source": "idefics/trials.csv"
+    },
+    {
+      "module": "IDEFICS · 32 self-attention blocks",
+      "called": [
+        false,
+        true,
+        null,
+        true
+      ],
+      "source": "idefics/trials.csv"
+    },
+    {
+      "module": "ERNIE · vision encoder and projector",
+      "called": [
+        null,
+        true,
+        false,
+        false
+      ],
+      "source": "ernie45vl/native.json"
+    },
+    {
+      "module": "ERNIE · vision FFN experts",
+      "called": [
+        null,
+        true,
+        false,
+        false
+      ],
+      "source": "ernie45vl/native.json"
+    },
+    {
+      "module": "ERNIE · text FFN experts",
+      "called": [
+        null,
+        true,
+        true,
+        true
+      ],
+      "source": "ernie45vl/native.json"
+    }
+  ],
+  "scope": "For an already separated E/P, image plus text prefill denotes P's stage with fully prepared E state. Cog denotes the combined E+P path. Inactive indicates no nonempty weight use. The unoptimized Cog route can still call a visual branch on zero rows. ERNIE measures the integrated native E+P path, with actual vision calls before the native language forward."
+}
