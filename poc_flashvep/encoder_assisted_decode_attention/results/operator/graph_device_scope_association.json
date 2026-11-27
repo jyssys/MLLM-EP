@@ -1,0 +1,205 @@
+{
+  "evidence": "CORRECTNESS_ONLY",
+  "change": "Bind current CUDA D context for raw graph launch/destroy and the witness model driver.",
+  "interpretation": "Full-model corruption was absent after device binding and an independently issued local reference was added. The tests show an association. They do not independently prove a sole root cause.",
+  "full_model": [
+    {
+      "data": "model_witness_graph.json",
+      "sha256": "599f71274dfac44c8ac3deb3978dcd126a57c75ad51accabd556547a65dd04e3",
+      "status": "FAILED_FULL_MODEL_ASSISTED",
+      "cases": [
+        {
+          "prompt_rows": [
+            556
+          ],
+          "native": 15,
+          "assisted": 15,
+          "compared_tokens": 15,
+          "assisted_first_step_relative_l2": 0.007242509163916111,
+          "assisted_max_relative_l2": 0.022089548408985138,
+          "natural_exact": true
+        },
+        {
+          "prompt_rows": [
+            30536
+          ],
+          "native": 15,
+          "assisted": 0,
+          "compared_tokens": 15,
+          "assisted_first_step_relative_l2": 0.8925136923789978,
+          "assisted_max_relative_l2": 1.4555338621139526,
+          "natural_exact": false
+        },
+        {
+          "prompt_rows": [
+            556,
+            4651,
+            9944,
+            30536
+          ],
+          "native": 60,
+          "assisted": 0,
+          "compared_tokens": 60,
+          "assisted_first_step_relative_l2": 1.1375032663345337,
+          "assisted_max_relative_l2": 1.473659634590149,
+          "natural_exact": null
+        }
+      ],
+      "packed_vision_vs_stock": [
+        {
+          "request_id": "lmms-lab__DocVQA__45142",
+          "shape": [
+            522,
+            3584
+          ],
+          "relative_l2": 0.06180811673402786,
+          "max_abs": 5.3125,
+          "bitwise_equal": false
+        },
+        {
+          "request_id": "TIGER-Lab__Mantis-Eval__w_10",
+          "shape": [
+            4563,
+            3584
+          ],
+          "relative_l2": 0.05242692306637764,
+          "max_abs": 8.375,
+          "bitwise_equal": false
+        },
+        {
+          "request_id": "lmms-lab__MP-DocVQA__1953",
+          "shape": [
+            9912,
+            3584
+          ],
+          "relative_l2": 0.04062962532043457,
+          "max_abs": 6.59375,
+          "bitwise_equal": false
+        },
+        {
+          "request_id": "lmms-lab__MP-DocVQA__58411",
+          "shape": [
+            30492,
+            3584
+          ],
+          "relative_l2": 0.04844369366765022,
+          "max_abs": 11.625,
+          "bitwise_equal": false
+        }
+      ]
+    },
+    {
+      "data": "model_witness_graph_v2.json",
+      "sha256": "1e954ea7071d0ae8982acbf091a521cd250e0eac263dd7bc6f95852d58b0244e",
+      "status": "PASSED_FIXED_TEACHER_PACKED_VISION_LIMITATION",
+      "cases": [
+        {
+          "prompt_rows": [
+            556
+          ],
+          "native": 15,
+          "assisted": 15,
+          "compared_tokens": 15,
+          "assisted_first_step_relative_l2": 0.007242509163916111,
+          "assisted_max_relative_l2": 0.022089548408985138,
+          "natural_exact": false
+        },
+        {
+          "prompt_rows": [
+            30536
+          ],
+          "native": 15,
+          "assisted": 15,
+          "compared_tokens": 15,
+          "assisted_first_step_relative_l2": 0.005652281455695629,
+          "assisted_max_relative_l2": 0.0314752534031868,
+          "natural_exact": true
+        },
+        {
+          "prompt_rows": [
+            556,
+            4651,
+            9944,
+            30536
+          ],
+          "native": 60,
+          "assisted": 60,
+          "compared_tokens": 60,
+          "assisted_first_step_relative_l2": 0.008918754756450653,
+          "assisted_max_relative_l2": 0.024100622162222862,
+          "natural_exact": null
+        }
+      ],
+      "packed_vision_vs_stock": [
+        {
+          "request_id": "lmms-lab__DocVQA__45142",
+          "shape": [
+            522,
+            3584
+          ],
+          "relative_l2": 0.06180811673402786,
+          "max_abs": 5.3125,
+          "bitwise_equal": false,
+          "stock_first_id": 785,
+          "packed_first_id": 785,
+          "first_token_exact": true
+        },
+        {
+          "request_id": "TIGER-Lab__Mantis-Eval__w_10",
+          "shape": [
+            4563,
+            3584
+          ],
+          "relative_l2": 0.05242692306637764,
+          "max_abs": 8.375,
+          "bitwise_equal": false,
+          "stock_first_id": 4346,
+          "packed_first_id": 4346,
+          "first_token_exact": true
+        },
+        {
+          "request_id": "lmms-lab__MP-DocVQA__1953",
+          "shape": [
+            9912,
+            3584
+          ],
+          "relative_l2": 0.04062962532043457,
+          "max_abs": 6.59375,
+          "bitwise_equal": false,
+          "stock_first_id": 785,
+          "packed_first_id": 785,
+          "first_token_exact": true
+        },
+        {
+          "request_id": "lmms-lab__MP-DocVQA__58411",
+          "shape": [
+            30492,
+            3584
+          ],
+          "relative_l2": 0.04844369366765022,
+          "max_abs": 11.625,
+          "bitwise_equal": false,
+          "stock_first_id": 785,
+          "packed_first_id": 641,
+          "first_token_exact": false
+        }
+      ]
+    }
+  ],
+  "operator_controls": {
+    "graph_large_witness.jsonl": {
+      "operator_cases": 8,
+      "all_pass": true,
+      "tests": 192,
+      "max_relative_l2": 0.0034970182459801435,
+      "sha256": "d3e17ca0ae1abc69a4ee987a1d6a9991f37aa84642e41fd7fe942ea92a858335"
+    },
+    "graph_queued_witness.jsonl": {
+      "operator_cases": 4,
+      "all_pass": true,
+      "tests": 1344,
+      "max_relative_l2": 0.0035830093547701836,
+      "sha256": "b9b14db91daa96a3be96450d0ec0c1e9a17651410268b0add6cb35125eb0b44c"
+    }
+  }
+}

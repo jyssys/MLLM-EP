@@ -1,0 +1,75 @@
+{
+  "raw": {
+    "controlled_paged": {
+      "sha256": "d720afd500ec14ad835851010e7269a029841f254fcc4119b89d56ae4187735c",
+      "cases": 25,
+      "tested": 100,
+      "graph_pass": 100,
+      "graph_replay_witness": 100,
+      "nvlink_measured": 0
+    },
+    "native_qwen_ragged": {
+      "sha256": "b8fa3da6be44762866c5426a80851b05fa4aca7cec009924f371acada0b1f135",
+      "cases": 1,
+      "tested": 12,
+      "graph_pass": 12,
+      "graph_replay_witness": 12,
+      "nvlink_measured": 12
+    },
+    "smoke_memcpy": {
+      "sha256": "be2b81f5b8238372b64704fe611541510ba637afb15257b631d5b0c03fdd1f4e",
+      "cases": 2,
+      "tested": 2,
+      "graph_pass": 2,
+      "graph_replay_witness": 2,
+      "nvlink_measured": 2
+    },
+    "encoder_interference": {
+      "sha256": "bd9660d0f48723ab86358e531992a00bc9a3ed1a26b9e5235531c87222374941",
+      "cases": 6,
+      "repeats_per_case": 4,
+      "encoder_backend": "original SDPA",
+      "encoder_stream_priority": -1,
+      "e_encoder_event_intersections": 24,
+      "e_encoder_event_trials": 24
+    },
+    "encoder_equal_priority": {
+      "sha256": "2f41e1e182a451bef6751e605750123b81dba4ab692f5c75177e9de2764fa3cb",
+      "cases": 6,
+      "repeats_per_case": 4,
+      "encoder_backend": "original SDPA",
+      "encoder_stream_priority": 0,
+      "paired_case_and_arm_order_validated": true,
+      "e_encoder_event_intersections": 24,
+      "e_encoder_event_trials": 24
+    }
+  },
+  "independent_reference": {
+    "operator_fp32_witness": {
+      "sha256": "4e0b29cc51871ecd67c7d66dd5b033a6b5547edb294cb7ab86a0864b97ff7791",
+      "evidence": "CORRECTNESS_ONLY",
+      "passed": 9,
+      "checks": 34,
+      "max_lse_absolute_error_limit": 0.0002
+    },
+    "operator_fp32_lse_diagnostic": {
+      "sha256": "e8963d72855b844edd1b2b5c41cf1f0d4ebe35fb45e0e8e95508286d9df8a7e7",
+      "evidence": "CORRECTNESS_ONLY",
+      "passed": 0,
+      "checks": 25,
+      "max_lse_absolute_error_limit": 0.0002,
+      "threshold_exceedances_per_check": 1,
+      "ulp_distance_at_threshold_exceedance_against_fp32": 1,
+      "max_split_lse_absolute_error_against_native_fa3": 0.00006103515625
+    }
+  },
+  "failed_attempt": {
+    "phase": "smoke_peer_kernel",
+    "recovery": "Use measured CUDA memcpy DAG. The later peer-kernel pointer naming fix has no effect on measured CUDA memcpy.",
+    "first_error": "Triton conditional used the same SSA name for BF16 and FP32 destination pointers. The process exited before timing."
+  },
+  "largest_eager_relative_l2": 0.0032771346159279346,
+  "largest_absolute_lse_error": 1.52587890625e-05,
+  "largest_graph_relative_l2": 0.0032771346159279346,
+  "largest_changed_query_relative_l2": 0.0032579745166003704
+}

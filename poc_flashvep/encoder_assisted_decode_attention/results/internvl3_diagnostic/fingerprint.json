@@ -1,0 +1,79 @@
+{
+  "leases": {
+    "native": {
+      "gpus": {
+        "6": "GPU-ba1fe988-9759-1ffd-00f5-854a961698ce"
+      },
+      "driver": "580.126.16",
+      "gpu6_to_gpu4_topology": "NV18",
+      "command": [
+        "/home1/irteam/MLLM_PD/mllm_epd_runtime_env/bin/python",
+        "-u",
+        "-m",
+        "poc_flashvep.encoder_assisted_decode_attention.internvl_native",
+        "--model",
+        "/home1/irteam/MLLM_PD/h200_eada_runs/models/internvl3_8b",
+        "--manifest",
+        "../mllm_epd_autosetup/manifests_1795600931728841878/main100_manifest_template_v2.json",
+        "--output",
+        "/home1/irteam/MLLM_PD/h200_eada_runs/internvl3_diag/native.json",
+        "--tokens",
+        "16",
+        "--repeats",
+        "3",
+        "--capture-qkv",
+        "/home1/irteam/MLLM_PD/h200_eada_runs/internvl3_diag/real_layer0_qkv.pt"
+      ],
+      "utc_start": "2026-11-27T08:48:00.849009+00:00",
+      "utc_end": "2026-11-27T08:49:13.373611+00:00",
+      "terminal": "COMPLETE"
+    },
+    "operator": {
+      "gpus": {
+        "6": "GPU-ba1fe988-9759-1ffd-00f5-854a961698ce",
+        "4": "GPU-7cdfd11a-6f4d-3021-186b-5cd6b14dfd1e"
+      },
+      "driver": "580.126.16",
+      "gpu6_to_gpu4_topology": "NV18",
+      "command": [
+        "/home1/irteam/MLLM_PD/mllm_epd_runtime_env/bin/python",
+        "-u",
+        "-m",
+        "poc_flashvep.encoder_assisted_decode_attention.operator_bench",
+        "--out",
+        "/home1/irteam/MLLM_PD/h200_eada_runs/internvl3_diag/operator.jsonl",
+        "--decode-device",
+        "0",
+        "--helper-device",
+        "1",
+        "--fixture",
+        "/home1/irteam/MLLM_PD/h200_eada_runs/internvl3_diag/real_layer0_qkv.pt",
+        "--ratios",
+        ".25",
+        ".5",
+        ".75",
+        "1",
+        "--local-splits",
+        "0",
+        "1",
+        "2",
+        "4",
+        "8",
+        "--repeats",
+        "3",
+        "--calls",
+        "64",
+        "--require-split-graph"
+      ],
+      "utc_start": "2026-11-27T08:49:16.370709+00:00",
+      "utc_end": "2026-11-27T08:49:28.943062+00:00",
+      "terminal": "COMPLETE"
+    }
+  },
+  "artifacts_sha256": {
+    "native.json": "a8f9596f87226af8fa61efa4fccc7755b733a114f3d395c82c24bb0e9534172c",
+    "operator.jsonl": "913cf5f6d03c8f3ce6ddd1509222ecd49cf7271a380e3784074da69cb25afc39",
+    "software.json": "150f64ff16deb57a2d7e34f43e493ef393f7d23a4ccdb03c9f463ea92adce098",
+    "source.sha256": "d442e3abc721894ffc583e5337a6c720b1c567568e4924d5d6d90eb7d6af7279"
+  }
+}
