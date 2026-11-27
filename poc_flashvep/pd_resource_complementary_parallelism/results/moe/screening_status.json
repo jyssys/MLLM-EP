@@ -1,0 +1,34 @@
+{
+  "direction": "C",
+  "verdict": "NO_GO_INCREMENTAL",
+  "evidence": "MEASURED_PHYSICAL",
+  "measured": {
+    "decode_rows_per_rank": [
+      4,
+      8
+    ],
+    "decode_context_tokens": 8192,
+    "prefill_rows_per_rank": [
+      128,
+      512,
+      2048
+    ],
+    "nccl_joint_pair_pass": 7,
+    "nccl_pairs": 48,
+    "deepep_ht_joint_pair_pass": 0,
+    "deepep_ht_pairs": 48,
+    "positive_pair": "decode expert GEMM concurrent with small prefill dispatch"
+  },
+  "not_run": {
+    "decode_rows_per_rank_1": "Lease ended during warmup",
+    "deepep_low_latency_physical_pairing": "Intranode high-throughput was the measured DeepEP mode",
+    "online_shared_expert_candidate": "No incremental advantage supported by the isolated pairing and prior-work screen"
+  },
+  "native_pilot": {
+    "evidence": "MEASURED_ONLINE",
+    "status": "COMPLETE",
+    "server_restarts_measured": 1,
+    "artifact": "native_ep_agrs_pilot.json",
+    "accelerated_candidate": false
+  }
+}

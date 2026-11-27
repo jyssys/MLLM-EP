@@ -1,0 +1,58 @@
+{
+  "title": "Resource-complementary PD candidate screening",
+  "subtitle": "H200 measurements with the strongest tested physical control in each direction",
+  "note": "The online status applies to proposed candidates. The study includes native online PD and EP baselines.",
+  "directions": [
+    {
+      "direction": "A  Operator sharing",
+      "evidence": "MEASURED_PHYSICAL",
+      "finding": "The joint round-trip gate passed in 0/24 coincident releases and 15/24 decode-first temporal releases.",
+      "status": "NO_GO_INTERFERENCE",
+      "reason": "Best retiled concurrent D p95 is +63.87%. Protected spatial cells sharply slow P.",
+      "decision_color": "no_go",
+      "candidate_online": "NOT_RUN",
+      "sources": [
+        "operator_targeted_summary.json",
+        "operator_quanta_summary.json",
+        "a_spatial_metrics.csv"
+      ]
+    },
+    {
+      "direction": "B  Destination-local KV",
+      "evidence": "MEASURED_PHYSICAL",
+      "finding": "Qwen3-8B hidden transfer and destination projection cost 3.72–4.74× direct KV transfer.",
+      "status": "NO_GO_COMMUNICATION",
+      "reason": "GQA favors direct layer KV handoff.",
+      "decision_color": "no_go",
+      "candidate_online": "NOT_RUN",
+      "sources": [
+        "operator_primary_summary.json"
+      ]
+    },
+    {
+      "direction": "C  MoE resource sharing",
+      "evidence": "MEASURED_PHYSICAL",
+      "finding": "The joint pair gate passed in 7/48 fixed-route NCCL trials and 0/48 DeepEP HT trials. Passing pairs overlap D GEMM with small P dispatch.",
+      "status": "NO_GO_INCREMENTAL",
+      "reason": "Passing overlap matches existing dual microbatch overlap.",
+      "decision_color": "no_go",
+      "candidate_online": "NOT_RUN",
+      "sources": [
+        "moe/screening_status.json"
+      ]
+    },
+    {
+      "direction": "D  Heterogeneous prefill",
+      "evidence": "MEASURED_PHYSICAL",
+      "finding": "Four-layer eager hybrid improved up to 1.92%. At 16K CUDA Graph, it trailed uniform CP2 by 2.51%.",
+      "status": "NO_GO_INCREMENTAL",
+      "reason": "Below the 10% physical advance target.",
+      "decision_color": "no_go",
+      "candidate_online": "NOT_RUN",
+      "sources": [
+        "d_hybrid_four_layers.jsonl.gz",
+        "d_hybrid_four_layers_graph.jsonl.gz"
+      ]
+    }
+  ]
+}
