@@ -4,6 +4,7 @@ import argparse
 import asyncio
 import json
 from pathlib import Path
+import re
 import time
 
 import aiohttp
@@ -13,10 +14,11 @@ from ..mllm_epd_h200_prefill_heavy_batch_matched import runtime as rt
 
 def freeze_ready_trace(proxy, tag, out):
     ready = []
+    request_id = re.compile(re.escape(tag) + r"_[0-9]{4,}")
     with proxy.open() as stream:
         for line in stream:
             row = json.loads(line)
-            if (row["runtime_request_id"].startswith(tag + "_")
+            if (request_id.fullmatch(row["runtime_request_id"])
                     and row.get("status") == "MEASURED_ONLINE" and "E_complete" in row):
                 ready.append((row["E_complete"], row["runtime_request_id"]))
     ready.sort()

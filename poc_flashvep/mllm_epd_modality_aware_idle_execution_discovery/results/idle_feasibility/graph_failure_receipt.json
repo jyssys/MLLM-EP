@@ -1,0 +1,75 @@
+{
+  "schema": 1,
+  "failures": [
+    {
+      "case": "long:lean-graph-retry/lean_graph_long128_profile",
+      "evidence": "DIAGNOSTIC",
+      "planned": 128,
+      "statuses": {
+        "prime": {
+          "MEASURED_ONLINE": 128
+        },
+        "clean_before": {
+          "MEASURED_ONLINE": 128
+        },
+        "profile": {
+          "FAILED_EXECUTION": 128
+        },
+        "clean_after": null
+      },
+      "D_graph_instantiation_preceded_begin_RPC": true,
+      "D_begin_RPC_accepted_before_crash": true,
+      "D_native_graph_launch_segfault": true,
+      "E_EC_storage_safety_guard": true,
+      "D_graph_csv_present": false,
+      "D_ROI_present": false,
+      "diagnostic_excerpts": {
+        "D_profile_begin": {
+          "timestamp_from_log": null,
+          "excerpt": "POST /campaign/profile/begin HTTP/1.1\" 200 OK"
+        },
+        "D_native_stack": [
+          "!!!!!!! Segfault encountered !!!!!!!",
+          "File \"<unknown>\", line 0, in cuGraphLaunch",
+          "File \"<unknown>\", line 0, in cudaGraphLaunch",
+          "File \"<unknown>\", line 0, in at::cuda::CUDAGraph::replay()"
+        ],
+        "D_exit": {
+          "timestamp_from_log": "11-28 16:51:32",
+          "excerpt": "MPClient: engine core exited unexpectedly; starting cleanup"
+        },
+        "E_secondary_guard": {
+          "timestamp_from_log": "11-28 16:52:13",
+          "excerpt": "MemoryError: Live EC backing storage exceeds the frozen12GiB research bound. Do not free in-flight tensors."
+        }
+      },
+      "sources": [
+        {
+          "path": "../h200_idle_execution_runs/lean-graph-retry/logs/decode.log",
+          "sha256": "9654bedda1c4d3fd106f90bd310e52ef4b70305d52ed0c98585b393d6fcc49f2",
+          "bytes": 137047
+        },
+        {
+          "path": "../h200_idle_execution_runs/lean-graph-retry/logs/encoder.log",
+          "sha256": "ba25735ff8ced75437fb57b7c754e0e2063de47893d80a023408f4187a7008c8",
+          "bytes": 145582
+        },
+        {
+          "path": "../h200_idle_execution_runs/lean-graph-retry/raw/lean_graph_long128_prime_requests.jsonl",
+          "sha256": "f316fcede02dca2369d9b5c292cf99a19a7df77ed83bc570fda18d2f3aeefc8a",
+          "bytes": 54537899
+        },
+        {
+          "path": "../h200_idle_execution_runs/lean-graph-retry/raw/lean_graph_long128_clean_before_requests.jsonl",
+          "sha256": "61281f0990e5d019c4eff113e38cf65b315b4fc1407deec5e2b08ea7ab4f9ef8",
+          "bytes": 54539330
+        },
+        {
+          "path": "../h200_idle_execution_runs/lean-graph-retry/raw/lean_graph_long128_profile_requests.jsonl",
+          "sha256": "320c8ea21afa5373e1680b5f7d5fc586311c8108b5c9aa4a76ea5101cde5f535",
+          "bytes": 111076
+        }
+      ]
+    }
+  ]
+}

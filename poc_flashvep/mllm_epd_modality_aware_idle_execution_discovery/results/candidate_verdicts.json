@@ -1,0 +1,54 @@
+{
+  "scope": "Pinned Qwen2.5-VL-7B, three H200s. Physical and historical gates did not promote a new Online method.",
+  "candidates": [
+    {
+      "candidate": "A",
+      "mechanism": "Complete image encoding on D",
+      "verdict": "CONDITIONAL_PHYSICAL_SIGNAL",
+      "evidence": "MEASURED_PHYSICAL, ANALYTICAL_BOUND",
+      "basis": "32.2% faster encoder round, 4/4 bitwise. Untimed admission interrupts Decode. Earlier E releases did not advance main P handoffs in the fixed-order replay."
+    },
+    {
+      "candidate": "B",
+      "mechanism": "Image boundaries as LM scheduling quanta",
+      "verdict": "NO_GO_INCREMENTAL",
+      "evidence": "HISTORICAL PHYSICAL AND ONLINE",
+      "basis": "Matched slice-aware transport left 7 KiB median difference. Hard boundaries rejected both actual generic transfers in the earlier QPS4 matched cell."
+    },
+    {
+      "candidate": "C",
+      "mechanism": "D-local co-encode and LM Prefill",
+      "verdict": "NO_GO_IDLE_OPPORTUNITY",
+      "evidence": "HISTORICAL PHYSICAL, TRACE_ANALYSIS",
+      "basis": "Whole local LM prefill took about 1.15 s and already exceeded the longest main residual P-backed window. Joint causal partial chains were not run."
+    },
+    {
+      "candidate": "D",
+      "mechanism": "Route a ready multimodal causal prefix",
+      "verdict": "NOT_RUN",
+      "evidence": "TRACE_ANALYSIS",
+      "basis": "Exact source join shows 7/24 requests with a closed prefix at least 25 ms early. Independent early LM execution and safe D admission remain untested."
+    },
+    {
+      "candidate": "E",
+      "mechanism": "Merger or architecture-specific injection",
+      "verdict": "NOT_RUN",
+      "evidence": "SOURCE, ANALYTICAL_BOUND",
+      "basis": "Merger relocation sends 10,240 instead of 7,168 bytes per merged visual row to the consumer. Other model injection layouts were not benchmarked."
+    },
+    {
+      "candidate": "F",
+      "mechanism": "D executes legal pre-global vision windows",
+      "verdict": "NO_GO_COMMUNICATION",
+      "evidence": "MEASURED_PHYSICAL",
+      "basis": "All 21 cuts slower, best 5.9% behind E-only. Only 28/84 split embeddings bitwise to native, matched by the E-only split-shape control."
+    },
+    {
+      "candidate": "G",
+      "mechanism": "Early visual rows' first-layer QKV",
+      "verdict": "NO_GO_INCREMENTAL",
+      "evidence": "SOURCE, ANALYTICAL_BOUND",
+      "basis": "Returning all QKV costs 9,216 instead of 7,168 bytes per row, with the residual and causal attention still needed at P. Physical route was not run."
+    }
+  ]
+}

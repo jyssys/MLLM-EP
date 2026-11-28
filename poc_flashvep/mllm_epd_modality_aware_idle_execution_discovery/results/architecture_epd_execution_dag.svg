@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="640" viewBox="0 0 1440 640" role="img" aria-labelledby="title description">
+  <title id="title">Qwen2.5-VL execution dependencies and the exact pre-global split boundary</title>
+  <desc id="description">Native execution flows from complete per-image vision encoding on E to causal language-model prefill on P, then across the KV handoff to decode on D. The candidate packs the patch activations on E, splits complete windows between E and D for local blocks zero through six, then rejoins all windows on E before block seven. This is a source-derived DAG with no timing scale.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0L10 5L0 10Z" fill="#455a73"/>
+    </marker>
+    <marker id="remote-arrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0L10 5L0 10Z" fill="#7244a5"/>
+    </marker>
+    <style>
+      text { font-family: DejaVu Sans, Arial, sans-serif; fill: #13243a; }
+      .heading { font-size: 28px; font-weight: 700; }
+      .subtitle { font-size: 14px; fill: #4c6076; }
+      .panel-heading { font-size: 20px; font-weight: 700; }
+      .node { stroke-width: 1.5; }
+      .cpu { fill: #eff3f8; stroke: #bdcad9; }
+      .e { fill: #e2f2f0; stroke: #649c97; }
+      .p { fill: #e7effc; stroke: #7298cb; }
+      .d { fill: #efe8f8; stroke: #9872bc; }
+      .join { fill: #fff1da; stroke: #c28c3d; }
+      .node-title { font-size: 15px; font-weight: 700; text-anchor: middle; }
+      .node-detail { font-size: 12px; text-anchor: middle; fill: #364d65; }
+      .edge { fill: none; stroke: #455a73; stroke-width: 2; marker-end: url(#arrow); }
+      .remote { fill: none; stroke: #7244a5; stroke-width: 2.4; stroke-dasharray: 6 4; marker-end: url(#remote-arrow); }
+      .note { font-size: 12px; fill: #4c6076; }
+      .remote-note { font-size: 12px; fill: #63378d; }
+      .lane { font-size: 12px; font-weight: 700; fill: #4c6076; }
+    </style>
+  </defs>
+
+  <rect width="1440" height="640" fill="#fff"/>
+  <text x="35" y="46" class="heading">Qwen2.5-VL execution dependencies on three GPUs</text>
+  <text x="36" y="72" class="subtitle">Pinned 7B BF16 image path · structural diagram derived from source · no timing scale</text>
+
+  <rect x="34" y="98" width="1372" height="206" rx="12" fill="#f8fafc" stroke="#d4deea"/>
+  <text x="54" y="130" class="panel-heading">Native E → P → D</text>
+
+  <rect x="56" y="166" width="191" height="74" rx="8" class="node cpu"/>
+  <text x="151.5" y="191" class="node-title">CPU processor</text>
+  <text x="151.5" y="213" class="node-detail">ordered images, grid, token IDs</text>
+
+  <rect x="291" y="166" width="243" height="74" rx="8" class="node e"/>
+  <text x="412.5" y="191" class="node-title">E · original vision tower</text>
+  <text x="412.5" y="213" class="node-detail">patches → 32 blocks → merger</text>
+
+  <rect x="627" y="166" width="228" height="74" rx="8" class="node p"/>
+  <text x="741" y="191" class="node-title">P · causal LM prefill</text>
+  <text x="741" y="213" class="node-detail">original positions + earlier LM KV</text>
+
+  <rect x="956" y="166" width="214" height="74" rx="8" class="node d"/>
+  <text x="1063" y="191" class="node-title">D · autoregressive decode</text>
+  <text x="1063" y="213" class="node-detail">acquire and retain active KV</text>
+
+  <rect x="1220" y="166" width="164" height="74" rx="8" class="node cpu"/>
+  <text x="1302" y="191" class="node-title">Client</text>
+  <text x="1302" y="213" class="node-detail">streamed tokens</text>
+
+  <path d="M247 203H289" class="edge"/>
+  <path d="M534 203H625" class="edge"/>
+  <path d="M855 203H954" class="edge"/>
+  <path d="M1170 203H1218" class="edge"/>
+  <text x="580" y="188" class="node-detail">EC IPC</text>
+  <text x="905" y="188" class="node-detail">NIXL READ</text>
+  <text x="56" y="273" class="note">A vision item becomes usable after its original merger output is available. LM work still depends on the causal prefix and the runtime's publication policy.</text>
+
+  <rect x="34" y="321" width="1372" height="290" rx="12" fill="#f8fafc" stroke="#d4deea"/>
+  <text x="54" y="353" class="panel-heading">F · Split complete windows within one image before native block 7</text>
+  <text x="56" y="396" class="lane">ENCODER GPU</text>
+  <text x="56" y="518" class="lane">DECODE GPU</text>
+
+  <rect x="56" y="406" width="218" height="65" rx="8" class="node e"/>
+  <text x="165" y="431" class="node-title">Patch embed + pack</text>
+  <text x="165" y="451" class="node-detail">original window order and RoPE</text>
+
+  <rect x="361" y="406" width="217" height="65" rx="8" class="node e"/>
+  <text x="469.5" y="431" class="node-title">Local blocks 0–6</text>
+  <text x="469.5" y="451" class="node-detail">kept windows on E</text>
+
+  <rect x="361" y="519" width="217" height="65" rx="8" class="node d"/>
+  <text x="469.5" y="544" class="node-title">Local blocks 0–6</text>
+  <text x="469.5" y="564" class="node-detail">selected complete windows on D</text>
+
+  <rect x="676" y="406" width="226" height="65" rx="8" class="node join"/>
+  <text x="789" y="431" class="node-title">Join all window states</text>
+  <text x="789" y="451" class="node-detail">first global attention at block 7</text>
+
+  <rect x="955" y="406" width="205" height="65" rx="8" class="node e"/>
+  <text x="1057.5" y="431" class="node-title">Original E tower tail</text>
+  <text x="1057.5" y="451" class="node-detail">merger → inverse permutation</text>
+
+  <rect x="1215" y="406" width="169" height="65" rx="8" class="node p"/>
+  <text x="1299.5" y="431" class="node-title">Native P → D</text>
+  <text x="1299.5" y="451" class="node-detail">ordinary handoff</text>
+
+  <path d="M274 439H359" class="edge"/>
+  <path d="M578 439H674" class="edge"/>
+  <path d="M902 439H953" class="edge"/>
+  <path d="M1160 439H1213" class="edge"/>
+  <path d="M283 439H308V551.5H359" class="remote"/>
+  <path d="M578 551.5H632V439H674" class="remote"/>
+  <path d="M700 551.5H669" class="remote"/>
+  <text x="318" y="533" class="remote-note">E→D</text>
+  <text x="588" y="533" class="remote-note">D→E</text>
+  <text x="705" y="555" class="remote-note">D admission must protect existing decode and outstanding KV transfers.</text>
+  <text x="706" y="578" class="note">The join is on the encoder critical path. This split does not make individual windows visible to P.</text>
+</svg>
