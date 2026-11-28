@@ -107,6 +107,14 @@ class RenderStore:
         if 'token_split_plan' in manifest:
             from .token_split import PLAN_KEY
             assert (request.kv_transfer_params or {}).get(PLAN_KEY)==manifest['token_split_plan'], 'Consumer query ownership differs from E delivery plan'
+        payload=self.decode_bundle(folder,manifest)
+        prompt=dict(payload.prompt,mm_kwargs=payload.mm_kwargs,mm_placeholders=payload.mm_placeholders)
+        assert set(prompt)==set(manifest['input_keys'])
+        prompt['arrival_time']=arrival_time
+        return payload.conversation,[prompt]
+
+    @staticmethod
+    def decode_bundle(folder,manifest):
         buffers=[]
         for item in manifest['buffers']:
             assert re.fullmatch('buffer_[0-9]+[.]bin',item['name'])
@@ -119,10 +127,7 @@ class RenderStore:
         decoder.pin_tensors=False
         payload=decoder.decode(buffers)
         assert payload.fingerprint==manifest['fingerprint'] and payload.mode==manifest['mode']
-        prompt=dict(payload.prompt,mm_kwargs=payload.mm_kwargs,mm_placeholders=payload.mm_placeholders)
-        assert set(prompt)==set(manifest['input_keys'])
-        prompt['arrival_time']=arrival_time
-        return payload.conversation,[prompt]
+        return payload
 
 
 def verify_online_exports(inputs,ec_path):

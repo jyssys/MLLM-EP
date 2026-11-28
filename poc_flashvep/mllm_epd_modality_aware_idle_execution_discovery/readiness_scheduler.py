@@ -42,7 +42,8 @@ class ReadinessScheduler(AsyncScheduler):
             if num_computed_tokens < value["cut"]:
                 num_new_tokens = min(num_new_tokens, value["cut"] - num_computed_tokens)
             elif not value.get("full_published"):
-                if all(published(self.encoder_exports, image) for image in value["images"]):
+                if all(published(self.encoder_exports, image, value.get("require_cuda", False))
+                       for image in value["images"]):
                     value["full_published"] = True
                     value["resume_ns"] = time.monotonic_ns()
                 else:

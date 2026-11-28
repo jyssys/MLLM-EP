@@ -9,6 +9,7 @@ import time
 
 FRONTIER_KEY = "campaign_ready_frontier_v1"
 VISION_END = 151653
+ARMS = ("late_p", "early_p", "late_d", "early_d")
 
 
 def contract_path(metadata, key):
@@ -26,12 +27,13 @@ def load_contract(metadata, key):
     return value
 
 
-def published(ec, image):
+def published(ec, image, require_cuda=False):
     from ..mllm_epd_prefill_heavy_token_split.cuda_ipc_ec import directory
 
     folder = directory(ec, image)
     return ((folder / "cuda_ipc_inline_prefill.json").is_file()
             and (folder / "cuda_ipc_ready.json").is_file()
+            and (not require_cuda or (folder / "cuda_group_ready.json").is_file())
             and not (folder / "cuda_ipc_released.json").exists())
 
 
@@ -64,7 +66,8 @@ def install_renderer():
         if ids != value["images"] or len(tokens) != value["prompt_tokens"]:
             raise ValueError("Prepared inputs differ from the original frontier contract")
         check_cut(value, tokens, [(p.offset, p.offset + p.length) for p in positions])
-        if not all(published(ec, image) for image in ids[:value["prefix_images"]]):
+        if not all(published(ec, image, value.get("require_cuda", False))
+                   for image in ids[:value["prefix_images"]]):
             raise ValueError("An original inline descriptor for the causal prefix is missing")
         return original([{"mm_hashes": {"image": ids[:value["prefix_images"]]}}], ec)
 

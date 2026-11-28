@@ -11,13 +11,10 @@ import aiohttp
 
 from ..mllm_epd_h200_prefill_heavy_batch_matched import capacity
 from ..mllm_epd_prefill_heavy_modality_discovery import runner as native
-from .readiness_execution import FRONTIER_KEY, contract_path, published
+from .readiness_execution import ARMS, FRONTIER_KEY, contract_path, published
 
 
-ARMS = ("late_p", "early_p", "late_d", "early_d")
-
-
-async def poll_publications(ec, metadata, key, fixture, role, ready):
+async def poll_publications(ec, metadata, key, fixture, role, ready, require_cuda=False):
     path = contract_path(metadata, key)
     manifest_path = path.with_name("manifest.json")
     async with asyncio.timeout(45):
@@ -30,7 +27,7 @@ async def poll_publications(ec, metadata, key, fixture, role, ready):
                 or manifest["image_spans"][prefix-1][1] + 1 != cut):
             raise ValueError("Live E manifest differs from the selected original cut")
         value = {"key": key, "role": role, "cut": cut, "prefix_images": prefix,
-                 "prompt_tokens": manifest["prompt_tokens"], "images": images}
+                 "prompt_tokens": manifest["prompt_tokens"], "images": images, "require_cuda": require_cuda}
         with path.open("x") as stream:
             json.dump(value, stream)
         stamps = []
@@ -38,7 +35,7 @@ async def poll_publications(ec, metadata, key, fixture, role, ready):
         for image in images:
             while True:
                 probe = time.monotonic_ns()
-                if published(ec, image):
+                if published(ec, image, require_cuda):
                     break
                 all_not_yet_published_ns = probe
                 await asyncio.sleep(.001)
@@ -47,10 +44,10 @@ async def poll_publications(ec, metadata, key, fixture, role, ready):
                 ready.set()
     return {"prefix_published_ns": stamps[prefix-1], "all_published_ns": stamps[-1],
             "all_not_yet_published_ns": all_not_yet_published_ns,
-            "published_items": len(stamps)}
+            "published_items": len(stamps), "image_ids": images}
 
 
-async def run_arm(session, client, ec, fixture, tag, arm, output):
+async def run_arm(session, client, ec, fixture, tag, arm, output, *, require_cuda=False, signatures=False):
     row = fixture["request"]
     role = "prefill" if arm.endswith("_p") else "decode"
     headers = capacity.headers(tag, "E:full")
@@ -66,7 +63,7 @@ async def run_arm(session, client, ec, fixture, tag, arm, output):
         return round(result["finish"] * 1e9)
 
     e_task = asyncio.create_task(produce())
-    publication = asyncio.create_task(poll_publications(ec, metadata, key, fixture, role, ready))
+    publication = asyncio.create_task(poll_publications(ec, metadata, key, fixture, role, ready, require_cuda))
     await_prefix = asyncio.create_task(ready.wait())
     try:
         done, _ = await asyncio.wait([await_prefix, publication, e_task], return_when=asyncio.FIRST_COMPLETED)
@@ -76,6 +73,8 @@ async def run_arm(session, client, ec, fixture, tag, arm, output):
             await await_prefix
         if arm.startswith("late"):
             await e_task
+            if require_cuda:
+                await publication
         intent = {FRONTIER_KEY: key}
         submit_ns = time.monotonic_ns()
         p_done_ns = None
@@ -109,6 +108,9 @@ async def run_arm(session, client, ec, fixture, tag, arm, output):
         if not ids or len(ids) != fixture["total_tokens"]:
             raise ValueError("D did not return the complete original prompt identity")
         prompt_digest = hashlib.sha256(json.dumps(ids, separators=(",", ":")).encode()).hexdigest()
+        if signatures:
+            observations["encoder_signatures"] = [json.loads((ec/image/"cuda_ipc_ready.json").read_bytes())[
+                "original_embedding_signature"] for image in observations["image_ids"]]
         await capacity.json_reply(capacity.post_rpc(session, ep, "ec_ipc/release", {"key": key}), "E release")
         return observations | {"tag": tag, "key": key, "arm": arm, "fixture": fixture["case_id"],
                 "cut": fixture["cut_tokens"], "prefix_images": fixture["prefix_images"],
